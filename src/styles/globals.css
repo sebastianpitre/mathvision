@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@import "./theme.css";
+
+body{
+
+background:var(--dark);
+
+color:var(--text);
+
+font-family:'Poppins',sans-serif;
+
+overflow-x:hidden;
+
+}
