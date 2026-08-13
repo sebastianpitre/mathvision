@@ -1,79 +1,130 @@
-import { FaHome, FaGamepad, FaUserGraduate, FaCog } from "react-icons/fa";
+import {
+    FaHome,
+    FaGamepad,
+    FaUserGraduate,
+    FaCog,
+    FaTrophy,
+    FaChartLine
+} from "react-icons/fa";
 
-export default function Sidebar(){
+import { NavLink } from "react-router-dom";
 
-    return(
+const menuItems = [
+    {
+        name: "Dashboard",
+        path: "/dashboard",
+        icon: FaHome
+    },
+    {
+        name: "Juegos",
+        path: "/games",
+        icon: FaGamepad
+    },
+    {
+        name: "Progreso",
+        path: "/progress",
+        icon: FaChartLine
+    },
+    {
+        name: "Logros",
+        path: "/achievements",
+        icon: FaTrophy
+    },
+    {
+        name: "Perfil",
+        path: "/profile",
+        icon: FaUserGraduate
+    }
+];
 
-        <aside className="w-72 min-h-screen bg-slate-900 border-r border-slate-800">
+export default function Sidebar() {
 
-            <div className="text-center py-8">
+    return (
+        <aside className="hidden min-h-screen w-64 shrink-0 border-r border-slate-800 bg-slate-950/90 backdrop-blur-xl lg:block">
 
-                <h1 className="text-3xl font-bold text-cyan-400">
+            {/* LOGO */}
 
-                    MathVision
+            <div className="flex h-20 items-center border-b border-slate-800 px-6">
 
-                </h1>
+                <div>
+
+                    <h1 className="text-2xl font-black tracking-tight">
+
+                        Math
+                        <span className="text-cyan-400">
+                            Vision
+                        </span>
+
+                    </h1>
+
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">
+                        Learning Universe
+                    </p>
+
+                </div>
 
             </div>
 
-            <nav>
+            {/* MENU */}
 
-                <ul className="space-y-2 px-4">
+            <nav className="px-4 py-6">
 
-                    <li>
+                <p className="mb-4 px-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+                    Navegación
+                </p>
 
-                        <a href="#" className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-800 transition">
+                <div className="space-y-2">
 
-                            <FaHome/>
+                    {menuItems.map((item) => {
 
-                            Dashboard
+                        const Icon = item.icon;
 
-                        </a>
+                        return (
+                            <NavLink
+                                key={item.path}
+                                to={item.path}
+                                className={({ isActive }) =>
+                                    `
+                                    flex items-center gap-4 rounded-xl px-4 py-3
+                                    transition-all duration-300
+                                    ${
+                                        isActive
+                                            ? "bg-cyan-500/10 text-cyan-400 shadow-[inset_3px_0_0_#22d3ee]"
+                                            : "text-slate-400 hover:bg-slate-900 hover:text-white"
+                                    }
+                                    `
+                                }
+                            >
 
-                    </li>
+                                <Icon />
 
-                    <li>
+                                <span className="font-medium">
+                                    {item.name}
+                                </span>
 
-                        <a href="#" className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-800 transition">
+                            </NavLink>
+                        );
 
-                            <FaGamepad/>
+                    })}
 
-                            Juegos
-
-                        </a>
-
-                    </li>
-
-                    <li>
-
-                        <a href="#" className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-800 transition">
-
-                            <FaUserGraduate/>
-
-                            Perfil
-
-                        </a>
-
-                    </li>
-
-                    <li>
-
-                        <a href="#" className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-800 transition">
-
-                            <FaCog/>
-
-                            Configuración
-
-                        </a>
-
-                    </li>
-
-                </ul>
+                </div>
 
             </nav>
 
+            {/* BOTTOM CARD */}
+
+            <div className="mx-4 mt-10 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+
+                <p className="text-sm font-bold text-cyan-400">
+                    🚀 Próximamente
+                </p>
+
+                <p className="mt-2 text-xs leading-5 text-slate-400">
+                    Nuevas experiencias de realidad virtual.
+                </p>
+
+            </div>
+
         </aside>
-
-    )
-
+    );
 }

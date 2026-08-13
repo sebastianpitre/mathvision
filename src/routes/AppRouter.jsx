@@ -5,19 +5,29 @@ import Dashboard from "../pages/Dashboard/Dashboard";
 import Games from "../pages/Games/Games";
 import NotFound from "../pages/NotFound/NotFound";
 
+import EscapeAlgebra from "../games/EscapeAlgebra/EscapeAlgebra";
+
 function AppRouter() {
+
     return (
+
         <Routes>
 
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Home />} />
 
             <Route path="/dashboard" element={<Dashboard />} />
 
             <Route path="/games" element={<Games />} />
 
+            <Route
+                path="/games/escape-algebra"
+                element={<EscapeAlgebra />}
+            />
+
             <Route path="*" element={<NotFound />} />
 
         </Routes>
+
     );
 }
 
