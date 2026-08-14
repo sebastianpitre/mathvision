@@ -149,6 +149,14 @@ export default function EscapeAlgebra() {
                 previous + points
             );
     
+            const currentXP =
+                Number(localStorage.getItem("mathvision_xp")) || 0;
+
+            localStorage.setItem(
+                "mathvision_xp",
+                currentXP + points
+            );
+
             setCombo((previous) =>
                 previous + 1
             );
@@ -191,14 +199,62 @@ export default function EscapeAlgebra() {
             currentQuestion + 1 >= questions.length
         ) {
 
-            setFinished(true);
+            // =========================
+            // JUEGO COMPLETADO
+            // =========================
 
-            return;
+            const completedGames =
+                Number(
+                    localStorage.getItem("mathvision_games")
+                ) || 0;
 
-        }
+            localStorage.setItem(
+                "mathvision_games",
+                completedGames + 1
+            );
 
 
-        if (!correct && lives <= 1) {
+            // =========================
+            // LOGRO
+            // =========================
+
+            const achievements =
+                Number(
+                    localStorage.getItem("mathvision_achievements")
+                ) || 0;
+
+            if (achievements === 0) {
+
+                localStorage.setItem(
+                    "mathvision_achievements",
+                    1
+                );
+
+            }
+
+
+            // =========================
+            // MUNDO COMPLETADO
+            // =========================
+
+            const completedWorlds =
+                JSON.parse(
+                    localStorage.getItem(
+                        "mathvision_completed_worlds"
+                    ) || "[]"
+                );
+
+            if (!completedWorlds.includes("algebra")) {
+
+                completedWorlds.push("algebra");
+
+                localStorage.setItem(
+                    "mathvision_completed_worlds",
+                    JSON.stringify(completedWorlds)
+                );
+
+            }
+
 
             setFinished(true);
 

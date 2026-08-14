@@ -4,7 +4,7 @@ import Home from "../pages/Home/Home";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import Games from "../pages/Games/Games";
 import NotFound from "../pages/NotFound/NotFound";
-
+import World from "../pages/World/World";
 import EscapeAlgebra from "../games/EscapeAlgebra/EscapeAlgebra";
 
 function AppRouter() {
@@ -13,12 +13,12 @@ function AppRouter() {
 
         <Routes>
 
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Dashboard />} />
 
             <Route path="/dashboard" element={<Dashboard />} />
 
             <Route path="/games" element={<Games />} />
-
+            <Route path="/world" element={<World />} />
             <Route
                 path="/games/escape-algebra"
                 element={<EscapeAlgebra />}
