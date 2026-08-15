@@ -33,6 +33,18 @@ export default function EscapeAlgebra() {
     const navigate = useNavigate();
     const warningAudioRef = useRef(null);
 
+    const stopWarningSound = () => {
+
+        if (warningAudioRef.current) {
+
+            warningAudioRef.current.pause();
+            warningAudioRef.current.currentTime = 0;
+            warningAudioRef.current = null;
+
+        }
+
+    };
+
 
     // =====================================================
     // ESTADOS
@@ -72,26 +84,16 @@ export default function EscapeAlgebra() {
 
         useEffect(() => {
 
-            // Si ya terminó el juego, detener warning
-            if (finished) {
-
-                if (warningAudioRef.current) {
-                    warningAudioRef.current.pause();
-                    warningAudioRef.current.currentTime = 0;
-                    warningAudioRef.current = null;
-                }
-
+            if (
+                finished ||
+                !question
+            ) {
                 return;
             }
 
-            // Cuando llega a 5 segundos
             if (time === 5) {
 
-                // Detener cualquier warning anterior
-                if (warningAudioRef.current) {
-                    warningAudioRef.current.pause();
-                    warningAudioRef.current.currentTime = 0;
-                }
+                stopWarningSound();
 
                 const audio = new Audio(
                     "/sounds/warning.mp3"
@@ -105,25 +107,11 @@ export default function EscapeAlgebra() {
 
             }
 
-            // =============================================
-            // LLEGÓ A 0 → CORTAR AUDIO INMEDIATAMENTE
-            // =============================================
-
-            if (time <= 1) {
-
-                if (warningAudioRef.current) {
-
-                    warningAudioRef.current.pause();
-
-                    warningAudioRef.current.currentTime = 0;
-
-                    warningAudioRef.current = null;
-
-                }
-
-            }
-
-        }, [time, finished]);
+        }, [
+            time,
+            finished,
+            question
+        ]);
 
 
     // =====================================================
@@ -189,21 +177,6 @@ export default function EscapeAlgebra() {
             return;
         }
 
-
-        // -------------------------------------------------
-        // AVISO DE 5 SEGUNDOS
-        // -------------------------------------------------
-
-        if (time === 5) {
-
-            playSound(
-                "warning",
-                0.7
-            );
-
-        }
-
-
         const timer =
             setInterval(() => {
 
@@ -233,16 +206,8 @@ export default function EscapeAlgebra() {
 
     const handleTimeout = () => {
 
-        // DETENER WARNING INMEDIATAMENTE
-        if (warningAudioRef.current) {
-
-            warningAudioRef.current.pause();
-
-            warningAudioRef.current.currentTime = 0;
-
-            warningAudioRef.current = null;
-
-        }
+        // DETENER WARNING AL TERMINAR EL TIEMPO
+        stopWarningSound();
 
         if (
             selectedAnswer ||
@@ -328,6 +293,8 @@ export default function EscapeAlgebra() {
             return;
         }
 
+        // DETENER WARNING AL RESPONDER
+        stopWarningSound();
 
         const normalizedAnswer =
             String(answer).trim();
@@ -359,16 +326,12 @@ export default function EscapeAlgebra() {
 
         if (correct) {
 
-            playSound(
-                "correct",
-                0.7
-            );
+            // 🔇 DETENER WARNING INMEDIATAMENTE
+            stopWarningSound();
 
+            playSound("correct", 0.7);
 
-            playSound(
-                "unlock",
-                0.8
-            );
+            playSound("unlock", 0.8);
 
 
             const comboBonus =
@@ -438,6 +401,9 @@ export default function EscapeAlgebra() {
 
         else {
 
+            // 🔇 DETENER WARNING INMEDIATAMENTE
+            stopWarningSound();
+
             playSound(
                 "incorrect",
                 0.7
@@ -485,6 +451,9 @@ export default function EscapeAlgebra() {
         // -------------------------------------------------
         // ÚLTIMA PREGUNTA
         // -------------------------------------------------
+
+        // DETENER WARNING ANTES DE CAMBIAR DE PREGUNTA
+        stopWarningSound();
 
         if (
             currentQuestion + 1 >=
@@ -549,6 +518,7 @@ export default function EscapeAlgebra() {
 
     const restartGame = () => {
 
+        stopWarningSound();
         const shuffled =
             [...questions]
                 .sort(

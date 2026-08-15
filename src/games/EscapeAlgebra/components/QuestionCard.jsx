@@ -8,6 +8,8 @@ import {
     FaBolt
 } from "react-icons/fa";
 
+import { PiKeyholeFill } from "react-icons/pi"; // Phosphor Icons, más simple/estilizado
+
 import NumberPad from "./NumberPad";
 
 
@@ -271,11 +273,12 @@ export default function QuestionCard({
 
                             <div className="
                                 absolute
-                                top-2/3
+                                top-2/4
                                 z-20
                                 -translate-y-1/2
                             " style={{
                                 right: "-35px",
+                                marginTop: "15px"
                             }}>
 
                                 <motion.div
@@ -329,7 +332,7 @@ export default function QuestionCard({
                                             absolute
                                             -top-1
                                             left-1/2
-                                            h-12
+                                            h-9
                                             w-10
                                             -translate-x-1/2
                                             rounded-t-full
@@ -366,18 +369,19 @@ export default function QuestionCard({
                                             relative
                                             z-10
                                             flex
-                                            h-16
+                                            h-14
                                             w-14
                                             items-center
                                             justify-center
                                             rounded-xl
                                             border-2
+                                            bg-yellow-700
 
                                             ${
                                                 correct
                                                     ? `
                                                         border-emerald-400
-                                                        bg-emerald-950
+                                                        bg-emerald-400
                                                         shadow-[0_0_30px_rgba(52,211,153,0.45)]
                                                     `
                                                     : `
@@ -411,7 +415,7 @@ export default function QuestionCard({
                                                 "
                                             >
 
-                                                <FaLock size={23} />
+                                                <PiKeyholeFill  size={28} />
 
                                             </motion.div>
 
@@ -449,7 +453,6 @@ export default function QuestionCard({
                                                 className="
                                                     relative
                                                     z-20
-                                                    text-yellow-400
                                                 "
                                             >
 
@@ -504,14 +507,14 @@ export default function QuestionCard({
 
                             <div className="
                                 absolute
-                                right-[-1px]
-                                top-1/2
+                                right-[-3px]
+                                top-1/3
                                 -translate-y-1/2
                             ">
 
                                 <div className="
-                                    h-24
-                                    w-2
+                                    h-20
+                                    w-4
                                     rounded-full
                                     bg-gradient-to-b
                                     from-slate-600
