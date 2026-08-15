@@ -929,10 +929,10 @@ export default function EscapeAlgebra() {
 
             {/* PROGRESO */}
 
-            <div className="mx-auto max-w-3xl px-5 pt-8">
+            <div className="mx-auto max-w-3xl px-5 pt-3">
 
 
-                <div className="mb-3 flex justify-between text-sm">
+                <div className="mb-2 flex justify-between text-sm">
 
                     <span className="text-slate-400">
 
@@ -969,7 +969,7 @@ export default function EscapeAlgebra() {
 
             {/* GAME */}
 
-            <main className="relative px-5 py-12">
+            <main className="relative px-5 py-5">
 
 
                 <AnimatePresence mode="wait">

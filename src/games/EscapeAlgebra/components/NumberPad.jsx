@@ -21,11 +21,7 @@ export default function NumberPad({
 
     const addNumber = (number) => {
 
-        if (disabled) {
-            return;
-        }
-
-        if (value.length >= 4) {
+        if (disabled || value.length >= 4) {
             return;
         }
 
@@ -49,11 +45,7 @@ export default function NumberPad({
 
     const addZero = () => {
 
-        if (disabled) {
-            return;
-        }
-
-        if (value.length >= 4) {
+        if (disabled || value.length >= 4) {
             return;
         }
 
@@ -65,30 +57,53 @@ export default function NumberPad({
 
     const buttonClass = `
         flex
-        h-16
+        h-8
         items-center
         justify-center
-        rounded-2xl
+        rounded-lg
         border
         border-slate-700
         bg-slate-800
-        text-xl
+        text-sm
         font-black
         transition
+
         hover:border-cyan-400
         hover:bg-slate-700
+
         active:scale-95
-        md:h-20
+
+        sm:h-9
+        sm:text-base
+
+        lg:h-10
     `;
 
 
     return (
 
-        <div className="mx-auto mt-6 w-full max-w-sm">
+        <div className="
+            mx-auto
+            mt-2
+            w-full
+            max-w-xs
+        ">
 
             {/* DISPLAY */}
 
-            <div className="mb-4 flex h-20 items-center justify-center rounded-2xl border border-cyan-500/30 bg-slate-950">
+            <div className="
+                mb-2
+                flex
+                h-8
+                items-center
+                justify-center
+                rounded-xl
+                border
+                border-cyan-500/30
+                bg-slate-950
+                sm:h-9
+                lg:h-10
+            ">
 
                 <motion.span
                     key={value}
@@ -101,8 +116,9 @@ export default function NumberPad({
                         opacity: 1
                     }}
                     className={`
-                        text-4xl
+                        text-lg
                         font-black
+                        sm:text-xl
 
                         ${
                             value
@@ -121,7 +137,12 @@ export default function NumberPad({
 
             {/* TECLADO */}
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="
+                grid
+                grid-cols-3
+                gap-1.5
+                sm:gap-2
+            ">
 
                 {numbers.map((number) => (
 
@@ -193,21 +214,22 @@ export default function NumberPad({
                     onClick={onSubmit}
                     className="
                         flex
-                        h-16
+                        h-8
                         items-center
                         justify-center
-                        rounded-2xl
+                        rounded-lg
                         bg-cyan-500
                         text-slate-950
                         transition
                         hover:bg-cyan-400
                         disabled:cursor-not-allowed
                         disabled:opacity-30
-                        md:h-20
+                        sm:h-9
+                        lg:h-10
                     "
                 >
 
-                    <FaCheck size={22} />
+                    <FaCheck size={15} />
 
                 </motion.button>
 
