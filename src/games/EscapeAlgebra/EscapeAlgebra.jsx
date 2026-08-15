@@ -25,6 +25,7 @@ import GameTimer from "./components/GameTimer";
 
 
 const MAX_TIME = 20;
+const QUESTIONS_PER_GAME = 5;
 
 
 export default function EscapeAlgebra() {
@@ -32,11 +33,13 @@ export default function EscapeAlgebra() {
     const navigate = useNavigate();
 
 
-    // =========================
+    // =====================================================
     // ESTADOS
-    // =========================
+    // =====================================================
 
     const [currentQuestion, setCurrentQuestion] = useState(0);
+
+    const [gameQuestions, setGameQuestions] = useState([]);
 
     const [score, setScore] = useState(0);
 
@@ -55,18 +58,59 @@ export default function EscapeAlgebra() {
     const [correctAnswers, setCorrectAnswers] = useState(0);
 
 
-    const question = questions[currentQuestion];
+    // =====================================================
+    // PREGUNTA ACTUAL
+    // =====================================================
+
+    const question = gameQuestions[currentQuestion];
 
 
-    // =========================
-    // TEMPORIZADOR
-    // =========================
+    // =====================================================
+    // SELECCIONAR PREGUNTAS ALEATORIAS
+    // =====================================================
+
+    const shuffleQuestions = () => {
+
+        const shuffled = [...questions]
+            .sort(() => Math.random() - 0.5)
+            .slice(
+                0,
+                Math.min(
+                    QUESTIONS_PER_GAME,
+                    questions.length
+                )
+            );
+
+        setGameQuestions(shuffled);
+
+    };
+
+
+    // =====================================================
+    // INICIAR JUEGO
+    // =====================================================
 
     useEffect(() => {
 
-        if (finished || feedback) {
+        shuffleQuestions();
+
+    }, []);
+
+
+    // =====================================================
+    // TEMPORIZADOR
+    // =====================================================
+
+    useEffect(() => {
+
+        if (
+            finished ||
+            feedback !== null ||
+            !question
+        ) {
             return;
         }
+
 
         if (time <= 0) {
 
@@ -88,76 +132,112 @@ export default function EscapeAlgebra() {
     }, [
         time,
         finished,
-        feedback
+        feedback,
+        question
     ]);
 
 
-    // =========================
+    // =====================================================
     // TIEMPO AGOTADO
-    // =========================
+    // =====================================================
 
     const handleTimeout = () => {
 
+        if (selectedAnswer) {
+            return;
+        }
+
+
         setSelectedAnswer("TIMEOUT");
 
-        setLives((previous) => previous - 1);
+        setLives((previous) =>
+            Math.max(0, previous - 1)
+        );
 
         setCombo(0);
 
         setFeedback(false);
 
 
+        playSound("incorrect", 0.7);
+
+
         setTimeout(() => {
 
             setFeedback(null);
 
-            nextQuestion(false);
+            nextQuestion();
 
         }, 1200);
 
     };
 
 
-    // =========================
+    // =====================================================
     // RESPUESTA
-    // =========================
+    // =====================================================
 
     const handleAnswer = (answer) => {
 
-        if (selectedAnswer) {
+        if (
+            selectedAnswer ||
+            !question
+        ) {
             return;
         }
+
 
         const normalizedAnswer =
             String(answer).trim();
 
+
         const normalizedCorrectAnswer =
             String(question.answer).trim();
 
+
         const correct =
-            normalizedAnswer === normalizedCorrectAnswer;
+            normalizedAnswer ===
+            normalizedCorrectAnswer;
 
-        setSelectedAnswer(normalizedAnswer);
 
+        setSelectedAnswer(
+            normalizedAnswer
+        );
+
+
+        // =================================================
+        // RESPUESTA CORRECTA
+        // =================================================
 
         if (correct) {
 
             playSound("correct", 0.7);
+
             playSound("unlock", 0.8);
 
-            const comboBonus = combo * 25;
+
+            const comboBonus =
+                combo * 25;
+
 
             const points =
                 100 + comboBonus;
+
 
             setScore((previous) =>
                 previous + points
             );
 
 
+            // =============================================
+            // XP GLOBAL
+            // =============================================
+
             const currentXP =
                 Number(
-                    localStorage.getItem("mathvision_xp")
+                    localStorage.getItem(
+                        "mathvision_xp"
+                    )
                 ) || 0;
 
 
@@ -167,57 +247,90 @@ export default function EscapeAlgebra() {
             );
 
 
+            // =============================================
+            // COMBO
+            // =============================================
+
             setCombo((previous) =>
                 previous + 1
             );
 
 
-            setCorrectAnswers((previous) =>
-                previous + 1
+            // =============================================
+            // ACIERTOS
+            // =============================================
+
+            setCorrectAnswers(
+                (previous) =>
+                    previous + 1
             );
 
 
             setFeedback(true);
 
-        } else {
+        }
 
-            playSound("incorrect", 0.7);
 
-            setLives((previous) =>
-                previous - 1
+        // =================================================
+        // RESPUESTA INCORRECTA
+        // =================================================
+
+        else {
+
+            playSound(
+                "incorrect",
+                0.7
             );
 
+
+            setLives((previous) =>
+                Math.max(0, previous - 1)
+            );
+
+
             setCombo(0);
+
 
             setFeedback(false);
 
         }
 
 
+        // =================================================
+        // SIGUIENTE PREGUNTA
+        // =================================================
+
         setTimeout(() => {
 
             setFeedback(null);
 
-            nextQuestion(correct);
+            nextQuestion();
 
         }, 1200);
 
     };
 
 
-    // =========================
+    // =====================================================
     // SIGUIENTE PREGUNTA
-    // =========================
+    // =====================================================
 
     const nextQuestion = () => {
 
         if (
-            currentQuestion + 1 >= questions.length
+            currentQuestion + 1 >=
+            gameQuestions.length
         ) {
+
+            // =============================================
+            // JUEGO COMPLETADO
+            // =============================================
 
             const completedGames =
                 Number(
-                    localStorage.getItem("mathvision_games")
+                    localStorage.getItem(
+                        "mathvision_games"
+                    )
                 ) || 0;
 
 
@@ -226,6 +339,10 @@ export default function EscapeAlgebra() {
                 completedGames + 1
             );
 
+
+            // =============================================
+            // LOGRO
+            // =============================================
 
             const achievements =
                 Number(
@@ -245,6 +362,10 @@ export default function EscapeAlgebra() {
             }
 
 
+            // =============================================
+            // MUNDO COMPLETADO
+            // =============================================
+
             const completedWorlds =
                 JSON.parse(
                     localStorage.getItem(
@@ -253,13 +374,22 @@ export default function EscapeAlgebra() {
                 );
 
 
-            if (!completedWorlds.includes("algebra")) {
+            if (
+                !completedWorlds.includes(
+                    "algebra"
+                )
+            ) {
 
-                completedWorlds.push("algebra");
+                completedWorlds.push(
+                    "algebra"
+                );
+
 
                 localStorage.setItem(
                     "mathvision_completed_worlds",
-                    JSON.stringify(completedWorlds)
+                    JSON.stringify(
+                        completedWorlds
+                    )
                 );
 
             }
@@ -272,9 +402,15 @@ export default function EscapeAlgebra() {
         }
 
 
+        // =============================================
+        // AVANZAR
+        // =============================================
+
         setCurrentQuestion(
-            (previous) => previous + 1
+            (previous) =>
+                previous + 1
         );
+
 
         setSelectedAnswer(null);
 
@@ -283,11 +419,28 @@ export default function EscapeAlgebra() {
     };
 
 
-    // =========================
-    // REINICIAR
-    // =========================
+    // =====================================================
+    // REINICIAR JUEGO
+    // =====================================================
 
     const restartGame = () => {
+
+        const shuffled =
+            [...questions]
+                .sort(
+                    () =>
+                        Math.random() - 0.5
+                )
+                .slice(
+                    0,
+                    Math.min(
+                        QUESTIONS_PER_GAME,
+                        questions.length
+                    )
+                );
+
+
+        setGameQuestions(shuffled);
 
         setCurrentQuestion(0);
 
@@ -310,9 +463,9 @@ export default function EscapeAlgebra() {
     };
 
 
-    // =========================
+    // =====================================================
     // SONIDO FINAL
-    // =========================
+    // =====================================================
 
     useEffect(() => {
 
@@ -320,41 +473,123 @@ export default function EscapeAlgebra() {
             return;
         }
 
+
         if (correctAnswers > 0) {
 
-            playSound("victory", 0.8);
+            playSound(
+                "victory",
+                0.8
+            );
 
         } else {
 
-            playSound("gameOver", 0.8);
+            playSound(
+                "gameOver",
+                0.8
+            );
 
         }
 
-    }, [finished]);
+    }, [
+        finished,
+        correctAnswers
+    ]);
 
 
-    // =========================
+    // =====================================================
+    // CARGANDO JUEGO
+    // =====================================================
+
+    if (!question) {
+
+        return (
+
+            <div className="
+                flex
+                h-screen
+                items-center
+                justify-center
+                bg-slate-950
+                text-white
+            ">
+
+                <motion.div
+                    animate={{
+                        rotate: 360
+                    }}
+                    transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear"
+                    }}
+                    className="
+                        h-10
+                        w-10
+                        rounded-full
+                        border-4
+                        border-slate-700
+                        border-t-cyan-400
+                    "
+                />
+
+            </div>
+
+        );
+
+    }
+
+
+    // =====================================================
     // PANTALLA FINAL
-    // =========================
+    // =====================================================
 
     if (finished) {
 
         const percentage =
             Math.round(
-                (correctAnswers / questions.length) * 100
+                (
+                    correctAnswers /
+                    gameQuestions.length
+                ) * 100
             );
 
-        const passed = percentage >= 60;
+
+        const passed =
+            percentage >= 60;
 
 
         return (
 
-            <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-5 text-white">
+            <div className="
+                relative
+                flex
+                min-h-screen
+                items-center
+                justify-center
+                overflow-hidden
+                bg-slate-950
+                px-5
+                py-10
+                text-white
+            ">
+
+
+                {/* =========================================
+                    BACKGROUND
+                ========================================= */}
 
                 <motion.div
                     animate={{
-                        scale: [1, 1.3, 1],
-                        opacity: [0.15, 0.3, 0.15]
+                        scale: [
+                            1,
+                            1.3,
+                            1
+                        ],
+                        opacity: [
+                            0.15,
+                            0.3,
+                            0.15
+                        ]
                     }}
                     transition={{
                         duration: 5,
@@ -375,6 +610,111 @@ export default function EscapeAlgebra() {
                     `}
                 />
 
+
+                {/* =========================================
+                    PARTICULAS
+                ========================================= */}
+
+                {passed && (
+
+                    <>
+
+                        <motion.div
+                            animate={{
+                                opacity: [
+                                    0,
+                                    1,
+                                    0
+                                ],
+                                scale: [
+                                    0.5,
+                                    1.5,
+                                    2
+                                ]
+                            }}
+                            transition={{
+                                duration: 2,
+                                repeat: Infinity
+                            }}
+                            className="
+                                absolute
+                                left-[15%]
+                                top-[20%]
+                                h-3
+                                w-3
+                                rounded-full
+                                bg-cyan-400
+                            "
+                        />
+
+
+                        <motion.div
+                            animate={{
+                                opacity: [
+                                    0,
+                                    1,
+                                    0
+                                ],
+                                scale: [
+                                    0.5,
+                                    1.5,
+                                    2
+                                ]
+                            }}
+                            transition={{
+                                duration: 2.5,
+                                delay: 0.5,
+                                repeat: Infinity
+                            }}
+                            className="
+                                absolute
+                                right-[15%]
+                                top-[30%]
+                                h-3
+                                w-3
+                                rounded-full
+                                bg-purple-400
+                            "
+                        />
+
+
+                        <motion.div
+                            animate={{
+                                opacity: [
+                                    0,
+                                    1,
+                                    0
+                                ],
+                                scale: [
+                                    0.5,
+                                    1.5,
+                                    2
+                                ]
+                            }}
+                            transition={{
+                                duration: 2.2,
+                                delay: 1,
+                                repeat: Infinity
+                            }}
+                            className="
+                                absolute
+                                bottom-[20%]
+                                left-[25%]
+                                h-3
+                                w-3
+                                rounded-full
+                                bg-yellow-400
+                            "
+                        />
+
+                    </>
+
+                )}
+
+
+                {/* =========================================
+                    CARD
+                ========================================= */}
 
                 <motion.div
                     initial={{
@@ -409,6 +749,9 @@ export default function EscapeAlgebra() {
                     "
                 >
 
+
+                    {/* ICONO */}
+
                     <motion.div
                         initial={{
                             rotate: -20,
@@ -440,10 +783,39 @@ export default function EscapeAlgebra() {
                         `}
                     >
 
-                        <FaTrophy size={48} />
+                        <motion.div
+                            animate={{
+                                rotate: passed
+                                    ? [
+                                        0,
+                                        -8,
+                                        8,
+                                        0
+                                    ]
+                                    : 0,
+
+                                scale: passed
+                                    ? [
+                                        1,
+                                        1.1,
+                                        1
+                                    ]
+                                    : 1
+                            }}
+                            transition={{
+                                duration: 1.5,
+                                repeat: Infinity
+                            }}
+                        >
+
+                            <FaTrophy size={48} />
+
+                        </motion.div>
 
                     </motion.div>
 
+
+                    {/* TITULO */}
 
                     <p className={`
                         text-sm
@@ -458,103 +830,255 @@ export default function EscapeAlgebra() {
                         }
                     `}>
 
-                        {passed
-                            ? "Misión completada"
-                            : "Misión finalizada"
+                        {
+                            passed
+                                ? "Misión completada"
+                                : "Misión finalizada"
                         }
 
                     </p>
 
 
-                    <h1 className="mt-3 text-4xl font-black md:text-5xl">
+                    <h1 className="
+                        mt-3
+                        text-4xl
+                        font-black
+                        md:text-5xl
+                    ">
 
                         Escape Algebra
 
                     </h1>
 
 
-                    <p className="mt-3 text-slate-400">
+                    <p className="
+                        mt-3
+                        text-slate-400
+                    ">
 
-                        {passed
-                            ? "Has conseguido escapar del laboratorio matemático."
-                            : "El desafío terminó. ¡Puedes intentarlo nuevamente!"
+                        {
+                            passed
+                                ? "Has conseguido escapar del laboratorio matemático."
+                                : "El desafío terminó. ¡Puedes intentarlo nuevamente!"
                         }
 
                     </p>
 
 
-                    <div className="my-8 grid grid-cols-3 gap-3">
+                    {/* =====================================
+                        RESULTADO
+                    ===================================== */}
 
-                        <div className="rounded-2xl border border-slate-800 bg-slate-800/80 p-4">
+                    <div className="
+                        mx-auto
+                        mt-6
+                        inline-flex
+                        items-center
+                        rounded-full
+                        border
+                        px-5
+                        py-2
+                        text-sm
+                        font-black
+                    "
+                        style={{
+                            borderColor:
+                                passed
+                                    ? "rgba(52,211,153,0.3)"
+                                    : "rgba(248,113,113,0.3)"
+                        }}
+                    >
 
-                            <p className="text-xs font-bold text-slate-500">
-                                XP
-                            </p>
+                        <span className={
+                            passed
+                                ? "text-emerald-400"
+                                : "text-red-400"
+                        }>
 
-                            <p className="mt-1 text-2xl font-black text-cyan-400">
-                                {score}
-                            </p>
+                            {
+                                passed
+                                    ? "✓ DESAFÍO SUPERADO"
+                                    : "✕ DESAFÍO NO SUPERADO"
+                            }
 
-                        </div>
-
-
-                        <div className="rounded-2xl border border-slate-800 bg-slate-800/80 p-4">
-
-                            <p className="text-xs font-bold text-slate-500">
-                                Aciertos
-                            </p>
-
-                            <p className="mt-1 text-2xl font-black text-emerald-400">
-
-                                {correctAnswers}
-
-                                <span className="text-sm text-slate-500">
-                                    /{questions.length}
-                                </span>
-
-                            </p>
-
-                        </div>
-
-
-                        <div className="rounded-2xl border border-slate-800 bg-slate-800/80 p-4">
-
-                            <p className="text-xs font-bold text-slate-500">
-                                Precisión
-                            </p>
-
-                            <p className="mt-1 text-2xl font-black text-purple-400">
-                                {percentage}%
-                            </p>
-
-                        </div>
+                        </span>
 
                     </div>
 
 
-                    <div className="mb-8">
+                    {/* =====================================
+                        ESTADISTICAS
+                    ===================================== */}
 
-                        <div className="mb-2 flex justify-between text-xs font-bold">
+                    <div className="
+                        my-8
+                        grid
+                        grid-cols-3
+                        gap-3
+                    ">
 
-                            <span className="text-slate-500">
+
+                        {/* XP */}
+
+                        <motion.div
+                            whileHover={{
+                                y: -5
+                            }}
+                            className="
+                                rounded-2xl
+                                border
+                                border-slate-800
+                                bg-slate-800/80
+                                p-4
+                            "
+                        >
+
+                            <p className="
+                                text-xs
+                                font-bold
+                                text-slate-500
+                            ">
+                                XP
+                            </p>
+
+                            <p className="
+                                mt-1
+                                text-2xl
+                                font-black
+                                text-cyan-400
+                            ">
+                                {score}
+                            </p>
+
+                        </motion.div>
+
+
+                        {/* ACIERTOS */}
+
+                        <motion.div
+                            whileHover={{
+                                y: -5
+                            }}
+                            className="
+                                rounded-2xl
+                                border
+                                border-slate-800
+                                bg-slate-800/80
+                                p-4
+                            "
+                        >
+
+                            <p className="
+                                text-xs
+                                font-bold
+                                text-slate-500
+                            ">
+                                Aciertos
+                            </p>
+
+                            <p className="
+                                mt-1
+                                text-2xl
+                                font-black
+                                text-emerald-400
+                            ">
+
+                                {correctAnswers}
+
+                                <span className="
+                                    text-sm
+                                    text-slate-500
+                                ">
+                                    /{gameQuestions.length}
+                                </span>
+
+                            </p>
+
+                        </motion.div>
+
+
+                        {/* PRECISION */}
+
+                        <motion.div
+                            whileHover={{
+                                y: -5
+                            }}
+                            className="
+                                rounded-2xl
+                                border
+                                border-slate-800
+                                bg-slate-800/80
+                                p-4
+                            "
+                        >
+
+                            <p className="
+                                text-xs
+                                font-bold
+                                text-slate-500
+                            ">
+                                Precisión
+                            </p>
+
+                            <p className="
+                                mt-1
+                                text-2xl
+                                font-black
+                                text-purple-400
+                            ">
+                                {percentage}%
+                            </p>
+
+                        </motion.div>
+
+                    </div>
+
+
+                    {/* =====================================
+                        PROGRESO
+                    ===================================== */}
+
+                    <div className="
+                        mb-8
+                    ">
+
+                        <div className="
+                            mb-2
+                            flex
+                            justify-between
+                            text-xs
+                            font-bold
+                        ">
+
+                            <span className="
+                                text-slate-500
+                            ">
                                 PROGRESO
                             </span>
 
-                            <span className="text-cyan-400">
+                            <span className="
+                                text-cyan-400
+                            ">
                                 {percentage}%
                             </span>
 
                         </div>
 
 
-                        <div className="h-3 overflow-hidden rounded-full bg-slate-800">
+                        <div className="
+                            h-3
+                            overflow-hidden
+                            rounded-full
+                            bg-slate-800
+                        ">
 
                             <motion.div
                                 initial={{
                                     width: 0
                                 }}
                                 animate={{
-                                    width: `${percentage}%`
+                                    width:
+                                        `${percentage}%`
                                 }}
                                 transition={{
                                     duration: 1.2
@@ -576,10 +1100,26 @@ export default function EscapeAlgebra() {
                     </div>
 
 
-                    <div className="grid gap-3 md:grid-cols-2">
+                    {/* =====================================
+                        BOTONES
+                    ===================================== */}
 
-                        <button
-                            onClick={restartGame}
+                    <div className="
+                        grid
+                        gap-3
+                        md:grid-cols-2
+                    ">
+
+                        <motion.button
+                            whileHover={{
+                                scale: 1.03
+                            }}
+                            whileTap={{
+                                scale: 0.97
+                            }}
+                            onClick={
+                                restartGame
+                            }
                             className="
                                 flex
                                 items-center
@@ -599,12 +1139,20 @@ export default function EscapeAlgebra() {
 
                             JUGAR DE NUEVO
 
-                        </button>
+                        </motion.button>
 
 
-                        <button
+                        <motion.button
+                            whileHover={{
+                                scale: 1.03
+                            }}
+                            whileTap={{
+                                scale: 0.97
+                            }}
                             onClick={() =>
-                                navigate("/dashboard")
+                                navigate(
+                                    "/dashboard"
+                                )
                             }
                             className="
                                 flex
@@ -625,7 +1173,7 @@ export default function EscapeAlgebra() {
 
                             DASHBOARD
 
-                        </button>
+                        </motion.button>
 
                     </div>
 
@@ -638,9 +1186,9 @@ export default function EscapeAlgebra() {
     }
 
 
-    // =========================
+    // =====================================================
     // JUEGO
-    // =========================
+    // =====================================================
 
     return (
 
@@ -655,9 +1203,9 @@ export default function EscapeAlgebra() {
         ">
 
 
-            {/* =========================
+            {/* =================================================
                 HEADER
-            ========================= */}
+            ================================================= */}
 
             <header className="
                 flex
@@ -686,7 +1234,9 @@ export default function EscapeAlgebra() {
 
                     <button
                         onClick={() =>
-                            navigate("/dashboard")
+                            navigate(
+                                "/dashboard"
+                            )
                         }
                         className="
                             flex
@@ -701,7 +1251,10 @@ export default function EscapeAlgebra() {
 
                         <FaArrowLeft />
 
-                        <span className="hidden sm:block">
+                        <span className="
+                            hidden
+                            sm:block
+                        ">
                             Salir
                         </span>
 
@@ -710,7 +1263,10 @@ export default function EscapeAlgebra() {
 
                     {/* TITULO */}
 
-                    <div className="text-center leading-none">
+                    <div className="
+                        text-center
+                        leading-none
+                    ">
 
                         <p className="
                             text-[8px]
@@ -748,11 +1304,16 @@ export default function EscapeAlgebra() {
                         sm:text-sm
                     ">
 
+
+                        {/* TIMER */}
+
                         <GameTimer
                             time={time}
                             maxTime={MAX_TIME}
                         />
 
+
+                        {/* VIDAS */}
 
                         <div className="
                             flex
@@ -767,6 +1328,8 @@ export default function EscapeAlgebra() {
 
                         </div>
 
+
+                        {/* COMBO */}
 
                         {combo > 0 && (
 
@@ -795,6 +1358,8 @@ export default function EscapeAlgebra() {
                         )}
 
 
+                        {/* SCORE */}
+
                         <div className="
                             flex
                             items-center
@@ -815,9 +1380,9 @@ export default function EscapeAlgebra() {
             </header>
 
 
-            {/* =========================
+            {/* =================================================
                 PROGRESO
-            ========================= */}
+            ================================================= */}
 
             <div className="
                 h-11
@@ -842,15 +1407,20 @@ export default function EscapeAlgebra() {
                         font-bold
                     ">
 
-                        <span className="text-slate-500">
+                        <span className="
+                            text-slate-500
+                        ">
 
-                            DESAFÍO {currentQuestion + 1}
+                            DESAFÍO{" "}
+                            {currentQuestion + 1}
 
                         </span>
 
-                        <span className="text-cyan-400">
+                        <span className="
+                            text-cyan-400
+                        ">
 
-                            {questions.length} NIVELES
+                            {gameQuestions.length} NIVELES
 
                         </span>
 
@@ -867,7 +1437,14 @@ export default function EscapeAlgebra() {
                         <motion.div
                             animate={{
                                 width:
-                                    `${((currentQuestion + 1) / questions.length) * 100}%`
+                                    `${
+                                        (
+                                            (
+                                                currentQuestion + 1
+                                            ) /
+                                            gameQuestions.length
+                                        ) * 100
+                                    }%`
                             }}
                             transition={{
                                 duration: 0.4
@@ -889,9 +1466,9 @@ export default function EscapeAlgebra() {
             </div>
 
 
-            {/* =========================
+            {/* =================================================
                 GAME AREA
-            ========================= */}
+            ================================================= */}
 
             <main className="
                 relative
@@ -900,25 +1477,37 @@ export default function EscapeAlgebra() {
                 overflow-hidden
             ">
 
-                <AnimatePresence mode="wait">
+                <AnimatePresence
+                    mode="wait"
+                >
 
                     <QuestionCard
                         key={question.id}
                         question={question}
                         onAnswer={handleAnswer}
-                        selectedAnswer={selectedAnswer}
-                        disabled={Boolean(selectedAnswer)}
+                        selectedAnswer={
+                            selectedAnswer
+                        }
+                        disabled={
+                            Boolean(
+                                selectedAnswer
+                            )
+                        }
                     />
 
                 </AnimatePresence>
 
+
+                {/* FEEDBACK */}
 
                 <AnimatePresence>
 
                     {feedback !== null && (
 
                         <AnswerFeedback
-                            correct={feedback}
+                            correct={
+                                feedback
+                            }
                         />
 
                     )}
