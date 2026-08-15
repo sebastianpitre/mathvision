@@ -5,7 +5,7 @@ const games = [
         description: "Resuelve ecuaciones para escapar.",
         xp: 250,
         difficulty: "Media",
-        image: "https://thumbnails.genially.com/5f5f6b8e7076fa0f334e3e44/screenshots/8232aca3-3838-49ab-a534-5adaeffeabab.jpg",
+        image: "/img/EscapeAlgebra/portada.png",
         route: "/games/escape-algebra"
     },
 

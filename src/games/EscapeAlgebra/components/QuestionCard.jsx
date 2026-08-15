@@ -2,9 +2,10 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
     FaLock,
-    FaKey,
-    FaArrowRight
+    FaKey
 } from "react-icons/fa";
+
+import NumberPad from "./NumberPad";
 
 export default function QuestionCard({
     question,
@@ -15,23 +16,22 @@ export default function QuestionCard({
 
     const [answer, setAnswer] = useState("");
 
-    const handleSubmit = (event) => {
+    const correct =
+        selectedAnswer &&
+        String(selectedAnswer) ===
+        String(question.answer);
 
-        event.preventDefault();
 
-        if (!answer.trim() || disabled) {
+    const submitAnswer = () => {
+
+        if (!answer || disabled) {
             return;
         }
 
-        onAnswer(answer.trim());
+        onAnswer(answer);
 
     };
 
-    const answered = Boolean(selectedAnswer);
-
-    const correct =
-        selectedAnswer &&
-        selectedAnswer === question.answer;
 
     return (
 
@@ -54,31 +54,21 @@ export default function QuestionCard({
             className="mx-auto max-w-4xl"
         >
 
-            {/* HABITACIÓN */}
-
             <div className="relative overflow-hidden rounded-[2rem] border border-slate-700 bg-gradient-to-b from-slate-800 to-slate-950 shadow-2xl">
 
-                {/* LUCES */}
+                <div className="absolute left-1/2 top-0 h-40 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
 
-                <div className="absolute left-1/2 top-0 h-32 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
 
-                <div className="absolute bottom-0 left-0 h-40 w-40 rounded-full bg-purple-600/10 blur-3xl" />
+                <div className="relative min-h-[600px] p-6 md:p-10">
 
-                {/* PARED */}
 
-                <div className="relative min-h-[550px] p-6 md:p-12">
+                    <div className="text-center">
 
-                    {/* LUZ SUPERIOR */}
+                        <p className="text-xs font-bold uppercase tracking-[0.4em] text-cyan-400">
 
-                    <div className="absolute left-1/2 top-6 h-2 w-32 -translate-x-1/2 rounded-full bg-cyan-400 shadow-[0_0_30px_rgba(34,211,238,0.8)]" />
+                            {question.room}
 
-                    {/* TEXTO */}
-
-                    <div className="relative z-10 text-center">
-
-                    <p className="text-xs font-bold uppercase tracking-[0.4em] text-cyan-400">
-                        {question.room}
-                    </p>
+                        </p>
 
                         <h1 className="mt-3 text-3xl font-black md:text-4xl">
 
@@ -88,9 +78,10 @@ export default function QuestionCard({
 
                     </div>
 
+
                     {/* PUERTA */}
 
-                    <div className="relative mx-auto mt-10 w-full max-w-sm">
+                    <div className="mx-auto mt-10 w-full max-w-sm">
 
                         <motion.div
                             animate={
@@ -115,8 +106,6 @@ export default function QuestionCard({
                                 border-4
                                 p-6
                                 pt-10
-                                transition-all
-                                duration-500
 
                                 ${
                                     correct
@@ -126,11 +115,7 @@ export default function QuestionCard({
                             `}
                         >
 
-                            {/* MARCO */}
-
                             <div className="absolute inset-3 rounded-t-[3.5rem] border border-slate-700" />
-
-                            {/* PUERTA */}
 
                             <div className="relative z-10 flex flex-col items-center">
 
@@ -141,18 +126,15 @@ export default function QuestionCard({
                                                 rotate: 360,
                                                 scale: 1.15
                                             }
-                                            : {
-                                                rotate: 0,
-                                                scale: 1
-                                            }
+                                            : {}
                                     }
                                     transition={{
                                         duration: 0.8
                                     }}
                                     className={`
                                         flex
-                                        h-24
-                                        w-24
+                                        h-20
+                                        w-20
                                         items-center
                                         justify-center
                                         rounded-full
@@ -167,13 +149,14 @@ export default function QuestionCard({
                                 >
 
                                     {correct
-                                        ? <FaKey size={35} />
-                                        : <FaLock size={35} />
+                                        ? <FaKey size={30} />
+                                        : <FaLock size={30} />
                                     }
 
                                 </motion.div>
 
-                                <div className="mt-8 h-40 w-64 rounded-t-3xl border-2 border-slate-700 bg-slate-950">
+
+                                <div className="mt-8 h-36 w-60 rounded-t-3xl border-2 border-slate-700 bg-slate-950">
 
                                     <div className="flex h-full items-center justify-center">
 
@@ -189,90 +172,34 @@ export default function QuestionCard({
 
                     </div>
 
+
                     {/* PANEL */}
 
-                    <div className="relative z-20 mx-auto -mt-5 max-w-2xl rounded-3xl border border-slate-700 bg-slate-950/95 p-6 shadow-2xl backdrop-blur-xl md:p-8">
+                    <div className="relative z-20 mx-auto -mt-4 max-w-2xl rounded-3xl border border-slate-700 bg-slate-950/95 p-6 shadow-2xl backdrop-blur-xl md:p-8">
 
-                        <p className="mb-3 text-center text-sm font-semibold text-slate-500">
+                        <p className="text-center text-xs font-bold uppercase tracking-[0.3em] text-slate-500">
 
-                            CÓDIGO DE ACCESO
+                            Selecciona tu respuesta
 
                         </p>
 
-                        <h2 className="text-center text-3xl font-black md:text-4xl">
+
+                        <h2 className="mt-3 text-center text-3xl font-black md:text-4xl">
 
                             {question.question}
 
                         </h2>
 
-                        <form
-                            onSubmit={handleSubmit}
-                            className="mt-8"
-                        >
 
-                            <div className="flex flex-col gap-3 sm:flex-row">
+                        <NumberPad
+                            value={answer}
+                            onChange={setAnswer}
+                            onSubmit={submitAnswer}
+                            disabled={disabled}
+                        />
 
-                                <input
-                                    type="number"
-                                    value={answer}
-                                    onChange={(event) =>
-                                        setAnswer(event.target.value)
-                                    }
-                                    disabled={disabled}
-                                    autoFocus
-                                    placeholder="Escribe tu respuesta"
-                                    className={`
-                                        min-w-0
-                                        flex-1
-                                        rounded-2xl
-                                        border
-                                        bg-slate-900
-                                        px-5
-                                        py-4
-                                        text-center
-                                        text-xl
-                                        font-bold
-                                        outline-none
-                                        transition
 
-                                        ${
-                                            answered
-                                                ? correct
-                                                    ? "border-emerald-400 text-emerald-300"
-                                                    : "border-red-400 text-red-300"
-                                                : "border-slate-700 focus:border-cyan-400"
-                                        }
-                                    `}
-                                />
-
-                                <motion.button
-                                    type="submit"
-                                    disabled={
-                                        disabled ||
-                                        !answer.trim()
-                                    }
-                                    whileHover={{
-                                        scale: 1.03
-                                    }}
-                                    whileTap={{
-                                        scale: 0.96
-                                    }}
-                                    className="flex items-center justify-center gap-3 rounded-2xl bg-cyan-500 px-7 py-4 font-black text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-40"
-                                >
-
-                                    VERIFICAR
-
-                                    <FaArrowRight />
-
-                                </motion.button>
-
-                            </div>
-
-                        </form>
-
-                        {/* FEEDBACK */}
-
-                        {answered && (
+                        {selectedAnswer && (
 
                             <motion.div
                                 initial={{
@@ -314,5 +241,6 @@ export default function QuestionCard({
             </div>
 
         </motion.div>
+
     );
 }
