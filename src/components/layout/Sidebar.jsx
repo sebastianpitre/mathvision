@@ -1,8 +1,7 @@
 import {
     FaHome,
-    FaGamepad,
     FaUserGraduate,
-    FaCog,
+    FaRegHeart,
     FaTrophy,
     FaChartLine
 } from "react-icons/fa";
@@ -16,9 +15,9 @@ const menuItems = [
         icon: FaHome
     },
     {
-        name: "Juegos",
-        path: "/games",
-        icon: FaGamepad
+        name: "Mundos",
+        path: "/world",
+        icon: FaRegHeart
     },
     {
         name: "Progreso",
@@ -40,7 +39,23 @@ const menuItems = [
 export default function Sidebar() {
 
     return (
-        <aside className="hidden min-h-screen w-64 shrink-0 border-r border-slate-800 bg-slate-950/90 backdrop-blur-xl lg:block">
+
+        <aside
+            className="
+                sticky
+                top-0
+                hidden
+                h-screen
+                w-55
+                shrink-0
+                overflow-y-auto
+                border-r
+                border-slate-800
+                bg-slate-950/90
+                backdrop-blur-xl
+                lg:block
+            "
+        >
 
             {/* LOGO */}
 
@@ -51,6 +66,7 @@ export default function Sidebar() {
                     <h1 className="text-2xl font-black tracking-tight">
 
                         Math
+
                         <span className="text-cyan-400">
                             Vision
                         </span>
@@ -65,13 +81,17 @@ export default function Sidebar() {
 
             </div>
 
+
             {/* MENU */}
 
             <nav className="px-4 py-6">
 
                 <p className="mb-4 px-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+
                     Navegación
+
                 </p>
+
 
                 <div className="space-y-2">
 
@@ -80,13 +100,21 @@ export default function Sidebar() {
                         const Icon = item.icon;
 
                         return (
+
                             <NavLink
                                 key={item.path}
                                 to={item.path}
                                 className={({ isActive }) =>
                                     `
-                                    flex items-center gap-4 rounded-xl px-4 py-3
-                                    transition-all duration-300
+                                    flex
+                                    items-center
+                                    gap-4
+                                    rounded-xl
+                                    px-4
+                                    py-3
+                                    transition-all
+                                    duration-300
+
                                     ${
                                         isActive
                                             ? "bg-cyan-500/10 text-cyan-400 shadow-[inset_3px_0_0_#22d3ee]"
@@ -96,13 +124,14 @@ export default function Sidebar() {
                                 }
                             >
 
-                                <Icon />
+                                <Icon className="shrink-0" />
 
                                 <span className="font-medium">
                                     {item.name}
                                 </span>
 
                             </NavLink>
+
                         );
 
                     })}
@@ -111,20 +140,27 @@ export default function Sidebar() {
 
             </nav>
 
+
             {/* BOTTOM CARD */}
 
             <div className="mx-4 mt-10 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
 
                 <p className="text-sm font-bold text-cyan-400">
+
                     🚀 Próximamente
+
                 </p>
 
                 <p className="mt-2 text-xs leading-5 text-slate-400">
+
                     Nuevas experiencias de realidad virtual.
+
                 </p>
 
             </div>
 
         </aside>
+
     );
+
 }
