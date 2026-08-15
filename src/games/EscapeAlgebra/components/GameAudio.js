@@ -4,7 +4,9 @@ const sounds = {
     incorrect: "/sounds/incorrect.mp3",
     unlock: "/sounds/unlock.mp3",
     victory: "/sounds/victory.mp3",
-    gameOver: "/sounds/game-over.mp3"
+    gameOver: "/sounds/game-over.mp3",
+    warning: "/sounds/warning.mp3"
+
 };
 
 export function playSound(name, volume = 0.6) {

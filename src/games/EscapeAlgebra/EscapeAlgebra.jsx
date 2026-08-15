@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { playSound } from "./components/GameAudio";
 
 import {
@@ -31,6 +31,7 @@ const QUESTIONS_PER_GAME = 5;
 export default function EscapeAlgebra() {
 
     const navigate = useNavigate();
+    const warningAudioRef = useRef(null);
 
 
     // =====================================================
@@ -62,7 +63,67 @@ export default function EscapeAlgebra() {
     // PREGUNTA ACTUAL
     // =====================================================
 
-    const question = gameQuestions[currentQuestion];
+    const question =
+        gameQuestions[currentQuestion];
+
+        // =====================================================
+        // WARNING DE TIEMPO
+        // =====================================================
+
+        useEffect(() => {
+
+            // Si ya terminó el juego, detener warning
+            if (finished) {
+
+                if (warningAudioRef.current) {
+                    warningAudioRef.current.pause();
+                    warningAudioRef.current.currentTime = 0;
+                    warningAudioRef.current = null;
+                }
+
+                return;
+            }
+
+            // Cuando llega a 5 segundos
+            if (time === 5) {
+
+                // Detener cualquier warning anterior
+                if (warningAudioRef.current) {
+                    warningAudioRef.current.pause();
+                    warningAudioRef.current.currentTime = 0;
+                }
+
+                const audio = new Audio(
+                    "/sounds/warning.mp3"
+                );
+
+                audio.volume = 0.7;
+
+                warningAudioRef.current = audio;
+
+                audio.play().catch(() => {});
+
+            }
+
+            // =============================================
+            // LLEGÓ A 0 → CORTAR AUDIO INMEDIATAMENTE
+            // =============================================
+
+            if (time <= 1) {
+
+                if (warningAudioRef.current) {
+
+                    warningAudioRef.current.pause();
+
+                    warningAudioRef.current.currentTime = 0;
+
+                    warningAudioRef.current = null;
+
+                }
+
+            }
+
+        }, [time, finished]);
 
 
     // =====================================================
@@ -71,15 +132,20 @@ export default function EscapeAlgebra() {
 
     const shuffleQuestions = () => {
 
-        const shuffled = [...questions]
-            .sort(() => Math.random() - 0.5)
-            .slice(
-                0,
-                Math.min(
-                    QUESTIONS_PER_GAME,
-                    questions.length
+        const shuffled =
+            [...questions]
+                .sort(
+                    () =>
+                        Math.random() - 0.5
                 )
-            );
+                .slice(
+                    0,
+                    Math.min(
+                        QUESTIONS_PER_GAME,
+                        questions.length
+                    )
+                );
+
 
         setGameQuestions(shuffled);
 
@@ -112,6 +178,10 @@ export default function EscapeAlgebra() {
         }
 
 
+        // -------------------------------------------------
+        // TIEMPO AGOTADO
+        // -------------------------------------------------
+
         if (time <= 0) {
 
             handleTimeout();
@@ -120,14 +190,34 @@ export default function EscapeAlgebra() {
         }
 
 
-        const timer = setInterval(() => {
+        // -------------------------------------------------
+        // AVISO DE 5 SEGUNDOS
+        // -------------------------------------------------
 
-            setTime((previous) => previous - 1);
+        if (time === 5) {
 
-        }, 1000);
+            playSound(
+                "warning",
+                0.7
+            );
+
+        }
 
 
-        return () => clearInterval(timer);
+        const timer =
+            setInterval(() => {
+
+                setTime(
+                    (previous) =>
+                        previous - 1
+                );
+
+            }, 1000);
+
+
+        return () =>
+            clearInterval(timer);
+
 
     }, [
         time,
@@ -143,24 +233,75 @@ export default function EscapeAlgebra() {
 
     const handleTimeout = () => {
 
-        if (selectedAnswer) {
+        // DETENER WARNING INMEDIATAMENTE
+        if (warningAudioRef.current) {
+
+            warningAudioRef.current.pause();
+
+            warningAudioRef.current.currentTime = 0;
+
+            warningAudioRef.current = null;
+
+        }
+
+        if (
+            selectedAnswer ||
+            finished ||
+            !question
+        ) {
             return;
         }
 
 
-        setSelectedAnswer("TIMEOUT");
+        // -------------------------------------------------
+        // MARCAR COMO SIN RESPUESTA
+        // -------------------------------------------------
 
-        setLives((previous) =>
-            Math.max(0, previous - 1)
+        setSelectedAnswer(
+            "TIMEOUT"
         );
 
+
+        // -------------------------------------------------
+        // QUITAR VIDA
+        // -------------------------------------------------
+
+        setLives(
+            (previous) =>
+                Math.max(
+                    0,
+                    previous - 1
+                )
+        );
+
+
+        // -------------------------------------------------
+        // ROMPER COMBO
+        // -------------------------------------------------
+
         setCombo(0);
+
+
+        // -------------------------------------------------
+        // FEEDBACK
+        // -------------------------------------------------
 
         setFeedback(false);
 
 
-        playSound("incorrect", 0.7);
+        // -------------------------------------------------
+        // SONIDO
+        // -------------------------------------------------
 
+        playSound(
+            "incorrect",
+            0.7
+        );
+
+
+        // -------------------------------------------------
+        // SIGUIENTE PREGUNTA
+        // -------------------------------------------------
 
         setTimeout(() => {
 
@@ -181,7 +322,8 @@ export default function EscapeAlgebra() {
 
         if (
             selectedAnswer ||
-            !question
+            !question ||
+            finished
         ) {
             return;
         }
@@ -192,13 +334,19 @@ export default function EscapeAlgebra() {
 
 
         const normalizedCorrectAnswer =
-            String(question.answer).trim();
+            String(
+                question.answer
+            ).trim();
 
 
         const correct =
             normalizedAnswer ===
             normalizedCorrectAnswer;
 
+
+        // -------------------------------------------------
+        // BLOQUEAR RESPUESTA
+        // -------------------------------------------------
 
         setSelectedAnswer(
             normalizedAnswer
@@ -211,9 +359,16 @@ export default function EscapeAlgebra() {
 
         if (correct) {
 
-            playSound("correct", 0.7);
+            playSound(
+                "correct",
+                0.7
+            );
 
-            playSound("unlock", 0.8);
+
+            playSound(
+                "unlock",
+                0.8
+            );
 
 
             const comboBonus =
@@ -224,8 +379,9 @@ export default function EscapeAlgebra() {
                 100 + comboBonus;
 
 
-            setScore((previous) =>
-                previous + points
+            setScore(
+                (previous) =>
+                    previous + points
             );
 
 
@@ -251,8 +407,9 @@ export default function EscapeAlgebra() {
             // COMBO
             // =============================================
 
-            setCombo((previous) =>
-                previous + 1
+            setCombo(
+                (previous) =>
+                    previous + 1
             );
 
 
@@ -265,6 +422,10 @@ export default function EscapeAlgebra() {
                     previous + 1
             );
 
+
+            // =============================================
+            // FEEDBACK CORRECTO
+            // =============================================
 
             setFeedback(true);
 
@@ -283,8 +444,12 @@ export default function EscapeAlgebra() {
             );
 
 
-            setLives((previous) =>
-                Math.max(0, previous - 1)
+            setLives(
+                (previous) =>
+                    Math.max(
+                        0,
+                        previous - 1
+                    )
             );
 
 
@@ -317,6 +482,10 @@ export default function EscapeAlgebra() {
 
     const nextQuestion = () => {
 
+        // -------------------------------------------------
+        // ÚLTIMA PREGUNTA
+        // -------------------------------------------------
+
         if (
             currentQuestion + 1 >=
             gameQuestions.length
@@ -337,6 +506,129 @@ export default function EscapeAlgebra() {
             localStorage.setItem(
                 "mathvision_games",
                 completedGames + 1
+            );
+
+
+            // =============================================
+            // IMPORTANTE:
+            // NO MARCAMOS EL MUNDO COMO COMPLETADO
+            // TODAVÍA.
+            //
+            // La pantalla final determina si realmente
+            // superó el desafío.
+            // =============================================
+
+
+            setFinished(true);
+
+            return;
+
+        }
+
+
+        // -------------------------------------------------
+        // AVANZAR
+        // -------------------------------------------------
+
+        setCurrentQuestion(
+            (previous) =>
+                previous + 1
+        );
+
+
+        setSelectedAnswer(null);
+
+        setTime(MAX_TIME);
+
+    };
+
+
+    // =====================================================
+    // REINICIAR JUEGO
+    // =====================================================
+
+    const restartGame = () => {
+
+        const shuffled =
+            [...questions]
+                .sort(
+                    () =>
+                        Math.random() - 0.5
+                )
+                .slice(
+                    0,
+                    Math.min(
+                        QUESTIONS_PER_GAME,
+                        questions.length
+                    )
+                );
+
+
+        setGameQuestions(
+            shuffled
+        );
+
+
+        setCurrentQuestion(0);
+
+        setScore(0);
+
+        setLives(3);
+
+        setCombo(0);
+
+        setSelectedAnswer(null);
+
+        setFeedback(null);
+
+        setFinished(false);
+
+        setTime(MAX_TIME);
+
+        setCorrectAnswers(0);
+
+    };
+
+
+    // =====================================================
+    // SONIDO FINAL
+    // =====================================================
+
+    useEffect(() => {
+
+        if (!finished) {
+            return;
+        }
+
+
+        // -------------------------------------------------
+        // CALCULAR RESULTADO REAL
+        // -------------------------------------------------
+
+        const percentage =
+            gameQuestions.length > 0
+                ? Math.round(
+                    (
+                        correctAnswers /
+                        gameQuestions.length
+                    ) * 100
+                )
+                : 0;
+
+
+        const passed =
+            percentage >= 60;
+
+
+        // -------------------------------------------------
+        // VICTORIA
+        // -------------------------------------------------
+
+        if (passed) {
+
+            playSound(
+                "victory",
+                0.8
             );
 
 
@@ -394,94 +686,14 @@ export default function EscapeAlgebra() {
 
             }
 
-
-            setFinished(true);
-
-            return;
-
         }
 
 
-        // =============================================
-        // AVANZAR
-        // =============================================
+        // -------------------------------------------------
+        // GAME OVER
+        // -------------------------------------------------
 
-        setCurrentQuestion(
-            (previous) =>
-                previous + 1
-        );
-
-
-        setSelectedAnswer(null);
-
-        setTime(MAX_TIME);
-
-    };
-
-
-    // =====================================================
-    // REINICIAR JUEGO
-    // =====================================================
-
-    const restartGame = () => {
-
-        const shuffled =
-            [...questions]
-                .sort(
-                    () =>
-                        Math.random() - 0.5
-                )
-                .slice(
-                    0,
-                    Math.min(
-                        QUESTIONS_PER_GAME,
-                        questions.length
-                    )
-                );
-
-
-        setGameQuestions(shuffled);
-
-        setCurrentQuestion(0);
-
-        setScore(0);
-
-        setLives(3);
-
-        setCombo(0);
-
-        setSelectedAnswer(null);
-
-        setFeedback(null);
-
-        setFinished(false);
-
-        setTime(MAX_TIME);
-
-        setCorrectAnswers(0);
-
-    };
-
-
-    // =====================================================
-    // SONIDO FINAL
-    // =====================================================
-
-    useEffect(() => {
-
-        if (!finished) {
-            return;
-        }
-
-
-        if (correctAnswers > 0) {
-
-            playSound(
-                "victory",
-                0.8
-            );
-
-        } else {
+        else {
 
             playSound(
                 "gameOver",
@@ -490,68 +702,35 @@ export default function EscapeAlgebra() {
 
         }
 
+
     }, [
         finished,
-        correctAnswers
+        correctAnswers,
+        gameQuestions
     ]);
 
 
     // =====================================================
-    // CARGANDO JUEGO
-    // =====================================================
-
-    if (!question) {
-
-        return (
-
-            <div className="
-                flex
-                h-screen
-                items-center
-                justify-center
-                bg-slate-950
-                text-white
-            ">
-
-                <motion.div
-                    animate={{
-                        rotate: 360
-                    }}
-                    transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        ease: "linear"
-                    }}
-                    className="
-                        h-10
-                        w-10
-                        rounded-full
-                        border-4
-                        border-slate-700
-                        border-t-cyan-400
-                    "
-                />
-
-            </div>
-
-        );
-
-    }
-
-
-    // =====================================================
     // PANTALLA FINAL
+    //
+    // IMPORTANTE:
+    // ESTA PARTE VA ANTES DE !question
+    //
+    // Así evitamos la pantalla blanca cuando el tiempo
+    // se acaba en la última pregunta.
     // =====================================================
 
     if (finished) {
 
         const percentage =
-            Math.round(
-                (
-                    correctAnswers /
-                    gameQuestions.length
-                ) * 100
-            );
+            gameQuestions.length > 0
+                ? Math.round(
+                    (
+                        correctAnswers /
+                        gameQuestions.length
+                    ) * 100
+                )
+                : 0;
 
 
         const passed =
@@ -750,7 +929,9 @@ export default function EscapeAlgebra() {
                 >
 
 
-                    {/* ICONO */}
+                    {/* =====================================
+                        ICONO
+                    ===================================== */}
 
                     <motion.div
                         initial={{
@@ -815,7 +996,9 @@ export default function EscapeAlgebra() {
                     </motion.div>
 
 
-                    {/* TITULO */}
+                    {/* =====================================
+                        TITULO
+                    ===================================== */}
 
                     <p className={`
                         text-sm
@@ -869,18 +1052,19 @@ export default function EscapeAlgebra() {
                         RESULTADO
                     ===================================== */}
 
-                    <div className="
-                        mx-auto
-                        mt-6
-                        inline-flex
-                        items-center
-                        rounded-full
-                        border
-                        px-5
-                        py-2
-                        text-sm
-                        font-black
-                    "
+                    <div
+                        className="
+                            mx-auto
+                            mt-6
+                            inline-flex
+                            items-center
+                            rounded-full
+                            border
+                            px-5
+                            py-2
+                            text-sm
+                            font-black
+                        "
                         style={{
                             borderColor:
                                 passed
@@ -889,11 +1073,13 @@ export default function EscapeAlgebra() {
                         }}
                     >
 
-                        <span className={
-                            passed
-                                ? "text-emerald-400"
-                                : "text-red-400"
-                        }>
+                        <span
+                            className={
+                                passed
+                                    ? "text-emerald-400"
+                                    : "text-red-400"
+                            }
+                        >
 
                             {
                                 passed
@@ -1178,6 +1364,54 @@ export default function EscapeAlgebra() {
                     </div>
 
                 </motion.div>
+
+            </div>
+
+        );
+
+    }
+
+
+    // =====================================================
+    // CARGANDO JUEGO
+    //
+    // ESTE BLOQUE AHORA ESTÁ DESPUÉS DE finished.
+    //
+    // Así si la última pregunta termina por timeout,
+    // primero se muestra la pantalla final.
+    // =====================================================
+
+    if (!question) {
+
+        return (
+
+            <div className="
+                flex
+                h-screen
+                items-center
+                justify-center
+                bg-slate-950
+                text-white
+            ">
+
+                <motion.div
+                    animate={{
+                        rotate: 360
+                    }}
+                    transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear"
+                    }}
+                    className="
+                        h-10
+                        w-10
+                        rounded-full
+                        border-4
+                        border-slate-700
+                        border-t-cyan-400
+                    "
+                />
 
             </div>
 
