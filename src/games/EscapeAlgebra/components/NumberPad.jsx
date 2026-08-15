@@ -57,26 +57,28 @@ export default function NumberPad({
 
     const buttonClass = `
         flex
-        h-8
+        h-9
         items-center
         justify-center
         rounded-lg
         border
         border-slate-700
-        bg-slate-800
+        bg-slate-900
+        font-mono
         text-sm
         font-black
-        transition
+        text-slate-200
+        transition-all
+        duration-150
 
         hover:border-cyan-400
-        hover:bg-slate-700
+        hover:bg-cyan-500/10
+        hover:text-cyan-400
 
-        active:scale-95
+        active:scale-90
 
-        sm:h-9
+        sm:h-10
         sm:text-base
-
-        lg:h-10
     `;
 
 
@@ -84,154 +86,163 @@ export default function NumberPad({
 
         <div className="
             mx-auto
-            mt-2
             w-full
-            max-w-xs
         ">
 
-            {/* DISPLAY */}
+            {/* KEYPAD */}
 
             <div className="
-                mb-2
-                flex
-                h-8
-                items-center
-                justify-center
-                rounded-xl
+                rounded-2xl
                 border
-                border-cyan-500/30
-                bg-slate-950
-                sm:h-9
-                lg:h-10
+                border-slate-700
+                bg-black/50
+                p-2
+                shadow-[inset_0_0_30px_rgba(0,0,0,0.5)]
+                sm:p-3
             ">
 
-                <motion.span
-                    key={value}
-                    initial={{
-                        scale: 0.8,
-                        opacity: 0
-                    }}
-                    animate={{
-                        scale: 1,
-                        opacity: 1
-                    }}
-                    className={`
-                        text-lg
-                        font-black
-                        sm:text-xl
+                {/* LABEL */}
 
-                        ${
-                            value
-                                ? "text-cyan-400"
-                                : "text-slate-700"
-                        }
-                    `}
-                >
+                <div className="
+                    mb-2
+                    flex
+                    items-center
+                    justify-between
+                ">
 
-                    {value || "?"}
+                    <span className="
+                        text-[8px]
+                        font-bold
+                        uppercase
+                        tracking-[0.3em]
+                        text-slate-600
+                    ">
 
-                </motion.span>
+                        Numeric keypad
 
-            </div>
+                    </span>
+
+                    <span className="
+                        h-1.5
+                        w-1.5
+                        rounded-full
+                        bg-cyan-400
+                        shadow-[0_0_10px_#22d3ee]
+                    " />
+
+                </div>
 
 
-            {/* TECLADO */}
+                {/* BUTTONS */}
 
-            <div className="
-                grid
-                grid-cols-3
-                gap-1.5
-                sm:gap-2
-            ">
+                <div className="
+                    grid
+                    grid-cols-3
+                    gap-1.5
+                    sm:gap-2
+                ">
 
-                {numbers.map((number) => (
+                    {numbers.map((number) => (
+
+                        <motion.button
+                            key={number}
+                            type="button"
+                            whileTap={{
+                                scale: 0.9
+                            }}
+                            disabled={disabled}
+                            onClick={() =>
+                                addNumber(number)
+                            }
+                            className={buttonClass}
+                        >
+
+                            {number}
+
+                        </motion.button>
+
+                    ))}
+
+
+                    {/* DELETE */}
 
                     <motion.button
-                        key={number}
                         type="button"
                         whileTap={{
                             scale: 0.9
                         }}
                         disabled={disabled}
-                        onClick={() =>
-                            addNumber(number)
-                        }
-                        className={buttonClass}
+                        onClick={removeNumber}
+                        className={`
+                            ${buttonClass}
+                            text-red-400
+                            hover:border-red-400
+                            hover:bg-red-500/10
+                        `}
                     >
 
-                        {number}
+                        <FaBackspace />
 
                     </motion.button>
 
-                ))}
+
+                    {/* ZERO */}
+
+                    <motion.button
+                        type="button"
+                        whileTap={{
+                            scale: 0.9
+                        }}
+                        disabled={disabled}
+                        onClick={addZero}
+                        className={buttonClass}
+                    >
+
+                        0
+
+                    </motion.button>
 
 
-                {/* BORRAR */}
+                    {/* ENTER */}
 
-                <motion.button
-                    type="button"
-                    whileTap={{
-                        scale: 0.9
-                    }}
-                    disabled={disabled}
-                    onClick={removeNumber}
-                    className={`${buttonClass} text-red-400`}
-                >
+                    <motion.button
+                        type="button"
+                        whileTap={{
+                            scale: 0.9
+                        }}
+                        disabled={
+                            disabled ||
+                            !value
+                        }
+                        onClick={onSubmit}
+                        className="
+                            flex
+                            h-9
+                            items-center
+                            justify-center
+                            rounded-lg
+                            border
+                            border-cyan-400
+                            bg-cyan-500
+                            text-slate-950
+                            transition-all
 
-                    <FaBackspace />
+                            hover:bg-cyan-400
 
-                </motion.button>
+                            active:scale-90
 
+                            disabled:cursor-not-allowed
+                            disabled:opacity-30
 
-                {/* CERO */}
+                            sm:h-10
+                        "
+                    >
 
-                <motion.button
-                    type="button"
-                    whileTap={{
-                        scale: 0.9
-                    }}
-                    disabled={disabled}
-                    onClick={addZero}
-                    className={buttonClass}
-                >
+                        <FaCheck size={14} />
 
-                    0
+                    </motion.button>
 
-                </motion.button>
-
-
-                {/* CONFIRMAR */}
-
-                <motion.button
-                    type="button"
-                    whileTap={{
-                        scale: 0.9
-                    }}
-                    disabled={
-                        disabled ||
-                        !value
-                    }
-                    onClick={onSubmit}
-                    className="
-                        flex
-                        h-8
-                        items-center
-                        justify-center
-                        rounded-lg
-                        bg-cyan-500
-                        text-slate-950
-                        transition
-                        hover:bg-cyan-400
-                        disabled:cursor-not-allowed
-                        disabled:opacity-30
-                        sm:h-9
-                        lg:h-10
-                    "
-                >
-
-                    <FaCheck size={15} />
-
-                </motion.button>
+                </div>
 
             </div>
 
