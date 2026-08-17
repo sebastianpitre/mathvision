@@ -11,18 +11,18 @@ const games = [
 
     {
         id: 2,
-        title: "Geometry Lab",
-        description: "Explora figuras en 3D.",
+        title: "Math Millonario",
+        description: "Responde preguntas de matemáticas para ganar dinero.",
         xp: 320,
-        difficulty: "Alta",
-        image: "https://picsum.photos/600/300?2",
-        route: "/games/geometry-lab"
+        difficulty: "Media",
+        image: "/img/MathMillonario/portada.png",
+        route: "/games/math-millonario"
     },
 
     {
         id: 3,
-        title: "Function Runner",
-        description: "Aprende funciones mientras corres.",
+        title: "Troll Math",
+        description: "¿Lograrás seleccionar la respuesta correcta?",
         xp: 500,
         difficulty: "Difícil",
         image: "https://picsum.photos/600/300?3",

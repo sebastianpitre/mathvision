@@ -6,6 +6,7 @@ import Games from "../pages/Games/Games";
 import NotFound from "../pages/NotFound/NotFound";
 import World from "../pages/World/World";
 import EscapeAlgebra from "../games/EscapeAlgebra/EscapeAlgebra";
+import MathMillonario from "../games/MathMillonario/MathMillonario";
 
 function AppRouter() {
 
@@ -22,6 +23,10 @@ function AppRouter() {
             <Route
                 path="/games/escape-algebra"
                 element={<EscapeAlgebra />}
+            />
+            <Route
+                path="/games/math-millonario"
+                element={<MathMillonario />}
             />
 
             <Route path="*" element={<NotFound />} />
