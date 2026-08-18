@@ -639,14 +639,7 @@ export default function MathMillonario() {
 
         return (
 
-            <div className="
-                flex
-                h-screen
-                items-center
-                justify-center
-                bg-[#050817]
-                text-white
-            ">
+            <div className="flex h-screen overflow-hidden text-white bg-[url('/img/MathMillonario/fondo.png')] bg-cover bg-center">
 
                 <motion.div
                     animate={{
@@ -686,17 +679,7 @@ export default function MathMillonario() {
 
         return (
 
-            <div className="
-                relative
-                flex
-                min-h-screen
-                items-center
-                justify-center
-                overflow-hidden
-                bg-[#050817]
-                px-5
-                text-white
-            ">
+            <div className="relative flex h-screen items-center justify-center overflow-hidden px-5 text-white bg-[url('/img/MathMillonario/fondo.png')] bg-cover bg-center">
 
                 <motion.div
                     animate={{
@@ -932,13 +915,7 @@ export default function MathMillonario() {
 
     return (
 
-        <div className="
-            flex
-            h-screen
-            overflow-hidden
-            bg-[#050817]
-            text-white
-        ">
+        <div className="flex h-screen overflow-hidden text-white bg-[url('/img/MathMillonario/fondo.png')] bg-cover bg-center">
 
 
             {/* =================================================
@@ -1113,8 +1090,7 @@ export default function MathMillonario() {
                             font-bold
                             uppercase
                             tracking-[0.2em]
-                            text-slate-500
-                        ">
+                        " style={{backgroundColor:"rgba(0,0,0,0.3)", padding: "4px 8px", borderRadius: "4px"}}>
 
                             Pregunta {currentQuestion + 1} de {TOTAL_QUESTIONS}
 
@@ -1123,23 +1099,13 @@ export default function MathMillonario() {
 
                         <p className="
                             mt-2
-                            text-sm
+                            text-
                             font-bold
-                            text-yellow-400
-                        ">
+                            text-yellow-300
+                        "
+                        style={{backgroundColor:"rgba(0,0,0,0.3)", padding: "4px 8px", borderRadius: "4px"}}>
 
-                            Responde correctamente por{" "}
-
-                            <span className="
-                                text-lg
-                                font-black
-                            ">
-
-                                ${nextMoney.toLocaleString("es-CO")}
-
-                            </span>
-
-                            {" "}para acumular un total de{" "}
+                            Responde correctamente para acumular un total de{" "}
 
                             <span className="
                                 text-lg
@@ -1174,43 +1140,25 @@ export default function MathMillonario() {
                         "
                     >
 
-                        <div className="
-                            relative
-                            rounded-3xl
-                            border
-                            border-cyan-500/20
-                            bg-[#0b1129]
-                            p-6
-                            text-center
-                            shadow-[0_0_60px_rgba(34,211,238,0.06)]
-                            md:p-10
-                        ">
-
-                            <div className="
-                                absolute
-                                left-1/2
-                                top-0
-                                h-1
-                                w-32
-                                -translate-x-1/2
-                                rounded-full
-                                bg-gradient-to-r
-                                from-cyan-400
-                                to-purple-500
-                            " />
-
-
-                            <h2 className="
-                                text-xl
-                                font-bold
-                                leading-relaxed
-                                md:text-3xl
-                            ">
-
+                        <div
+                            style={{
+                                clipPath:
+                                    "polygon(40px 0%, calc(100% - 40px) 0%, 100% 50%, calc(100% - 40px) 100%, 40px 100%, 0% 50%)"
+                            }}
+                            className="
+                                relative
+                                border
+                                border-cyan-500/20
+                                bg-slate-900/90
+                                p-5
+                                px-10
+                                text-center
+                                shadow-[0_0_60px_rgba(34,211,238,0.06)]
+                            "
+                        >
+                            <h2 className="text-xl font-bold leading-relaxed md:text-3xl">
                                 {question.question}
-
                             </h2>
-
                         </div>
 
 
@@ -1246,36 +1194,17 @@ export default function MathMillonario() {
 
                                         <motion.button
                                             key={index}
-                                            whileHover={
-                                                !answered &&
-                                                !hidden
-                                                    ? {
-                                                        scale: 1.02
-                                                    }
-                                                    : {}
-                                            }
-                                            whileTap={
-                                                !answered &&
-                                                !hidden
-                                                    ? {
-                                                        scale: 0.98
-                                                    }
-                                                    : {}
-                                            }
-                                            disabled={
-                                                answered ||
-                                                hidden
-                                            }
-                                            onClick={() =>
-                                                handleAnswer(
-                                                    index
-                                                )
-                                            }
+                                            whileHover={!answered && !hidden ? { scale: 1.02 } : {}}
+                                            whileTap={!answered && !hidden ? { scale: 0.98 } : {}}
+                                            disabled={answered || hidden}
+                                            onClick={() => handleAnswer(index)}
+                                            style={{
+                                                clipPath:
+                                                    "polygon(24px 0%, calc(100% - 24px) 0%, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0% 50%)"
+                                            }}
                                             className={`
                                                 min-h-16
-                                                rounded-2xl
-                                                border
-                                                px-5
+                                                px-8
                                                 py-4
                                                 text-left
                                                 font-bold
@@ -1283,34 +1212,19 @@ export default function MathMillonario() {
 
                                                 ${
                                                     hidden
-                                                        ? "cursor-not-allowed border-slate-800 bg-slate-900/30 text-transparent"
+                                                        ? "cursor-not-allowed bg-slate-900/30 text-transparent"
                                                         : isSelected && feedback === true
-                                                            ? "border-emerald-400 bg-emerald-400/15 text-emerald-300"
+                                                            ? "bg-emerald-400/15 text-emerald-300"
                                                             : isSelected && feedback === false
-                                                                ? "border-red-400 bg-red-400/15 text-red-300"
-                                                                : "border-slate-700 bg-slate-900/70 hover:border-cyan-400 hover:bg-cyan-400/5"
+                                                                ? "bg-red-400/15 text-red-300"
+                                                                : "bg-slate-900/90 hover:bg-slate-800/80"
                                                 }
                                             `}
                                         >
-
-                                            <span className="
-                                                mr-3
-                                                text-cyan-400
-                                            ">
-
-                                                {String.fromCharCode(
-                                                    65 + index
-                                                )}
-
-                                                .
-
+                                            <span className="mr-3 text-cyan-400">
+                                                {String.fromCharCode(65 + index)}.
                                             </span>
-
-                                            {hidden
-                                                ? "Respuesta eliminada"
-                                                : option
-                                            }
-
+                                            {hidden ? "Respuesta eliminada" : option}
                                         </motion.button>
 
                                     );
