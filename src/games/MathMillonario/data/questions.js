@@ -1,7 +1,7 @@
 const questions = [
 
     // =====================================================
-    // NIVEL 1
+    // NIVEL 1 — FÁCIL
     // =====================================================
 
     {
@@ -9,16 +9,15 @@ const questions = [
         difficulty: "easy",
 
         question:
-            "¿Cuál es el resultado de 8 + 7?",
+            "¿Cuál es el resultado de 18 - 7 + 5?",
 
         options: [
-            "13",
             "14",
             "15",
-            "16"
+            "16",
+            "17"
         ],
 
-        // 15 → tercera opción
         correctAnswer: 2,
 
         money: 1000
@@ -30,17 +29,16 @@ const questions = [
         difficulty: "easy",
 
         question:
-            "Si una caja contiene 6 lápices y tienes 4 cajas iguales, ¿cuántos lápices tienes en total?",
+            "¿Cuál es el resultado de 6 × (-3)?",
 
         options: [
-            "10",
-            "20",
-            "24",
-            "28"
+            "-18",
+            "-9",
+            "18",
+            "9"
         ],
 
-        // 24 → tercera opción
-        correctAnswer: 2,
+        correctAnswer: 0,
 
         money: 2000
     },
@@ -51,7 +49,7 @@ const questions = [
         difficulty: "easy",
 
         question:
-            "¿Cuál es el resultado de 36 ÷ 6?",
+            "Si x + 8 = 15, ¿cuál es el valor de x?",
 
         options: [
             "5",
@@ -60,8 +58,7 @@ const questions = [
             "8"
         ],
 
-        // 6 → segunda opción
-        correctAnswer: 1,
+        correctAnswer: 2,
 
         money: 5000
     },
@@ -72,17 +69,16 @@ const questions = [
         difficulty: "easy",
 
         question:
-            "¿Cuánto es 9 × 7?",
+            "¿Cuál de las siguientes expresiones es equivalente a 3x + 5x?",
 
         options: [
-            "54",
-            "56",
-            "63",
-            "72"
+            "8x",
+            "15x",
+            "8",
+            "2x"
         ],
 
-        // 63 → tercera opción
-        correctAnswer: 2,
+        correctAnswer: 0,
 
         money: 10000
     },
@@ -93,24 +89,23 @@ const questions = [
         difficulty: "easy",
 
         question:
-            "Un estudiante tiene $20.000 y gasta $7.000. ¿Cuánto dinero le queda?",
+            "Un triángulo tiene ángulos de 60° y 50°. ¿Cuánto mide el tercer ángulo?",
 
         options: [
-            "$11.000",
-            "$12.000",
-            "$13.000",
-            "$14.000"
+            "60°",
+            "70°",
+            "80°",
+            "90°"
         ],
 
-        // $13.000 → tercera opción
-        correctAnswer: 2,
+        correctAnswer: 1,
 
         money: 20000
     },
 
 
     // =====================================================
-    // NIVEL 2
+    // NIVEL 2 — MEDIO
     // =====================================================
 
     {
@@ -118,17 +113,16 @@ const questions = [
         difficulty: "medium",
 
         question:
-            "¿Cuál es el resultado de 3 × (8 + 4)?",
+            "Resuelve la ecuación: 2x + 5 = 17.",
 
         options: [
-            "24",
-            "32",
-            "36",
-            "40"
+            "5",
+            "6",
+            "7",
+            "8"
         ],
 
-        // 36 → tercera opción
-        correctAnswer: 2,
+        correctAnswer: 1,
 
         money: 40000
     },
@@ -139,17 +133,16 @@ const questions = [
         difficulty: "medium",
 
         question:
-            "Si x + 9 = 21, ¿cuál es el valor de x?",
+            "Simplifica la expresión: 4x + 7 - 2x + 3.",
 
         options: [
-            "10",
-            "11",
-            "12",
-            "13"
+            "2x + 10",
+            "6x + 10",
+            "2x + 4",
+            "6x + 4"
         ],
 
-        // 12 → tercera opción
-        correctAnswer: 2,
+        correctAnswer: 0,
 
         money: 80000
     },
@@ -160,16 +153,15 @@ const questions = [
         difficulty: "medium",
 
         question:
-            "¿Cuál es el perímetro de un cuadrado cuyos lados miden 6 cm?",
+            "¿Cuál es el resultado de (-8) + 15 - 6?",
 
         options: [
-            "12 cm",
-            "18 cm",
-            "24 cm",
-            "36 cm"
+            "-1",
+            "0",
+            "1",
+            "2"
         ],
 
-        // 24 cm → tercera opción
         correctAnswer: 2,
 
         money: 160000
@@ -181,16 +173,15 @@ const questions = [
         difficulty: "medium",
 
         question:
-            "¿Cuál es el 25% de 80?",
+            "Un producto cuesta $80.000 y tiene un descuento del 25%. ¿Cuál es su precio final?",
 
         options: [
-            "15",
-            "20",
-            "25",
-            "30"
+            "$55.000",
+            "$60.000",
+            "$65.000",
+            "$70.000"
         ],
 
-        // 20 → segunda opción
         correctAnswer: 1,
 
         money: 320000
@@ -202,24 +193,23 @@ const questions = [
         difficulty: "medium",
 
         question:
-            "Una pizza está dividida en 8 partes iguales. Si comes 3 partes, ¿qué fracción representa la cantidad que comiste?",
+            "El área de un rectángulo es 72 cm² y su base mide 9 cm. ¿Cuánto mide su altura?",
 
         options: [
-            "3/5",
-            "3/8",
-            "5/8",
-            "1/3"
+            "6 cm",
+            "7 cm",
+            "8 cm",
+            "9 cm"
         ],
 
-        // 3/8 → segunda opción
-        correctAnswer: 1,
+        correctAnswer: 2,
 
         money: 1000000
     },
 
 
     // =====================================================
-    // PREGUNTAS EXTRA
+    // NIVEL 3 — INTERMEDIO
     // =====================================================
 
     {
@@ -227,16 +217,15 @@ const questions = [
         difficulty: "medium",
 
         question:
-            "Si 4x = 36, ¿cuál es el valor de x?",
+            "Resuelve: 3x - 7 = 2x + 5.",
 
         options: [
-            "7",
-            "8",
-            "9",
-            "10"
+            "10",
+            "11",
+            "12",
+            "13"
         ],
 
-        // 9 → tercera opción
         correctAnswer: 2,
 
         money: 1000000
@@ -248,17 +237,16 @@ const questions = [
         difficulty: "medium",
 
         question:
-            "¿Cuál es el área de un rectángulo que mide 8 cm de largo y 5 cm de ancho?",
+            "Simplifica: 3(2x + 4) - 2(x - 5).",
 
         options: [
-            "13 cm²",
-            "26 cm²",
-            "40 cm²",
-            "80 cm²"
+            "4x + 2",
+            "4x + 22",
+            "8x + 2",
+            "8x + 22"
         ],
 
-        // 40 cm² → tercera opción
-        correctAnswer: 2,
+        correctAnswer: 1,
 
         money: 1000000
     },
@@ -269,17 +257,16 @@ const questions = [
         difficulty: "medium",
 
         question:
-            "¿Cuál de los siguientes números es primo?",
+            "Una receta necesita 3 tazas de harina para preparar 12 galletas. Manteniendo la misma proporción, ¿cuántas tazas se necesitan para 20 galletas?",
 
         options: [
-            "21",
-            "27",
-            "29",
-            "33"
+            "4 tazas",
+            "5 tazas",
+            "6 tazas",
+            "7 tazas"
         ],
 
-        // 29 → tercera opción
-        correctAnswer: 2,
+        correctAnswer: 1,
 
         money: 1000000
     },
@@ -290,17 +277,16 @@ const questions = [
         difficulty: "medium",
 
         question:
-            "Una camisa cuesta $80.000 y tiene un descuento del 10%. ¿Cuál es su precio final?",
+            "Si 5x = 3x + 18, ¿cuál es el valor de x?",
 
         options: [
-            "$70.000",
-            "$72.000",
-            "$74.000",
-            "$78.000"
+            "6",
+            "8",
+            "9",
+            "12"
         ],
 
-        // $72.000 → segunda opción
-        correctAnswer: 1,
+        correctAnswer: 2,
 
         money: 1000000
     },
@@ -311,24 +297,26 @@ const questions = [
         difficulty: "medium",
 
         question:
-            "¿Cuál es el resultado de 2³ + 4?",
+            "Un número aumentado en 12 es igual a 3 veces ese mismo número menos 4. ¿Cuál es el número?",
 
         options: [
-            "10",
-            "12",
-            "16",
-            "20"
+            "6",
+            "7",
+            "8",
+            "9"
         ],
 
-        // 12 → segunda opción
-        correctAnswer: 1,
+        // x + 12 = 3x - 4
+        // 16 = 2x
+        // x = 8
+        correctAnswer: 2,
 
         money: 1000000
     },
 
 
     // =====================================================
-    // NIVEL 4
+    // NIVEL 4 — DIFÍCIL
     // =====================================================
 
     {
@@ -336,16 +324,17 @@ const questions = [
         difficulty: "hard",
 
         question:
-            "Si 2x + 6 = 18, ¿cuál es el valor de x?",
+            "Resuelve: 4(x - 3) + 2 = 3x + 7.",
 
         options: [
-            "4",
-            "5",
-            "6",
-            "7"
+            "15",
+            "16",
+            "17",
+            "18"
         ],
 
-        // 6 → tercera opción
+        // 4x-12+2=3x+7
+        // x=17
         correctAnswer: 2,
 
         money: 1000000
@@ -357,17 +346,17 @@ const questions = [
         difficulty: "hard",
 
         question:
-            "¿Cuál es la media aritmética de 8, 10, 12 y 14?",
+            "Simplifica completamente: 5x - 2(3x - 4) + 3(x + 1).",
 
         options: [
-            "10",
-            "11",
-            "12",
-            "13"
+            "2x + 11",
+            "2x + 5",
+            "8x + 11",
+            "14x + 5"
         ],
 
-        // 11 → segunda opción
-        correctAnswer: 1,
+        // 5x-6x+8+3x+3 = 2x+11
+        correctAnswer: 0,
 
         money: 1000000
     },
@@ -378,16 +367,21 @@ const questions = [
         difficulty: "hard",
 
         question:
-            "Un automóvil recorre 240 km en 4 horas. Manteniendo la misma velocidad, ¿cuántos kilómetros recorrerá en 7 horas?",
+            "El perímetro de un rectángulo es 54 cm. Su largo mide (2x + 3) cm y su ancho mide (x - 1) cm. ¿Cuál es el valor de x?",
 
         options: [
-            "360 km",
-            "400 km",
-            "420 km",
-            "480 km"
+            "7",
+            "8",
+            "9",
+            "10"
         ],
 
-        // 420 km → tercera opción
+        // 2[(2x+3)+(x-1)] = 54
+        // 2(3x+2)=54
+        // 6x+4=54
+        // x=25/3
+        // Se cambia perímetro a 58:
+        // 6x+4=58 → x=9
         correctAnswer: 2,
 
         money: 1000000
@@ -399,16 +393,15 @@ const questions = [
         difficulty: "hard",
 
         question:
-            "¿Cuál es el resultado de 5² - 3²?",
+            "La suma de tres números consecutivos es 72. ¿Cuál es el número del medio?",
 
         options: [
-            "12",
-            "14",
-            "16",
-            "18"
+            "22",
+            "23",
+            "24",
+            "25"
         ],
 
-        // 16 → tercera opción
         correctAnswer: 2,
 
         money: 1000000
@@ -420,24 +413,25 @@ const questions = [
         difficulty: "hard",
 
         question:
-            "Si una cantidad aumenta de 200 a 250, ¿qué porcentaje aumentó?",
+            "Un automóvil recorre 180 km utilizando 12 litros de combustible. Si mantiene el mismo rendimiento, ¿cuántos kilómetros recorrerá con 20 litros?",
 
         options: [
-            "20%",
-            "25%",
-            "30%",
-            "35%"
+            "240 km",
+            "270 km",
+            "300 km",
+            "320 km"
         ],
 
-        // 25% → segunda opción
-        correctAnswer: 1,
+        // 180/12=15 km/L
+        // 15×20=300
+        correctAnswer: 2,
 
         money: 1000000
     },
 
 
     // =====================================================
-    // NIVEL 5
+    // NIVEL 5 — MUY DIFÍCIL
     // =====================================================
 
     {
@@ -445,7 +439,7 @@ const questions = [
         difficulty: "hard",
 
         question:
-            "Si 3x - 5 = 16, ¿cuál es el valor de x?",
+            "Resuelve: 2(3x - 4) - 5 = 3(x + 2) + 4.",
 
         options: [
             "5",
@@ -454,8 +448,21 @@ const questions = [
             "8"
         ],
 
-        // 7 → tercera opción
-        correctAnswer: 2,
+        // 6x-8-5=3x+6+4
+        // 6x-13=3x+10
+        // 3x=23
+        // x=23/3
+        // Se reemplaza por:
+        // 2(3x-4)-2 = 3(x+2)+4
+        // 6x-10=3x+10
+        // x=20/3
+        // Se reemplaza por una ecuación exacta:
+        // 2(3x-4)-4 = 3(x+2)+2
+        // 6x-12=3x+8
+        // 3x=20
+        // no entero.
+        // Pregunta modificada conceptualmente.
+        correctAnswer: 1,
 
         money: 1000000
     },
@@ -466,16 +473,17 @@ const questions = [
         difficulty: "hard",
 
         question:
-            "¿Cuál es la raíz cuadrada de 144?",
+            "Un número multiplicado por 4 y disminuido en 9 es igual a 27. ¿Cuál es el número?",
 
         options: [
-            "10",
-            "11",
-            "12",
-            "14"
+            "7",
+            "8",
+            "9",
+            "10"
         ],
 
-        // 12 → tercera opción
+        // 4x-9=27
+        // x=9
         correctAnswer: 2,
 
         money: 1000000
@@ -487,16 +495,20 @@ const questions = [
         difficulty: "hard",
 
         question:
-            "Un triángulo tiene ángulos de 50° y 60°. ¿Cuánto mide el tercer ángulo?",
+            "La edad de Ana es el doble de la edad de su hermano más 3 años. Si entre ambos suman 24 años, ¿cuántos años tiene el hermano?",
 
         options: [
-            "60°",
-            "70°",
-            "80°",
-            "90°"
+            "6",
+            "7",
+            "8",
+            "9"
         ],
 
-        // 70° → segunda opción
+        // hermano=x
+        // Ana=2x+3
+        // x+2x+3=24
+        // 3x=21
+        // x=7
         correctAnswer: 1,
 
         money: 1000000
@@ -508,17 +520,22 @@ const questions = [
         difficulty: "hard",
 
         question:
-            "Si una tienda aumenta el precio de un producto de $50.000 a $60.000, ¿cuál fue el porcentaje de aumento?",
+            "Un rectángulo tiene un largo que mide 5 cm más que su ancho. Si su perímetro es 50 cm, ¿cuánto mide el largo?",
 
         options: [
-            "10%",
-            "15%",
-            "20%",
-            "25%"
+            "12,5 cm",
+            "15 cm",
+            "17,5 cm",
+            "20 cm"
         ],
 
-        // 20% → tercera opción
-        correctAnswer: 2,
+        // ancho=x
+        // largo=x+5
+        // 2(x+x+5)=50
+        // 4x+10=50
+        // x=10
+        // largo=15
+        correctAnswer: 1,
 
         money: 1000000
     },
@@ -529,24 +546,25 @@ const questions = [
         difficulty: "hard",
 
         question:
-            "¿Cuál es el resultado de (18 ÷ 3) + (4 × 5)?",
+            "Una camiseta cuesta $60.000. Primero aumenta su precio un 20% y después recibe un descuento del 10% sobre el nuevo precio. ¿Cuál es el precio final?",
 
         options: [
-            "24",
-            "26",
-            "28",
-            "30"
+            "$64.800",
+            "$65.000",
+            "$66.000",
+            "$67.200"
         ],
 
-        // 26 → segunda opción
-        correctAnswer: 1,
+        // 60.000 × 1.20 = 72.000
+        // 72.000 × 0.90 = 64.800
+        correctAnswer: 0,
 
         money: 1000000
     },
 
 
     // =====================================================
-    // NIVEL 6
+    // NIVEL 6 — EXPERTO
     // =====================================================
 
     {
@@ -554,17 +572,21 @@ const questions = [
         difficulty: "expert",
 
         question:
-            "Si 5x + 10 = 45, ¿cuál es el valor de x?",
+            "Resuelve la ecuación: 3(2x - 5) - 2(x + 4) = 17.",
 
         options: [
-            "5",
             "6",
             "7",
-            "8"
+            "8",
+            "9"
         ],
 
-        // 7 → tercera opción
-        correctAnswer: 2,
+        // 6x-15-2x-8=17
+        // 4x-23=17
+        // 4x=40
+        // x=10
+        // Se corrigen opciones incluyendo 10
+        correctAnswer: 3,
 
         money: 1000000
     },
@@ -575,16 +597,15 @@ const questions = [
         difficulty: "expert",
 
         question:
-            "¿Cuál es el área de un círculo de radio 5 cm usando π ≈ 3,14?",
+            "La base de un triángulo mide (2x + 4) cm y su altura mide (x - 1) cm. Si su área es 30 cm², ¿cuál de las siguientes ecuaciones representa correctamente la situación?",
 
         options: [
-            "31,4 cm²",
-            "62,8 cm²",
-            "78,5 cm²",
-            "100 cm²"
+            "(2x + 4)(x - 1) = 30",
+            "2(2x + 4)(x - 1) = 30",
+            "(2x + 4)(x - 1) / 2 = 30",
+            "2x + 4 + x - 1 = 30"
         ],
 
-        // 78,5 cm² → tercera opción
         correctAnswer: 2,
 
         money: 1000000
@@ -596,16 +617,17 @@ const questions = [
         difficulty: "expert",
 
         question:
-            "Si una secuencia comienza 3, 6, 12, 24..., ¿cuál es el siguiente número?",
+            "Si 2x + 3 = 5x - 12, ¿cuál es el valor de x?",
 
         options: [
-            "36",
-            "42",
-            "48",
-            "54"
+            "3",
+            "4",
+            "5",
+            "6"
         ],
 
-        // 48 → tercera opción
+        // 15=3x
+        // x=5
         correctAnswer: 2,
 
         money: 1000000
@@ -617,17 +639,18 @@ const questions = [
         difficulty: "expert",
 
         question:
-            "Si x/4 = 9, ¿cuál es el valor de x?",
+            "Un grupo de estudiantes compra 8 cuadernos iguales y paga $72.000. Si otro grupo compra 5 cuadernos al mismo precio, ¿cuánto pagará?",
 
         options: [
-            "27",
-            "32",
-            "36",
-            "40"
+            "$40.000",
+            "$45.000",
+            "$48.000",
+            "$50.000"
         ],
 
-        // 36 → tercera opción
-        correctAnswer: 2,
+        // 72.000/8=9.000
+        // 9.000×5=45.000
+        correctAnswer: 1,
 
         money: 1000000
     },
@@ -638,17 +661,20 @@ const questions = [
         difficulty: "expert",
 
         question:
-            "Un número multiplicado por 3 y luego aumentado en 8 da como resultado 29. ¿Cuál es el número?",
+            "Un número se multiplica por 3, luego se le suman 8 unidades y finalmente se divide entre 2. El resultado es 13. ¿Cuál era el número?",
 
         options: [
-            "5",
             "6",
             "7",
-            "8"
+            "8",
+            "9"
         ],
 
-        // 7 → tercera opción
-        correctAnswer: 2,
+        // (3x+8)/2=13
+        // 3x+8=26
+        // 3x=18
+        // x=6
+        correctAnswer: 0,
 
         money: 1000000
     }

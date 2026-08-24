@@ -1268,7 +1268,7 @@ export default function MathMillonario() {
                                     ${
                                         fiftyUsed
                                             ? "cursor-not-allowed border-slate-800 text-slate-600"
-                                            : "border-yellow-500/30 text-yellow-400 hover:bg-yellow-400/10"
+                                            : "border-yellow-500/30 text-yellow-400 bg-yellow-400/10 hover:bg-yellow-800/10 cursor-pointer"
                                     }
                                 `}
                             >

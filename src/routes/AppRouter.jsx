@@ -7,6 +7,7 @@ import NotFound from "../pages/NotFound/NotFound";
 import World from "../pages/World/World";
 import EscapeAlgebra from "../games/EscapeAlgebra/EscapeAlgebra";
 import MathMillonario from "../games/MathMillonario/MathMillonario";
+import AuthTest from "../pages/AuthTest";
 
 function AppRouter() {
 
@@ -14,6 +15,10 @@ function AppRouter() {
 
         <Routes>
 
+            <Route
+                path="/auth-test"
+                element={<AuthTest />}
+            />
             <Route path="/" element={<Dashboard />} />
 
             <Route path="/dashboard" element={<Dashboard />} />
