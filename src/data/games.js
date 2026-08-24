@@ -24,9 +24,9 @@ const games = [
         title: "Troll Math",
         description: "¿Lograrás seleccionar la respuesta correcta?",
         xp: 500,
-        difficulty: "Difícil",
-        image: "https://picsum.photos/600/300?3",
-        route: "/games/function-runner"
+        difficulty: "Disponible pronto",
+        image: "/img/TrollMath/portada.png",
+        route: "/games/TrollMath"
     }
 ];
 
