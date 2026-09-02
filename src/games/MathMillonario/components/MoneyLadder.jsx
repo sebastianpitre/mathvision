@@ -161,7 +161,7 @@ export default function MoneyLadder({
                     font-bold
                     uppercase
                     tracking-widest
-                    text-slate-500
+                    text-emerald-400
                 ">
                     Acumulado
                 </p>

@@ -8,6 +8,7 @@ import World from "../pages/World/World";
 import EscapeAlgebra from "../games/EscapeAlgebra/EscapeAlgebra";
 import MathMillonario from "../games/MathMillonario/MathMillonario";
 import AuthTest from "../pages/AuthTest";
+import Rooms from "../pages/Rooms";
 
 function AppRouter() {
 
@@ -19,6 +20,9 @@ function AppRouter() {
                 path="/auth-test"
                 element={<AuthTest />}
             />
+
+            <Route path="/salas" element={<Rooms />} />
+
             <Route path="/" element={<Dashboard />} />
 
             <Route path="/dashboard" element={<Dashboard />} />
