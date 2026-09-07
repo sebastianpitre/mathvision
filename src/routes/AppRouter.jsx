@@ -10,6 +10,8 @@ import MathMillonario from "../games/MathMillonario/MathMillonario";
 import AuthTest from "../pages/AuthTest";
 import Rooms from "../pages/Rooms";
 
+import TriquiGame from "../games/triqui/TriquiGame";
+
 function AppRouter() {
 
     return (
@@ -21,7 +23,7 @@ function AppRouter() {
                 element={<AuthTest />}
             />
 
-            <Route path="/salas" element={<Rooms />} />
+            <Route path="/games/rooms" element={<Rooms />} />
 
             <Route path="/" element={<Dashboard />} />
 
@@ -36,6 +38,10 @@ function AppRouter() {
             <Route
                 path="/games/math-millonario"
                 element={<MathMillonario />}
+            />
+            <Route
+                path="/games/triqui"
+                element={<TriquiGame />}
             />
 
             <Route path="*" element={<NotFound />} />

@@ -1,0 +1,1922 @@
+/* =========================================================
+   PAGE
+========================================================= */
+
+.triqui-page {
+    width: 100vw;
+    height: 100dvh;
+
+    min-height: 100dvh;
+
+    background:
+        radial-gradient(
+            circle at 50% -20%,
+            rgba(66, 150, 255, 0.18),
+            transparent 45%
+        ),
+        radial-gradient(
+            circle at 0% 100%,
+            rgba(66, 211, 146, 0.08),
+            transparent 35%
+        ),
+        #070b12;
+
+    overflow: hidden;
+
+    position: relative;
+}
+
+/* =========================================================
+   CONTAINER
+========================================================= */
+
+.triqui-container {
+    width: min(
+        1100px,
+        100%
+    );
+
+    height: 100%;
+
+    margin: 0 auto;
+
+    padding:
+        clamp(8px, 1.2vh, 16px)
+        clamp(10px, 2vw, 25px);
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap:
+        clamp(5px, 1vh, 10px);
+
+    overflow: hidden;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.triqui-header {
+    width: 100%;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    min-height:
+        clamp(48px, 7vh, 70px);
+
+    padding:
+        8px 14px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+    border-radius: 14px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+
+    backdrop-filter:
+        blur(10px);
+}
+
+.triqui-brand {
+    display: block;
+
+    font-size:
+        clamp(7px, 0.8vw, 10px);
+
+    font-weight: 900;
+
+    letter-spacing: 4px;
+
+    color:
+        rgba(255, 255, 255, 0.42);
+}
+
+.triqui-header h1 {
+    margin: 2px 0 0;
+
+    font-size:
+        clamp(15px, 2vw, 24px);
+
+    font-weight: 950;
+
+    letter-spacing:
+        clamp(1px, 0.3vw, 4px);
+}
+
+.triqui-round {
+    padding:
+        7px 10px;
+
+    border-radius: 8px;
+
+    background:
+        rgba(66, 150, 255, 0.1);
+
+    border:
+        1px solid
+        rgba(66, 150, 255, 0.18);
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: 1px;
+
+    color: #72b7ff;
+}
+
+/* =========================================================
+   PLAYERS
+========================================================= */
+
+.triqui-players {
+    width: 100%;
+
+    flex-shrink: 0;
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 10px;
+}
+
+.triqui-player {
+    min-width: 0;
+
+    min-height:
+        clamp(48px, 7vh, 65px);
+
+    padding:
+        7px 10px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+
+    transition:
+        border .2s,
+        background .2s,
+        transform .2s;
+}
+
+.triqui-player.active {
+    border-color:
+        rgba(66, 211, 146, 0.65);
+
+    background:
+        rgba(66, 211, 146, 0.08);
+
+    box-shadow:
+        0 0 25px
+        rgba(66, 211, 146, 0.08);
+}
+
+.triqui-player.me {
+    border-color:
+        rgba(85, 168, 255, 0.4);
+}
+
+.triqui-symbol {
+    width:
+        clamp(35px, 5vh, 48px);
+
+    height:
+        clamp(35px, 5vh, 48px);
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size:
+        clamp(18px, 3vh, 25px);
+
+    font-weight: 950;
+}
+
+.symbol-x {
+    background:
+        rgba(85, 168, 255, 0.14);
+
+    border:
+        2px solid #55a8ff;
+
+    color: #55a8ff;
+
+    text-shadow:
+        0 0 15px
+        rgba(85, 168, 255, 0.5);
+}
+
+.symbol-o {
+    background:
+        rgba(255, 93, 104, 0.14);
+
+    border:
+        2px solid #ff5d68;
+
+    color: #ff5d68;
+
+    text-shadow:
+        0 0 15px
+        rgba(255, 93, 104, 0.5);
+}
+
+.triqui-player-info {
+    min-width: 0;
+
+    flex: 1;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.triqui-player-info strong {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+    font-size:
+        clamp(11px, 1.5vw, 15px);
+}
+
+.triqui-player-info span {
+    font-size: 8px;
+
+    color:
+        rgba(255, 255, 255, 0.32);
+
+    letter-spacing: 1px;
+}
+
+.triqui-you {
+    padding:
+        2px 5px;
+
+    border-radius: 4px;
+
+    background:
+        rgba(85, 168, 255, 0.15);
+
+    color: #72b7ff;
+
+    font-size: 7px;
+
+    letter-spacing: 1px;
+}
+
+.triqui-score {
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 4px;
+}
+
+.triqui-score small {
+    font-size: 6px;
+
+    color:
+        rgba(255, 255, 255, 0.3);
+
+    letter-spacing: 1px;
+}
+
+.triqui-score strong {
+    font-size:
+        clamp(16px, 2.5vh, 23px);
+}
+
+/* =========================================================
+   TURN
+========================================================= */
+
+.triqui-turn {
+    width: 100%;
+
+    flex-shrink: 0;
+
+    min-height:
+        clamp(38px, 5vh, 48px);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    border-radius: 10px;
+
+    font-size: 10px;
+
+    letter-spacing: 1px;
+}
+
+.triqui-turn strong {
+    font-size:
+        clamp(10px, 1.4vw, 14px);
+
+    font-weight: 950;
+}
+
+.triqui-turn small {
+    color:
+        rgba(255, 255, 255, 0.35);
+
+    font-size: 8px;
+}
+
+.triqui-turn.my-turn {
+    background:
+        rgba(66, 211, 146, 0.08);
+
+    border:
+        1px solid
+        rgba(66, 211, 146, 0.2);
+}
+
+.triqui-turn.opponent-turn {
+    background:
+        rgba(255, 255, 255, 0.035);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.07);
+}
+
+/* =========================================================
+   MY PLAYER
+========================================================= */
+
+.triqui-my-player {
+    width: 100%;
+
+    flex-shrink: 0;
+
+    min-height:
+        clamp(38px, 5vh, 48px);
+
+    padding:
+        5px 10px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    border-radius: 9px;
+
+    background:
+        rgba(85, 168, 255, 0.06);
+
+    border:
+        1px solid
+        rgba(85, 168, 255, 0.14);
+}
+
+.triqui-my-symbol {
+    width: 31px;
+
+    height: 31px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    font-weight: 950;
+
+    font-size: 16px;
+}
+
+.triqui-my-player > div:nth-child(2) {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 2px;
+
+    flex: 1;
+}
+
+.triqui-my-player span {
+    font-size: 6px;
+
+    color:
+        rgba(255, 255, 255, 0.3);
+
+    letter-spacing: 1.5px;
+}
+
+.triqui-my-player strong {
+    font-size: 11px;
+}
+
+.triqui-score-mini {
+    flex: none;
+
+    font-size: 14px;
+
+    font-weight: 900;
+}
+
+/* =========================================================
+   BOARD
+========================================================= */
+
+.triqui-board {
+    width:
+        min(
+            55vh,
+            78vw,
+            560px
+        );
+
+    aspect-ratio: 1;
+
+    flex-shrink: 1;
+
+    min-height: 0;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap:
+        clamp(6px, 1vh, 10px);
+
+    margin:
+        auto 0;
+}
+
+.triqui-cell {
+    position: relative;
+
+    min-width: 0;
+
+    min-height: 0;
+
+    border: none;
+
+    border-radius:
+        clamp(10px, 1.5vh, 16px);
+
+    background:
+        rgba(255, 255, 255, 0.045);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.09);
+
+    color: white;
+
+    font-size:
+        clamp(
+            38px,
+            9vh,
+            80px
+        );
+
+    font-weight: 950;
+
+    cursor: default;
+
+    transition:
+        transform .15s,
+        background .15s,
+        border .15s;
+}
+
+.triqui-cell.available {
+    cursor: pointer;
+
+    border-color:
+        rgba(66, 211, 146, 0.25);
+}
+
+.triqui-cell.available:hover {
+    transform:
+        scale(0.96);
+
+    background:
+        rgba(66, 211, 146, 0.1);
+
+    border-color:
+        rgba(66, 211, 146, 0.65);
+}
+
+.triqui-cell.selected {
+    transform:
+        scale(0.94);
+
+    border:
+        2px solid #ffc857;
+
+    background:
+        rgba(255, 200, 87, 0.12);
+
+    box-shadow:
+        0 0 25px
+        rgba(255, 200, 87, 0.16);
+}
+
+.triqui-cell.cell-x {
+    color: #55a8ff;
+
+    background:
+        rgba(85, 168, 255, 0.08);
+
+    border-color:
+        rgba(85, 168, 255, 0.25);
+}
+
+.triqui-cell.cell-o {
+    color: #ff5d68;
+
+    background:
+        rgba(255, 93, 104, 0.08);
+
+    border-color:
+        rgba(255, 93, 104, 0.25);
+}
+
+.triqui-cell.winning {
+    animation:
+        winnerCell .8s
+        ease-in-out
+        infinite alternate;
+}
+
+@keyframes winnerCell {
+    from {
+        transform: scale(1);
+    }
+
+    to {
+        transform: scale(.95);
+    }
+}
+
+.winning-crown {
+    position: absolute;
+
+    top: 3px;
+
+    right: 5px;
+
+    font-size:
+        clamp(13px, 2.5vh, 22px);
+}
+
+/* =========================================================
+   INSTRUCTION
+========================================================= */
+
+.triqui-instruction {
+    flex-shrink: 0;
+
+    min-height: 24px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+
+    font-size:
+        clamp(8px, 1vw, 11px);
+
+    color:
+        rgba(255, 255, 255, 0.32);
+}
+
+/* =========================================================
+   EMOJIS
+========================================================= */
+
+.triqui-emoji-area {
+    position: absolute;
+
+    right:
+        clamp(10px, 2vw, 25px);
+
+    bottom:
+        clamp(10px, 2vh, 20px);
+
+    z-index: 30;
+}
+
+.triqui-emoji-button {
+    width: 48px;
+
+    height: 48px;
+
+    border-radius: 50%;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.13);
+
+    background:
+        rgba(15, 23, 35, 0.92);
+
+    color: white;
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-direction: column;
+
+    gap: 1px;
+
+    font-size: 20px;
+
+    box-shadow:
+        0 10px 30px
+        rgba(0, 0, 0, .3);
+}
+
+.triqui-emoji-button span {
+    font-size: 5px;
+
+    letter-spacing: 1px;
+
+    color:
+        rgba(255, 255, 255, 0.35);
+}
+
+.triqui-emoji-panel {
+    position: absolute;
+
+    right: 0;
+
+    bottom: 56px;
+
+    width:
+        min(
+            270px,
+            80vw
+        );
+
+    padding: 9px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(6, 1fr);
+
+    gap: 5px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.1);
+
+    border-radius: 14px;
+
+    background:
+        rgba(12, 18, 28, 0.97);
+
+    box-shadow:
+        0 20px 50px
+        rgba(0, 0, 0, .5);
+
+    backdrop-filter:
+        blur(15px);
+}
+
+.triqui-emoji-panel button {
+    width: 34px;
+
+    height: 34px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background:
+        rgba(255, 255, 255, 0.05);
+
+    font-size: 19px;
+
+    cursor: pointer;
+
+    transition:
+        transform .12s,
+        background .12s;
+}
+
+.triqui-emoji-panel button:hover {
+    transform:
+        scale(1.15);
+
+    background:
+        rgba(255, 255, 255, 0.12);
+}
+
+/* =========================================================
+   FLOATING EMOJI
+========================================================= */
+
+.triqui-floating-emoji {
+    position: fixed;
+
+    left: 50%;
+
+    top: 48%;
+
+    z-index: 100;
+
+    transform:
+        translate(-50%, -50%);
+
+    pointer-events: none;
+
+    text-align: center;
+
+    animation:
+        floatingEmoji 2.2s
+        ease-out
+        forwards;
+}
+
+.triqui-floating-emoji div {
+    font-size:
+        clamp(60px, 10vh, 100px);
+
+    filter:
+        drop-shadow(
+            0 10px 20px
+            rgba(0, 0, 0, .5)
+        );
+}
+
+.triqui-floating-emoji span {
+    display: block;
+
+    margin-top: -5px;
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: 2px;
+}
+
+@keyframes floatingEmoji {
+
+    0% {
+        opacity: 0;
+        transform:
+            translate(-50%, -35%)
+            scale(.4);
+    }
+
+    15% {
+        opacity: 1;
+        transform:
+            translate(-50%, -50%)
+            scale(1.15);
+    }
+
+    70% {
+        opacity: 1;
+        transform:
+            translate(-50%, -65%)
+            scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform:
+            translate(-50%, -85%)
+            scale(.8);
+    }
+}
+
+/* =========================================================
+   TURN NOTICE
+========================================================= */
+
+.triqui-turn-notice {
+    position: fixed;
+
+    left: 50%;
+
+    top: 14%;
+
+    z-index: 200;
+
+    transform:
+        translateX(-50%);
+
+    max-width:
+        calc(100vw - 30px);
+
+    padding:
+        12px 20px;
+
+    border-radius: 12px;
+
+    background:
+        rgba(15, 23, 35, 0.96);
+
+    border:
+        1px solid
+        rgba(255, 200, 87, 0.4);
+
+    box-shadow:
+        0 15px 40px
+        rgba(0, 0, 0, .4);
+
+    text-align: center;
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    animation:
+        noticeAppear .25s
+        ease;
+}
+
+@keyframes noticeAppear {
+
+    from {
+        opacity: 0;
+        transform:
+            translateX(-50%)
+            translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform:
+            translateX(-50%)
+            translateY(0);
+    }
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.triqui-error {
+    flex-shrink: 0;
+
+    padding:
+        7px 12px;
+
+    border-radius: 8px;
+
+    background:
+        rgba(255, 93, 104, 0.1);
+
+    border:
+        1px solid
+        rgba(255, 93, 104, 0.2);
+
+    color: #ff8990;
+
+    font-size: 9px;
+
+    text-align: center;
+}
+
+/* =========================================================
+   BACK
+========================================================= */
+
+.triqui-back {
+    flex-shrink: 0;
+
+    height: 32px;
+
+    padding:
+        0 15px;
+
+    border: none;
+
+    border-radius: 7px;
+
+    background:
+        rgba(255, 255, 255, 0.05);
+
+    color:
+        rgba(255, 255, 255, 0.4);
+
+    font-size: 7px;
+
+    font-weight: 900;
+
+    letter-spacing: 1px;
+
+    cursor: pointer;
+}
+
+/* =========================================================
+   QUESTION MODAL
+========================================================= */
+
+.triqui-modal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 15px;
+
+    background:
+        rgba(2, 5, 10, 0.84);
+
+    backdrop-filter:
+        blur(12px);
+}
+
+.triqui-modal {
+    width:
+        min(
+            500px,
+            94vw
+        );
+
+    border-radius: 20px;
+
+    background:
+        #101722;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.1);
+
+    box-shadow:
+        0 30px 100px
+        rgba(0, 0, 0, .65);
+
+    overflow: hidden;
+
+    animation:
+        modalAppear .2s
+        ease-out;
+}
+
+@keyframes modalAppear {
+
+    from {
+        opacity: 0;
+        transform:
+            translateY(15px)
+            scale(.97);
+    }
+
+    to {
+        opacity: 1;
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+.triqui-modal-header {
+    min-height: 58px;
+
+    padding:
+        9px 13px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    border-bottom:
+        1px solid
+        rgba(255, 255, 255, 0.07);
+}
+
+.triqui-modal-header > div {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.triqui-modal-header span {
+    font-size: 7px;
+
+    color:
+        rgba(255, 255, 255, 0.35);
+
+    letter-spacing: 2px;
+}
+
+.triqui-modal-header strong {
+    width: 34px;
+
+    height: 34px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    font-size: 15px;
+}
+
+.triqui-modal-close {
+    width: 35px;
+
+    height: 35px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background:
+        rgba(255, 255, 255, 0.06);
+
+    color: white;
+
+    font-size: 22px;
+
+    cursor: pointer;
+}
+
+.triqui-modal-content {
+    padding:
+        clamp(20px, 4vh, 35px)
+        20px;
+
+    text-align: center;
+}
+
+.triqui-modal-icon {
+    font-size:
+        clamp(35px, 6vh, 50px);
+
+    margin-bottom: 6px;
+}
+
+.triqui-modal-content h2 {
+    margin:
+        0 0 5px;
+
+    font-size:
+        clamp(16px, 2.5vw, 23px);
+
+    font-weight: 950;
+}
+
+.triqui-modal-content p {
+    margin:
+        0 0 14px;
+
+    color:
+        rgba(255, 255, 255, 0.35);
+
+    font-size: 9px;
+}
+
+.triqui-selected-cell {
+    display: inline-block;
+
+    padding:
+        5px 9px;
+
+    border-radius: 6px;
+
+    background:
+        rgba(255, 200, 87, 0.08);
+
+    border:
+        1px solid
+        rgba(255, 200, 87, 0.18);
+
+    color: #ffc857;
+
+    font-size: 7px;
+
+    font-weight: 900;
+
+    letter-spacing: 1px;
+
+    margin-bottom: 12px;
+}
+
+.triqui-question-operation {
+    font-size:
+        clamp(35px, 7vw, 60px);
+
+    font-weight: 950;
+
+    letter-spacing: 1px;
+
+    margin-bottom: 17px;
+}
+
+.triqui-answer {
+    display: flex;
+
+    gap: 7px;
+
+    max-width: 390px;
+
+    margin: 0 auto;
+}
+
+.triqui-answer input {
+    flex: 1;
+
+    min-width: 0;
+
+    height: 46px;
+
+    padding:
+        0 13px;
+
+    border-radius: 9px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.1);
+
+    background:
+        rgba(255, 255, 255, 0.05);
+
+    color: white;
+
+    font-size: 18px;
+
+    font-weight: 800;
+
+    outline: none;
+
+    text-align: center;
+}
+
+.triqui-answer input:focus {
+    border-color:
+        rgba(85, 168, 255, 0.6);
+}
+
+.triqui-answer button {
+    height: 46px;
+
+    padding:
+        0 15px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    background:
+        #55a8ff;
+
+    color: #07111c;
+
+    font-size: 8px;
+
+    font-weight: 950;
+
+    cursor: pointer;
+}
+
+.triqui-answer-correct,
+.triqui-answer-wrong {
+    margin-top: 10px;
+
+    padding: 8px;
+
+    border-radius: 8px;
+
+    font-size: 9px;
+
+    font-weight: 800;
+}
+
+.triqui-answer-correct {
+    color: #42d392;
+
+    background:
+        rgba(66, 211, 146, .08);
+}
+
+.triqui-answer-wrong {
+    color: #ff5d68;
+
+    background:
+        rgba(255, 93, 104, .08);
+}
+
+.triqui-modal-footer {
+    padding:
+        10px 13px;
+
+    border-top:
+        1px solid
+        rgba(255, 255, 255, 0.07);
+
+    display: flex;
+
+    justify-content: center;
+}
+
+.triqui-cancel-button {
+    height: 34px;
+
+    padding:
+        0 16px;
+
+    border: none;
+
+    border-radius: 7px;
+
+    background:
+        rgba(255, 255, 255, 0.06);
+
+    color:
+        rgba(255, 255, 255, 0.5);
+
+    font-size: 7px;
+
+    font-weight: 900;
+
+    letter-spacing: 1px;
+
+    cursor: pointer;
+}
+
+/* =========================================================
+   RESULT MODAL
+========================================================= */
+
+.triqui-result-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 2000;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 15px;
+
+    background:
+        rgba(2, 5, 10, .9);
+
+    backdrop-filter:
+        blur(15px);
+}
+
+.triqui-result-modal {
+    width:
+        min(
+            700px,
+            95vw
+        );
+
+    max-height:
+        94vh;
+
+    overflow: auto;
+
+    padding:
+        clamp(20px, 4vh, 35px);
+
+    border-radius: 24px;
+
+    background:
+        #101722;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .1);
+
+    box-shadow:
+        0 40px 120px
+        rgba(0, 0, 0, .7);
+
+    text-align: center;
+
+    animation:
+        resultAppear .3s
+        ease-out;
+}
+
+@keyframes resultAppear {
+
+    from {
+        opacity: 0;
+
+        transform:
+            scale(.9)
+            translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            scale(1)
+            translateY(0);
+    }
+}
+
+.triqui-result-crown {
+    font-size:
+        clamp(45px, 8vh, 75px);
+
+    animation:
+        crownBounce 1s
+        ease infinite
+        alternate;
+}
+
+@keyframes crownBounce {
+
+    from {
+        transform:
+            translateY(0)
+            rotate(-3deg);
+    }
+
+    to {
+        transform:
+            translateY(-8px)
+            rotate(3deg);
+    }
+}
+
+.triqui-result-label {
+    margin-top: 2px;
+
+    color:
+        rgba(255, 255, 255, .35);
+
+    font-size: 8px;
+
+    font-weight: 900;
+
+    letter-spacing: 3px;
+}
+
+.triqui-result-modal h2 {
+    margin:
+        5px 0 18px;
+
+    font-size:
+        clamp(24px, 5vw, 42px);
+
+    font-weight: 950;
+}
+
+.triqui-versus {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap:
+        clamp(12px, 4vw, 35px);
+}
+
+.result-player {
+    position: relative;
+
+    width:
+        clamp(120px, 22vw, 180px);
+
+    padding:
+        13px 10px;
+
+    border-radius: 16px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 5px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .08);
+
+    background:
+        rgba(255, 255, 255, .035);
+}
+
+.result-player.winner {
+    border-color:
+        rgba(66, 150, 255, .7);
+
+    background:
+        rgba(66, 150, 255, .1);
+
+    box-shadow:
+        0 0 35px
+        rgba(66, 150, 255, .12);
+}
+
+.result-player.loser {
+    border-color:
+        rgba(255, 93, 104, .5);
+
+    background:
+        rgba(255, 93, 104, .07);
+}
+
+.result-crown {
+    position: absolute;
+
+    top: -27px;
+
+    font-size: 27px;
+}
+
+.result-symbol {
+    width:
+        clamp(48px, 7vh, 62px);
+
+    height:
+        clamp(48px, 7vh, 62px);
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 25px;
+
+    font-weight: 950;
+}
+
+.loser-symbol {
+    border:
+        2px solid #ff5d68;
+
+    color: #ff5d68;
+
+    background:
+        rgba(255, 93, 104, .1);
+}
+
+.result-player strong {
+    max-width: 100%;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    font-size:
+        clamp(11px, 1.5vw, 15px);
+}
+
+.result-player span {
+    font-size: 7px;
+
+    letter-spacing: 1.5px;
+
+    color:
+        rgba(255, 255, 255, .35);
+}
+
+.result-player.winner span {
+    color: #72b7ff;
+}
+
+.result-player.loser span {
+    color: #ff8990;
+}
+
+.result-player b {
+    font-size: 14px;
+
+    margin-top: 3px;
+}
+
+.result-vs {
+    font-size:
+        clamp(13px, 2vw, 18px);
+
+    font-weight: 950;
+
+    color:
+        rgba(255, 255, 255, .3);
+}
+
+/* =========================================================
+   FINAL SCORE
+========================================================= */
+
+.triqui-final-score {
+    max-width: 400px;
+
+    margin:
+        20px auto;
+
+    padding:
+        10px 15px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 25px;
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, .035);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .07);
+}
+
+.triqui-final-score div:not(.final-score-separator) {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+.triqui-final-score span {
+    max-width: 100px;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+    font-size: 9px;
+
+    color:
+        rgba(255, 255, 255, .45);
+}
+
+.triqui-final-score strong {
+    font-size: 24px;
+}
+
+.final-score-separator {
+    color:
+        rgba(255, 255, 255, .2);
+
+    font-weight: 900;
+}
+
+/* =========================================================
+   RESULT BUTTONS
+========================================================= */
+
+.triqui-result-actions {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+}
+
+.triqui-rematch-button,
+.triqui-exit-button {
+    height: 44px;
+
+    padding:
+        0 18px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    font-size: 8px;
+
+    font-weight: 950;
+
+    letter-spacing: 1px;
+
+    cursor: pointer;
+}
+
+.triqui-rematch-button {
+    background:
+        #55a8ff;
+
+    color:
+        #07111c;
+}
+
+.triqui-exit-button {
+    background:
+        rgba(255, 255, 255, .07);
+
+    color:
+        rgba(255, 255, 255, .55);
+}
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.triqui-loading {
+    width: 100%;
+
+    height: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+}
+
+.triqui-loading-logo {
+    font-size: 10px;
+
+    letter-spacing: 5px;
+
+    font-weight: 900;
+
+    color:
+        rgba(255, 255, 255, .3);
+}
+
+.triqui-loading h1 {
+    margin:
+        8px 0;
+
+    font-size:
+        clamp(20px, 4vw, 35px);
+}
+
+.triqui-loading p {
+    color:
+        rgba(255, 255, 255, .3);
+
+    font-size: 11px;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 650px) {
+
+    .triqui-container {
+        padding:
+            7px 8px;
+
+        gap: 5px;
+    }
+
+    .triqui-header {
+        min-height: 43px;
+
+        padding:
+            5px 9px;
+    }
+
+    .triqui-brand {
+        display: none;
+    }
+
+    .triqui-header h1 {
+        font-size: 13px;
+    }
+
+    .triqui-round {
+        font-size: 7px;
+
+        padding:
+            5px 7px;
+    }
+
+    .triqui-players {
+        gap: 5px;
+    }
+
+    .triqui-player {
+        min-height: 43px;
+
+        padding:
+            5px 6px;
+
+        gap: 5px;
+    }
+
+    .triqui-symbol {
+        width: 30px;
+
+        height: 30px;
+
+        font-size: 15px;
+    }
+
+    .triqui-player-info strong {
+        font-size: 9px;
+    }
+
+    .triqui-player-info span {
+        display: none;
+    }
+
+    .triqui-score small {
+        display: none;
+    }
+
+    .triqui-score strong {
+        font-size: 14px;
+    }
+
+    .triqui-turn {
+        min-height: 34px;
+
+        gap: 5px;
+    }
+
+    .triqui-turn small {
+        display: none;
+    }
+
+    .triqui-my-player {
+        min-height: 34px;
+
+        padding:
+            3px 7px;
+    }
+
+    .triqui-my-symbol {
+        width: 27px;
+
+        height: 27px;
+    }
+
+    .triqui-my-player span {
+        display: none;
+    }
+
+    .triqui-my-player strong {
+        font-size: 9px;
+    }
+
+    .triqui-board {
+        width:
+            min(
+                80vw,
+                48vh
+            );
+
+        gap: 5px;
+    }
+
+    .triqui-cell {
+        border-radius: 9px;
+
+        font-size:
+            clamp(
+                35px,
+                10vw,
+                55px
+            );
+    }
+
+    .triqui-instruction {
+        font-size: 7px;
+    }
+
+    .triqui-back {
+        height: 27px;
+
+        font-size: 6px;
+    }
+
+    .triqui-result-modal {
+        padding:
+            22px 12px;
+    }
+
+    .triqui-versus {
+        gap: 7px;
+    }
+
+    .result-player {
+        width:
+            clamp(
+                105px,
+                32vw,
+                140px
+            );
+    }
+
+    .result-vs {
+        font-size: 11px;
+    }
+
+    .triqui-final-score {
+        gap: 12px;
+    }
+
+    .triqui-final-score span {
+        max-width: 70px;
+
+        font-size: 7px;
+    }
+
+    .triqui-result-actions {
+        flex-direction: column;
+    }
+
+    .triqui-rematch-button,
+    .triqui-exit-button {
+        width: 100%;
+    }
+}

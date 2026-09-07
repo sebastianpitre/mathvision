@@ -24,7 +24,8 @@ export default function Rooms() {
     // DIRECCIÓN DEL SERVIDOR
     // =====================================================
 
-    const playerUrl = `${window.location.protocol}//${window.location.hostname}:${window.location.port}`;
+    const playerUrl =
+        `${window.location.protocol}//${window.location.hostname}:${window.location.port}`;
 
     // =====================================================
     // ESTADOS
@@ -49,82 +50,251 @@ export default function Rooms() {
 
     useEffect(() => {
 
-        socket.connect();
+        // =================================================
+        // SOCKET CONECTADO
+        // =================================================
 
         const onConnect = () => {
 
-            console.log("Socket conectado:", socket.id);
+            console.log(
+                "🟢 Socket conectado:",
+                socket.id
+            );
 
             setConnected(true);
             setError("");
 
         };
 
+
+        // =================================================
+        // SOCKET DESCONECTADO
+        // =================================================
+
         const onDisconnect = () => {
 
-            console.log("Socket desconectado");
+            console.log(
+                "🔴 Socket desconectado"
+            );
 
             setConnected(false);
 
         };
 
-        const onRoomCreated = ({ room }) => {
 
-            console.log("Sala creada:", room);
+        // =================================================
+        // SALA CREADA
+        // =================================================
+
+        const onRoomCreated = (room) => {
+
+            console.log(
+                "🟢 Sala creada:",
+                room
+            );
 
             setRoom(room);
             setError("");
 
         };
 
-        const onRoomJoined = ({ room }) => {
 
-            console.log("Sala unida:", room);
+        // =================================================
+        // SALA UNIDA
+        // =================================================
+
+        const onRoomJoined = (room) => {
+
+            console.log(
+                "🟢 Sala unida:",
+                room
+            );
 
             setRoom(room);
             setError("");
 
         };
 
-        const onRoomUpdated = ({ room }) => {
 
-            console.log("Sala actualizada:", room);
+        // =================================================
+        // SALA ACTUALIZADA
+        // =================================================
+
+        const onRoomUpdated = (room) => {
+
+            console.log(
+                "🔄 Sala actualizada:",
+                room
+            );
 
             setRoom(room);
 
         };
+
+
+        // =================================================
+        // ERROR DE SALA
+        // =================================================
 
         const onRoomError = ({ message }) => {
 
-            console.error(message);
+            console.error(
+                "🔴 ERROR DE SALA:",
+                message
+            );
 
             setError(message);
 
         };
 
-        socket.on("connect", onConnect);
-        socket.on("disconnect", onDisconnect);
 
-        socket.on("room:created", onRoomCreated);
-        socket.on("room:joined", onRoomJoined);
-        socket.on("room:updated", onRoomUpdated);
-        socket.on("room:error", onRoomError);
+        // =================================================
+        // ERROR DEL JUEGO
+        // =================================================
 
-        return () => {
+        const handleGameError = ({ message }) => {
 
-            socket.off("connect", onConnect);
-            socket.off("disconnect", onDisconnect);
+            console.error(
+                "🔴 ERROR DEL JUEGO:",
+                message
+            );
 
-            socket.off("room:created", onRoomCreated);
-            socket.off("room:joined", onRoomJoined);
-            socket.off("room:updated", onRoomUpdated);
-            socket.off("room:error", onRoomError);
-
-            socket.disconnect();
+            setError(message);
 
         };
 
-    }, []);
+
+        // =================================================
+        // PARTIDA INICIADA
+        // =================================================
+
+        const handleGameStarted = ({ game }) => {
+
+            console.log(
+                "🎮 PARTIDA INICIADA:",
+                game
+            );
+
+            /*
+             * Guardamos el estado por si necesitamos
+             * utilizarlo posteriormente.
+             */
+
+            navigate("/games/triqui");
+
+        };
+
+
+        // =================================================
+        // REGISTRAR EVENTOS
+        // =================================================
+
+        socket.on(
+            "connect",
+            onConnect
+        );
+
+        socket.on(
+            "disconnect",
+            onDisconnect
+        );
+
+        socket.on(
+            "room:created",
+            onRoomCreated
+        );
+
+        socket.on(
+            "room:joined",
+            onRoomJoined
+        );
+
+        socket.on(
+            "room:updated",
+            onRoomUpdated
+        );
+
+        socket.on(
+            "room:error",
+            onRoomError
+        );
+
+        socket.on(
+            "game:error",
+            handleGameError
+        );
+
+        socket.on(
+            "game:started",
+            handleGameStarted
+        );
+
+
+        // =================================================
+        // CONECTAR SOCKET
+        // =================================================
+
+        if (!socket.connected) {
+
+            socket.connect();
+
+        } else {
+
+            setConnected(true);
+
+        }
+
+
+        // =================================================
+        // LIMPIEZA
+        // =================================================
+
+        return () => {
+
+            socket.off(
+                "connect",
+                onConnect
+            );
+
+            socket.off(
+                "disconnect",
+                onDisconnect
+            );
+
+            socket.off(
+                "room:created",
+                onRoomCreated
+            );
+
+            socket.off(
+                "room:joined",
+                onRoomJoined
+            );
+
+            socket.off(
+                "room:updated",
+                onRoomUpdated
+            );
+
+            socket.off(
+                "room:error",
+                onRoomError
+            );
+
+            socket.off(
+                "game:error",
+                handleGameError
+            );
+
+            socket.off(
+                "game:started",
+                handleGameStarted
+            );
+
+        };
+
+    }, [navigate]);
+
 
     // =====================================================
     // COPIAR DIRECCIÓN
@@ -134,21 +304,29 @@ export default function Rooms() {
 
         try {
 
-            await navigator.clipboard.writeText(playerUrl);
+            await navigator.clipboard.writeText(
+                playerUrl
+            );
 
             setCopied(true);
 
             setTimeout(() => {
+
                 setCopied(false);
+
             }, 2000);
 
         } catch (error) {
 
-            console.error("No se pudo copiar:", error);
+            console.error(
+                "No se pudo copiar:",
+                error
+            );
 
         }
 
     };
+
 
     // =====================================================
     // CAMBIAR MODO
@@ -161,6 +339,7 @@ export default function Rooms() {
 
     };
 
+
     // =====================================================
     // CREAR SALA
     // =====================================================
@@ -171,7 +350,9 @@ export default function Rooms() {
 
         if (!connected) {
 
-            setError("El servidor todavía no está conectado.");
+            setError(
+                "El servidor todavía no está conectado."
+            );
 
             return;
 
@@ -179,23 +360,29 @@ export default function Rooms() {
 
         if (!name.trim()) {
 
-            setError("Escribe tu nombre antes de crear la sala.");
+            setError(
+                "Escribe tu nombre antes de crear la sala."
+            );
 
             return;
 
         }
 
-        socket.emit("room:create", {
+        console.log(
+            "🟡 Creando sala..."
+        );
 
-            game: "triqui-matematico",
-
-            playerName: name.trim(),
-
-            password: password.trim() || null,
-
-        });
+        socket.emit(
+            "room:create",
+            {
+                game: "triqui-matematico",
+                playerName: name.trim(),
+                password: password.trim() || null,
+            }
+        );
 
     };
+
 
     // =====================================================
     // UNIRSE A SALA
@@ -207,7 +394,9 @@ export default function Rooms() {
 
         if (!connected) {
 
-            setError("El servidor todavía no está conectado.");
+            setError(
+                "El servidor todavía no está conectado."
+            );
 
             return;
 
@@ -215,7 +404,9 @@ export default function Rooms() {
 
         if (!name.trim()) {
 
-            setError("Escribe tu nombre.");
+            setError(
+                "Escribe tu nombre."
+            );
 
             return;
 
@@ -223,23 +414,37 @@ export default function Rooms() {
 
         if (!roomCode.trim()) {
 
-            setError("Escribe el código de la sala.");
+            setError(
+                "Escribe el código de la sala."
+            );
 
             return;
 
         }
 
-        socket.emit("room:join", {
+        console.log(
+            "🟡 Uniéndose a sala:",
+            roomCode.trim().toUpperCase()
+        );
 
-            code: roomCode.trim().toUpperCase(),
+        socket.emit(
+            "room:join",
+            {
+                roomCode:
+                    roomCode
+                        .trim()
+                        .toUpperCase(),
 
-            playerName: name.trim(),
+                playerName:
+                    name.trim(),
 
-            password: password.trim() || null,
-
-        });
+                password:
+                    password.trim() || null,
+            }
+        );
 
     };
+
 
     // =====================================================
     // INICIAR PARTIDA
@@ -247,15 +452,72 @@ export default function Rooms() {
 
     const iniciarPartida = () => {
 
-        if (!room) return;
+        console.log(
+            "🟢 BOTÓN INICIAR PARTIDA PRESIONADO"
+        );
 
-        console.log("Iniciando partida:", room.code);
+        console.log(
+            "Sala:",
+            room
+        );
 
-        // TODO:
-        // Aquí conectaremos posteriormente:
-        // socket.emit("game:start", { code: room.code });
+        console.log(
+            "Socket conectado:",
+            socket.connected
+        );
+
+        if (!room) {
+
+            console.log(
+                "🔴 No existe room"
+            );
+
+            setError(
+                "No hay una sala activa."
+            );
+
+            return;
+
+        }
+
+        if (!socket.connected) {
+
+            console.log(
+                "🔴 Socket desconectado"
+            );
+
+            setError(
+                "El servidor está desconectado."
+            );
+
+            return;
+
+        }
+
+        if (!room.players || room.players.length < 2) {
+
+            console.log(
+                "🔴 No hay 2 jugadores"
+            );
+
+            setError(
+                "Se necesitan 2 jugadores para iniciar."
+            );
+
+            return;
+
+        }
+
+        console.log(
+            "🟡 Enviando game:start al servidor..."
+        );
+
+        socket.emit(
+            "game:start"
+        );
 
     };
+
 
     // =====================================================
     // PANTALLA DE SALA
@@ -263,9 +525,12 @@ export default function Rooms() {
 
     if (room) {
 
-        const players = room.players || [];
+        const players =
+            room.players || [];
 
-        const isReady = players.length >= 2;
+        const isReady =
+            players.length >= 2;
+
 
         return (
 
@@ -282,6 +547,7 @@ export default function Rooms() {
                     <div className="absolute bottom-20 right-1/4 h-96 w-96 rounded-full bg-purple-600/10 blur-[140px]" />
 
                 </div>
+
 
                 {/* ==========================================
                     HEADER
@@ -302,6 +568,7 @@ export default function Rooms() {
 
                         </button>
 
+
                         <div className="text-center">
 
                             <p className="text-xs font-bold uppercase tracking-[0.4em] text-cyan-400">
@@ -314,11 +581,13 @@ export default function Rooms() {
 
                         </div>
 
+
                         <div className="w-24" />
 
                     </div>
 
                 </header>
+
 
                 {/* ==========================================
                     CONTENIDO
@@ -353,10 +622,12 @@ export default function Rooms() {
                                                     : "text-red-400"
                                             }`}
                                         >
+
                                             {connected
                                                 ? "Servidor activo"
                                                 : "Servidor desconectado"
                                             }
+
                                         </span>
 
                                     </div>
@@ -367,6 +638,7 @@ export default function Rooms() {
 
                                 </div>
 
+
                                 <div className="flex w-full gap-2 md:w-auto">
 
                                     <div className="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
@@ -376,6 +648,7 @@ export default function Rooms() {
                                         </span>
 
                                     </div>
+
 
                                     <button
                                         onClick={copiarDireccion}
@@ -388,7 +661,12 @@ export default function Rooms() {
                                         }
 
                                         <span className="hidden sm:inline">
-                                            {copied ? "Copiado" : "Copiar"}
+
+                                            {copied
+                                                ? "Copiado"
+                                                : "Copiar"
+                                            }
+
                                         </span>
 
                                     </button>
@@ -400,6 +678,7 @@ export default function Rooms() {
                         </div>
 
                     </FadeIn>
+
 
                     {/* TÍTULO */}
 
@@ -422,6 +701,7 @@ export default function Rooms() {
                         </section>
 
                     </FadeIn>
+
 
                     {/* GRID */}
 
@@ -466,6 +746,7 @@ export default function Rooms() {
 
                         </FadeIn>
 
+
                         {/* JUGADORES */}
 
                         <FadeIn
@@ -489,6 +770,7 @@ export default function Rooms() {
 
                                     </div>
 
+
                                     <div className="rounded-xl border border-cyan-400/10 bg-cyan-500/10 px-4 py-2 text-sm font-bold text-cyan-400">
 
                                         <FaWifi className="mr-2 inline" />
@@ -502,42 +784,47 @@ export default function Rooms() {
 
                                 </div>
 
+
                                 <div className="space-y-3">
 
-                                    {players.map((player, index) => (
+                                    {players.map(
+                                        (player, index) => (
 
-                                        <div
-                                            key={player.id}
-                                            className="flex items-center justify-between rounded-2xl border border-slate-700 bg-slate-800/60 p-4"
-                                        >
+                                            <div
+                                                key={player.id}
+                                                className="flex items-center justify-between rounded-2xl border border-slate-700 bg-slate-800/60 p-4"
+                                            >
 
-                                            <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-4">
 
-                                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10 text-xl">
-                                                    🎮
+                                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10 text-xl">
+                                                        🎮
+                                                    </div>
+
+                                                    <div>
+
+                                                        <p className="font-bold">
+                                                            {player.name}
+                                                        </p>
+
+                                                        <p className="text-xs text-slate-500">
+                                                            Jugador {index + 1}
+                                                        </p>
+
+                                                    </div>
+
                                                 </div>
 
-                                                <div>
 
-                                                    <p className="font-bold">
-                                                        {player.name}
-                                                    </p>
-
-                                                    <p className="text-xs text-slate-500">
-                                                        Jugador {index + 1}
-                                                    </p>
-
-                                                </div>
+                                                <span className="text-xs font-bold text-emerald-400">
+                                                    ● LISTO
+                                                </span>
 
                                             </div>
 
-                                            <span className="text-xs font-bold text-emerald-400">
-                                                ● LISTO
-                                            </span>
+                                        )
+                                    )}
 
-                                        </div>
-
-                                    ))}
 
                                     {players.length < 2 && (
 
@@ -565,6 +852,7 @@ export default function Rooms() {
 
                                 </div>
 
+
                                 {isReady && (
 
                                     <button
@@ -586,12 +874,30 @@ export default function Rooms() {
 
                     </div>
 
+
+                    {/* ERROR */}
+
+                    {error && (
+
+                        <FadeIn delay={0.1}>
+
+                            <div className="mx-auto mt-6 max-w-2xl rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-center font-bold text-red-400">
+
+                                ⚠ {error}
+
+                            </div>
+
+                        </FadeIn>
+
+                    )}
+
                 </main>
 
             </div>
 
         );
     }
+
 
     // =====================================================
     // LOBBY
@@ -613,6 +919,7 @@ export default function Rooms() {
 
             </div>
 
+
             {/* ==========================================
                 HEADER
             ========================================== */}
@@ -632,6 +939,7 @@ export default function Rooms() {
 
                     </button>
 
+
                     <div className="text-center">
 
                         <p className="text-xs font-bold uppercase tracking-[0.4em] text-cyan-400">
@@ -644,11 +952,13 @@ export default function Rooms() {
 
                     </div>
 
+
                     <div className="w-24" />
 
                 </div>
 
             </header>
+
 
             {/* ==========================================
                 CONTENIDO
@@ -656,9 +966,7 @@ export default function Rooms() {
 
             <main className="relative z-10 mx-auto max-w-7xl px-5 py-10">
 
-                {/* ==========================================
-                    SERVIDOR
-                ========================================== */}
+                {/* SERVIDOR */}
 
                 <FadeIn>
 
@@ -685,10 +993,12 @@ export default function Rooms() {
                                                 : "text-red-400"
                                         }`}
                                     >
+
                                         {connected
                                             ? "Servidor activo"
                                             : "Conectando..."
                                         }
+
                                     </span>
 
                                 </div>
@@ -699,6 +1009,7 @@ export default function Rooms() {
 
                             </div>
 
+
                             <div className="flex w-full gap-2 md:w-auto">
 
                                 <div className="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
@@ -708,6 +1019,7 @@ export default function Rooms() {
                                     </span>
 
                                 </div>
+
 
                                 <button
                                     onClick={copiarDireccion}
@@ -720,7 +1032,12 @@ export default function Rooms() {
                                     }
 
                                     <span className="hidden sm:inline">
-                                        {copied ? "Copiado" : "Copiar"}
+
+                                        {copied
+                                            ? "Copiado"
+                                            : "Copiar"
+                                        }
+
                                     </span>
 
                                 </button>
@@ -733,9 +1050,8 @@ export default function Rooms() {
 
                 </FadeIn>
 
-                {/* ==========================================
-                    TÍTULO
-                ========================================== */}
+
+                {/* TÍTULO */}
 
                 <FadeIn>
 
@@ -758,16 +1074,17 @@ export default function Rooms() {
 
                 </FadeIn>
 
-                {/* ==========================================
-                    SELECTOR DE MODO
-                ========================================== */}
+
+                {/* SELECTOR DE MODO */}
 
                 <FadeIn delay={0.1}>
 
                     <div className="mx-auto mb-6 flex max-w-2xl rounded-2xl border border-slate-700 bg-slate-900/80 p-2 backdrop-blur-xl">
 
                         <button
-                            onClick={() => cambiarModo("create")}
+                            onClick={() =>
+                                cambiarModo("create")
+                            }
                             className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-4 font-bold transition ${
                                 mode === "create"
                                     ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
@@ -781,8 +1098,11 @@ export default function Rooms() {
 
                         </button>
 
+
                         <button
-                            onClick={() => cambiarModo("join")}
+                            onClick={() =>
+                                cambiarModo("join")
+                            }
                             className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-4 font-bold transition ${
                                 mode === "join"
                                     ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20"
@@ -800,9 +1120,8 @@ export default function Rooms() {
 
                 </FadeIn>
 
-                {/* ==========================================
-                    FORMULARIO
-                ========================================== */}
+
+                {/* FORMULARIO */}
 
                 <FadeIn
                     key={mode}
@@ -835,15 +1154,19 @@ export default function Rooms() {
 
                                 </div>
 
+
                                 <div className="space-y-4">
 
                                     <input
                                         type="text"
                                         placeholder="Tu nombre"
                                         value={name}
-                                        onChange={(e) => setName(e.target.value)}
+                                        onChange={(e) =>
+                                            setName(e.target.value)
+                                        }
                                         className="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-5 py-4 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
                                     />
+
 
                                     <div className="relative">
 
@@ -853,11 +1176,14 @@ export default function Rooms() {
                                             type="password"
                                             placeholder="Contraseña opcional"
                                             value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
+                                            onChange={(e) =>
+                                                setPassword(e.target.value)
+                                            }
                                             className="w-full rounded-2xl border border-slate-700 bg-slate-950/70 py-4 pl-12 pr-5 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
                                         />
 
                                     </div>
+
 
                                     <button
                                         onClick={crearSala}
@@ -899,15 +1225,19 @@ export default function Rooms() {
 
                                 </div>
 
+
                                 <div className="space-y-4">
 
                                     <input
                                         type="text"
                                         placeholder="Tu nombre"
                                         value={name}
-                                        onChange={(e) => setName(e.target.value)}
+                                        onChange={(e) =>
+                                            setName(e.target.value)
+                                        }
                                         className="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-5 py-4 text-white outline-none transition placeholder:text-slate-600 focus:border-purple-400"
                                     />
+
 
                                     <input
                                         type="text"
@@ -921,8 +1251,9 @@ export default function Rooms() {
                                                     .replace(/\s/g, "")
                                             )
                                         }
-                                        className="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-5 py-4 font-mono text-lg uppercase tracking-widest text-white outline-none transition placeholder:font-sans placeholder:tracking-normal placeholder:text-slate-600 focus:border-purple-400"
+                                        className="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-5 py-4 font-mono text-lg uppercase tracking-widest text-white outline-none placeholder:font-sans placeholder:tracking-normal placeholder:text-slate-600 focus:border-purple-400"
                                     />
+
 
                                     <div className="relative">
 
@@ -932,11 +1263,14 @@ export default function Rooms() {
                                             type="password"
                                             placeholder="Contraseña si la tiene"
                                             value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
+                                            onChange={(e) =>
+                                                setPassword(e.target.value)
+                                            }
                                             className="w-full rounded-2xl border border-slate-700 bg-slate-950/70 py-4 pl-12 pr-5 text-white outline-none transition placeholder:text-slate-600 focus:border-purple-400"
                                         />
 
                                     </div>
+
 
                                     <button
                                         onClick={unirseSala}
@@ -960,9 +1294,8 @@ export default function Rooms() {
 
                 </FadeIn>
 
-                {/* ==========================================
-                    ERROR
-                ========================================== */}
+
+                {/* ERROR */}
 
                 {error && (
 

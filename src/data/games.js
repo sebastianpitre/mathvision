@@ -21,12 +21,12 @@ const games = [
 
     {
         id: 3,
-        title: "Troll Math",
+        title: "Triqui",
         description: "¿Lograrás seleccionar la respuesta correcta?",
         xp: 500,
-        difficulty: "Disponible pronto",
-        image: "/img/TrollMath/portada.png",
-        route: "/games/TrollMath"
+        difficulty: "Media",
+        image: "/img/Triqui/portada.jpeg",
+        route: "/games/rooms"
     }
 ];
 
