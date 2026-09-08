@@ -1019,7 +1019,7 @@ function TriquiGame() {
                    IDENTIDAD
                 ================================================= */}
 
-                {myPlayer &&
+                {/* {myPlayer &&
                     isPlaying && (
 
                         <div className="triqui-my-player">
@@ -1061,7 +1061,7 @@ function TriquiGame() {
                             </div>
 
                         </div>
-                    )}
+                    )} */}
 
                 {/* =================================================
                    TABLERO
