@@ -4,11 +4,12 @@ import Home from "../pages/Home/Home";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import Games from "../pages/Games/Games";
 import NotFound from "../pages/NotFound/NotFound";
-import World from "../pages/World/World";
+// import World from "../pages/World/World";
 import EscapeAlgebra from "../games/EscapeAlgebra/EscapeAlgebra";
 import MathMillonario from "../games/MathMillonario/MathMillonario";
 import AuthTest from "../pages/AuthTest";
 import Rooms from "../pages/Rooms";
+import World from "../pages/World";
 
 import TriquiGame from "../games/triqui/TriquiGame";
 
