@@ -1,0 +1,1938 @@
+/* =========================================================
+   MATHVISION
+   SISTEMA VISUAL GLOBAL
+   ========================================================= */
+
+
+/* =========================================================
+   01. RESET / VIEWPORT
+   ========================================================= */
+
+html,
+body,
+#root {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    min-width: 320px;
+    background: #050816;
+    color: #ffffff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+button {
+    border: 0;
+}
+
+button:focus-visible {
+    outline: 2px solid #39bfff;
+    outline-offset: 2px;
+}
+
+
+/* =========================================================
+   02. APP
+   ========================================================= */
+
+.mv-app {
+    position: relative;
+
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    max-height: 100dvh;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    background: #050816;
+}
+
+
+/* =========================================================
+   03. HEADER GLOBAL
+   ========================================================= */
+
+.mv-header {
+    position: relative;
+    z-index: 50;
+
+    flex: 0 0 74px;
+
+    width: 100%;
+    height: 74px;
+    min-height: 74px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 26px;
+
+    background: rgba(4, 7, 24, 0.88);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+
+    backdrop-filter: blur(18px);
+}
+
+
+/* =========================================================
+   04. LOGO
+   ========================================================= */
+
+.mv-logo {
+    min-width: 215px;
+
+    cursor: pointer;
+
+    user-select: none;
+}
+
+.mv-logo-main {
+    font-size: 29px;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -1.5px;
+}
+
+.mv-logo-main span {
+    color: #39bfff;
+}
+
+.mv-logo-sub {
+    margin-top: 5px;
+
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 3px;
+
+    color: rgba(255, 255, 255, 0.42);
+}
+
+
+/* =========================================================
+   05. NAVEGACIÓN
+   ========================================================= */
+
+.mv-nav {
+    flex: 1;
+    min-width: 0;
+
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+
+    gap: 3px;
+}
+
+.mv-nav-item {
+    position: relative;
+
+    min-width: 68px;
+    height: 52px;
+
+    padding: 6px 9px;
+
+    border-radius: 10px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 3px;
+
+    background: transparent;
+    color: rgba(255, 255, 255, 0.48);
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        color 0.2s;
+}
+
+.mv-nav-item b {
+    font-size: 17px;
+    line-height: 1;
+    font-weight: 500;
+}
+
+.mv-nav-item span {
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.mv-nav-item:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.mv-nav-item.active {
+    color: #ffffff;
+    background: rgba(57, 191, 255, 0.10);
+}
+
+.mv-nav-item.active::after {
+    content: "";
+
+    position: absolute;
+
+    bottom: 0;
+    left: 18px;
+    right: 18px;
+
+    height: 2px;
+
+    border-radius: 10px;
+
+    background: #39bfff;
+    box-shadow: 0 0 12px rgba(57, 191, 255, 0.7);
+}
+
+
+/* =========================================================
+   06. USUARIO HEADER
+   ========================================================= */
+
+.lobby-header-player {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    min-width: 125px;
+}
+
+.mv-avatar-small {
+    width: 36px;
+    height: 36px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(57, 191, 255, 0.18),
+            rgba(155, 77, 255, 0.15)
+        );
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    font-size: 20px;
+}
+
+.lobby-header-player-info strong,
+.lobby-header-player-info span {
+    display: block;
+}
+
+.lobby-header-player-info strong {
+    font-size: 11px;
+}
+
+.lobby-header-player-info span {
+    margin-top: 2px;
+
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 1px;
+
+    color: rgba(255, 255, 255, 0.48);
+}
+
+.mv-xp {
+    width: 46px;
+    height: 3px;
+
+    margin-top: 5px;
+
+    border-radius: 10px;
+
+    background: rgba(255, 255, 255, 0.10);
+
+    overflow: hidden;
+}
+
+.mv-xp div {
+    width: 72%;
+    height: 100%;
+
+    background: #39bfff;
+}
+
+
+/* =========================================================
+   07. MONEDAS / SETTINGS
+   ========================================================= */
+
+.lobby-currencies {
+    display: flex;
+    align-items: center;
+
+    gap: 13px;
+
+    margin-left: 18px;
+}
+
+.lobby-currencies div {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    font-size: 12px;
+}
+
+.lobby-currencies strong {
+    font-size: 10px;
+}
+
+.mv-settings {
+    width: 34px;
+    height: 34px;
+
+    margin-left: 14px;
+
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, 0.07);
+    color: #ffffff;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.mv-settings:hover {
+    background: rgba(255, 255, 255, 0.13);
+}
+
+
+/* =========================================================
+   08. BOTONES
+   ========================================================= */
+
+.mv-btn {
+    min-height: 34px;
+
+    padding: 8px 13px;
+
+    border-radius: 8px;
+
+    font-size: 9px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s,
+        filter 0.2s,
+        background 0.2s;
+}
+
+.mv-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+}
+
+.mv-btn-primary {
+    background: #39bfff;
+    color: #03111c;
+
+    box-shadow:
+        0 5px 18px rgba(57, 191, 255, 0.14);
+}
+
+.mv-btn-secondary {
+    background: rgba(255, 255, 255, 0.07);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.mv-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   09. TEXTOS GENERALES
+   ========================================================= */
+
+.eyebrow {
+    display: block;
+
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 2px;
+
+    color: #39bfff;
+}
+
+.mv-list {
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.mv-scroll {
+    min-height: 0;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    scrollbar-width: thin;
+}
+
+.mv-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.mv-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.mv-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+}
+
+
+/* =========================================================
+   10. LOBBY — FONDO
+   ========================================================= */
+
+.lobby-page {
+    background: #050816;
+}
+
+.lobby-background {
+    position: absolute;
+    inset: 0;
+
+    background-image:
+        linear-gradient(
+            90deg,
+            rgba(4, 7, 24, 0.95) 0%,
+            rgba(4, 7, 24, 0.70) 35%,
+            rgba(4, 7, 24, 0.80) 100%
+        ),
+        url("/img/lobby.jpg");
+
+    background-size: cover;
+    background-position: center;
+
+    opacity: 0.75;
+
+    pointer-events: none;
+}
+
+.lobby-background::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(5, 8, 22, 0.20),
+            rgba(5, 8, 22, 0.92)
+        );
+}
+
+.lobby-background-glow {
+    position: absolute;
+
+    width: 420px;
+    height: 420px;
+
+    border-radius: 50%;
+
+    filter: blur(100px);
+
+    pointer-events: none;
+
+    opacity: 0.10;
+}
+
+.lobby-glow-one {
+    top: 15%;
+    left: 28%;
+
+    background: #39bfff;
+}
+
+.lobby-glow-two {
+    right: 10%;
+    bottom: 5%;
+
+    background: #9b4dff;
+}
+
+
+/* =========================================================
+   11. LOBBY — CONTENEDOR
+   ========================================================= */
+
+.lobby-main {
+    position: relative;
+    z-index: 2;
+
+    width: 100%;
+    max-width: 1750px;
+
+    flex: 1 1 auto;
+    min-height: 0;
+
+    margin: 0 auto;
+    padding: 18px 22px 20px;
+
+    display: grid;
+
+    grid-template-columns:
+        235px
+        minmax(450px, 1fr)
+        285px;
+
+    gap: 16px;
+
+    overflow: hidden;
+}
+
+.lobby-sidebar,
+.lobby-center {
+    min-width: 0;
+    min-height: 0;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   12. LOBBY — IZQUIERDA
+   ========================================================= */
+
+.lobby-sidebar-left {
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+
+/* =========================================================
+   13. PERFIL
+   ========================================================= */
+
+.lobby-profile-card {
+    flex-shrink: 0;
+
+    padding: 18px;
+
+    border-radius: 15px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(15, 23, 56, 0.94),
+            rgba(8, 13, 35, 0.92)
+        );
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    box-shadow:
+        0 15px 45px rgba(0, 0, 0, 0.22);
+}
+
+.lobby-card-label {
+    margin-bottom: 14px;
+
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: 1.8px;
+
+    color: rgba(255, 255, 255, 0.38);
+}
+
+.lobby-profile-avatar {
+    width: 66px;
+    height: 66px;
+
+    margin: 0 auto 9px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle at 35% 25%,
+            rgba(57, 191, 255, 0.28),
+            rgba(155, 77, 255, 0.12)
+        );
+
+    border: 1px solid rgba(57, 191, 255, 0.22);
+
+    font-size: 35px;
+
+    box-shadow:
+        0 0 30px rgba(57, 191, 255, 0.08);
+}
+
+.lobby-profile-card h2 {
+    margin: 0;
+
+    text-align: center;
+
+    font-size: 17px;
+}
+
+.lobby-level {
+    margin-top: 4px;
+
+    text-align: center;
+
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+
+    color: #39bfff;
+}
+
+.lobby-profile-xp {
+    margin-top: 13px;
+}
+
+.lobby-profile-xp-bar {
+    width: 100%;
+    height: 5px;
+
+    border-radius: 20px;
+
+    background: rgba(255, 255, 255, 0.07);
+
+    overflow: hidden;
+}
+
+.lobby-profile-xp-bar span {
+    display: block;
+
+    width: 72%;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #39bfff,
+            #7be0ff
+        );
+}
+
+.lobby-profile-xp small {
+    display: block;
+
+    margin-top: 5px;
+
+    text-align: right;
+
+    font-size: 7px;
+
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.lobby-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    margin-top: 16px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lobby-stat-grid div {
+    padding: 12px 3px;
+
+    text-align: center;
+}
+
+.lobby-stat-grid div + div {
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lobby-stat-grid strong {
+    display: block;
+
+    font-size: 15px;
+}
+
+.lobby-stat-grid span {
+    display: block;
+
+    margin-top: 3px;
+
+    font-size: 7px;
+
+    color: rgba(255, 255, 255, 0.40);
+}
+
+.lobby-profile-button {
+    width: 100%;
+
+    margin-top: 13px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+/* =========================================================
+   14. EVENTO
+   ========================================================= */
+
+.lobby-event-card {
+    min-height: 74px;
+
+    padding: 11px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    border-radius: 13px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(104, 47, 156, 0.30),
+            rgba(15, 19, 49, 0.90)
+        );
+
+    border: 1px solid rgba(155, 77, 255, 0.18);
+}
+
+.lobby-event-icon {
+    width: 45px;
+    height: 45px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: rgba(155, 77, 255, 0.15);
+
+    font-size: 23px;
+}
+
+.lobby-event-card div:nth-child(2) {
+    flex: 1;
+    min-width: 0;
+}
+
+.lobby-event-card span,
+.lobby-event-card strong,
+.lobby-event-card small {
+    display: block;
+}
+
+.lobby-event-card span {
+    font-size: 6px;
+    font-weight: 900;
+    letter-spacing: 1.4px;
+
+    color: #c18bff;
+}
+
+.lobby-event-card strong {
+    margin-top: 3px;
+
+    font-size: 10px;
+}
+
+.lobby-event-card small {
+    margin-top: 3px;
+
+    font-size: 7px;
+
+    color: rgba(255, 255, 255, 0.40);
+}
+
+.lobby-event-card button {
+    background: transparent;
+    color: #ffffff;
+
+    cursor: pointer;
+
+    font-size: 16px;
+}
+
+
+/* =========================================================
+   15. ACCESOS RÁPIDOS
+   ========================================================= */
+
+.lobby-quick-card {
+    flex: 1 1 auto;
+    min-height: 0;
+
+    padding: 5px 10px;
+
+    display: flex;
+    flex-direction: column;
+
+    border-radius: 13px;
+
+    background: rgba(7, 12, 35, 0.80);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.lobby-quick-card button {
+    flex: 1;
+
+    min-height: 48px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    background: transparent;
+    color: #ffffff;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.lobby-quick-card button:last-child {
+    border-bottom: 0;
+}
+
+.lobby-quick-card button > span {
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.lobby-quick-card button div {
+    flex: 1;
+}
+
+.lobby-quick-card strong,
+.lobby-quick-card small {
+    display: block;
+}
+
+.lobby-quick-card strong {
+    font-size: 9px;
+}
+
+.lobby-quick-card small {
+    margin-top: 2px;
+
+    font-size: 7px;
+
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.lobby-quick-card b {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+
+/* =========================================================
+   16. CENTRO
+   ========================================================= */
+
+.lobby-center {
+    display: flex;
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+
+/* =========================================================
+   17. MUNDO / HERO
+   ========================================================= */
+
+.lobby-world-card {
+    position: relative;
+
+    flex: 1 1 auto;
+    min-height: 300px;
+
+    border-radius: 18px;
+
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at 50% 35%,
+            rgba(57, 191, 255, 0.12),
+            transparent 35%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(11, 21, 52, 0.92),
+            rgba(7, 11, 29, 0.96)
+        );
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    box-shadow:
+        0 20px 55px rgba(0, 0, 0, 0.25);
+}
+
+.lobby-world-overlay {
+    position: absolute;
+    inset: 0;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(4, 7, 24, 0.30),
+            transparent 40%,
+            rgba(4, 7, 24, 0.70)
+        );
+
+    pointer-events: none;
+}
+
+.lobby-world-top {
+    position: absolute;
+
+    z-index: 5;
+
+    top: 19px;
+    left: 21px;
+    right: 21px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.lobby-world-top h1 {
+    margin: 5px 0 0;
+
+    font-size: 21px;
+    letter-spacing: -0.5px;
+}
+
+.lobby-world-top p {
+    margin: 5px 0 0;
+
+    font-size: 8px;
+
+    color: rgba(255, 255, 255, 0.42);
+}
+
+.lobby-online-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 6px 9px;
+
+    border-radius: 999px;
+
+    background: rgba(32, 217, 123, 0.08);
+    border: 1px solid rgba(32, 217, 123, 0.14);
+
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: 1px;
+
+    color: #20d97b;
+}
+
+.lobby-online-pill span {
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+
+    background: #20d97b;
+
+    box-shadow:
+        0 0 9px rgba(32, 217, 123, 0.8);
+}
+
+.lobby-canvas {
+    position: absolute !important;
+
+    inset: 0;
+
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.lobby-platform {
+    position: absolute;
+
+    left: 50%;
+    bottom: 15%;
+
+    width: 180px;
+    height: 42px;
+
+    transform: translateX(-50%);
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            ellipse,
+            rgba(57, 191, 255, 0.28),
+            rgba(57, 191, 255, 0.02) 70%
+        );
+
+    box-shadow:
+        0 0 40px rgba(57, 191, 255, 0.14);
+
+    pointer-events: none;
+}
+
+.lobby-avatar-nameplate {
+    position: absolute;
+
+    z-index: 6;
+
+    left: 50%;
+    bottom: 20px;
+
+    transform: translateX(-50%);
+
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 6px 10px;
+
+    border-radius: 9px;
+
+    background: rgba(4, 7, 24, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    backdrop-filter: blur(10px);
+}
+
+.lobby-avatar-nameplate > span {
+    font-size: 11px;
+}
+
+.lobby-avatar-nameplate strong,
+.lobby-avatar-nameplate small {
+    display: block;
+}
+
+.lobby-avatar-nameplate strong {
+    font-size: 9px;
+}
+
+.lobby-avatar-nameplate small {
+    margin-top: 1px;
+
+    font-size: 6px;
+
+    color: rgba(255, 255, 255, 0.42);
+}
+
+.lobby-world-bottom {
+    position: absolute;
+
+    z-index: 6;
+
+    left: 20px;
+    right: 20px;
+    bottom: 18px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    pointer-events: none;
+}
+
+.lobby-world-bottom div {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.lobby-world-bottom div span {
+    font-size: 11px;
+}
+
+.lobby-world-bottom strong {
+    font-size: 7px;
+    letter-spacing: 1px;
+}
+
+.lobby-world-bottom small {
+    font-size: 7px;
+
+    color: rgba(255, 255, 255, 0.35);
+}
+
+
+/* =========================================================
+   18. JUEGOS
+   ========================================================= */
+
+.lobby-games-section {
+    flex: 0 0 auto;
+
+    min-height: 0;
+}
+
+.lobby-section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+
+    margin-bottom: 9px;
+}
+
+.lobby-section-heading h2 {
+    margin: 3px 0 0;
+
+    font-size: 13px;
+    letter-spacing: 0.3px;
+}
+
+.lobby-section-heading button {
+    background: transparent;
+
+    color: #39bfff;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+.lobby-games-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 9px;
+}
+
+.lobby-game-card {
+    position: relative;
+
+    min-width: 0;
+    min-height: 108px;
+
+    padding: 13px;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 10px;
+
+    overflow: hidden;
+
+    text-align: left;
+
+    border-radius: 12px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(14, 20, 48, 0.95),
+            rgba(7, 11, 29, 0.94)
+        );
+
+    border: 1px solid rgba(255, 255, 255, 0.07);
+
+    color: #ffffff;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s,
+        border-color 0.2s,
+        background 0.2s;
+}
+
+.lobby-game-card:hover {
+    transform: translateY(-3px);
+
+    border-color: color-mix(
+        in srgb,
+        var(--game-color),
+        transparent 60%
+    );
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(19, 28, 61, 0.98),
+            rgba(8, 13, 34, 0.96)
+        );
+}
+
+.lobby-game-glow {
+    position: absolute;
+
+    width: 70px;
+    height: 70px;
+
+    top: -30px;
+    right: -20px;
+
+    border-radius: 50%;
+
+    background: var(--game-color);
+
+    filter: blur(35px);
+
+    opacity: 0.18;
+
+    pointer-events: none;
+}
+
+.lobby-game-icon {
+    position: relative;
+    z-index: 2;
+
+    width: 39px;
+    height: 39px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background:
+        color-mix(
+            in srgb,
+            var(--game-color),
+            transparent 82%
+        );
+
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--game-color),
+            transparent 70%
+        );
+
+    font-size: 17px;
+}
+
+.lobby-game-content {
+    position: relative;
+    z-index: 2;
+
+    min-width: 0;
+    flex: 1;
+}
+
+.lobby-game-content strong,
+.lobby-game-content span,
+.lobby-game-content small {
+    display: block;
+}
+
+.lobby-game-content strong {
+    font-size: 8px;
+    line-height: 1.25;
+}
+
+.lobby-game-content span {
+    margin-top: 5px;
+
+    font-size: 7px;
+    line-height: 1.35;
+
+    color: rgba(255, 255, 255, 0.40);
+}
+
+.lobby-game-content small {
+    margin-top: 7px;
+
+    font-size: 7px;
+
+    color: var(--game-color);
+}
+
+.lobby-game-arrow {
+    position: absolute;
+
+    right: 10px;
+    bottom: 8px;
+
+    color: rgba(255, 255, 255, 0.25);
+
+    font-size: 13px;
+}
+
+.lobby-slogan {
+    flex: 0 0 auto;
+
+    text-align: center;
+
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: 3px;
+
+    color: rgba(255, 255, 255, 0.992);
+}
+
+
+/* =========================================================
+   19. DERECHA
+   ========================================================= */
+
+.lobby-sidebar-right {
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+
+/* =========================================================
+   20. ESTADO
+   ========================================================= */
+
+.lobby-status-card {
+    flex: 0 0 auto;
+
+    padding: 11px 13px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-radius: 12px;
+
+    background: rgba(7, 12, 35, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.lobby-status-card > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lobby-status-dot {
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: #20d97b;
+
+    box-shadow:
+        0 0 10px rgba(32, 217, 123, 0.7);
+}
+
+.lobby-status-card strong,
+.lobby-status-card small {
+    display: block;
+}
+
+.lobby-status-card strong {
+    font-size: 9px;
+}
+
+.lobby-status-card small {
+    margin-top: 2px;
+
+    font-size: 6px;
+
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.lobby-status-card > button {
+    background: transparent;
+
+    color: rgba(255, 255, 255, 0.30);
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   21. TARJETA INVITACIÓN
+   ========================================================= */
+
+.lobby-invite-card,
+.lobby-friends-card,
+.lobby-rooms-card {
+    flex-shrink: 0;
+
+    padding: 13px;
+
+    border-radius: 13px;
+
+    background: rgba(7, 12, 35, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.lobby-card-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    margin-bottom: 11px;
+}
+
+.lobby-card-heading h3 {
+    margin: 3px 0 0;
+
+    font-size: 10px;
+}
+
+.lobby-notification {
+    width: 20px;
+    height: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: rgba(255, 65, 108, 0.14);
+
+    color: #ff416c;
+
+    font-size: 8px;
+    font-weight: 900;
+}
+
+.lobby-invite-player {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.lobby-friend-avatar {
+    position: relative;
+
+    width: 32px;
+    height: 32px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+
+    background: rgba(255, 255, 255, 0.06);
+
+    font-size: 17px;
+}
+
+.lobby-invite-player strong,
+.lobby-invite-player small {
+    display: block;
+}
+
+.lobby-invite-player strong {
+    font-size: 8px;
+}
+
+.lobby-invite-player small {
+    margin-top: 3px;
+
+    font-size: 7px;
+
+    color: rgba(255, 255, 255, 0.38);
+}
+
+.lobby-invite-actions {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 6px;
+
+    margin-top: 10px;
+}
+
+.lobby-invite-actions .mv-btn {
+    min-height: 30px;
+    padding: 6px;
+}
+
+
+/* =========================================================
+   22. AMIGOS
+   ========================================================= */
+
+.lobby-friends-card {
+    flex: 1 1 auto;
+    min-height: 160px;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.lobby-friends-card .lobby-card-heading {
+    flex: 0 0 auto;
+}
+
+.lobby-friends-card .lobby-card-heading > strong {
+    color: #39bfff;
+
+    font-size: 11px;
+}
+
+.lobby-friends-list {
+    flex: 1 1 auto;
+}
+
+.lobby-friend-row {
+    min-height: 43px;
+
+    padding: 5px 4px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.lobby-friend-row:last-child {
+    border-bottom: 0;
+}
+
+.lobby-friend-row .lobby-friend-avatar {
+    width: 29px;
+    height: 29px;
+
+    border-radius: 8px;
+
+    font-size: 15px;
+}
+
+.friend-online,
+.friend-busy {
+    position: absolute;
+
+    right: -2px;
+    bottom: -2px;
+
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    border: 2px solid #0a102b;
+}
+
+.friend-online {
+    background: #20d97b;
+}
+
+.friend-busy {
+    background: #ffb52e;
+}
+
+.lobby-friend-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.lobby-friend-info strong,
+.lobby-friend-info small {
+    display: block;
+}
+
+.lobby-friend-info strong {
+    font-size: 8px;
+}
+
+.lobby-friend-info small {
+    margin-top: 2px;
+
+    font-size: 6px;
+
+    color: rgba(255, 255, 255, 0.34);
+}
+
+.lobby-friend-row > button {
+    width: 23px;
+    height: 23px;
+
+    border-radius: 6px;
+
+    background: rgba(255, 255, 255, 0.05);
+
+    color: rgba(255, 255, 255, 0.45);
+
+    cursor: pointer;
+}
+
+.lobby-view-all {
+    flex: 0 0 auto;
+
+    width: 100%;
+
+    margin-top: 8px;
+    padding-top: 9px;
+
+    display: flex;
+    justify-content: space-between;
+
+    background: transparent;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+
+    color: #39bfff;
+
+    font-size: 7px;
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   23. SALAS
+   ========================================================= */
+
+.lobby-rooms-card {
+    flex: 0 0 178px;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.lobby-rooms-card .lobby-card-heading {
+    margin-bottom: 5px;
+}
+
+.lobby-rooms-card .lobby-card-heading > button {
+    width: 22px;
+    height: 22px;
+
+    border-radius: 6px;
+
+    background: rgba(57, 191, 255, 0.10);
+
+    color: #39bfff;
+
+    cursor: pointer;
+}
+
+.lobby-rooms-list {
+    flex: 1 1 auto;
+}
+
+.lobby-room-row {
+    min-height: 35px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+}
+
+.lobby-room-icon {
+    width: 26px;
+    height: 26px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 7px;
+
+    background: rgba(57, 191, 255, 0.07);
+
+    color: #39bfff;
+
+    font-size: 10px;
+}
+
+.lobby-room-row > div:nth-child(2) {
+    flex: 1;
+    min-width: 0;
+}
+
+.lobby-room-row strong,
+.lobby-room-row small {
+    display: block;
+}
+
+.lobby-room-row strong {
+    font-size: 7px;
+}
+
+.lobby-room-row small {
+    margin-top: 2px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-size: 6px;
+
+    color: rgba(255, 255, 255, 0.34);
+}
+
+.lobby-room-row > span {
+    font-size: 6px;
+
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.lobby-create-room {
+    width: 100%;
+
+    flex: 0 0 auto;
+
+    margin-top: 7px;
+
+    min-height: 29px;
+}
+
+
+/* =========================================================
+   24. RESPONSIVE — 1200
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+    .lobby-main {
+        grid-template-columns:
+            210px
+            minmax(400px, 1fr)
+            260px;
+
+        gap: 12px;
+    }
+
+    .mv-logo {
+        min-width: 180px;
+    }
+
+    .mv-nav-item {
+        min-width: 58px;
+    }
+
+    .lobby-games-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .lobby-game-card {
+        min-height: 82px;
+    }
+}
+
+
+/* =========================================================
+   25. RESPONSIVE — 900
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .mv-header {
+        padding: 0 14px;
+    }
+
+    .mv-logo {
+        min-width: 150px;
+    }
+
+    .mv-logo-main {
+        font-size: 24px;
+    }
+
+    .mv-nav-item {
+        min-width: 48px;
+    }
+
+    .mv-nav-item span {
+        display: none;
+    }
+
+    .lobby-header-player {
+        min-width: auto;
+    }
+
+    .lobby-header-player-info {
+        display: none;
+    }
+
+    .lobby-currencies {
+        display: none;
+    }
+
+    .lobby-main {
+        grid-template-columns:
+            190px
+            minmax(0, 1fr);
+
+        padding: 12px;
+
+        gap: 12px;
+    }
+
+    .lobby-sidebar-right {
+        position: absolute;
+
+        z-index: 20;
+
+        top: 86px;
+        right: 12px;
+
+        width: 250px;
+        height: calc(100dvh - 98px);
+
+        padding: 10px;
+
+        border-radius: 15px;
+
+        background: rgba(5, 8, 22, 0.82);
+
+        backdrop-filter: blur(18px);
+
+        transform: translateX(110%);
+
+        transition: transform 0.25s;
+    }
+}
+
+
+/* =========================================================
+   26. RESPONSIVE — MOBILE
+   ========================================================= */
+
+@media (max-width: 650px) {
+
+    .mv-header {
+        flex: 0 0 60px;
+
+        height: 60px;
+        min-height: 60px;
+
+        padding: 0 10px;
+    }
+
+    .mv-logo {
+        min-width: auto;
+    }
+
+    .mv-logo-main {
+        font-size: 21px;
+    }
+
+    .mv-logo-sub {
+        display: none;
+    }
+
+    .mv-nav {
+        display: none;
+    }
+
+    .lobby-header-player {
+        margin-left: auto;
+    }
+
+    .mv-settings {
+        margin-left: 6px;
+    }
+
+    .lobby-main {
+        grid-template-columns: 1fr;
+
+        padding: 10px;
+
+        overflow-y: auto;
+    }
+
+    .lobby-sidebar-left {
+        display: none;
+    }
+
+    .lobby-sidebar-right {
+        display: none;
+    }
+
+    .lobby-world-card {
+        min-height: 360px;
+    }
+
+    .lobby-games-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .lobby-game-card {
+        min-height: 100px;
+    }
+
+    .lobby-game-content span {
+        display: none;
+    }
+
+    .lobby-slogan {
+        padding-bottom: 5px;
+    }
+}

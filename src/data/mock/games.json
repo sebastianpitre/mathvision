@@ -1,0 +1,54 @@
+[
+  {
+    "id": "triqui-matematico",
+    "name": "Triqui Matemático",
+    "shortName": "Triqui",
+    "description": "Resuelve y conquista el tablero.",
+    "icon": "⭕❌",
+    "image": "/img/games/triqui-matematico.jpg",
+    "minPlayers": 2,
+    "maxPlayers": 2,
+    "status": "available",
+    "route": "/world",
+    "color": "#39bfff"
+  },
+  {
+    "id": "Math-millonary",
+    "name": "Math Millonario",
+    "shortName": "Millonary",
+    "description": "Vuelvete millonario.",
+    "icon": "🎱",
+    "image": "/img/MathMillonario/portada.png",
+    "minPlayers": 1,
+    "maxPlayers": 1,
+    "status": "coming-soon",
+    "route": "/games/math-millonario",
+    "color": "#9b4dff"
+  },
+  {
+    "id": "Escape-algebra",
+    "name": "Escape Algebra",
+    "shortName": "Escape",
+    "description": "Desbloquea la puerta.",
+    "icon": "💡",
+    "image": "/img/games/quiz-matematico.jpg",
+    "minPlayers": 2,
+    "maxPlayers": 8,
+    "status": "coming-soon",
+    "route": "/games/escape-algebra",
+    "color": "#20d97b"
+  },
+  {
+    "id": "batalla-matematica",
+    "name": "Batalla Matemática",
+    "shortName": "Batalla",
+    "description": "Enfréntate a otro jugador.",
+    "icon": "⚔️",
+    "image": "/img/games/batalla-matematica.jpg",
+    "minPlayers": 2,
+    "maxPlayers": 8,
+    "status": "coming-soon",
+    "route": "/games",
+    "color": "#ff416c"
+  }
+]

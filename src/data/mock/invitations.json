@@ -1,0 +1,12 @@
+[
+  {
+    "id": "invitation-001",
+    "fromPlayerId": "player-002",
+    "fromPlayerName": "Jorge",
+    "fromPlayerAvatar": "/img/players/friends.png",
+    "type": "game",
+    "status": "pending",
+    "message": "Te invitó a jugar",
+    "createdAt": "2026-09-18T17:00:00"
+  }
+]

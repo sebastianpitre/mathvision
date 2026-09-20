@@ -1,0 +1,24 @@
+{
+    "backgrounds": {
+        "lobby": "/img/lobby.jpg",
+        "world": "/img/lobby.jpg",
+        "rooms": "/img/lobby.jpg",
+        "games": "/img/lobby.jpg"
+    },
+
+    "characters": {
+        "defaultModel": "/img/characters/default-character.glb",
+        "defaultAvatar": "/img/players/friends.png"
+    },
+
+    "players": {
+        "defaultAvatar": "/img/players/friends.png"
+    },
+
+    "games": {
+        "triqui": "/img/games/triqui-matematico.jpg",
+        "bingo": "/img/games/bingo-matematico.jpg",
+        "quiz": "/img/games/quiz-matematico.jpg",
+        "batalla": "/img/games/batalla-matematica.jpg"
+    }
+}

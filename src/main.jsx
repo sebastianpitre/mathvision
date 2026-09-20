@@ -8,6 +8,7 @@ import {
 
 import App from "./App";
 import "./styles/globals.css";
+import "./styles/components.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>

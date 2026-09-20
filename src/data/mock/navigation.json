@@ -1,0 +1,32 @@
+[
+  {
+    "id": "home",
+    "label": "Inicio",
+    "icon": "⌂",
+    "route": "/lobby"
+  },
+  {
+    "id": "friends",
+    "label": "Amigos",
+    "icon": "♟",
+    "route": "/friends"
+  },
+  {
+    "id": "rooms",
+    "label": "Salas",
+    "icon": "◈",
+    "route": "/room"
+  },
+  {
+    "id": "games",
+    "label": "Juegos",
+    "icon": "▦",
+    "route": "/games"
+  },
+  {
+    "id": "character",
+    "label": "Personaje",
+    "icon": "♙",
+    "route": "/character"
+  }
+]

@@ -1,0 +1,35 @@
+[
+  {
+    "id": "room-001",
+    "code": "A1B2",
+    "name": "Sala A1B2",
+    "players": 3,
+    "maxPlayers": 6,
+    "gameId": "triqui-matematico",
+    "gameName": "Triqui Matemático",
+    "gameIcon": "⭕❌",
+    "status": "waiting"
+  },
+  {
+    "id": "room-002",
+    "code": "C3D4",
+    "name": "Sala C3D4",
+    "players": 5,
+    "maxPlayers": 8,
+    "gameId": "bingo-matematico",
+    "gameName": "Bingo Matemático",
+    "gameIcon": "🎱",
+    "status": "waiting"
+  },
+  {
+    "id": "room-003",
+    "code": "E5F6",
+    "name": "Sala E5F6",
+    "players": 2,
+    "maxPlayers": 4,
+    "gameId": "quiz-matematico",
+    "gameName": "Quiz Matemático",
+    "gameIcon": "💡",
+    "status": "waiting"
+  }
+]

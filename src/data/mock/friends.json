@@ -1,0 +1,42 @@
+[
+  {
+    "id": "player-002",
+    "name": "Jorge",
+    "avatar": "/img/players/friends.png",
+    "status": "available",
+    "statusLabel": "Disponible",
+    "online": true
+  },
+  {
+    "id": "player-003",
+    "name": "María",
+    "avatar": "/img/players/friends.png",
+    "status": "room",
+    "statusLabel": "En sala",
+    "online": true
+  },
+  {
+    "id": "player-004",
+    "name": "Carlos",
+    "avatar": "/img/players/friends.png",
+    "status": "available",
+    "statusLabel": "Disponible",
+    "online": true
+  },
+  {
+    "id": "player-005",
+    "name": "Lucía",
+    "avatar": "/img/players/friends.png",
+    "status": "playing",
+    "statusLabel": "Jugando",
+    "online": true
+  },
+  {
+    "id": "player-006",
+    "name": "Andrés",
+    "avatar": "/img/players/friends.png",
+    "status": "available",
+    "statusLabel": "Disponible",
+    "online": true
+  }
+]

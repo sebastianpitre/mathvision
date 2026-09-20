@@ -1,0 +1,32 @@
+{
+  "id": "player-001",
+  "username": "Sebastián Pitre",
+  "displayName": "Profe Sebastián Pitre",
+  "level": 23,
+  "experience": {
+    "current": 720,
+    "nextLevel": 1000,
+    "percentage": 72
+  },
+  "statistics": {
+    "wins": 12,
+    "matches": 48,
+    "winStreak": 5
+  },
+  "status": "available",
+  "statusLabel": "Disponible",
+  "avatar": "/img/players/avatar.avif",
+  "character": {
+    "model": "/img/characters/default-character.glb",
+    "skin": "/img/characters/skins/default.png",
+    "hair": "/img/characters/hair/default.png"
+  },
+  "currencies": {
+    "coins": 2450,
+    "gems": 120
+  },
+  "progress": {
+    "missionsCompleted": 18,
+    "missionsTotal": 25
+  }
+}
