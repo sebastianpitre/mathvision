@@ -11,23 +11,34 @@ export default function VRMCharacter({
 }) {
     const vrmRef = useRef(null);
 
-    const poseAppliedRef = useRef(false);
-
-    const idleTimeRef = useRef(0);
-
-    const blinkTimerRef = useRef(0);
-    const blinkProgressRef = useRef(0);
-    const nextBlinkRef = useRef(3.5);
+    const timeRef = useRef(0);
 
     const bonesRef = useRef({
         chest: null,
         spine: null,
         head: null,
+
         leftUpperArm: null,
-        rightUpperArm: null
+        rightUpperArm: null,
+        leftLowerArm: null,
+        rightLowerArm: null,
+
+        leftUpperLeg: null,
+        rightUpperLeg: null,
+        leftLowerLeg: null,
+        rightLowerLeg: null,
+
+        leftFoot: null,
+        rightFoot: null,
+        leftToes: null,
+        rightToes: null
     });
 
     const baseRotationRef = useRef({});
+
+    const blinkTimerRef = useRef(0);
+    const blinkProgressRef = useRef(0);
+    const nextBlinkRef = useRef(3.5);
 
     const gltf = useLoader(
         GLTFLoader,
@@ -57,89 +68,86 @@ export default function VRMCharacter({
 
         const humanoid = vrm.humanoid;
 
-        if (humanoid) {
-            const chest =
-                humanoid.getNormalizedBoneNode("chest");
+        if (!humanoid) {
+            console.error("❌ El VRM no tiene humanoid.");
+            return;
+        }
 
-            const spine =
-                humanoid.getNormalizedBoneNode("spine");
+        const getBone = (name) =>
+            humanoid.getNormalizedBoneNode(name);
 
-            const head =
-                humanoid.getNormalizedBoneNode("head");
+        bonesRef.current = {
+            chest: getBone("chest"),
+            spine: getBone("spine"),
+            head: getBone("head"),
 
-            const leftUpperArm =
-                humanoid.getNormalizedBoneNode("leftUpperArm");
+            leftUpperArm: getBone("leftUpperArm"),
+            rightUpperArm: getBone("rightUpperArm"),
 
-            const rightUpperArm =
-                humanoid.getNormalizedBoneNode("rightUpperArm");
+            leftLowerArm: getBone("leftLowerArm"),
+            rightLowerArm: getBone("rightLowerArm"),
 
-            bonesRef.current = {
-                chest,
-                spine,
-                head,
-                leftUpperArm,
-                rightUpperArm
-            };
+            leftUpperLeg: getBone("leftUpperLeg"),
+            rightUpperLeg: getBone("rightUpperLeg"),
 
-            /*
-             * =================================================
-             * POSE DE REPOSO
-             * =================================================
-             */
+            leftLowerLeg: getBone("leftLowerLeg"),
+            rightLowerLeg: getBone("rightLowerLeg"),
 
-            if (!poseAppliedRef.current) {
-                if (leftUpperArm) {
-                    leftUpperArm.rotation.z = -1.30;
-                    leftUpperArm.rotation.x = 0.05;
-                }
+            leftFoot: getBone("leftFoot"),
+            rightFoot: getBone("rightFoot"),
 
-                if (rightUpperArm) {
-                    rightUpperArm.rotation.z = 1.30;
-                    rightUpperArm.rotation.x = 0.05;
-                }
+            leftToes: getBone("leftToes"),
+            rightToes: getBone("rightToes")
+        };
 
-                const leftLowerArm =
-                    humanoid.getNormalizedBoneNode("leftLowerArm");
+        /*
+         * =====================================================
+         * GUARDAR ROTACIONES BASE
+         * =====================================================
+         */
 
-                const rightLowerArm =
-                    humanoid.getNormalizedBoneNode("rightLowerArm");
-
-                if (leftLowerArm) {
-                    leftLowerArm.rotation.z = -0.08;
-                }
-
-                if (rightLowerArm) {
-                    rightLowerArm.rotation.z = 0.08;
-                }
-
-                poseAppliedRef.current = true;
-            }
-
-            /*
-             * Guardamos la rotación base para que el Idle
-             * nunca vaya acumulando rotación infinitamente.
-             */
-
-            [
-                "chest",
-                "spine",
-                "head"
-            ].forEach((boneName) => {
-                const bone = bonesRef.current[boneName];
-
+        Object.entries(bonesRef.current).forEach(
+            ([name, bone]) => {
                 if (!bone) return;
 
-                baseRotationRef.current[boneName] = {
+                baseRotationRef.current[name] = {
                     x: bone.rotation.x,
                     y: bone.rotation.y,
                     z: bone.rotation.z
                 };
-            });
+            }
+        );
+
+        /*
+         * =====================================================
+         * POSE INICIAL
+         * =====================================================
+         */
+
+        const bones = bonesRef.current;
+
+        if (bones.leftUpperArm) {
+            bones.leftUpperArm.rotation.z =
+                -1.30;
+        }
+
+        if (bones.rightUpperArm) {
+            bones.rightUpperArm.rotation.z =
+                1.30;
+        }
+
+        if (bones.leftLowerArm) {
+            bones.leftLowerArm.rotation.z =
+                -0.08;
+        }
+
+        if (bones.rightLowerArm) {
+            bones.rightLowerArm.rotation.z =
+                0.08;
         }
 
         return () => {
             vrmRef.current = null;
-            poseAppliedRef.current = false;
         };
     }, [vrm, url]);
 
@@ -148,89 +156,202 @@ export default function VRMCharacter({
 
         if (!currentVrm) return;
 
-        idleTimeRef.current += delta;
+        timeRef.current += delta;
 
-        const time = idleTimeRef.current;
-
+        const time = timeRef.current;
         const bones = bonesRef.current;
+        const base = baseRotationRef.current;
 
         /*
-         * =================================================
-         * IDLE
-         * =================================================
+         * =====================================================
+         * VELOCIDAD DE CAMINATA
+         * =====================================================
          */
 
+        const walkSpeed = 1.8;
+        const walk = time * walkSpeed;
+
         /*
-         * Respiración.
+         * Movimiento principal de piernas.
          *
-         * Movimiento muy pequeño del pecho y espalda.
+         * Una pierna adelante mientras la otra va atrás.
          */
-        const breathing =
-            Math.sin(time * 1.6) * 0.018;
 
-        if (bones.chest) {
-            const base = baseRotationRef.current.chest;
+        const leftStep = Math.sin(walk);
+        const rightStep = Math.sin(walk + Math.PI);
 
-            bones.chest.rotation.x =
-                base.x + breathing;
+        /*
+         * =====================================================
+         * PIERNAS
+         * =====================================================
+         */
 
-            bones.chest.rotation.z =
-                base.z +
-                Math.sin(time * 0.8) * 0.006;
+        if (bones.leftUpperLeg) {
+            bones.leftUpperLeg.rotation.x =
+                base.leftUpperLeg.x +
+                leftStep * 0.48;
         }
 
-        if (bones.spine) {
-            const base = baseRotationRef.current.spine;
-
-            bones.spine.rotation.x =
-                base.x +
-                Math.sin(time * 1.6) * 0.008;
-
-            bones.spine.rotation.z =
-                base.z +
-                Math.sin(time * 0.7) * 0.004;
+        if (bones.rightUpperLeg) {
+            bones.rightUpperLeg.rotation.x =
+                base.rightUpperLeg.x +
+                rightStep * 0.48;
         }
 
         /*
-         * =================================================
-         * MOVIMIENTO SUAVE DE CABEZA
-         * =================================================
+         * =====================================================
+         * RODILLAS
+         *
+         * La rodilla se flexiona principalmente cuando
+         * la pierna va hacia atrás.
+         * =====================================================
          */
 
-        if (bones.head) {
-            const base = baseRotationRef.current.head;
+        const leftKnee =
+            Math.max(0, -leftStep) * 0.65;
 
-            bones.head.rotation.y =
-                base.y +
-                Math.sin(time * 0.45) * 0.035;
+        const rightKnee =
+            Math.max(0, -rightStep) * 0.65;
 
-            bones.head.rotation.x =
-                base.x +
-                Math.sin(time * 0.7) * 0.012;
+        if (bones.leftLowerLeg) {
+            bones.leftLowerLeg.rotation.x =
+                base.leftLowerLeg.x +
+                leftKnee;
+        }
+
+        if (bones.rightLowerLeg) {
+            bones.rightLowerLeg.rotation.x =
+                base.rightLowerLeg.x +
+                rightKnee;
         }
 
         /*
-         * =================================================
-         * PEQUEÑO MOVIMIENTO DE BRAZOS
-         * =================================================
+         * =====================================================
+         * PIES
+         * =====================================================
+         *
+         * Cuando la pierna avanza, levantamos ligeramente
+         * la punta del pie.
+         */
+
+        if (bones.leftFoot) {
+            bones.leftFoot.rotation.x =
+                base.leftFoot.x -
+                leftStep * 0.28;
+        }
+
+        if (bones.rightFoot) {
+            bones.rightFoot.rotation.x =
+                base.rightFoot.x -
+                rightStep * 0.28;
+        }
+
+        /*
+         * =====================================================
+         * DEDOS DE LOS PIES
+         * =====================================================
+         */
+
+        if (bones.leftToes) {
+            bones.leftToes.rotation.x =
+                base.leftToes.x +
+                Math.max(0, leftStep) * 0.18;
+        }
+
+        if (bones.rightToes) {
+            bones.rightToes.rotation.x =
+                base.rightToes.x +
+                Math.max(0, rightStep) * 0.18;
+        }
+
+        /*
+         * =====================================================
+         * BRAZOS
+         * =====================================================
+         *
+         * Los brazos hacen el movimiento contrario a las
+         * piernas.
          */
 
         if (bones.leftUpperArm) {
             bones.leftUpperArm.rotation.x =
-                0.05 +
-                Math.sin(time * 1.2) * 0.22;
+                base.leftUpperArm.x -
+                leftStep * 0.38;
         }
 
         if (bones.rightUpperArm) {
             bones.rightUpperArm.rotation.x =
-                0.05 +
-                Math.sin(time * 1.2 + Math.PI) * 0.22;
+                base.rightUpperArm.x -
+                rightStep * 0.38;
         }
 
         /*
-         * =================================================
+         * =====================================================
+         * ANTEBRAZOS
+         * =====================================================
+         */
+
+        if (bones.leftLowerArm) {
+            bones.leftLowerArm.rotation.x =
+                base.leftLowerArm.x +
+                Math.abs(leftStep) * 0.08;
+        }
+
+        if (bones.rightLowerArm) {
+            bones.rightLowerArm.rotation.x =
+                base.rightLowerArm.x +
+                Math.abs(rightStep) * 0.08;
+        }
+
+        /*
+         * =====================================================
+         * CUERPO
+         * =====================================================
+         */
+
+        const bodyBounce =
+            Math.abs(Math.sin(walk * 2)) * 0.035;
+
+        if (bones.spine) {
+            bones.spine.rotation.x =
+                base.spine.x +
+                bodyBounce;
+
+            bones.spine.rotation.z =
+                base.spine.z +
+                Math.sin(walk) * 0.025;
+        }
+
+        if (bones.chest) {
+            bones.chest.rotation.x =
+                base.chest.x -
+                bodyBounce * 0.35;
+
+            bones.chest.rotation.z =
+                base.chest.z -
+                Math.sin(walk) * 0.025;
+        }
+
+        /*
+         * =====================================================
+         * CABEZA
+         * =====================================================
+         */
+
+        if (bones.head) {
+            bones.head.rotation.y =
+                base.head.y +
+                Math.sin(time * 0.7) * 0.035;
+
+            bones.head.rotation.x =
+                base.head.x +
+                Math.sin(time * 1.2) * 0.012;
+        }
+
+        /*
+         * =====================================================
          * PARPADEO
-         * =================================================
+         * =====================================================
          */
 
         const expressionManager =
@@ -239,13 +360,10 @@ export default function VRMCharacter({
         if (expressionManager) {
             blinkTimerRef.current += delta;
 
-            /*
-             * Cuando llega el momento de parpadear,
-             * iniciamos el ciclo.
-             */
             if (
                 blinkProgressRef.current === 0 &&
-                blinkTimerRef.current >= nextBlinkRef.current
+                blinkTimerRef.current >=
+                nextBlinkRef.current
             ) {
                 blinkProgressRef.current = 0.0001;
                 blinkTimerRef.current = 0;
@@ -258,19 +376,17 @@ export default function VRMCharacter({
 
                 let blinkValue = 0;
 
-                if (blinkProgressRef.current < 0.09) {
-                    /*
-                     * Cerrando
-                     */
+                if (
+                    blinkProgressRef.current < 0.09
+                ) {
                     blinkValue =
-                        blinkProgressRef.current / 0.09;
+                        blinkProgressRef.current /
+                        0.09;
                 } else {
-                    /*
-                     * Abriendo
-                     */
                     blinkValue =
                         1 -
-                        (blinkProgressRef.current - 0.09) /
+                        (blinkProgressRef.current -
+                            0.09) /
                         0.09;
                 }
 
@@ -295,22 +411,19 @@ export default function VRMCharacter({
 
                     blinkProgressRef.current = 0;
 
-                    /*
-                     * Próximo parpadeo entre
-                     * aproximadamente 2.5 y 5.5 segundos.
-                     */
                     nextBlinkRef.current =
-                        2.5 + Math.random() * 3;
+                        2.5 +
+                        Math.random() * 3;
                 }
             }
         }
 
         /*
-         * IMPORTANTE:
-         *
-         * VRM.update() actualiza expresiones,
-         * LookAt, Spring Bones, materiales, etc.
+         * =====================================================
+         * ACTUALIZAR VRM
+         * =====================================================
          */
+
         currentVrm.update(delta);
     });
 

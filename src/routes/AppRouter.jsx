@@ -32,8 +32,6 @@ function AppRouter() {
 
             <Route path="/games/rooms" element={<Rooms />} />
 
-            <Route path="/" element={<Dashboard />} />
-
             <Route path="/dashboard" element={<Dashboard />} />
 
             <Route path="/games" element={<Games />} />
@@ -53,6 +51,7 @@ function AppRouter() {
 
             {/* Rutas nuevas */}
             <Route path="/lobby" element={<Lobby />} />
+            <Route path="/" element={<Lobby />} />
             <Route path="/friends" element={<Friends />} />
             <Route path="/room" element={<Room />} />
             <Route path="/character" element={<Character />} />

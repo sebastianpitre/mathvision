@@ -389,8 +389,13 @@ export default function Lobby() {
 
                             <OrbitControls
                                 enableZoom={false}
-                                minPolarAngle={1.2}
-                                maxPolarAngle={1.8}
+                                enablePan={false}
+                                enableRotate={true}
+                                enableDamping={true}
+                                minPolarAngle={Math.PI / 2}
+                                maxPolarAngle={Math.PI / 2}
+                                minAzimuthAngle={-Infinity}
+                                maxAzimuthAngle={Infinity}
                             />
 
                         </Canvas>

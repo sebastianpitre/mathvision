@@ -332,7 +332,7 @@ export default function Character() {
                             <Suspense fallback={<CharacterLoading />}>
 
                                 <VRMCharacter
-                                    url="/models/characters/Adan.vrm"
+                                    url="/models/characters/Adan2.vrm"
                                     scale={1.6}
                                     position={[0, -0.6, 0]}
                                     rotation={[0, Math.PI, 0]}
@@ -343,9 +343,13 @@ export default function Character() {
 
                             <OrbitControls
                                 enableZoom={false}
-                                minPolarAngle={1.2}
-                                maxPolarAngle={1.8}
-                                target={[0, 0.9, 0]}
+                                enablePan={false}
+                                enableRotate={true}
+                                enableDamping={true}
+                                minPolarAngle={Math.PI / 2}
+                                maxPolarAngle={Math.PI / 2}
+                                minAzimuthAngle={-Infinity}
+                                maxAzimuthAngle={Infinity}
                             />
 
                         </Canvas>

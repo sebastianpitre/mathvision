@@ -761,7 +761,7 @@ function TriquiGame() {
             setGame(null);
 
             navigate(
-                "/games/rooms"
+                "/world"
             );
         };
 

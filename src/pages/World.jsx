@@ -514,7 +514,7 @@ export default function World() {
 
 
         navigate(
-            "/dashboard"
+            "/"
         );
 
     };
@@ -537,7 +537,7 @@ export default function World() {
                         <button
                             onClick={() =>
                                 navigate(
-                                    "/dashboard"
+                                    "/"
                                 )
                             }
                             className="flex items-center gap-3 text-slate-400 transition hover:text-white"
@@ -545,7 +545,7 @@ export default function World() {
 
                             <FaArrowLeft />
 
-                            Dashboard
+                            Lobby
 
                         </button>
 
