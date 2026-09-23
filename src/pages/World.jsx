@@ -1094,7 +1094,13 @@ export default function World() {
                                             key={player.id}
                                         >
 
-                                            <div className="lobby-friend-avatar">
+                                            <div
+                                                className="lobby-friend-avatar"
+                                                onClick={() =>
+                                                    navigate(`/profile/${player.id}`)
+                                                }
+                                                style={{ cursor: "pointer" }}
+                                            >
 
                                                 <AssetImage
                                                     src={player.avatar}
@@ -1111,7 +1117,12 @@ export default function World() {
 
                                             <div className="lobby-friend-info">
 
-                                                <strong>
+                                                <strong
+                                                    onClick={() =>
+                                                        navigate(`/profile/${player.id}`)
+                                                    }
+                                                    style={{ cursor: "pointer" }}
+                                                >
                                                     {player.name}
                                                 </strong>
 

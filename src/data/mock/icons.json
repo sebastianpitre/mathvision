@@ -1,0 +1,42 @@
+[
+    {
+        "id": "avatar-01",
+        "name": "Avatar 01",
+        "src": "/img/players/avatar-01.png"
+    },
+    {
+        "id": "avatar-02",
+        "name": "Avatar 02",
+        "src": "/img/players/avatar-02.png"
+    },
+    {
+        "id": "avatar-03",
+        "name": "Avatar 03",
+        "src": "/img/players/avatar-03.png"
+    },
+    {
+        "id": "avatar-04",
+        "name": "Avatar 04",
+        "src": "/img/players/avatar-04.png"
+    },
+    {
+        "id": "avatar-05",
+        "name": "Avatar 05",
+        "src": "/img/players/avatar-05.png"
+    },
+    {
+        "id": "avatar-06",
+        "name": "Avatar 06",
+        "src": "/img/players/avatar-06.png"
+    },
+    {
+        "id": "avatar-07",
+        "name": "Avatar 07",
+        "src": "/img/players/avatar-07.png"
+    },
+    {
+        "id": "avatar-08",
+        "name": "Avatar 08",
+        "src": "/img/players/avatar-08.png"
+    }
+]

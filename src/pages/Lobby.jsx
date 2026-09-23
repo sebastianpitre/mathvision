@@ -662,7 +662,12 @@ export default function Lobby() {
 
                 <div className="lobby-header-player">
 
-                    <div className="mv-avatar-small">
+                    <div
+                        className="mv-avatar-small"
+                        onClick={() => navigate("/profile")}
+                        title="Ver mi perfil"
+                        style={{ cursor: "pointer" }}
+                    >
 
                         <AssetImage
                             src={player.avatar}
@@ -1389,20 +1394,30 @@ export default function Lobby() {
                                             key={onlinePlayer.id}
                                         >
 
-                                            <div className="lobby-friend-avatar">
+                                            {/* AVATAR → PERFIL */}
 
-                                                <div
-                                                    style={{
-                                                        width: "100%",
-                                                        height: "100%",
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        justifyContent: "center",
-                                                        fontSize: "17px"
-                                                    }}
-                                                >
-                                                    <FaUsers />
-                                                </div>
+                                            <div
+                                                className="lobby-friend-avatar"
+                                                onClick={() =>
+                                                    navigate(
+                                                        `/profile/${onlinePlayer.id}`
+                                                    )
+                                                }
+                                                style={{
+                                                    cursor: "pointer"
+                                                }}
+                                                title="Ver perfil"
+                                            >
+
+                                                <AssetImage
+                                                    src={
+                                                        onlinePlayer.avatar
+                                                    }
+                                                    type="player"
+                                                    alt={
+                                                        onlinePlayer.name
+                                                    }
+                                                />
 
                                                 <span
                                                     className={
@@ -1415,9 +1430,21 @@ export default function Lobby() {
                                             </div>
 
 
+                                            {/* NOMBRE → PERFIL */}
+
                                             <div className="lobby-friend-info">
 
-                                                <strong>
+                                                <strong
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/profile/${onlinePlayer.id}`
+                                                        )
+                                                    }
+                                                    style={{
+                                                        cursor: "pointer"
+                                                    }}
+                                                    title="Ver perfil"
+                                                >
                                                     {onlinePlayer.name}
                                                 </strong>
 
@@ -1427,6 +1454,8 @@ export default function Lobby() {
 
                                             </div>
 
+
+                                            {/* INVITAR */}
 
                                             <button
                                                 disabled={!isAvailable}
@@ -1441,10 +1470,12 @@ export default function Lobby() {
                                                         : statusLabel
                                                 }
                                             >
+
                                                 {isAvailable
                                                     ? <FaUserPlus />
                                                     : <FaCircle />
                                                 }
+
                                             </button>
 
                                         </div>

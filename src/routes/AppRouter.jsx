@@ -18,6 +18,7 @@ import Friends from "../pages/Friends";
 import Room from "../pages/Room";
 import Games from "../pages/Games"; // reemplaza al Games anterior
 import Character from "../pages/Character";
+import Profile from "../pages/Profile/Profile";
 
 function AppRouter() {
 
@@ -55,6 +56,15 @@ function AppRouter() {
             <Route path="/friends" element={<Friends />} />
             <Route path="/room" element={<Room />} />
             <Route path="/character" element={<Character />} />
+            <Route
+                path="/profile"
+                element={<Profile />}
+            />
+
+            <Route
+                path="/profile/:id"
+                element={<Profile />}
+            />
 
             <Route path="*" element={<NotFound />} />
 
