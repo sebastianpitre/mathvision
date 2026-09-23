@@ -1171,7 +1171,8 @@ button:focus-visible {
     position: relative;
 
     min-width: 0;
-    min-height: 108px;
+    min-height: 80px;
+    height: 80px;
 
     padding: 13px;
 

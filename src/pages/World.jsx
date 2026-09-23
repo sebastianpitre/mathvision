@@ -1097,7 +1097,7 @@ export default function World() {
                                             <div className="lobby-friend-avatar">
 
                                                 <AssetImage
-                                                    src={assets.players.defaultAvatar}
+                                                    src={player.avatar}
                                                     type="player"
                                                     alt={player.name}
                                                 />
@@ -1219,7 +1219,7 @@ export default function World() {
                             <div className="lobby-friend-avatar">
 
                                 <AssetImage
-                                    src={assets.players.defaultAvatar}
+                                    src={invitation.fromPlayerAvatar}
                                     type="player"
                                     alt={invitation.fromPlayerName}
                                 />

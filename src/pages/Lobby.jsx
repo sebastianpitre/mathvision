@@ -1,7 +1,22 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
+
+import {
+    FaArrowRight,
+    FaBell,
+    FaCheck,
+    FaCircle,
+    FaGamepad,
+    FaGlobeAmericas,
+    FaLock,
+    FaPaperPlane,
+    FaTimes,
+    FaTrophy,
+    FaUserPlus,
+    FaUsers,
+} from "react-icons/fa";
 
 import "../styles/mathvision.css";
 
@@ -9,15 +24,15 @@ import {
     useAuth
 } from "../context/AuthContext";
 
-import friends from "../data/mock/friends.json";
 import rooms from "../data/mock/rooms.json";
-import invitations from "../data/mock/invitations.json";
 import games from "../data/mock/games.json";
 import navigation from "../data/mock/navigation.json";
 import assets from "../data/mock/assets.json";
 
 import AssetImage from "../components/common/AssetImage";
 import VRMCharacter from "../components/character/VRMCharacter";
+
+import { socket } from "../services/socket";
 
 
 /* =========================================================
@@ -31,7 +46,6 @@ function GameCard({ game, onClick }) {
             style={{ "--game-color": game.color }}
             onClick={onClick}
         >
-
             <div className="lobby-game-glow" />
 
             <div className="lobby-game-icon">
@@ -39,7 +53,6 @@ function GameCard({ game, onClick }) {
             </div>
 
             <div className="lobby-game-content">
-
                 <strong>
                     {game.name}
                 </strong>
@@ -49,19 +62,19 @@ function GameCard({ game, onClick }) {
                 </span>
 
                 <small>
-                    👥 {game.minPlayers}
+                    <FaUsers />
+                    {" "}
+                    {game.minPlayers}
                     {game.maxPlayers !== game.minPlayers &&
                         ` - ${game.maxPlayers}`}
                     {game.maxPlayers === game.minPlayers &&
                         " jugadores"}
                 </small>
-
             </div>
 
             <div className="lobby-game-arrow">
-                →
+                <FaArrowRight />
             </div>
-
         </button>
     );
 }
@@ -80,14 +93,350 @@ export default function Lobby() {
         loading,
     } = useAuth();
 
-    const invitation =
-        invitations[0];
+    /* =====================================================
+       ONLINE
+       ===================================================== */
+
+    const [onlinePlayers, setOnlinePlayers] = useState([]);
+    const [invitations, setInvitations] = useState([]);
+    const [onlineMessage, setOnlineMessage] = useState("");
 
 
-    /*
-     * Mientras AuthContext comprueba
-     * la sesión contra PostgreSQL.
-     */
+    /* =====================================================
+       CONEXIÓN AL MUNDO ONLINE
+       ===================================================== */
+
+    useEffect(() => {
+
+        if (!user) {
+            return;
+        }
+
+
+        /*
+         * Cuando Socket.IO conecta,
+         * entramos al mundo online.
+         */
+
+        const handleConnect = () => {
+
+            socket.emit("world:join");
+
+        };
+
+
+        /*
+         * Lista actualizada de jugadores.
+         */
+
+        const handlePlayers = (data = {}) => {
+            console.log("🌎 Jugadores recibidos en Lobby:", data);
+            console.log("👤 Usuario actual:", user);
+
+            const players = Array.isArray(data)
+                ? data
+                : Array.isArray(data.players)
+                    ? data.players
+                    : [];
+
+            const currentUserId =
+                user?.id ||
+                user?.user_id ||
+                user?.userId;
+
+            const otherPlayers = currentUserId
+                ? players.filter(
+                    (player) =>
+                        String(player.id) !== String(currentUserId)
+                )
+                : players;
+
+            console.log("👥 Otros jugadores online:", otherPlayers);
+
+            setOnlinePlayers(otherPlayers);
+        };
+
+        /*
+         * Invitación recibida.
+         */
+
+        const handleInvitation = (invitation) => {
+
+            if (!invitation) {
+                return;
+            }
+
+            setInvitations((current) => {
+
+                const invitationId =
+                    invitation.fromPlayerId ||
+                    invitation.fromPlayer?.id ||
+                    invitation.playerId ||
+                    invitation.id;
+
+                const exists =
+                    current.some(
+                        (item) =>
+                            (
+                                item.fromPlayerId ||
+                                item.fromPlayer?.id ||
+                                item.playerId ||
+                                item.id
+                            ) === invitationId
+                    );
+
+                if (exists) {
+                    return current;
+                }
+
+                return [
+                    ...current,
+                    invitation,
+                ];
+
+            });
+
+        };
+
+
+        /*
+         * Confirmación de invitación enviada.
+         */
+
+        const handleInviteSent = () => {
+
+            setOnlineMessage(
+                "Invitación enviada"
+            );
+
+            setTimeout(() => {
+                setOnlineMessage("");
+            }, 2500);
+
+        };
+
+
+        /*
+         * Una invitación que nosotros enviamos
+         * fue rechazada.
+         */
+
+        const handleInvitationRejected = ({
+            playerName,
+        } = {}) => {
+
+            setOnlineMessage(
+                playerName
+                    ? `${playerName} rechazó la invitación`
+                    : "La invitación fue rechazada"
+            );
+
+            setTimeout(() => {
+                setOnlineMessage("");
+            }, 3000);
+
+        };
+
+
+        /*
+         * La partida fue creada al aceptar
+         * una invitación.
+         *
+         * Conservamos el comportamiento actual
+         * del proyecto: Triqui inicia directamente.
+         */
+
+        const handleGameCreated = () => {
+
+            navigate("/games/triqui");
+
+        };
+
+
+        /*
+         * Registramos listeners antes de conectar.
+         */
+
+        socket.on("connect", handleConnect);
+
+        socket.on(
+            "world:players",
+            handlePlayers
+        );
+
+        socket.on(
+            "world:invitation",
+            handleInvitation
+        );
+
+        socket.on(
+            "world:inviteSent",
+            handleInviteSent
+        );
+
+        socket.on(
+            "world:invitationRejected",
+            handleInvitationRejected
+        );
+
+        socket.on(
+            "world:gameCreated",
+            handleGameCreated
+        );
+
+
+        /*
+         * Si ya estaba conectado porque venimos
+         * desde /world, simplemente entramos otra vez.
+         */
+
+        if (socket.connected) {
+
+            socket.emit("world:join");
+
+        } else {
+
+            socket.connect();
+
+        }
+
+
+        return () => {
+
+            socket.off(
+                "connect",
+                handleConnect
+            );
+
+            socket.off(
+                "world:players",
+                handlePlayers
+            );
+
+            socket.off(
+                "world:invitation",
+                handleInvitation
+            );
+
+            socket.off(
+                "world:inviteSent",
+                handleInviteSent
+            );
+
+            socket.off(
+                "world:invitationRejected",
+                handleInvitationRejected
+            );
+
+            socket.off(
+                "world:gameCreated",
+                handleGameCreated
+            );
+
+        };
+
+    }, [user, navigate]);
+
+
+    /* =====================================================
+       INVITAR JUGADOR
+       ===================================================== */
+
+    const handleInvite = (player) => {
+
+        if (!player) {
+            return;
+        }
+
+        if (player.status !== "available") {
+            return;
+        }
+
+        socket.emit(
+            "world:invite",
+            {
+                targetPlayerId: player.id,
+            }
+        );
+
+    };
+
+
+    /* =====================================================
+       ACEPTAR INVITACIÓN
+       ===================================================== */
+
+    const handleAcceptInvitation = (invitation) => {
+
+        const fromPlayerId =
+            invitation?.fromPlayerId ||
+            invitation?.fromPlayer?.id ||
+            invitation?.playerId;
+
+        if (!fromPlayerId) {
+            return;
+        }
+
+        setInvitations((current) =>
+            current.filter(
+                (item) =>
+                    (
+                        item.fromPlayerId ||
+                        item.fromPlayer?.id ||
+                        item.playerId
+                    ) !== fromPlayerId
+            )
+        );
+
+        socket.emit(
+            "world:acceptInvitation",
+            {
+                fromPlayerId,
+            }
+        );
+
+    };
+
+
+    /* =====================================================
+       RECHAZAR INVITACIÓN
+       ===================================================== */
+
+    const handleRejectInvitation = (invitation) => {
+
+        const fromPlayerId =
+            invitation?.fromPlayerId ||
+            invitation?.fromPlayer?.id ||
+            invitation?.playerId;
+
+        if (!fromPlayerId) {
+            return;
+        }
+
+        setInvitations((current) =>
+            current.filter(
+                (item) =>
+                    (
+                        item.fromPlayerId ||
+                        item.fromPlayer?.id ||
+                        item.playerId
+                    ) !== fromPlayerId
+            )
+        );
+
+        socket.emit(
+            "world:rejectInvitation",
+            {
+                fromPlayerId,
+            }
+        );
+
+    };
+
+
+    /* =====================================================
+       CARGANDO
+       ===================================================== */
 
     if (loading) {
 
@@ -116,10 +465,9 @@ export default function Lobby() {
     }
 
 
-    /*
-     * Si no hay sesión, no mostramos
-     * un Lobby con datos falsos.
-     */
+    /* =====================================================
+       SIN SESIÓN
+       ===================================================== */
 
     if (!user) {
 
@@ -146,9 +494,7 @@ export default function Lobby() {
 
                     <button
                         className="mv-btn mv-btn-primary"
-                        onClick={() =>
-                            navigate("/")
-                        }
+                        onClick={() => navigate("/")}
                     >
                         INICIAR SESIÓN
                     </button>
@@ -161,12 +507,9 @@ export default function Lobby() {
     }
 
 
-    /*
-     * Adaptamos temporalmente el perfil real
-     * al formato que ya utiliza el Lobby.
-     *
-     * Así no tenemos que romper todo el diseño.
-     */
+    /* =====================================================
+       PERFIL
+       ===================================================== */
 
     const xp =
         Number(user.xp) || 0;
@@ -201,7 +544,8 @@ export default function Lobby() {
             user.character_model_path || null,
 
         characterName:
-            user.character_name || "Personaje",
+            user.character_name ||
+            "Personaje",
 
         experience: {
 
@@ -241,6 +585,11 @@ export default function Lobby() {
 
     };
 
+
+    /* =====================================================
+       RENDER
+       ===================================================== */
+
     return (
         <div className="mv-app lobby-page">
 
@@ -251,7 +600,8 @@ export default function Lobby() {
             <div
                 className="lobby-background"
                 style={{
-                    backgroundImage: `url(${assets.backgrounds.lobby})`
+                    backgroundImage:
+                        `url(${assets.backgrounds.lobby})`
                 }}
             />
 
@@ -266,6 +616,7 @@ export default function Lobby() {
                     className="mv-logo"
                     onClick={() => navigate("/")}
                 >
+
                     <div className="mv-logo-main">
                         LUDO<span>RA</span>
                     </div>
@@ -273,6 +624,7 @@ export default function Lobby() {
                     <div className="mv-logo-sub">
                         JUEGA • APRENDE • CONECTA
                     </div>
+
                 </div>
 
 
@@ -282,18 +634,31 @@ export default function Lobby() {
 
                         <button
                             key={item.id}
-                            className={`mv-nav-item ${item.id === "home" ? "active" : ""
+                            className={`mv-nav-item ${item.id === "home"
+                                    ? "active"
+                                    : ""
                                 }`}
-                            onClick={() => navigate(item.route)}
+                            onClick={() =>
+                                navigate(item.route)
+                            }
                         >
-                            <b>{item.icon}</b>
-                            <span>{item.label}</span>
+
+                            <b>
+                                {item.icon}
+                            </b>
+
+                            <span>
+                                {item.label}
+                            </span>
+
                         </button>
 
                     ))}
 
                 </nav>
 
+
+                {/* JUGADOR */}
 
                 <div className="lobby-header-player">
 
@@ -302,7 +667,7 @@ export default function Lobby() {
                         <AssetImage
                             src={player.avatar}
                             type="player"
-                            alt={player.displayName}
+                            alt={player.name}
                         />
 
                     </div>
@@ -318,17 +683,22 @@ export default function Lobby() {
                         </span>
 
                         <div className="mv-xp">
+
                             <div
                                 style={{
-                                    width: `${player.experience.percentage}%`
+                                    width:
+                                        `${player.experience.percentage}%`
                                 }}
                             />
+
                         </div>
 
                     </div>
 
                 </div>
 
+
+                {/* MONEDAS */}
 
                 <div className="lobby-currencies">
 
@@ -357,7 +727,7 @@ export default function Lobby() {
 
 
             {/* =================================================
-                CONTENIDO
+                CONTENIDO PRINCIPAL
                ================================================= */}
 
             <main className="lobby-main">
@@ -368,6 +738,9 @@ export default function Lobby() {
                    ================================================= */}
 
                 <aside className="lobby-sidebar lobby-sidebar-left">
+
+
+                    {/* PERFIL */}
 
                     <section className="lobby-profile-card">
 
@@ -380,7 +753,7 @@ export default function Lobby() {
                             <AssetImage
                                 src={player.avatar}
                                 type="player"
-                                alt={player.displayName}
+                                alt={player.name}
                             />
 
                         </div>
@@ -397,11 +770,14 @@ export default function Lobby() {
                         <div className="lobby-profile-xp">
 
                             <div className="lobby-profile-xp-bar">
+
                                 <span
                                     style={{
-                                        width: `${player.experience.percentage}%`
+                                        width:
+                                            `${player.experience.percentage}%`
                                     }}
                                 />
+
                             </div>
 
                             <small>
@@ -418,21 +794,30 @@ export default function Lobby() {
                                 <strong>
                                     {player.statistics.wins}
                                 </strong>
-                                <span>Victorias</span>
+
+                                <span>
+                                    Victorias
+                                </span>
                             </div>
 
                             <div>
                                 <strong>
                                     {player.statistics.matches}
                                 </strong>
-                                <span>Partidas</span>
+
+                                <span>
+                                    Partidas
+                                </span>
                             </div>
 
                             <div>
                                 <strong>
                                     {player.statistics.winStreak}
                                 </strong>
-                                <span>Racha</span>
+
+                                <span>
+                                    Racha
+                                </span>
                             </div>
 
                         </div>
@@ -440,14 +825,23 @@ export default function Lobby() {
 
                         <button
                             className="mv-btn mv-btn-secondary lobby-profile-button"
-                            onClick={() => navigate("/character")}
+                            onClick={() =>
+                                navigate("/character")
+                            }
                         >
+
                             PERSONALIZAR
-                            <span>→</span>
+
+                            <span>
+                                <FaArrowRight />
+                            </span>
+
                         </button>
 
                     </section>
 
+
+                    {/* FUTURO: SKINS */}
 
                     <section className="lobby-event-card">
 
@@ -457,7 +851,9 @@ export default function Lobby() {
 
                         <div>
 
-                            <span>NOVEDAD</span>
+                            <span>
+                                PRÓXIMAMENTE
+                            </span>
 
                             <strong>
                                 Nuevas skins
@@ -469,46 +865,83 @@ export default function Lobby() {
 
                         </div>
 
-                        <button>
-                            →
+                        <button disabled>
+                            <FaArrowRight />
                         </button>
 
                     </section>
 
 
+                    {/* FUNCIONES FUTURAS */}
+
                     <section className="lobby-quick-card">
 
-                        <button>
-                            <span>🛒</span>
+                        <button disabled>
+
+                            <span>
+                                🛒
+                            </span>
 
                             <div>
-                                <strong>Tienda</strong>
-                                <small>Objetos y skins</small>
+                                <strong>
+                                    Tienda
+                                </strong>
+
+                                <small>
+                                    PRÓXIMAMENTE
+                                </small>
                             </div>
 
-                            <b>→</b>
+                            <b>
+                                <FaLock />
+                            </b>
+
                         </button>
 
-                        <button>
-                            <span>🎯</span>
+
+                        <button disabled>
+
+                            <span>
+                                🎯
+                            </span>
 
                             <div>
-                                <strong>Misiones</strong>
-                                <small>Obtén recompensas</small>
+                                <strong>
+                                    Misiones
+                                </strong>
+
+                                <small>
+                                    PRÓXIMAMENTE
+                                </small>
                             </div>
 
-                            <b>→</b>
+                            <b>
+                                <FaLock />
+                            </b>
+
                         </button>
 
-                        <button>
-                            <span>🏆</span>
+
+                        <button disabled>
+
+                            <span>
+                                <FaTrophy />
+                            </span>
 
                             <div>
-                                <strong>Clasificación</strong>
-                                <small>Tabla de posiciones</small>
+                                <strong>
+                                    Clasificación
+                                </strong>
+
+                                <small>
+                                    PRÓXIMAMENTE
+                                </small>
                             </div>
 
-                            <b>→</b>
+                            <b>
+                                <FaLock />
+                            </b>
+
                         </button>
 
                     </section>
@@ -523,7 +956,7 @@ export default function Lobby() {
                 <section className="lobby-center">
 
 
-                    {/* PERSONAJE SOBRE EL MUNDO */}
+                    {/* PERSONAJE */}
 
                     <section className="lobby-world">
 
@@ -535,26 +968,43 @@ export default function Lobby() {
                             }}
                         >
 
-                            <ambientLight intensity={1.7} />
+                            <ambientLight
+                                intensity={1.7}
+                            />
 
                             <directionalLight
                                 position={[3, 5, 4]}
                                 intensity={3}
                             />
 
-                            <Environment preset="sunset" />
+                            <Environment
+                                preset="sunset"
+                            />
 
                             <Suspense fallback={null}>
+
                                 {player.characterModel && (
+
                                     <VRMCharacter
                                         key={player.characterModel}
                                         url={player.characterModel}
                                         scale={1.9}
-                                        position={[0, -1.7, 0]}
-                                        rotation={[0, 0, 0]}
+                                        position={[
+                                            0,
+                                            -1.7,
+                                            0
+                                        ]}
+                                        rotation={[
+                                            0,
+                                            0,
+                                            0
+                                        ]}
                                     />
+
                                 )}
+
                             </Suspense>
+
 
                             <OrbitControls
                                 enableZoom={false}
@@ -572,9 +1022,12 @@ export default function Lobby() {
 
                         <div className="lobby-character-name">
 
-                            <span>👑</span>
+                            <span>
+                                <FaGamepad />
+                            </span>
 
                             <div>
+
                                 <strong>
                                     {player.displayName}
                                 </strong>
@@ -582,6 +1035,7 @@ export default function Lobby() {
                                 <small>
                                     NIVEL {player.level}
                                 </small>
+
                             </div>
 
                         </div>
@@ -596,6 +1050,7 @@ export default function Lobby() {
                         <div className="lobby-section-heading">
 
                             <div>
+
                                 <span className="eyebrow">
                                     MULTIJUGADOR
                                 </span>
@@ -603,12 +1058,16 @@ export default function Lobby() {
                                 <h2>
                                     ELIGE TU JUEGO
                                 </h2>
+
                             </div>
 
                             <button
-                                onClick={() => navigate("/games")}
+                                onClick={() =>
+                                    navigate("/games")
+                                }
                             >
-                                Ver todos →
+                                Ver todos{" "}
+                                <FaArrowRight />
                             </button>
 
                         </div>
@@ -621,7 +1080,9 @@ export default function Lobby() {
                                 <GameCard
                                     key={game.id}
                                     game={game}
-                                    onClick={() => navigate(game.route)}
+                                    onClick={() =>
+                                        navigate(game.route)
+                                    }
                                 />
 
                             ))}
@@ -645,7 +1106,7 @@ export default function Lobby() {
                 <aside className="lobby-sidebar lobby-sidebar-right">
 
 
-                    {/* ESTADO */}
+                    {/* ESTADO ONLINE */}
 
                     <section className="lobby-status-card">
 
@@ -656,96 +1117,198 @@ export default function Lobby() {
                             <div>
 
                                 <strong>
-                                    {player.statusLabel}
+                                    ONLINE
                                 </strong>
 
                                 <small>
-                                    Listo para jugar
+                                    {onlinePlayers.length + 1} jugadores conectados
                                 </small>
 
                             </div>
 
                         </div>
 
-                        <button>
-                            ⋮
-                        </button>
+                        <FaGlobeAmericas />
 
                     </section>
 
 
-                    {/* INVITACIÓN */}
+                    {/* =================================================
+                        INVITACIONES
+                       ================================================= */}
 
-                    {invitation && (
+                    <section className="lobby-invite-card">
 
-                        <section className="lobby-invite-card">
+                        <div className="lobby-card-heading">
 
-                            <div className="lobby-card-heading">
+                            <div>
 
-                                <div>
-
-                                    <span className="eyebrow">
-                                        NUEVA ACTIVIDAD
-                                    </span>
-
-                                    <h3>
-                                        INVITACIÓN
-                                    </h3>
-
-                                </div>
-
-                                <span className="lobby-notification">
-                                    1
+                                <span className="eyebrow">
+                                    <FaBell /> ONLINE
                                 </span>
 
-                            </div>
-
-
-                            <div className="lobby-invite-player">
-
-                                <div className="lobby-friend-avatar">
-
-                                    <AssetImage
-                                        src={invitation.fromPlayerAvatar}
-                                        type="player"
-                                        alt={invitation.fromPlayerName}
-                                    />
-
-                                </div>
-
-                                <div>
-
-                                    <strong>
-                                        {invitation.fromPlayerName}
-                                    </strong>
-
-                                    <small>
-                                        {invitation.message}
-                                    </small>
-
-                                </div>
+                                <h3>
+                                    INVITACIONES
+                                </h3>
 
                             </div>
 
+                            {invitations.length > 0 && (
 
-                            <div className="lobby-invite-actions">
+                                <span className="lobby-notification">
+                                    {invitations.length}
+                                </span>
 
-                                <button className="mv-btn mv-btn-primary">
-                                    Aceptar
-                                </button>
+                            )}
 
-                                <button className="mv-btn mv-btn-secondary">
-                                    Rechazar
-                                </button>
+                        </div>
+
+
+                        {invitations.length === 0 ? (
+
+                            <div
+                                style={{
+                                    padding: "18px 5px",
+                                    textAlign: "center",
+                                    opacity: 0.7,
+                                }}
+                            >
+
+                                <FaBell
+                                    size={22}
+                                    style={{
+                                        marginBottom: "8px"
+                                    }}
+                                />
+
+                                <small
+                                    style={{
+                                        display: "block"
+                                    }}
+                                >
+                                    No tienes invitaciones
+                                </small>
 
                             </div>
 
-                        </section>
+                        ) : (
 
-                    )}
+                            <div
+                                className="mv-list mv-scroll"
+                                style={{
+                                    maxHeight: "230px"
+                                }}
+                            >
+
+                                {invitations.map(
+                                    (invitation, index) => {
+
+                                        const playerName =
+                                            invitation.fromPlayerName ||
+                                            invitation.fromPlayer?.name ||
+                                            invitation.name ||
+                                            "Jugador";
+
+                                        const invitationMessage =
+                                            invitation.message ||
+                                            "Te invitó a jugar";
+
+                                        const invitationId =
+                                            invitation.fromPlayerId ||
+                                            invitation.fromPlayer?.id ||
+                                            invitation.playerId ||
+                                            index;
+
+                                        return (
+
+                                            <div
+                                                className="lobby-friend-row"
+                                                key={invitationId}
+                                            >
+
+                                                <div className="lobby-friend-avatar">
+
+                                                    <div
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "100%",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            fontSize: "18px"
+                                                        }}
+                                                    >
+                                                        <AssetImage
+                                                            src={invitation.fromPlayerAvatar}
+                                                            type="player"
+                                                            alt={invitation.fromPlayerName}
+                                                        />
+                                                    </div>
+
+                                                </div>
 
 
-                    {/* AMIGOS */}
+                                                <div className="lobby-friend-info">
+
+                                                    <strong>
+                                                        {playerName}
+                                                    </strong>
+
+                                                    <small>
+                                                        {invitationMessage}
+                                                    </small>
+
+                                                </div>
+
+
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        gap: "5px"
+                                                    }}
+                                                >
+
+                                                    <button
+                                                        onClick={() =>
+                                                            handleAcceptInvitation(
+                                                                invitation
+                                                            )
+                                                        }
+                                                        title="Aceptar"
+                                                    >
+                                                        <FaCheck />
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() =>
+                                                            handleRejectInvitation(
+                                                                invitation
+                                                            )
+                                                        }
+                                                        title="Rechazar"
+                                                    >
+                                                        <FaTimes />
+                                                    </button>
+
+                                                </div>
+
+                                            </div>
+
+                                        );
+
+                                    }
+                                )}
+
+                            </div>
+
+                        )}
+
+                    </section>
+
+
+                    {/* =================================================
+                        JUGADORES ONLINE
+                       ================================================= */}
 
                     <section className="lobby-friends-card">
 
@@ -754,17 +1317,17 @@ export default function Lobby() {
                             <div>
 
                                 <span className="eyebrow">
-                                    COMUNIDAD
+                                    <FaUsers /> COMUNIDAD
                                 </span>
 
                                 <h3>
-                                    AMIGOS ONLINE
+                                    JUGADORES ONLINE
                                 </h3>
 
                             </div>
 
                             <strong>
-                                {friends.length}
+                                {onlinePlayers.length}
                             </strong>
 
                         </div>
@@ -772,72 +1335,150 @@ export default function Lobby() {
 
                         <div className="mv-list mv-scroll lobby-friends-list">
 
-                            {friends.map((friend) => (
+                            {onlinePlayers.length === 0 ? (
 
                                 <div
-                                    className="lobby-friend-row"
-                                    key={friend.id}
+                                    style={{
+                                        padding: "20px 5px",
+                                        textAlign: "center",
+                                        opacity: 0.7,
+                                    }}
                                 >
 
-                                    <div className="lobby-friend-avatar">
+                                    <FaUsers
+                                        size={22}
+                                        style={{
+                                            marginBottom: "8px"
+                                        }}
+                                    />
 
-                                        <AssetImage
-                                            src={friend.avatar}
-                                            type="player"
-                                            alt={friend.name}
-                                        />
-
-                                        <span
-                                            className={
-                                                friend.status === "available"
-                                                    ? "friend-online"
-                                                    : "friend-busy"
-                                            }
-                                        />
-
-                                    </div>
-
-
-                                    <div className="lobby-friend-info">
-
-                                        <strong>
-                                            {friend.name}
-                                        </strong>
-
-                                        <small>
-                                            {friend.statusLabel}
-                                        </small>
-
-                                    </div>
-
-
-                                    <button
-                                        onClick={() =>
-                                            navigate("/friends")
-                                        }
+                                    <small
+                                        style={{
+                                            display: "block"
+                                        }}
                                     >
-                                        →
-                                    </button>
+                                        No hay otros jugadores online
+                                    </small>
 
                                 </div>
 
-                            ))}
+                            ) : (
+
+                                onlinePlayers.map((onlinePlayer) => {
+
+                                    const status =
+                                        onlinePlayer.status ||
+                                        "available";
+
+                                    const isAvailable =
+                                        status === "available";
+
+                                    const statusLabel =
+                                        isAvailable
+                                            ? "Disponible"
+                                            : status === "inviting"
+                                                ? "Invitando..."
+                                                : status === "invited"
+                                                    ? "Con invitación"
+                                                    : "En partida";
+
+                                    return (
+
+                                        <div
+                                            className="lobby-friend-row"
+                                            key={onlinePlayer.id}
+                                        >
+
+                                            <div className="lobby-friend-avatar">
+
+                                                <div
+                                                    style={{
+                                                        width: "100%",
+                                                        height: "100%",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        fontSize: "17px"
+                                                    }}
+                                                >
+                                                    <FaUsers />
+                                                </div>
+
+                                                <span
+                                                    className={
+                                                        isAvailable
+                                                            ? "friend-online"
+                                                            : "friend-busy"
+                                                    }
+                                                />
+
+                                            </div>
+
+
+                                            <div className="lobby-friend-info">
+
+                                                <strong>
+                                                    {onlinePlayer.name}
+                                                </strong>
+
+                                                <small>
+                                                    {statusLabel}
+                                                </small>
+
+                                            </div>
+
+
+                                            <button
+                                                disabled={!isAvailable}
+                                                onClick={() =>
+                                                    handleInvite(
+                                                        onlinePlayer
+                                                    )
+                                                }
+                                                title={
+                                                    isAvailable
+                                                        ? "Invitar a jugar"
+                                                        : statusLabel
+                                                }
+                                            >
+                                                {isAvailable
+                                                    ? <FaUserPlus />
+                                                    : <FaCircle />
+                                                }
+                                            </button>
+
+                                        </div>
+
+                                    );
+
+                                })
+
+                            )}
 
                         </div>
 
 
-                        <button
-                            className="lobby-view-all"
-                            onClick={() => navigate("/friends")}
-                        >
-                            Ver todos mis amigos
-                            <span>→</span>
-                        </button>
+                        {onlineMessage && (
+
+                            <div
+                                style={{
+                                    padding: "8px 10px",
+                                    fontSize: "12px",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                }}
+                            >
+                                {onlineMessage}
+                            </div>
+
+                        )}
 
                     </section>
 
 
-                    {/* SALAS */}
+                    {/* =================================================
+                        SALAS
+                       ================================================= */}
 
                     <section className="lobby-rooms-card">
 
@@ -856,7 +1497,9 @@ export default function Lobby() {
                             </div>
 
                             <button
-                                onClick={() => navigate("/room")}
+                                onClick={() =>
+                                    navigate("/room")
+                                }
                             >
                                 +
                             </button>
@@ -902,7 +1545,9 @@ export default function Lobby() {
 
                         <button
                             className="mv-btn mv-btn-primary lobby-create-room"
-                            onClick={() => navigate("/room")}
+                            onClick={() =>
+                                navigate("/room")
+                            }
                         >
                             + CREAR SALA
                         </button>

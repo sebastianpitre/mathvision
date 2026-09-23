@@ -20,5 +20,18 @@
         "bingo": "/img/games/bingo-matematico.jpg",
         "quiz": "/img/games/quiz-matematico.jpg",
         "batalla": "/img/games/batalla-matematica.jpg"
+    },
+
+    "icons": {
+        "profiles": [
+            "/img/icons/profile-01.png",
+            "/img/icons/profile-02.png",
+            "/img/icons/profile-03.png",
+            "/img/icons/profile-04.png",
+            "/img/icons/profile-05.png",
+            "/img/icons/profile-06.png",
+            "/img/icons/profile-07.png",
+            "/img/icons/profile-08.png"
+        ]
     }
 }
