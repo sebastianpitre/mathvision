@@ -5,7 +5,10 @@ import { OrbitControls, Environment } from "@react-three/drei";
 
 import "../styles/mathvision.css";
 
-import player from "../data/mock/player.json";
+import {
+    useAuth
+} from "../context/AuthContext";
+
 import friends from "../data/mock/friends.json";
 import rooms from "../data/mock/rooms.json";
 import invitations from "../data/mock/invitations.json";
@@ -72,7 +75,171 @@ export default function Lobby() {
 
     const navigate = useNavigate();
 
-    const invitation = invitations[0];
+    const {
+        user,
+        loading,
+    } = useAuth();
+
+    const invitation =
+        invitations[0];
+
+
+    /*
+     * Mientras AuthContext comprueba
+     * la sesión contra PostgreSQL.
+     */
+
+    if (loading) {
+
+        return (
+            <div className="mv-app lobby-page">
+
+                <div className="lobby-background" />
+
+                <div
+                    style={{
+                        minHeight: "100vh",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontSize: "20px",
+                        fontWeight: "bold",
+                    }}
+                >
+                    Cargando perfil...
+                </div>
+
+            </div>
+        );
+
+    }
+
+
+    /*
+     * Si no hay sesión, no mostramos
+     * un Lobby con datos falsos.
+     */
+
+    if (!user) {
+
+        return (
+            <div className="mv-app lobby-page">
+
+                <div className="lobby-background" />
+
+                <div
+                    style={{
+                        minHeight: "100vh",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        gap: "20px",
+                    }}
+                >
+
+                    <h1>
+                        Sesión no encontrada
+                    </h1>
+
+                    <button
+                        className="mv-btn mv-btn-primary"
+                        onClick={() =>
+                            navigate("/")
+                        }
+                    >
+                        INICIAR SESIÓN
+                    </button>
+
+                </div>
+
+            </div>
+        );
+
+    }
+
+
+    /*
+     * Adaptamos temporalmente el perfil real
+     * al formato que ya utiliza el Lobby.
+     *
+     * Así no tenemos que romper todo el diseño.
+     */
+
+    const xp =
+        Number(user.xp) || 0;
+
+    const level =
+        Number(user.level) || 1;
+
+    const xpPercentage =
+        Math.min(
+            100,
+            Math.max(
+                0,
+                ((xp % 1000) / 1000) * 100
+            )
+        );
+
+
+    const player = {
+
+        displayName:
+            user.display_name ||
+            user.username ||
+            "Jugador",
+
+        level,
+
+        avatar:
+            user.avatar ||
+            assets.players.defaultAvatar,
+
+        characterModel:
+            user.character_model_path || null,
+
+        characterName:
+            user.character_name || "Personaje",
+
+        experience: {
+
+            current:
+                xp % 1000,
+
+            percentage:
+                xpPercentage,
+
+        },
+
+        currencies: {
+
+            coins:
+                Number(user.coins) || 0,
+
+            gems:
+                Number(user.gems) || 0,
+
+        },
+
+        statistics: {
+
+            wins:
+                Number(user.games_won) || 0,
+
+            matches:
+                Number(user.games_played) || 0,
+
+            winStreak:
+                0,
+
+        },
+
+        statusLabel:
+            "ONLINE",
+
+    };
 
     return (
         <div className="mv-app lobby-page">
@@ -100,7 +267,7 @@ export default function Lobby() {
                     onClick={() => navigate("/")}
                 >
                     <div className="mv-logo-main">
-                        MATH<span>VISION</span>
+                        LUDO<span>RA</span>
                     </div>
 
                     <div className="mv-logo-sub">
@@ -115,9 +282,8 @@ export default function Lobby() {
 
                         <button
                             key={item.id}
-                            className={`mv-nav-item ${
-                                item.id === "home" ? "active" : ""
-                            }`}
+                            className={`mv-nav-item ${item.id === "home" ? "active" : ""
+                                }`}
                             onClick={() => navigate(item.route)}
                         >
                             <b>{item.icon}</b>
@@ -379,12 +545,15 @@ export default function Lobby() {
                             <Environment preset="sunset" />
 
                             <Suspense fallback={null}>
-                                <VRMCharacter
-                                    url="/models/characters/Adan.vrm"
-                                    scale={1.9}
-                                    position={[0, -1.7, 0]}
-                                    rotation={[0, 0, 0]}
-                                />
+                                {player.characterModel && (
+                                    <VRMCharacter
+                                        key={player.characterModel}
+                                        url={player.characterModel}
+                                        scale={1.9}
+                                        position={[0, -1.7, 0]}
+                                        rotation={[0, 0, 0]}
+                                    />
+                                )}
                             </Suspense>
 
                             <OrbitControls

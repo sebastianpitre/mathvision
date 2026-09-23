@@ -26,7 +26,7 @@ function AppRouter() {
         <Routes>
 
             <Route
-                path="/auth-test"
+                path="/"
                 element={<AuthTest />}
             />
 

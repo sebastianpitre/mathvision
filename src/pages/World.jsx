@@ -1,5 +1,5 @@
-
 import {
+    Suspense,
     useEffect,
     useState,
 } from "react";
@@ -9,27 +9,34 @@ import {
 } from "react-router-dom";
 
 import {
-    FaArrowLeft,
-    FaGlobeAmericas,
-    FaGamepad,
-    FaUserFriends,
-    FaCheck,
-    FaTimes,
-    FaSpinner,
-} from "react-icons/fa";
+    Canvas,
+} from "@react-three/fiber";
 
 import {
     socket,
 } from "../services/socket";
 
+import {
+    useAuth,
+} from "../context/AuthContext";
+
+import "../styles/mathvision.css";
+
+import navigation from "../data/mock/navigation.json";
+import assets from "../data/mock/assets.json";
+
+import AssetImage from "../components/common/AssetImage";
+import VRMCharacter from "../components/character/VRMCharacter";
+
 
 export default function World() {
 
-    const WORLD_SESSION_KEY =
-    "mathvision_world_player_id";
-
     const navigate =
         useNavigate();
+
+    const {
+        user,
+    } = useAuth();
 
 
     /* =====================================================
@@ -44,14 +51,14 @@ export default function World() {
     );
 
     const [
-        name,
-        setName
-    ] = useState("");
-
-    const [
         joined,
         setJoined
     ] = useState(false);
+
+    const [
+        myPlayerId,
+        setMyPlayerId
+    ] = useState(null);
 
     const [
         players,
@@ -64,9 +71,11 @@ export default function World() {
     ] = useState(null);
 
     const [
-        invitingPlayerId,
-        setInvitingPlayerId
-    ] = useState(null);
+        pendingInvitations,
+        setPendingInvitations
+    ] = useState(
+        new Set()
+    );
 
     const [
         message,
@@ -79,36 +88,32 @@ export default function World() {
     ] = useState("");
 
 
-    function getWorldPlayerId() {
+    /* =====================================================
+       ENTRAR AL MUNDO
+    ===================================================== */
 
-    let id =
-        localStorage.getItem(
-            WORLD_SESSION_KEY
+    const entrarAlMundo = () => {
+
+        setError("");
+        setMessage("");
+
+
+        if (!socket.connected) {
+
+            setError(
+                "El servidor no está conectado."
+            );
+
+            return;
+
+        }
+
+
+        socket.emit(
+            "world:join"
         );
 
-
-    if (!id) {
-
-        id =
-            "player-" +
-            Date.now() +
-            "-" +
-            Math.random()
-                .toString(36)
-                .substring(2, 10);
-
-
-        localStorage.setItem(
-            WORLD_SESSION_KEY,
-            id
-        );
-
-    }
-
-
-    return id;
-
-}
+    };
 
 
     /* =====================================================
@@ -126,6 +131,8 @@ export default function World() {
 
             setConnected(true);
 
+            entrarAlMundo();
+
         };
 
 
@@ -136,6 +143,26 @@ export default function World() {
             );
 
             setConnected(false);
+
+            setJoined(false);
+
+        };
+
+
+        const onConnectError = (
+            socketError
+        ) => {
+
+            console.error(
+                "❌ Error conectando World:",
+                socketError.message
+            );
+
+            setConnected(false);
+
+            setError(
+                "No fue posible autenticar la conexión."
+            );
 
         };
 
@@ -158,6 +185,7 @@ export default function World() {
 
         const onJoined = ({
             player,
+            userId,
         }) => {
 
             console.log(
@@ -165,10 +193,14 @@ export default function World() {
                 player
             );
 
+            setMyPlayerId(
+                String(userId)
+            );
+
             setJoined(true);
 
             setMessage(
-                "Estás dentro del Mundo."
+                `Estás dentro del Mundo como ${player.name}.`
             );
 
         };
@@ -196,10 +228,6 @@ export default function World() {
             targetPlayerName,
         }) => {
 
-            setInvitingPlayerId(
-                null
-            );
-
             setMessage(
                 `Invitación enviada a ${targetPlayerName}.`
             );
@@ -209,11 +237,30 @@ export default function World() {
 
         const onInvitationRejected = ({
             playerName,
+            targetPlayerId,
         }) => {
 
-            setInvitingPlayerId(
-                null
-            );
+            if (
+                targetPlayerId
+            ) {
+
+                setPendingInvitations(
+                    (current) => {
+
+                        const next =
+                            new Set(current);
+
+                        next.delete(
+                            targetPlayerId
+                        );
+
+                        return next;
+
+                    }
+                );
+
+            }
+
 
             setMessage(
                 `${playerName} rechazó la invitación.`
@@ -224,6 +271,7 @@ export default function World() {
 
         const onWorldError = ({
             message,
+            targetPlayerId,
         }) => {
 
             console.error(
@@ -231,9 +279,28 @@ export default function World() {
                 message
             );
 
-            setInvitingPlayerId(
-                null
-            );
+
+            if (
+                targetPlayerId
+            ) {
+
+                setPendingInvitations(
+                    (current) => {
+
+                        const next =
+                            new Set(current);
+
+                        next.delete(
+                            targetPlayerId
+                        );
+
+                        return next;
+
+                    }
+                );
+
+            }
+
 
             setError(
                 message
@@ -266,6 +333,11 @@ export default function World() {
         socket.on(
             "disconnect",
             onDisconnect
+        );
+
+        socket.on(
+            "connect_error",
+            onConnectError
         );
 
         socket.on(
@@ -304,7 +376,11 @@ export default function World() {
         );
 
 
-        if (!socket.connected) {
+        if (socket.connected) {
+
+            entrarAlMundo();
+
+        } else {
 
             socket.connect();
 
@@ -321,6 +397,11 @@ export default function World() {
             socket.off(
                 "disconnect",
                 onDisconnect
+            );
+
+            socket.off(
+                "connect_error",
+                onConnectError
             );
 
             socket.off(
@@ -364,60 +445,6 @@ export default function World() {
 
 
     /* =====================================================
-       ENTRAR AL MUNDO
-    ===================================================== */
-
-    const entrarAlMundo = () => {
-
-        setError("");
-        setMessage("");
-
-
-        const cleanName =
-            name.trim();
-
-
-        if (!cleanName) {
-
-            setError(
-                "Escribe tu nombre."
-            );
-
-            return;
-
-        }
-
-
-        if (!socket.connected) {
-
-            setError(
-                "El servidor no está conectado."
-            );
-
-            return;
-
-        }
-
-
-        const worldPlayerId =
-            getWorldPlayerId();
-
-
-        socket.emit(
-            "world:join",
-            {
-                playerName:
-                    cleanName,
-
-                worldPlayerId:
-                    worldPlayerId,
-            }
-        );
-
-    };
-
-
-    /* =====================================================
        INVITAR
     ===================================================== */
 
@@ -428,9 +455,33 @@ export default function World() {
         setError("");
         setMessage("");
 
-        setInvitingPlayerId(
-            playerId
+
+        if (
+            pendingInvitations.has(
+                playerId
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        setPendingInvitations(
+            (current) => {
+
+                const next =
+                    new Set(current);
+
+                next.add(
+                    playerId
+                );
+
+                return next;
+
+            }
         );
+
 
         socket.emit(
             "world:invite",
@@ -444,7 +495,7 @@ export default function World() {
 
 
     /* =====================================================
-       ACEPTAR
+       ACEPTAR INVITACIÓN
     ===================================================== */
 
     const aceptarInvitacion = () => {
@@ -469,7 +520,7 @@ export default function World() {
 
 
     /* =====================================================
-       RECHAZAR
+       RECHAZAR INVITACIÓN
     ===================================================== */
 
     const rechazarInvitacion = () => {
@@ -507,158 +558,188 @@ export default function World() {
 
         }
 
+        setJoined(false);
 
-        localStorage.removeItem(
-            WORLD_SESSION_KEY
-        );
-
-
-        navigate(
-            "/"
-        );
+        navigate("/lobby");
 
     };
 
 
     /* =====================================================
-       PANTALLA NOMBRE
+       JUGADOR ACTUAL
+    ===================================================== */
+
+    const me =
+        players.find(
+            (player) =>
+                String(player.id) ===
+                String(myPlayerId)
+        );
+
+
+    const otherPlayers =
+        players.filter(
+            (player) =>
+                String(player.id) !==
+                String(myPlayerId)
+        );
+
+
+    /* =====================================================
+       MODELO DEL PERSONAJE
+    ===================================================== */
+
+    const characterModel =
+        user?.character_model_path ||
+        "/models/characters/Adan2.vrm";
+
+
+    /* =====================================================
+       DATOS DEL JUGADOR PARA EL HEADER
+       (mismo formato que usa Lobby)
+    ===================================================== */
+
+    const xp =
+        Number(user?.xp) || 0;
+
+    const level =
+        Number(user?.level) || 1;
+
+    const xpPercentage =
+        Math.min(
+            100,
+            Math.max(
+                0,
+                ((xp % 1000) / 1000) * 100
+            )
+        );
+
+    const displayName =
+        user?.display_name ||
+        user?.username ||
+        "Jugador";
+
+    const avatar =
+        user?.avatar ||
+        assets.players.defaultAvatar;
+
+    const coins =
+        Number(user?.coins) || 0;
+
+    const gems =
+        Number(user?.gems) || 0;
+
+
+    /* =====================================================
+       ETIQUETA DE ESTADO DE UN JUGADOR
+    ===================================================== */
+
+    function estadoJugador(player) {
+
+        if (player.status === "available") {
+            return {
+                label: "Disponible",
+                dotClass: "friend-online",
+            };
+        }
+
+        if (player.status === "invited") {
+            return {
+                label: "Invitación pendiente",
+                dotClass: "friend-busy",
+            };
+        }
+
+        if (player.status === "inviting") {
+            return {
+                label: "Invitando a alguien",
+                dotClass: "friend-busy",
+            };
+        }
+
+        if (player.status === "playing") {
+            return {
+                label: "En partida",
+                dotClass: "friend-busy",
+            };
+        }
+
+        return {
+            label: "",
+            dotClass: "friend-busy",
+        };
+
+    }
+
+
+    /* =====================================================
+       PANTALLA DE CONEXIÓN
+       (mismo patrón visual que las pantallas de
+       carga/sin-sesión de Lobby)
     ===================================================== */
 
     if (!joined) {
 
         return (
 
-            <div className="min-h-screen bg-slate-950 text-white">
+            <div className="mv-app lobby-page">
 
-                <header className="border-b border-slate-800 bg-slate-950/90">
+                <div
+                    className="lobby-background"
+                    style={{
+                        backgroundImage: `url(${assets.backgrounds.lobby})`
+                    }}
+                />
 
-                    <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
+                <div
+                    style={{
+                        minHeight: "100vh",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        gap: "20px",
+                        textAlign: "center",
+                        padding: "0 20px",
+                    }}
+                >
 
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/"
-                                )
-                            }
-                            className="flex items-center gap-3 text-slate-400 transition hover:text-white"
-                        >
-
-                            <FaArrowLeft />
-
-                            Lobby
-
-                        </button>
-
-
-                        <div className="text-center">
-
-                            <p className="text-xs font-bold uppercase tracking-[0.4em] text-cyan-400">
-                                MATHVISION
-                            </p>
-
-                            <h1 className="text-xl font-black">
-                                WORLD
-                            </h1>
-
-                        </div>
-
-
-                        <div className="w-24" />
-
+                    <div style={{ fontSize: "48px" }}>
+                        🌎
                     </div>
 
-                </header>
+                    <h1>
+                        {connected
+                            ? "ENTRANDO AL MUNDO..."
+                            : "CONECTANDO..."
+                        }
+                    </h1>
 
+                    <p style={{ opacity: 0.8, maxWidth: "360px" }}>
+                        {connected
+                            ? "Preparando tu personaje y buscando jugadores."
+                            : "Conectando con el servidor de MathVision."
+                        }
+                    </p>
 
-                <main className="flex min-h-[calc(100vh-81px)] items-center justify-center px-5 py-10">
+                    {error && (
 
-                    <div className="w-full max-w-lg rounded-3xl border border-cyan-400/20 bg-slate-900/80 p-8 text-center shadow-2xl">
+                        <strong style={{ color: "#ff6b6b" }}>
+                            ⚠ {error}
+                        </strong>
 
-                        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-3xl bg-cyan-500/10 text-5xl text-cyan-400">
+                    )}
 
-                            <FaGlobeAmericas />
+                    <button
+                        className="mv-btn mv-btn-secondary"
+                        type="button"
+                        onClick={() => navigate("/lobby")}
+                    >
+                        ← VOLVER AL LOBBY
+                    </button>
 
-                        </div>
-
-
-                        <p className="mt-8 text-sm font-bold uppercase tracking-[0.3em] text-cyan-400">
-                            Mundo multijugador
-                        </p>
-
-
-                        <h1 className="mt-3 text-4xl font-black">
-                            Entra al Mundo
-                        </h1>
-
-
-                        <p className="mt-3 text-slate-400">
-                            Todos los estudiantes conectados
-                            aparecerán aquí para poder
-                            encontrarse y jugar.
-                        </p>
-
-
-                        <div className="mt-8">
-
-                            <input
-                                type="text"
-                                value={name}
-                                maxLength={30}
-                                onChange={(e) =>
-                                    setName(
-                                        e.target.value
-                                    )
-                                }
-                                onKeyDown={(e) => {
-
-                                    if (
-                                        e.key ===
-                                        "Enter"
-                                    ) {
-
-                                        entrarAlMundo();
-
-                                    }
-
-                                }}
-                                placeholder="Escribe tu nombre"
-                                className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-5 py-4 text-center text-lg text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
-                            />
-
-                        </div>
-
-
-                        {error && (
-
-                            <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 font-bold text-red-400">
-
-                                ⚠ {error}
-
-                            </div>
-
-                        )}
-
-
-                        <button
-                            onClick={
-                                entrarAlMundo
-                            }
-                            disabled={!connected}
-                            className="mt-5 flex w-full items-center justify-center gap-3 rounded-2xl bg-cyan-500 px-6 py-4 font-black text-slate-950 transition hover:scale-[1.02] hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-
-                            <FaGlobeAmericas />
-
-                            {connected
-                                ? "ENTRAR AL MUNDO"
-                                : "CONECTANDO..."
-                            }
-
-                        </button>
-
-                    </div>
-
-                </main>
+                </div>
 
             </div>
 
@@ -668,324 +749,406 @@ export default function World() {
 
 
     /* =====================================================
-       LISTA DE JUGADORES
-    ===================================================== */
-
-    const worldPlayerId =
-        localStorage.getItem(
-            WORLD_SESSION_KEY
-        );
-
-
-    const me =
-        players.find(
-            (player) =>
-                player.id ===
-                worldPlayerId
-        );
-
-
-    const otherPlayers =
-    players.filter(
-        (player) =>
-            player.id !==
-            worldPlayerId
-    );
-
-
-    /* =====================================================
-       MUNDO
+       WORLD
     ===================================================== */
 
     return (
 
-        <div className="min-h-screen bg-slate-950 text-white">
-
-            <div className="pointer-events-none fixed inset-0">
-
-                <div className="absolute left-1/4 top-20 h-96 w-96 rounded-full bg-cyan-500/10 blur-[140px]" />
-
-                <div className="absolute bottom-20 right-1/4 h-96 w-96 rounded-full bg-purple-600/10 blur-[140px]" />
-
-            </div>
+        <div className="mv-app lobby-page">
 
 
-            <header className="relative z-10 border-b border-slate-800 bg-slate-950/90 backdrop-blur-xl">
+            {/* =================================================
+                BACKGROUND
+               ================================================= */}
 
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5">
-
-                    <button
-                        onClick={volver}
-                        className="flex items-center gap-3 text-slate-400 transition hover:text-white"
-                    >
-
-                        <FaArrowLeft />
-
-                        Salir
-
-                    </button>
+            <div
+                className="lobby-background"
+                style={{
+                    backgroundImage: `url(${assets.backgrounds.lobby})`
+                }}
+            />
 
 
-                    <div className="text-center">
+            {/* =================================================
+                HEADER
+               ================================================= */}
 
-                        <p className="text-xs font-bold uppercase tracking-[0.4em] text-cyan-400">
-                            MATHVISION
-                        </p>
+            <header className="mv-header lobby-header">
 
-                        <h1 className="text-xl font-black">
-                            🌎 WORLD
-                        </h1>
+                <div
+                    className="mv-logo"
+                    onClick={volver}
+                >
+                    <div className="mv-logo-main">
+                        MATH<span>VISION</span>
+                    </div>
+
+                    <div className="mv-logo-sub">
+                        JUEGA • APRENDE • CONECTA
+                    </div>
+                </div>
+
+
+                <nav className="mv-nav">
+
+                    {navigation.map((item) => (
+
+                        <button
+                            key={item.id}
+                            className={`mv-nav-item ${item.id === "world" ? "active" : ""
+                                }`}
+                            onClick={() => navigate(item.route)}
+                        >
+                            <b>{item.icon}</b>
+                            <span>{item.label}</span>
+                        </button>
+
+                    ))}
+
+                </nav>
+
+
+                <div className="lobby-header-player">
+
+                    <div className="mv-avatar-small">
+
+                        <AssetImage
+                            src={avatar}
+                            type="player"
+                            alt={displayName}
+                        />
 
                     </div>
 
+                    <div className="lobby-header-player-info">
 
-                    <div className="text-right">
+                        <strong>
+                            {displayName}
+                        </strong>
 
-                        <p className="text-xs text-slate-500">
-                            Jugadores
-                        </p>
+                        <span>
+                            NIVEL {level}
+                        </span>
 
-                        <p className="font-black text-cyan-400">
-                            {players.length}
-                        </p>
+                        <div className="mv-xp">
+                            <div
+                                style={{
+                                    width: `${xpPercentage}%`
+                                }}
+                            />
+                        </div>
 
                     </div>
 
                 </div>
+
+
+                <div className="lobby-currencies">
+
+                    <div>
+                        🪙
+                        <strong>
+                            {coins.toLocaleString()}
+                        </strong>
+                    </div>
+
+                    <div>
+                        💎
+                        <strong>
+                            {gems}
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <button className="mv-settings">
+                    ⚙
+                </button>
 
             </header>
 
 
-            <main className="relative z-10 mx-auto max-w-6xl px-5 py-10">
+            {/* =================================================
+                MENSAJES
+               ================================================= */}
 
-                <div className="mb-8 rounded-3xl border border-cyan-400/20 bg-slate-900/70 p-6">
+            {(message || error) && (
 
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div
+                    style={{
+                        textAlign: "center",
+                        padding: "12px 20px",
+                        fontWeight: 700,
+                        color: error ? "#ff6b6b" : "white",
+                    }}
+                >
+                    {error ? `⚠ ${error}` : message}
+                </div>
+
+            )}
+
+
+            {/* =================================================
+                CONTENIDO
+               ================================================= */}
+
+            <main className="lobby-main">
+
+
+                {/* =================================================
+                    IZQUIERDA
+                   ================================================= */}
+
+                <aside className="lobby-sidebar lobby-sidebar-left">
+
+                    <section className="lobby-status-card">
 
                         <div>
 
-                            <p className="text-sm uppercase tracking-widest text-cyan-400">
-                                Mundo conectado
-                            </p>
+                            <span className="lobby-status-dot" />
 
-                            <h2 className="mt-1 text-3xl font-black">
-                                Hola, {me?.name || name}
-                            </h2>
+                            <div>
 
-                        </div>
+                                <strong>
+                                    {me?.name || displayName}
+                                </strong>
 
+                                <small>
+                                    Estás dentro del Mundo
+                                </small>
 
-                        <div className="flex items-center gap-3 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-3">
-
-                            <span className="h-3 w-3 animate-pulse rounded-full bg-emerald-400" />
-
-                            <span className="font-bold text-emerald-400">
-                                CONECTADO
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                {message && (
-
-                    <div className="mb-5 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4 text-center font-bold text-cyan-300">
-
-                        {message}
-
-                    </div>
-
-                )}
-
-
-                {error && (
-
-                    <div className="mb-5 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-center font-bold text-red-400">
-
-                        ⚠ {error}
-
-                    </div>
-
-                )}
-
-
-                <section>
-
-                    <div className="mb-5 flex items-center gap-3">
-
-                        <FaUserFriends className="text-cyan-400" />
-
-                        <h2 className="text-2xl font-black">
-                            Jugadores conectados
-                        </h2>
-
-                    </div>
-
-
-                    {otherPlayers.length === 0 ? (
-
-                        <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/60 p-12 text-center">
-
-                            <div className="text-5xl">
-                                🌎
                             </div>
 
-                            <p className="mt-4 text-lg font-bold text-slate-300">
-                                Esperando otros jugadores...
-                            </p>
+                        </div>
 
-                            <p className="mt-2 text-sm text-slate-500">
-                                Cuando otro estudiante entre,
-                                aparecerá aquí.
-                            </p>
+                    </section>
+
+
+                    <section className="lobby-profile-card">
+
+                        <div className="lobby-card-label">
+                            JUGADORES EN EL MUNDO
+                        </div>
+
+                        <div className="lobby-stat-grid">
+
+                            <div>
+                                <strong>
+                                    {players.length}
+                                </strong>
+                                <span>Conectados</span>
+                            </div>
+
+                            <div>
+                                <strong>
+                                    {otherPlayers.length}
+                                </strong>
+                                <span>Disponibles</span>
+                            </div>
 
                         </div>
 
-                    ) : (
 
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <button
+                            className="mv-btn mv-btn-secondary lobby-profile-button"
+                            onClick={volver}
+                        >
+                            VOLVER AL LOBBY
+                            <span>←</span>
+                        </button>
 
-                            {otherPlayers.map(
-                                (player) => {
+                    </section>
 
-                                    const available =
-                                        player.status ===
-                                        "available";
+                </aside>
 
-                                    const invited =
-                                        player.status ===
-                                        "invited";
 
-                                    const inviting =
-                                        player.status ===
-                                        "inviting";
+                {/* =================================================
+                    CENTRO
+                   ================================================= */}
 
+                <section className="lobby-center">
+
+                    <section
+                        className="lobby-world"
+                        style={{ flex: 1 }}
+                    >
+
+                        <Canvas
+                            className="lobby-canvas"
+                            camera={{
+                                position: [0, 1.2, 6],
+                                fov: 35
+                            }}
+                        >
+
+                            <ambientLight intensity={1.5} />
+
+                            <directionalLight
+                                position={[3, 5, 4]}
+                                intensity={2}
+                            />
+
+                            <directionalLight
+                                position={[-3, 3, 2]}
+                                intensity={1}
+                            />
+
+                            <Suspense fallback={null}>
+
+                                <VRMCharacter
+                                    key={characterModel}
+                                    url={characterModel}
+                                    scale={1.9}
+                                    position={[0, -1.7, 0]}
+                                    rotation={[0, 0, 0]}
+                                />
+
+                            </Suspense>
+
+                        </Canvas>
+
+
+                        <div className="lobby-character-name">
+
+                            <span>🌎</span>
+
+                            <div>
+                                <strong>
+                                    {me?.name || displayName}
+                                </strong>
+
+                                <small>
+                                    LISTO PARA JUGAR
+                                </small>
+                            </div>
+
+                        </div>
+
+                    </section>
+
+                    <div className="lobby-slogan">
+                        Create by - Sebastian Pitre
+                    </div>
+
+                </section>
+
+
+                {/* =================================================
+                    DERECHA
+                   ================================================= */}
+
+                <aside className="lobby-sidebar lobby-sidebar-right">
+
+                    <section className="lobby-friends-card">
+
+                        <div className="lobby-card-heading">
+
+                            <div>
+
+                                <span className="eyebrow">
+                                    MULTIJUGADOR
+                                </span>
+
+                                <h3>
+                                    JUGADORES ONLINE
+                                </h3>
+
+                            </div>
+
+                            <strong>
+                                {otherPlayers.length}
+                            </strong>
+
+                        </div>
+
+
+                        <div className="mv-list mv-scroll lobby-friends-list">
+
+                            {otherPlayers.length === 0 ? (
+
+                                <div
+                                    style={{
+                                        padding: "30px 10px",
+                                        textAlign: "center",
+                                        opacity: 0.7,
+                                    }}
+                                >
+                                    Aún no hay otros jugadores en el Mundo.
+                                </div>
+
+                            ) : (
+
+                                otherPlayers.map((player) => {
+
+                                    const estado =
+                                        estadoJugador(player);
+
+                                    const disponible =
+                                        player.status === "available";
 
                                     return (
 
                                         <div
-                                            key={
-                                                player.id
-                                            }
-                                            className="rounded-3xl border border-slate-700 bg-slate-900/80 p-5 transition hover:border-cyan-400/30"
+                                            className="lobby-friend-row"
+                                            key={player.id}
                                         >
 
-                                            <div className="flex items-center justify-between">
+                                            <div className="lobby-friend-avatar">
 
-                                                <div className="flex items-center gap-3">
+                                                <AssetImage
+                                                    src={assets.players.defaultAvatar}
+                                                    type="player"
+                                                    alt={player.name}
+                                                />
 
-                                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/10 text-2xl">
-                                                        🎮
-                                                    </div>
-
-                                                    <div>
-
-                                                        <p className="font-black">
-                                                            {player.name}
-                                                        </p>
-
-                                                        <p className="text-xs text-slate-500">
-                                                            {player.status === "available" &&
-                                                                "Disponible"
-                                                            }
-
-                                                            {player.status === "invited" &&
-                                                                "Tiene una invitación"
-                                                            }
-
-                                                            {player.status === "inviting" &&
-                                                                "Buscando jugador"
-                                                            }
-
-                                                            {player.status === "playing" &&
-                                                                "En partida"
-                                                            }
-
-                                                        </p>
-
-                                                    </div>
-
-                                                </div>
+                                                <span
+                                                    className={estado.dotClass}
+                                                />
 
                                             </div>
 
 
-                                            {available && (
+                                            <div className="lobby-friend-info">
+
+                                                <strong>
+                                                    {player.name}
+                                                </strong>
+
+                                                <small>
+                                                    {estado.label}
+                                                </small>
+
+                                            </div>
+
+
+                                            {disponible ? (
 
                                                 <button
                                                     onClick={() =>
-                                                        invitar(
+                                                        invitar(player.id)
+                                                    }
+                                                    disabled={
+                                                        pendingInvitations.has(
                                                             player.id
                                                         )
                                                     }
-                                                    disabled={
-                                                        invitingPlayerId !==
-                                                        null
-                                                    }
-                                                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-500 px-4 py-3 font-black text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-40"
                                                 >
 
-                                                    {invitingPlayerId ===
-                                                    player.id ? (
-
-                                                        <>
-
-                                                            <FaSpinner className="animate-spin" />
-
-                                                            ENVIANDO...
-
-                                                        </>
-
-                                                    ) : (
-
-                                                        <>
-
-                                                            <FaGamepad />
-
-                                                            INVITAR A JUGAR
-
-                                                        </>
-
-                                                    )}
+                                                    {pendingInvitations.has(
+                                                        player.id
+                                                    )
+                                                        ? "..."
+                                                        : "+"
+                                                    }
 
                                                 </button>
 
-                                            )}
+                                            ) : (
 
-
-                                            {invited && (
-
-                                                <div className="mt-5 rounded-2xl bg-yellow-500/10 p-3 text-center text-sm font-bold text-yellow-400">
-
-                                                    📨 Tiene una invitación pendiente
-
-                                                </div>
-
-                                            )}
-
-
-                                            {inviting && (
-
-                                                <div className="mt-5 rounded-2xl bg-purple-500/10 p-3 text-center text-sm font-bold text-purple-400">
-
-                                                    🎮 Está invitando a otro jugador
-
-                                                </div>
-
-                                            )}
-
-
-                                            {player.status ===
-                                                "playing" && (
-
-                                                <div className="mt-5 rounded-2xl bg-blue-500/10 p-3 text-center text-sm font-bold text-blue-400">
-
-                                                    🎮 EN PARTIDA
-
-                                                </div>
+                                                <button disabled>
+                                                    ⏳
+                                                </button>
 
                                             )}
 
@@ -993,83 +1156,110 @@ export default function World() {
 
                                     );
 
-                                }
+                                })
+
                             )}
 
                         </div>
 
-                    )}
+                    </section>
 
-                </section>
+                </aside>
 
             </main>
 
 
             {/* =================================================
-               MODAL INVITACIÓN
-            ================================================= */}
+                MODAL DE INVITACIÓN
+               ================================================= */}
 
             {invitation && (
 
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-5 backdrop-blur-sm">
+                <div
+                    style={{
+                        position: "fixed",
+                        inset: 0,
+                        zIndex: 999,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "rgba(0, 0, 0, 0.75)",
+                        padding: "20px",
+                    }}
+                >
 
-                    <div className="w-full max-w-md rounded-3xl border border-cyan-400/20 bg-slate-900 p-8 text-center shadow-2xl">
+                    <section
+                        className="lobby-invite-card"
+                        style={{ maxWidth: "420px", width: "100%" }}
+                    >
 
-                        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-cyan-500/10 text-4xl text-cyan-400">
+                        <div className="lobby-card-heading">
 
-                            🎮
+                            <div>
+
+                                <span className="eyebrow">
+                                    NUEVA ACTIVIDAD
+                                </span>
+
+                                <h3>
+                                    INVITACIÓN
+                                </h3>
+
+                            </div>
+
+                            <span className="lobby-notification">
+                                1
+                            </span>
+
+                        </div>
+
+
+                        <div className="lobby-invite-player">
+
+                            <div className="lobby-friend-avatar">
+
+                                <AssetImage
+                                    src={assets.players.defaultAvatar}
+                                    type="player"
+                                    alt={invitation.fromPlayerName}
+                                />
+
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    {invitation.fromPlayerName}
+                                </strong>
+
+                                <small>
+                                    quiere jugar contigo una partida
+                                </small>
+
+                            </div>
 
                         </div>
 
 
-                        <p className="mt-6 text-sm font-bold uppercase tracking-[0.3em] text-cyan-400">
-                            Invitación
-                        </p>
-
-
-                        <h2 className="mt-2 text-3xl font-black">
-                            {invitation.fromPlayerName}
-                        </h2>
-
-
-                        <p className="mt-3 text-slate-400">
-                            quiere jugar contigo
-                            una partida de Triqui Matemático.
-                        </p>
-
-
-                        <div className="mt-7 grid grid-cols-2 gap-3">
+                        <div className="lobby-invite-actions">
 
                             <button
-                                onClick={
-                                    rechazarInvitacion
-                                }
-                                className="flex items-center justify-center gap-2 rounded-2xl bg-red-500/10 px-5 py-4 font-black text-red-400 transition hover:bg-red-500/20"
+                                className="mv-btn mv-btn-primary"
+                                onClick={aceptarInvitacion}
                             >
-
-                                <FaTimes />
-
-                                RECHAZAR
-
+                                Aceptar
                             </button>
 
-
                             <button
-                                onClick={
-                                    aceptarInvitacion
-                                }
-                                className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-4 font-black text-slate-950 transition hover:bg-emerald-400"
+                                className="mv-btn mv-btn-secondary"
+                                onClick={rechazarInvitacion}
                             >
-
-                                <FaCheck />
-
-                                ACEPTAR
-
+                                Rechazar
                             </button>
 
                         </div>
 
-                    </div>
+                    </section>
 
                 </div>
 

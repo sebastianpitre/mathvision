@@ -7,64 +7,74 @@ import {
 
 import {
     login as loginService,
-    saveSession,
+    register as registerService,
     getSession,
     logout as logoutService
 } from "../services/authService";
 
 
-// =====================================================
-// CONTEXTO
-// =====================================================
-
-const AuthContext = createContext(null);
+const AuthContext =
+    createContext(null);
 
 
-// =====================================================
-// PROVIDER
-// =====================================================
+export function AuthProvider({
+    children
+}) {
 
-export function AuthProvider({ children }) {
-
-    const [user, setUser] = useState(null);
-
-    const [loading, setLoading] =
-        useState(true);
+    const [
+        user,
+        setUser
+    ] = useState(null);
 
 
-    // =================================================
-    // RECUPERAR SESIÓN
-    // =================================================
+    const [
+        loading,
+        setLoading
+    ] = useState(true);
+
+
+    /* =====================================================
+       RESTAURAR SESIÓN
+       ===================================================== */
 
     useEffect(() => {
 
-        const session =
-            getSession();
+        async function restoreSession() {
+
+            const session =
+                await getSession();
 
 
-        if (session) {
+            if (session) {
 
-            setUser(session);
+                setUser(
+                    session
+                );
+
+            }
+
+
+            setLoading(false);
 
         }
 
 
-        setLoading(false);
+        restoreSession();
 
     }, []);
 
 
-    // =================================================
-    // LOGIN
-    // =================================================
+    /* =====================================================
+       LOGIN
+       ===================================================== */
 
-    const login = (
+    const login = async (
         username,
         password
     ) => {
 
         const result =
-            loginService(
+            await loginService(
                 username,
                 password
             );
@@ -77,9 +87,39 @@ export function AuthProvider({ children }) {
         }
 
 
-        saveSession(
+        setUser(
             result.user
         );
+
+
+        return result;
+
+    };
+
+
+    /* =====================================================
+       REGISTRO
+       ===================================================== */
+
+    const register = async (
+        username,
+        email,
+        password
+    ) => {
+
+        const result =
+            await registerService(
+                username,
+                email,
+                password
+            );
+
+
+        if (!result.success) {
+
+            return result;
+
+        }
 
 
         setUser(
@@ -87,20 +127,38 @@ export function AuthProvider({ children }) {
         );
 
 
-        return {
-
-            success: true,
-
-            user: result.user
-
-        };
+        return result;
 
     };
 
 
-    // =================================================
-    // LOGOUT
-    // =================================================
+    /* =====================================================
+       ACTUALIZAR PERFIL DESDE EL SERVIDOR
+       ===================================================== */
+
+    const refreshUser = async () => {
+
+        const session =
+            await getSession();
+
+
+        if (session) {
+
+            setUser(
+                session
+            );
+
+        }
+
+
+        return session;
+
+    };
+
+
+    /* =====================================================
+       LOGOUT
+       ===================================================== */
 
     const logout = () => {
 
@@ -110,10 +168,6 @@ export function AuthProvider({ children }) {
 
     };
 
-
-    // =================================================
-    // VALOR DEL CONTEXTO
-    // =================================================
 
     const value = {
 
@@ -126,29 +180,25 @@ export function AuthProvider({ children }) {
 
         login,
 
-        logout
+        register,
+
+        logout,
+
+        refreshUser,
 
     };
 
 
     return (
-
         <AuthContext.Provider
             value={value}
         >
-
             {children}
-
         </AuthContext.Provider>
-
     );
 
 }
 
-
-// =====================================================
-// HOOK
-// =====================================================
 
 export function useAuth() {
 
