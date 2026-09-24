@@ -1,6 +1,6 @@
 /* =========================================================
-   MATHVISION
-   SISTEMA VISUAL GLOBAL
+   MATHVISION — CSS LIMPIO
+   PARTE 1: BASE + LOBBY
    ========================================================= */
 
 
@@ -58,32 +58,6 @@ select {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-}
-
-.page-container {
-    width: 100%;
-    max-width: 1600px;
-
-    flex: 1 1 auto;
-    min-height: 0;
-
-    margin: 0 auto;
-    padding: 24px;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow: hidden;
-}
-
-.page-content {
-    flex: 1 1 auto;
-    min-height: 0;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow: hidden;
 }
 
 
@@ -195,14 +169,6 @@ select {
    06. USUARIO / MONEDAS
    ========================================================= */
 
-.mv-user-mini {
-    min-width: 125px;
-
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
 .mv-avatar-small {
     width: 36px;
     height: 36px;
@@ -215,21 +181,6 @@ select {
 
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.1);
-}
-
-.mv-user-mini strong,
-.mv-user-mini small {
-    display: block;
-}
-
-.mv-user-mini strong {
-    font-size: 11px;
-}
-
-.mv-user-mini small {
-    margin-top: 2px;
-    font-size: 8px;
-    opacity: 0.6;
 }
 
 .mv-xp {
@@ -250,15 +201,6 @@ select {
     background: #39bfff;
 }
 
-.mv-currency {
-    font-size: 11px;
-    white-space: nowrap;
-}
-
-.mv-currency span {
-    margin-left: 10px;
-}
-
 .mv-settings {
     width: 34px;
     height: 34px;
@@ -276,36 +218,8 @@ select {
 
 
 /* =========================================================
-   07. TÍTULOS
+   07. TÍTULOS / EYEBROW
    ========================================================= */
-
-.page-title {
-    flex: 0 0 auto;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-
-    margin-bottom: 18px;
-}
-
-.page-title > div {
-    min-width: 0;
-}
-
-.page-title h1 {
-    margin: 3px 0 0;
-
-    font-size: 28px;
-    line-height: 1.1;
-}
-
-.page-title p {
-    margin: 7px 0 0;
-    font-size: 11px;
-    opacity: 0.55;
-}
 
 .eyebrow {
     font-size: 9px;
@@ -315,152 +229,9 @@ select {
     opacity: 0.8;
 }
 
-.section-title {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 1px;
-}
-
-.section-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.section-heading h2 {
-    margin: 0;
-    font-size: 13px;
-}
-
-.section-heading button {
-    border: 0;
-    background: transparent;
-    color: #39bfff;
-    cursor: pointer;
-}
-
 
 /* =========================================================
-   08. LAYOUTS REUTILIZABLES
-   ========================================================= */
-
-.page-layout {
-    flex: 1 1 auto;
-    min-height: 0;
-
-    display: grid;
-    grid-template-columns:
-        minmax(0, 1fr)
-        minmax(250px, 330px);
-
-    gap: 18px;
-
-    overflow: hidden;
-}
-
-.page-layout-main,
-.page-layout-side {
-    min-width: 0;
-    min-height: 0;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow: hidden;
-}
-
-.mv-grid {
-    display: grid;
-    gap: 12px;
-}
-
-.mv-grid-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.mv-grid-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.mv-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.mv-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.fill-space {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-}
-
-
-/* =========================================================
-   09. SUPERFICIES / PANELES / TARJETAS
-   ========================================================= */
-
-.mv-panel,
-.panel,
-.big-panel,
-.friend-side-panel,
-.content-panel {
-    min-width: 0;
-    min-height: 0;
-
-    border-radius: 14px;
-
-    background: rgba(7, 12, 35, 0.82);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-
-    backdrop-filter: blur(12px);
-
-    overflow: hidden;
-}
-
-.mv-panel {
-    padding: 16px;
-}
-
-.mv-panel-flex {
-    display: flex;
-    flex-direction: column;
-}
-
-.mv-card {
-    min-width: 0;
-
-    border-radius: 12px;
-
-    background: rgba(255, 255, 255, 0.045);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-
-    overflow: hidden;
-}
-
-.mv-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 12px 14px;
-
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.mv-card-body {
-    padding: 14px;
-}
-
-
-/* =========================================================
-   10. LISTAS REUTILIZABLES
+   08. LISTAS REUTILIZABLES
    ========================================================= */
 
 .mv-list {
@@ -471,48 +242,12 @@ select {
     gap: 8px;
 }
 
-.mv-list-item {
-    min-width: 0;
-
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    padding: 10px 12px;
-
-    border-radius: 10px;
-
-    background: rgba(255, 255, 255, 0.045);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.mv-list-item-main {
-    flex: 1;
-    min-width: 0;
-}
-
-.mv-list-item-main strong,
-.mv-list-item-main small {
-    display: block;
-}
-
-.mv-list-item-main strong {
-    font-size: 11px;
-}
-
-.mv-list-item-main small {
-    margin-top: 3px;
-    font-size: 9px;
-    opacity: 0.55;
-}
-
 
 /* =========================================================
-   11. SCROLL
+   09. SCROLL
    ========================================================= */
 
-.mv-scroll,
-.panel-scroll {
+.mv-scroll {
     min-height: 0;
 
     overflow-y: auto;
@@ -521,30 +256,25 @@ select {
     scrollbar-width: thin;
 }
 
-.mv-scroll::-webkit-scrollbar,
-.panel-scroll::-webkit-scrollbar {
+.mv-scroll::-webkit-scrollbar {
     width: 5px;
 }
 
-.mv-scroll::-webkit-scrollbar-track,
-.panel-scroll::-webkit-scrollbar-track {
+.mv-scroll::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.mv-scroll::-webkit-scrollbar-thumb,
-.panel-scroll::-webkit-scrollbar-thumb {
+.mv-scroll::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.18);
     border-radius: 10px;
 }
 
 
 /* =========================================================
-   12. BOTONES
+   10. BOTONES
    ========================================================= */
 
-.mv-btn,
-.primary-button,
-.secondary-button {
+.mv-btn {
     border: 0;
     border-radius: 9px;
 
@@ -558,21 +288,17 @@ select {
     transition: 0.2s;
 }
 
-.mv-btn-primary,
-.primary-button {
+.mv-btn-primary {
     background: #39bfff;
     color: #03111c;
 }
 
-.mv-btn-secondary,
-.secondary-button {
+.mv-btn-secondary {
     background: rgba(255, 255, 255, 0.08);
     color: #fff;
 }
 
-.mv-btn:hover,
-.primary-button:hover,
-.secondary-button:hover {
+.mv-btn:hover {
     transform: translateY(-1px);
     filter: brightness(1.08);
 }
@@ -585,364 +311,7 @@ select {
 
 
 /* =========================================================
-   13. BADGES / ESTADOS
-   ========================================================= */
-
-.mv-badge {
-    display: inline-flex;
-    align-items: center;
-
-    padding: 4px 8px;
-
-    border-radius: 999px;
-
-    font-size: 8px;
-    font-weight: 700;
-
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.online {
-    color: #20d97b;
-}
-
-
- /* =========================================================
-    14. FRIENDS
-    ========================================================= */
-
-.friends-layout {
-    flex: 1 1 auto;
-    min-height: 0;
-
-    display: grid;
-    grid-template-columns:
-        minmax(0, 1fr)
-        minmax(240px, 300px);
-
-    gap: 18px;
-
-    overflow: hidden;
-}
-
-
-/* =========================================================
-   TABS
-   ========================================================= */
-
-.friends-tabs {
-    flex: 0 0 auto;
-
-    display: flex;
-    align-items: center;
-    gap: 6px;
-
-    padding: 12px 14px;
-
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.friends-tab {
-    border: 1px solid transparent;
-    border-radius: 9px;
-
-    padding: 8px 13px;
-
-    background: transparent;
-    color: rgba(255, 255, 255, 0.5);
-
-    font-size: 10px;
-    font-weight: 700;
-
-    cursor: pointer;
-
-    transition: 0.2s;
-}
-
-.friends-tab:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-}
-
-.friends-tab.active {
-    background: rgba(57, 191, 255, 0.12);
-    border-color: rgba(57, 191, 255, 0.2);
-    color: #39bfff;
-}
-
-
-/* =========================================================
-   TARJETAS DE AMIGOS
-   ========================================================= */
-
-.friend-item {
-    position: relative;
-
-    padding: 13px 14px;
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.055),
-            rgba(255, 255, 255, 0.025)
-        );
-
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 13px;
-
-    transition:
-        transform 0.2s,
-        border-color 0.2s,
-        background 0.2s;
-}
-
-.friend-item:hover {
-    transform: translateX(3px);
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(57, 191, 255, 0.10),
-            rgba(255, 255, 255, 0.035)
-        );
-
-    border-color: rgba(57, 191, 255, 0.22);
-}
-
-
-/* =========================================================
-   AVATAR
-   ========================================================= */
-
-.friend-avatar {
-    position: relative;
-
-    width: 48px;
-    height: 48px;
-
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    overflow: hidden;
-
-    border-radius: 50%;
-
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-}
-
-.friend-avatar img {
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-}
-
-
-/* =========================================================
-   ESTADO ONLINE
-   ========================================================= */
-
-.friend-status-dot {
-    position: absolute;
-
-    right: 1px;
-    bottom: 1px;
-
-    width: 11px;
-    height: 11px;
-
-    border-radius: 50%;
-
-    background: rgba(255, 255, 255, 0.25);
-
-    border: 2px solid #071023;
-}
-
-.friend-status-dot.online {
-    background: #20d97b;
-
-    box-shadow:
-        0 0 8px rgba(32, 217, 123, 0.65);
-}
-
-
-/* =========================================================
-   INFORMACIÓN
-   ========================================================= */
-
-.friend-item .mv-list-item-main {
-    display: flex;
-    flex-direction: column;
-
-    justify-content: center;
-}
-
-.friend-item .mv-list-item-main strong {
-    font-size: 12px;
-    font-weight: 800;
-
-    color: #fff;
-}
-
-.friend-item .mv-list-item-main small {
-    margin-top: 3px;
-
-    font-size: 9px;
-    line-height: 1.2;
-
-    color: rgba(255, 255, 255, 0.45);
-}
-
-.friend-item .mv-list-item-main small.online {
-    color: #20d97b;
-}
-
-
-/* =========================================================
-   ACCIONES
-   ========================================================= */
-
-.friend-actions {
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-}
-
-.friend-actions .mv-btn {
-    min-width: 78px;
-
-    padding: 8px 11px;
-
-    font-size: 9px;
-}
-
-
-/* =========================================================
-   PANEL DERECHO
-   ========================================================= */
-
-.online-counter {
-    flex: 0 0 auto;
-
-    display: flex;
-    align-items: center;
-    gap: 14px;
-
-    padding: 18px;
-}
-
-.big-number {
-    font-size: 32px;
-    font-weight: 900;
-    line-height: 1;
-
-    color: #39bfff;
-
-    text-shadow:
-        0 0 18px rgba(57, 191, 255, 0.25);
-}
-
-.online-counter > span:last-child {
-    font-size: 10px;
-    line-height: 1.45;
-
-    color: rgba(255, 255, 255, 0.55);
-}
-
-
-/* =========================================================
-   CONSEJO
-   ========================================================= */
-
-.friend-tip {
-    flex: 0 0 auto;
-
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-
-    padding: 17px;
-}
-
-.friend-tip > span {
-    width: 32px;
-    height: 32px;
-
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 9px;
-
-    background: rgba(57, 191, 255, 0.10);
-
-    font-size: 17px;
-}
-
-.friend-tip p {
-    margin: 1px 0 0;
-
-    font-size: 10px;
-    line-height: 1.55;
-
-    color: rgba(255, 255, 255, 0.55);
-}
-
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
-@media (max-width: 1050px) {
-
-    .friends-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .friend-side-panel {
-        display: none;
-    }
-}
-
-@media (max-width: 700px) {
-
-    .friends-tabs {
-        overflow-x: auto;
-    }
-
-    .friends-tab {
-        white-space: nowrap;
-    }
-
-    .friend-item {
-        padding: 11px;
-    }
-
-    .friend-avatar {
-        width: 42px;
-        height: 42px;
-    }
-
-    .friend-item .mv-list-item-main strong {
-        font-size: 11px;
-    }
-
-    .friend-actions .mv-btn {
-        min-width: auto;
-        padding: 7px 9px;
-    }
-}
-
-/* =========================================================
-   15. LOBBY
-   ESTRUCTURA PRINCIPAL
+   11. LOBBY — ESTRUCTURA PRINCIPAL
    ========================================================= */
 
 .lobby-page {
@@ -960,7 +329,7 @@ select {
 
 
 /* =========================================================
-   16. LOBBY — BACKGROUND
+   12. LOBBY — BACKGROUND
    ========================================================= */
 
 .lobby-background {
@@ -982,19 +351,8 @@ select {
 }
 
 
-/*
-   IMPORTANTE:
-   El background NO tiene overlay oscuro.
-   La imagen original debe verse directamente.
-*/
-
-.lobby-background-glow {
-    display: none;
-}
-
-
 /* =========================================================
-   17. LOBBY — CONTENEDOR PRINCIPAL
+   13. LOBBY — CONTENEDOR PRINCIPAL
    ========================================================= */
 
 .lobby-main {
@@ -1013,9 +371,7 @@ select {
     display: grid;
 
     grid-template-columns:
-        235px
-        minmax(450px, 1fr)
-        285px;
+        235px minmax(450px, 1fr) 285px;
 
     gap: 16px;
 
@@ -1024,7 +380,7 @@ select {
 
 
 /* =========================================================
-   18. LOBBY — COLUMNAS
+   14. LOBBY — COLUMNAS
    ========================================================= */
 
 .lobby-sidebar,
@@ -1052,7 +408,7 @@ select {
 
 
 /* =========================================================
-   19. LOBBY — PERFIL
+   15. LOBBY — PERFIL
    ========================================================= */
 
 .lobby-profile-card {
@@ -1094,11 +450,9 @@ select {
     border-radius: 50%;
 
     background:
-        radial-gradient(
-            circle at 35% 25%,
+        radial-gradient(circle at 35% 25%,
             rgba(57, 191, 255, 0.22),
-            rgba(155, 77, 255, 0.10)
-        );
+            rgba(155, 77, 255, 0.10));
 
     border: 1px solid rgba(57, 191, 255, 0.18);
 
@@ -1176,7 +530,7 @@ select {
     text-align: center;
 }
 
-.lobby-stat-grid div + div {
+.lobby-stat-grid div+div {
     border-left: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -1208,7 +562,7 @@ select {
 
 
 /* =========================================================
-   20. LOBBY — EVENTO
+   16. LOBBY — EVENTO
    ========================================================= */
 
 .lobby-event-card {
@@ -1224,11 +578,9 @@ select {
     border-radius: 13px;
 
     background:
-        linear-gradient(
-            135deg,
+        linear-gradient(135deg,
             rgba(94, 48, 140, 0.34),
-            rgba(7, 12, 35, 0.84)
-        );
+            rgba(7, 12, 35, 0.84));
 
     border: 1px solid rgba(155, 77, 255, 0.18);
 
@@ -1297,7 +649,7 @@ select {
 
 
 /* =========================================================
-   21. LOBBY — ACCESOS RÁPIDOS
+   17. LOBBY — ACCESOS RÁPIDOS
    ========================================================= */
 
 .lobby-quick-card {
@@ -1342,7 +694,7 @@ select {
     border-bottom: 0;
 }
 
-.lobby-quick-card button > span {
+.lobby-quick-card button>span {
     width: 29px;
     height: 29px;
 
@@ -1382,8 +734,7 @@ select {
 
 
 /* =========================================================
-   22. LOBBY — PERSONAJE
-   SIN CARD / SIN FILTRO
+   18. LOBBY — PERSONAJE
    ========================================================= */
 
 .lobby-world {
@@ -1436,7 +787,7 @@ select {
     white-space: nowrap;
 }
 
-.lobby-character-name > span {
+.lobby-character-name>span {
     font-size: 12px;
 }
 
@@ -1461,7 +812,7 @@ select {
 
 
 /* =========================================================
-   23. LOBBY — JUEGOS
+   19. LOBBY — JUEGOS
    ========================================================= */
 
 .lobby-games-section {
@@ -1542,11 +893,9 @@ select {
     transform: translateY(-3px);
 
     border-color:
-        color-mix(
-            in srgb,
+        color-mix(in srgb,
             var(--game-color),
-            transparent 60%
-        );
+            transparent 60%);
 
     background: rgba(12, 20, 48, 0.92);
 }
@@ -1587,18 +936,13 @@ select {
     border-radius: 10px;
 
     background:
-        color-mix(
-            in srgb,
+        color-mix(in srgb,
             var(--game-color),
-            transparent 83%
-        );
+            transparent 83%);
 
-    border: 1px solid
-        color-mix(
-            in srgb,
+    border: 1px solid color-mix(in srgb,
             var(--game-color),
-            transparent 70%
-        );
+            transparent 70%);
 
     font-size: 17px;
 }
@@ -1664,7 +1008,7 @@ select {
 
 
 /* =========================================================
-   24. LOBBY — ESTADO
+   20. LOBBY — ESTADO
    ========================================================= */
 
 .lobby-status-card {
@@ -1684,7 +1028,7 @@ select {
     backdrop-filter: blur(10px);
 }
 
-.lobby-status-card > div {
+.lobby-status-card>div {
     display: flex;
     align-items: center;
 
@@ -1715,12 +1059,12 @@ select {
 .lobby-status-card small {
     margin-top: 2px;
 
-    font-size: 6px;
+    font-size: 9px;
 
     color: rgba(255, 255, 255, 0.35);
 }
 
-.lobby-status-card > button {
+.lobby-status-card>button {
     background: transparent;
 
     color: rgba(255, 255, 255, 0.30);
@@ -1730,7 +1074,7 @@ select {
 
 
 /* =========================================================
-   25. LOBBY — TARJETAS DERECHA
+   21. LOBBY — TARJETAS DERECHA
    ========================================================= */
 
 .lobby-invite-card,
@@ -1782,7 +1126,7 @@ select {
 
 
 /* =========================================================
-   26. LOBBY — INVITACIÓN
+   22. LOBBY — INVITACIÓN
    ========================================================= */
 
 .lobby-invite-player {
@@ -1845,7 +1189,7 @@ select {
 
 
 /* =========================================================
-   27. LOBBY — AMIGOS
+   23. LOBBY — AMIGOS
    ========================================================= */
 
 .lobby-friends-card {
@@ -1860,7 +1204,7 @@ select {
     flex: 1 1 auto;
 }
 
-.lobby-friends-card .lobby-card-heading > strong {
+.lobby-friends-card .lobby-card-heading>strong {
     color: #39bfff;
 
     font-size: 11px;
@@ -1936,7 +1280,7 @@ select {
     color: rgba(255, 255, 255, 0.34);
 }
 
-.lobby-friend-row > button {
+.lobby-friend-row>button {
     width: 23px;
     height: 23px;
 
@@ -1949,32 +1293,9 @@ select {
     cursor: pointer;
 }
 
-.lobby-view-all {
-    flex: 0 0 auto;
-
-    width: 100%;
-
-    margin-top: 7px;
-    padding-top: 8px;
-
-    display: flex;
-    justify-content: space-between;
-
-    background: transparent;
-
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-
-    color: #39bfff;
-
-    font-size: 7px;
-    font-weight: 800;
-
-    cursor: pointer;
-}
-
 
 /* =========================================================
-   28. LOBBY — SALAS
+   24. LOBBY — SALAS
    ========================================================= */
 
 .lobby-rooms-card {
@@ -1992,7 +1313,7 @@ select {
     margin-bottom: 4px;
 }
 
-.lobby-rooms-card .lobby-card-heading > button {
+.lobby-rooms-card .lobby-card-heading>button {
     width: 22px;
     height: 22px;
 
@@ -2031,7 +1352,7 @@ select {
     font-size: 10px;
 }
 
-.lobby-room-row > div:nth-child(2) {
+.lobby-room-row>div:nth-child(2) {
     flex: 1;
     min-width: 0;
 }
@@ -2057,7 +1378,7 @@ select {
     color: rgba(255, 255, 255, 0.34);
 }
 
-.lobby-room-row > span {
+.lobby-room-row>span {
     font-size: 6px;
 
     color: rgba(255, 255, 255, 0.35);
@@ -2075,47 +1396,60 @@ select {
 
 
 /* =========================================================
-   29. COMPATIBILIDAD
+   25. LOBBY — HEADER PLAYER (usado en World)
    ========================================================= */
 
-.friends-card-list,
-.rooms-card-list {
-    min-height: 0;
+.lobby-header-player {
+    display: flex;
+    align-items: center;
 
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    scrollbar-width: thin;
+    gap: 8px;
 }
 
-.friends-card-list::-webkit-scrollbar,
-.rooms-card-list::-webkit-scrollbar {
-    width: 5px;
+.lobby-header-player-info strong,
+.lobby-header-player-info span {
+    display: block;
 }
 
-.friends-card-list::-webkit-scrollbar-track,
-.rooms-card-list::-webkit-scrollbar-track {
-    background: transparent;
+.lobby-header-player-info strong {
+    font-size: 11px;
 }
 
-.friends-card-list::-webkit-scrollbar-thumb,
-.rooms-card-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.18);
-    border-radius: 10px;
+.lobby-header-player-info span {
+    margin-top: 2px;
+
+    font-size: 8px;
+
+    opacity: 0.6;
+}
+
+.lobby-currencies {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.lobby-currencies>div {
+    display: flex;
+    align-items: center;
+
+    gap: 4px;
 }
 
 
 /* =========================================================
-   30. RESPONSIVE — TABLET
+   26. RESPONSIVE — TABLET
    ========================================================= */
 
 @media (max-width: 1200px) {
 
     .lobby-main {
         grid-template-columns:
-            210px
-            minmax(400px, 1fr)
-            260px;
+            210px minmax(400px, 1fr) 260px;
 
         gap: 12px;
     }
@@ -2140,7 +1474,7 @@ select {
 
 
 /* =========================================================
-   31. RESPONSIVE — TABLET PEQUEÑA
+   27. RESPONSIVE — TABLET PEQUEÑA
    ========================================================= */
 
 @media (max-width: 1050px) {
@@ -2168,8 +1502,7 @@ select {
 
     .lobby-main {
         grid-template-columns:
-            190px
-            minmax(0, 1fr);
+            190px minmax(0, 1fr);
 
         padding: 12px;
 
@@ -2199,7 +1532,7 @@ select {
 
 
 /* =========================================================
-   32. RESPONSIVE — MOBILE
+   28. RESPONSIVE — MOBILE
    ========================================================= */
 
 @media (max-width: 700px) {
@@ -2269,1572 +1602,37 @@ select {
 }
 
 /* =========================================================
-   33. ROOM
-   SALA MULTIJUGADOR
-   MISMO SISTEMA VISUAL DE LOBBY / FRIENDS
+   MATHVISION — CSS LIMPIO
+   PARTE 2: WORLD + CHARACTER
    ========================================================= */
-
-.room-page {
-    position: relative;
-    background: #050816;
-}
 
 
 /* =========================================================
-   ROOM — BACKGROUND
+   WORLD
+   ---------------------------------------------------------
+   World.jsx reutiliza TODAS las clases del Lobby:
+   - mv-app, lobby-page, lobby-background
+   - mv-header, mv-logo, mv-nav, mv-nav-item
+   - lobby-header-player, mv-avatar-small, lobby-header-player-info, mv-xp
+   - lobby-currencies, mv-settings
+   - lobby-main, lobby-sidebar, lobby-sidebar-left, lobby-sidebar-right
+   - lobby-status-card, lobby-status-dot
+   - lobby-profile-card, lobby-card-label, lobby-stat-grid, lobby-profile-button
+   - lobby-center, lobby-world, lobby-canvas, lobby-character-name
+   - lobby-slogan
+   - lobby-friends-card, lobby-card-heading, eyebrow, lobby-friends-list
+   - lobby-friend-row, lobby-friend-avatar, lobby-friend-info
+   - friend-online, friend-busy
+   - lobby-invite-card, lobby-notification, lobby-invite-player, lobby-invite-actions
+   - mv-btn, mv-btn-primary, mv-btn-secondary, mv-list, mv-scroll
+
+   Por lo tanto NO se requiere CSS adicional para World.
+   Todo está cubierto en la PARTE 1 (Lobby).
    ========================================================= */
-
-.room-background {
-    position: absolute;
-    inset: 0;
-
-    z-index: 0;
-
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-
-    pointer-events: none;
-}
 
 
 /* =========================================================
-   ROOM — HEADER
-   ========================================================= */
-
-.room-header {
-    position: relative;
-    z-index: 10;
-}
-
-
-/* =========================================================
-   ROOM — CONTENEDOR
-   ========================================================= */
-
-.room-main {
-    position: relative;
-    z-index: 2;
-
-    width: 100%;
-    max-width: 1600px;
-
-    flex: 1 1 auto;
-    min-height: 0;
-
-    margin: 0 auto;
-
-    padding: 22px 24px 24px;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow: hidden;
-}
-
-
-/* =========================================================
-   ROOM — TITULO
-   ========================================================= */
-
-.room-title-row {
-    flex: 0 0 auto;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 20px;
-
-    margin-bottom: 18px;
-}
-
-.room-title-content {
-    min-width: 0;
-}
-
-.room-title-content h1 {
-    margin: 4px 0 0;
-
-    font-size: 28px;
-    line-height: 1.1;
-}
-
-.room-title-content p {
-    margin: 7px 0 0;
-
-    font-size: 11px;
-
-    color: rgba(255, 255, 255, 0.50);
-}
-
-
-/* =========================================================
-   ROOM — CODIGO
-   ========================================================= */
-
-.room-code {
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-
-    gap: 14px;
-
-    padding: 10px 12px;
-
-    border-radius: 12px;
-
-    background: rgba(7, 12, 35, 0.84);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-
-    backdrop-filter: blur(12px);
-}
-
-.room-code-info {
-    min-width: 80px;
-}
-
-.room-code-info small,
-.room-code-info strong {
-    display: block;
-}
-
-.room-code-info small {
-    font-size: 7px;
-    font-weight: 800;
-    letter-spacing: 1.4px;
-
-    color: rgba(255, 255, 255, 0.38);
-}
-
-.room-code-info strong {
-    margin-top: 3px;
-
-    font-size: 16px;
-    letter-spacing: 2px;
-
-    color: #39bfff;
-}
-
-.room-code .mv-btn {
-    font-size: 8px;
-    padding: 8px 10px;
-}
-
-
-/* =========================================================
-   ROOM — LAYOUT
-   ========================================================= */
-
-.room-layout {
-    flex: 1 1 auto;
-    min-height: 0;
-
-    display: grid;
-
-    grid-template-columns:
-        minmax(0, 1fr) minmax(280px, 330px);
-
-    gap: 18px;
-
-    overflow: hidden;
-}
-
-
-/* =========================================================
-   ROOM — PANEL PRINCIPAL
-   ========================================================= */
-
-.room-main-panel,
-.room-side-panel {
-    min-width: 0;
-    min-height: 0;
-
-    border-radius: 14px;
-
-    background: rgba(7, 12, 35, 0.84);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-
-    backdrop-filter: blur(12px);
-
-    overflow: hidden;
-}
-
-
-/* =========================================================
-   ROOM — HEADER PANEL
-   ========================================================= */
-
-.room-main-panel {
-    display: flex;
-    flex-direction: column;
-}
-
-.room-panel-header {
-    flex: 0 0 auto;
-
-    min-height: 70px;
-
-    padding: 15px 18px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.room-panel-header h2 {
-    margin: 4px 0 0;
-
-    font-size: 13px;
-}
-
-.room-player-count {
-    min-width: 46px;
-    height: 38px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 10px;
-
-    background: rgba(57, 191, 255, 0.10);
-    border: 1px solid rgba(57, 191, 255, 0.16);
-
-    color: #39bfff;
-
-    font-size: 17px;
-    font-weight: 900;
-}
-
-.room-player-count small {
-    margin-left: 2px;
-
-    font-size: 9px;
-
-    color: rgba(255, 255, 255, 0.35);
-}
-
-
-/* =========================================================
-   ROOM — LISTA DE JUGADORES
-   ========================================================= */
-
-.room-players-scroll {
-    flex: 1 1 auto;
-    min-height: 0;
-
-    padding: 16px;
-
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    scrollbar-width: thin;
-}
-
-.room-players-scroll::-webkit-scrollbar {
-    width: 5px;
-}
-
-.room-players-scroll::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.room-players-scroll::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.18);
-    border-radius: 10px;
-}
-
-
-/* =========================================================
-   ROOM — GRID
-   ========================================================= */
-
-.room-player-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-
-    gap: 12px;
-}
-
-
-/* =========================================================
-   ROOM — PLAYER CARD
-   ========================================================= */
-
-.room-player-card,
-.room-empty-player {
-    position: relative;
-
-    min-height: 190px;
-
-    border-radius: 13px;
-
-    overflow: hidden;
-
-    border: 1px solid rgba(255, 255, 255, 0.07);
-
-    transition:
-        transform 0.2s,
-        border-color 0.2s,
-        background 0.2s;
-}
-
-.room-player-card {
-    padding: 16px;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    background:
-        linear-gradient(145deg,
-            rgba(255, 255, 255, 0.07),
-            rgba(255, 255, 255, 0.025));
-}
-
-.room-player-card:hover {
-    transform: translateY(-2px);
-
-    border-color: rgba(57, 191, 255, 0.25);
-
-    background:
-        linear-gradient(145deg,
-            rgba(57, 191, 255, 0.10),
-            rgba(255, 255, 255, 0.035));
-}
-
-
-/* =========================================================
-   ROOM — AVATAR
-   ========================================================= */
-
-.room-player-avatar {
-    width: 92px;
-    height: 92px;
-
-    margin-bottom: 13px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    overflow: hidden;
-
-    border-radius: 50%;
-
-    background:
-        radial-gradient(circle at 35% 25%,
-            rgba(57, 191, 255, 0.18),
-            rgba(155, 77, 255, 0.08));
-
-    border: 1px solid rgba(57, 191, 255, 0.18);
-
-    box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.22);
-}
-
-.room-player-avatar img {
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-}
-
-
-/* =========================================================
-   ROOM — INFO JUGADOR
-   ========================================================= */
-
-.room-player-info {
-    text-align: center;
-}
-
-.room-player-info strong {
-    display: block;
-
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.room-player-info span {
-    margin-top: 5px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    gap: 5px;
-
-    font-size: 8px;
-
-    color: rgba(255, 255, 255, 0.42);
-}
-
-.room-player-info i {
-    width: 6px;
-    height: 6px;
-
-    display: block;
-
-    border-radius: 50%;
-
-    background: #20d97b;
-
-    box-shadow:
-        0 0 7px rgba(32, 217, 123, 0.65);
-}
-
-
-/* =========================================================
-   ROOM — ANFITRION
-   ========================================================= */
-
-.room-host-badge {
-    position: absolute;
-
-    top: 10px;
-    left: 10px;
-
-    padding: 5px 7px;
-
-    border-radius: 7px;
-
-    background: rgba(255, 181, 46, 0.10);
-    border: 1px solid rgba(255, 181, 46, 0.15);
-
-    color: #ffca65;
-
-    font-size: 6px;
-    font-weight: 900;
-    letter-spacing: 0.7px;
-}
-
-
-/* =========================================================
-   ROOM — ESPACIOS VACIOS
-   ========================================================= */
-
-.room-empty-player {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    background:
-        repeating-linear-gradient(135deg,
-            rgba(255, 255, 255, 0.025),
-            rgba(255, 255, 255, 0.025) 5px,
-            rgba(255, 255, 255, 0.015) 5px,
-            rgba(255, 255, 255, 0.015) 10px);
-
-    border-style: dashed;
-    border-color: rgba(255, 255, 255, 0.10);
-}
-
-.room-empty-icon {
-    width: 42px;
-    height: 42px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    margin-bottom: 8px;
-
-    border-radius: 50%;
-
-    background: rgba(255, 255, 255, 0.045);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-
-    color: rgba(255, 255, 255, 0.30);
-
-    font-size: 22px;
-    font-weight: 300;
-}
-
-.room-empty-player strong {
-    font-size: 7px;
-    letter-spacing: 1px;
-
-    color: rgba(255, 255, 255, 0.38);
-}
-
-.room-empty-player small {
-    margin-top: 3px;
-
-    font-size: 7px;
-
-    color: rgba(255, 255, 255, 0.22);
-}
-
-
-/* =========================================================
-   ROOM — FOOTER PRINCIPAL
-   ========================================================= */
-
-.room-main-footer {
-    flex: 0 0 auto;
-
-    min-height: 66px;
-
-    padding: 12px 16px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 15px;
-
-    border-top: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.room-ready-info {
-    min-width: 0;
-
-    display: flex;
-    align-items: center;
-
-    gap: 9px;
-}
-
-.room-ready-dot {
-    width: 8px;
-    height: 8px;
-
-    flex-shrink: 0;
-
-    border-radius: 50%;
-
-    background: #20d97b;
-
-    box-shadow:
-        0 0 9px rgba(32, 217, 123, 0.6);
-}
-
-.room-ready-info strong,
-.room-ready-info small {
-    display: block;
-}
-
-.room-ready-info strong {
-    font-size: 9px;
-}
-
-.room-ready-info small {
-    margin-top: 3px;
-
-    font-size: 7px;
-
-    color: rgba(255, 255, 255, 0.36);
-}
-
-.room-main-footer .mv-btn {
-    flex-shrink: 0;
-}
-
-
-/* =========================================================
-   ROOM — PANEL DERECHO
-   ========================================================= */
-
-.room-side-panel {
-    display: flex;
-    flex-direction: column;
-}
-
-
-/* =========================================================
-   ROOM — ESTADO
-   ========================================================= */
-
-.room-side-status {
-    flex: 0 0 auto;
-
-    padding: 16px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 11px;
-
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.room-status-icon {
-    width: 39px;
-    height: 39px;
-
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 10px;
-
-    background: rgba(57, 191, 255, 0.09);
-    border: 1px solid rgba(57, 191, 255, 0.13);
-
-    font-size: 18px;
-}
-
-.room-side-status strong,
-.room-side-status small {
-    display: block;
-}
-
-.room-side-status strong {
-    margin-top: 3px;
-
-    font-size: 10px;
-}
-
-.room-side-status small {
-    margin-top: 3px;
-
-    font-size: 7px;
-
-    color: rgba(255, 255, 255, 0.35);
-}
-
-
-/* =========================================================
-   ROOM — JUEGO SELECCIONADO
-   ========================================================= */
-
-.room-selected-game {
-    flex: 0 0 auto;
-
-    margin: 12px;
-
-    padding: 13px;
-
-    border-radius: 12px;
-
-    background:
-        linear-gradient(145deg,
-            rgba(57, 191, 255, 0.08),
-            rgba(255, 255, 255, 0.025));
-
-    border: 1px solid rgba(57, 191, 255, 0.12);
-}
-
-.room-selected-game-content {
-    margin-top: 10px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 9px;
-}
-
-.room-selected-game-icon {
-    width: 39px;
-    height: 39px;
-
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 9px;
-
-    background: rgba(57, 191, 255, 0.08);
-
-    font-size: 17px;
-}
-
-.room-selected-game-content strong,
-.room-selected-game-content small {
-    display: block;
-}
-
-.room-selected-game-content strong {
-    font-size: 9px;
-}
-
-.room-selected-game-content small {
-    margin-top: 4px;
-
-    font-size: 7px;
-
-    color: rgba(255, 255, 255, 0.38);
-}
-
-.room-game-status {
-    margin-top: 10px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 6px;
-
-    font-size: 7px;
-
-    color: #ffb52e;
-}
-
-.room-game-status.ready {
-    color: #20d97b;
-}
-
-.room-game-status span {
-    width: 6px;
-    height: 6px;
-
-    border-radius: 50%;
-
-    background: currentColor;
-}
-
-
-/* =========================================================
-   ROOM — LISTA DE JUEGOS
-   ========================================================= */
-
-.room-games-section {
-    flex: 1 1 auto;
-    min-height: 0;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow: hidden;
-}
-
-.room-section-heading {
-    flex: 0 0 auto;
-
-    padding: 3px 13px 9px;
-}
-
-.room-section-heading h3 {
-    margin: 3px 0 0;
-
-    font-size: 10px;
-}
-
-.room-games-list {
-    flex: 1 1 auto;
-    min-height: 0;
-
-    padding: 0 12px;
-
-    display: flex;
-    flex-direction: column;
-
-    gap: 6px;
-
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    scrollbar-width: thin;
-}
-
-.room-games-list::-webkit-scrollbar {
-    width: 5px;
-}
-
-.room-games-list::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.room-games-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.16);
-    border-radius: 10px;
-}
-
-
-/* =========================================================
-   ROOM — OPCION JUEGO
-   ========================================================= */
-
-.room-game-option {
-    width: 100%;
-
-    min-height: 52px;
-
-    flex-shrink: 0;
-
-    padding: 8px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 9px;
-
-    border-radius: 10px;
-
-    background: rgba(255, 255, 255, 0.035);
-    border: 1px solid rgba(255, 255, 255, 0.055);
-
-    color: #fff;
-
-    text-align: left;
-
-    cursor: pointer;
-
-    transition:
-        background 0.2s,
-        border-color 0.2s,
-        transform 0.2s;
-}
-
-.room-game-option:hover {
-    transform: translateX(2px);
-
-    background: rgba(255, 255, 255, 0.06);
-
-    border-color: rgba(255, 255, 255, 0.11);
-}
-
-.room-game-option.selected {
-    background: rgba(57, 191, 255, 0.09);
-
-    border-color: rgba(57, 191, 255, 0.22);
-}
-
-.room-game-option-icon {
-    width: 34px;
-    height: 34px;
-
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 8px;
-
-    background: rgba(255, 255, 255, 0.05);
-
-    font-size: 15px;
-}
-
-.room-game-option-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.room-game-option-info strong,
-.room-game-option-info small {
-    display: block;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.room-game-option-info strong {
-    font-size: 8px;
-}
-
-.room-game-option-info small {
-    margin-top: 3px;
-
-    font-size: 6px;
-
-    color: rgba(255, 255, 255, 0.36);
-}
-
-.room-game-option-info em {
-    color: #ffb52e;
-    font-style: normal;
-}
-
-.room-game-check {
-    width: 20px;
-    height: 20px;
-
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
-
-    background: rgba(57, 191, 255, 0.14);
-
-    color: #39bfff;
-
-    font-size: 10px;
-    font-weight: 900;
-}
-
-
-/* =========================================================
-   ROOM — INICIAR
-   ========================================================= */
-
-.room-start-section {
-    flex: 0 0 auto;
-
-    padding: 12px;
-
-    border-top: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.room-start-button {
-    width: 100%;
-
-    min-height: 38px;
-}
-
-.room-start-section small {
-    display: block;
-
-    margin-top: 6px;
-
-    text-align: center;
-
-    font-size: 6px;
-
-    color: rgba(255, 255, 255, 0.28);
-}
-
-
-/* =========================================================
-   ROOM — TABLET
-   ========================================================= */
-
-@media (max-width: 1050px) {
-
-    .room-main {
-        padding: 16px;
-    }
-
-    .room-layout {
-        grid-template-columns:
-            minmax(0, 1fr) 270px;
-    }
-
-    .room-player-grid {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-    }
-}
-
-
-/* =========================================================
-   ROOM — TABLET PEQUEÑA
-   ========================================================= */
-
-@media (max-width: 800px) {
-
-    .room-title-row {
-        align-items: flex-start;
-    }
-
-    .room-code {
-        padding: 8px;
-    }
-
-    .room-code .mv-btn {
-        display: none;
-    }
-
-    .room-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .room-side-panel {
-        display: none;
-    }
-}
-
-
-/* =========================================================
-   ROOM — MOBILE
-   ========================================================= */
-
-@media (max-width: 700px) {
-
-    .room-main {
-        padding: 12px 10px;
-    }
-
-    .room-title-row {
-        margin-bottom: 12px;
-    }
-
-    .room-title-content h1 {
-        font-size: 21px;
-    }
-
-    .room-title-content p {
-        font-size: 9px;
-    }
-
-    .room-code {
-        padding: 7px 9px;
-    }
-
-    .room-code-info strong {
-        font-size: 13px;
-    }
-
-    .room-panel-header {
-        min-height: 60px;
-
-        padding: 12px;
-    }
-
-    .room-players-scroll {
-        padding: 10px;
-    }
-
-    .room-player-grid {
-        grid-template-columns: 1fr 1fr;
-
-        gap: 8px;
-    }
-
-    .room-player-card,
-    .room-empty-player {
-        min-height: 155px;
-    }
-
-    .room-player-avatar {
-        width: 68px;
-        height: 68px;
-    }
-
-    .room-main-footer {
-        padding: 10px;
-    }
-
-    .room-ready-info {
-        display: none;
-    }
-
-    .room-main-footer .mv-btn {
-        width: 100%;
-    }
-}
-
-
-/* ============================================================
-   GAMES - BACKGROUND
-   ============================================================ */
-
-.games-page {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
-}
-
-.games-background {
-    position: fixed;
-    inset: 0;
-
-    width: 100%;
-    height: 100%;
-
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-
-    z-index: 0;
-
-    transform: scale(1.02);
-}
-
-/* Capa oscura para que el contenido sea legible */
-.games-background::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-
-    background:
-        linear-gradient(180deg,
-            rgba(5, 8, 20, 0.72) 0%,
-            rgba(5, 8, 20, 0.48) 45%,
-            rgba(5, 8, 20, 0.82) 100%);
-
-    pointer-events: none;
-}
-
-
-/* ============================================================
-   GAMES - HEADER
-   ============================================================ */
-
-.games-header {
-    position: relative;
-    z-index: 10;
-}
-
-
-/* ============================================================
-   GAMES - MAIN
-   ============================================================ */
-
-.games-main {
-    position: relative;
-    z-index: 2;
-
-    width: 100%;
-    height: calc(100vh - 86px);
-
-    padding: 28px 40px 20px;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow: hidden;
-}
-
-
-/* ============================================================
-   GAMES - TÍTULO
-   ============================================================ */
-
-.games-title-row {
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 30px;
-
-    margin-bottom: 20px;
-}
-
-.games-title-content {
-    min-width: 0;
-}
-
-.games-title-content h1 {
-    margin: 4px 0 6px;
-}
-
-.games-title-content p {
-    margin: 0;
-}
-
-
-/* ============================================================
-   GAMES - CONTADOR
-   ============================================================ */
-
-.games-counter {
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    padding: 12px 18px;
-
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 14px;
-
-    background: rgba(10, 15, 35, 0.65);
-
-    backdrop-filter: blur(12px);
-}
-
-.games-counter strong {
-    font-size: 32px;
-    line-height: 1;
-}
-
-.games-counter div {
-    display: flex;
-    flex-direction: column;
-}
-
-.games-counter span {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-}
-
-.games-counter small {
-    opacity: 0.65;
-}
-
-
-/* ============================================================
-   GAMES - PANEL
-   ============================================================ */
-
-.games-panel {
-    min-height: 0;
-    flex: 1;
-
-    display: flex;
-    flex-direction: column;
-
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 20px;
-
-    background: rgba(8, 12, 28, 0.68);
-
-    backdrop-filter: blur(16px);
-
-    overflow: hidden;
-}
-
-
-/* ============================================================
-   GAMES - PANEL HEADER
-   ============================================================ */
-
-.games-panel-header {
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 14px 18px;
-
-    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-}
-
-.games-tabs {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.games-tab {
-    border: 0;
-    border-radius: 10px;
-
-    padding: 9px 14px;
-
-    background: transparent;
-    color: inherit;
-
-    cursor: pointer;
-
-    font: inherit;
-}
-
-.games-tab:hover {
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.games-tab.active {
-    background: rgba(255, 255, 255, 0.12);
-}
-
-.games-tab span {
-    margin-right: 5px;
-}
-
-.games-panel-count {
-    font-size: 12px;
-    opacity: 0.6;
-}
-
-
-/* ============================================================
-   GAMES - SCROLL
-   ============================================================ */
-
-.games-scroll {
-    min-height: 0;
-    flex: 1;
-
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    padding: 20px;
-}
-
-
-/* ============================================================
-   GAMES - GRID
-   ============================================================ */
-
-.games-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-
-    gap: 18px;
-
-    padding-bottom: 10px;
-}
-
-
-/* ============================================================
-   GAMES - CARD
-   ============================================================ */
-
-.game-catalog-card {
-    min-width: 0;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow: hidden;
-
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-
-    background: rgba(18, 24, 48, 0.8);
-
-    transition:
-        transform 0.2s ease,
-        border-color 0.2s ease,
-        background 0.2s ease;
-}
-
-.game-catalog-card:hover {
-    transform: translateY(-3px);
-
-    border-color: rgba(255, 255, 255, 0.22);
-
-    background: rgba(24, 31, 60, 0.9);
-}
-
-
-/* ============================================================
-   GAMES - CARD ART
-   ============================================================ */
-
-.game-card-art {
-    position: relative;
-
-    height: 130px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    overflow: hidden;
-
-    background:
-        linear-gradient(135deg,
-            rgba(55, 70, 130, 0.5),
-            rgba(15, 20, 45, 0.85));
-}
-
-.game-card-art-glow {
-    position: absolute;
-
-    width: 130px;
-    height: 130px;
-
-    border-radius: 50%;
-
-    background: rgba(120, 150, 255, 0.16);
-
-    filter: blur(20px);
-}
-
-.game-card-icon {
-    position: relative;
-    z-index: 1;
-
-    font-size: 48px;
-
-    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35));
-}
-
-.game-card-category {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-
-    padding: 5px 9px;
-
-    border-radius: 8px;
-
-    background: rgba(0, 0, 0, 0.35);
-
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.05em;
-}
-
-
-/* ============================================================
-   GAMES - CARD BODY
-   ============================================================ */
-
-.game-card-body {
-    min-width: 0;
-
-    display: flex;
-    flex-direction: column;
-
-    flex: 1;
-
-    padding: 16px;
-}
-
-.game-card-heading {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-
-    gap: 10px;
-}
-
-.game-card-heading h2 {
-    margin: 0;
-
-    font-size: 17px;
-    line-height: 1.2;
-}
-
-.game-card-arrow {
-    opacity: 0.5;
-    font-size: 18px;
-}
-
-.game-card-body p {
-    margin: 8px 0 14px;
-
-    font-size: 13px;
-    line-height: 1.45;
-
-    opacity: 0.72;
-}
-
-.game-card-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-
-    margin-bottom: 14px;
-}
-
-.game-card-meta span {
-    padding: 5px 8px;
-
-    border-radius: 7px;
-
-    background: rgba(255, 255, 255, 0.06);
-
-    font-size: 10px;
-    opacity: 0.75;
-}
-
-.game-card-button {
-    width: 100%;
-    margin-top: auto;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-
-/* ============================================================
-   GAMES - SLOGAN
-   ============================================================ */
-
-.games-slogan {
-    flex-shrink: 0;
-
-    text-align: center;
-
-    padding-top: 12px;
-
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.16em;
-
-    opacity: 0.45;
-}
-
-.games-page {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
-}
-
-.games-page .lobby-background {
-    position: fixed;
-    inset: 0;
-
-    width: 100%;
-    height: 100%;
-
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-
-    z-index: 0;
-}
-
-.games-page .mv-header {
-    position: relative;
-    z-index: 10;
-}
-
-.games-page .games-main {
-    position: relative;
-    z-index: 2;
-}
-
-
-/* ============================================================
-   GAMES - RESPONSIVE
-   ============================================================ */
-
-@media (max-width: 1100px) {
-
-    .games-grid {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-    }
-
-}
-
-@media (max-width: 760px) {
-
-    .games-main {
-        padding: 20px 16px 14px;
-    }
-
-    .games-title-row {
-        align-items: flex-start;
-    }
-
-    .games-counter {
-        display: none;
-    }
-
-    .games-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .games-panel-header {
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .games-tabs {
-        flex-wrap: wrap;
-    }
-
-}
-
-
-
-/* =========================================================
-   35. CHARACTER / PERSONAJE
+   CHARACTER / PERSONAJE
    ========================================================= */
 
 .character-page-app {
@@ -3859,7 +1657,7 @@ select {
 
 
 /* =========================================================
-   TÍTULO
+   CHARACTER — TÍTULO
    ========================================================= */
 
 .character-title-row {
@@ -3892,7 +1690,7 @@ select {
 
 
 /* =========================================================
-   EDITOR
+   CHARACTER — EDITOR
    ========================================================= */
 
 .character-editor {
@@ -3909,7 +1707,7 @@ select {
 
 
 /* =========================================================
-   PREVIEW
+   CHARACTER — PREVIEW
    ========================================================= */
 
 .character-preview {
@@ -3942,7 +1740,7 @@ select {
 
 
 /* =========================================================
-   NOMBRE DEL PERSONAJE
+   CHARACTER — NOMBRE DEL PERSONAJE
    ========================================================= */
 
 .character-name {
@@ -3990,7 +1788,7 @@ select {
 
 
 /* =========================================================
-   INFORMACIÓN PREVIEW
+   CHARACTER — INFO PREVIEW
    ========================================================= */
 
 .character-preview-info {
@@ -4026,7 +1824,7 @@ select {
 
 
 /* =========================================================
-   PANEL PERSONALIZACIÓN
+   CHARACTER — PANEL PERSONALIZACIÓN
    ========================================================= */
 
 .customization-panel {
@@ -4065,7 +1863,7 @@ select {
 
 
 /* =========================================================
-   ENCABEZADO
+   CHARACTER — ENCABEZADO PANEL
    ========================================================= */
 
 .character-panel-heading {
@@ -4082,7 +1880,7 @@ select {
 
 
 /* =========================================================
-   SECCIONES
+   CHARACTER — SECCIONES
    ========================================================= */
 
 .custom-section {
@@ -4105,7 +1903,7 @@ select {
 
 
 /* =========================================================
-   COLORES
+   CHARACTER — COLORES
    ========================================================= */
 
 .color-options {
@@ -4146,7 +1944,7 @@ select {
 
 
 /* =========================================================
-   ELEMENTOS BLOQUEADOS
+   CHARACTER — ELEMENTOS BLOQUEADOS
    ========================================================= */
 
 .locked-items {
@@ -4188,7 +1986,7 @@ select {
 
 
 /* =========================================================
-   RESPONSIVE
+   CHARACTER — RESPONSIVE
    ========================================================= */
 
 @media (max-width: 1000px) {
@@ -4202,7 +2000,6 @@ select {
         grid-template-columns:
             minmax(0, 1.2fr) minmax(280px, 0.8fr);
     }
-
 }
 
 
@@ -4229,7 +2026,6 @@ select {
     .character-preview {
         min-height: 360px;
     }
-
 }
 
 
@@ -4242,5 +2038,4 @@ select {
     .character-preview {
         min-height: 330px;
     }
-
 }

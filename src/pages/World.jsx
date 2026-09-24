@@ -27,6 +27,8 @@ import assets from "../data/mock/assets.json";
 
 import AssetImage from "../components/common/AssetImage";
 import VRMCharacter from "../components/character/VRMCharacter";
+import MainNav from "../components/navigation/MainNav";
+
 
 
 export default function World() {
@@ -770,103 +772,24 @@ export default function World() {
 
 
             {/* =================================================
-                HEADER
-               ================================================= */}
+    HEADER / NAVEGACIÓN
+   ================================================= */}
 
-            <header className="mv-header lobby-header">
-
-                <div
-                    className="mv-logo"
-                    onClick={volver}
-                >
-                    <div className="mv-logo-main">
-                        MATH<span>VISION</span>
-                    </div>
-
-                    <div className="mv-logo-sub">
-                        JUEGA • APRENDE • CONECTA
-                    </div>
-                </div>
-
-
-                <nav className="mv-nav">
-
-                    {navigation.map((item) => (
-
-                        <button
-                            key={item.id}
-                            className={`mv-nav-item ${item.id === "world" ? "active" : ""
-                                }`}
-                            onClick={() => navigate(item.route)}
-                        >
-                            <b>{item.icon}</b>
-                            <span>{item.label}</span>
-                        </button>
-
-                    ))}
-
-                </nav>
-
-
-                <div className="lobby-header-player">
-
-                    <div className="mv-avatar-small">
-
-                        <AssetImage
-                            src={avatar}
-                            type="player"
-                            alt={displayName}
-                        />
-
-                    </div>
-
-                    <div className="lobby-header-player-info">
-
-                        <strong>
-                            {displayName}
-                        </strong>
-
-                        <span>
-                            NIVEL {level}
-                        </span>
-
-                        <div className="mv-xp">
-                            <div
-                                style={{
-                                    width: `${xpPercentage}%`
-                                }}
-                            />
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div className="lobby-currencies">
-
-                    <div>
-                        🪙
-                        <strong>
-                            {coins.toLocaleString()}
-                        </strong>
-                    </div>
-
-                    <div>
-                        💎
-                        <strong>
-                            {gems}
-                        </strong>
-                    </div>
-
-                </div>
-
-
-                <button className="mv-settings">
-                    ⚙
-                </button>
-
-            </header>
+            <MainNav
+                navigation={navigation}
+                player={{
+                    avatar,
+                    displayName,
+                    level,
+                    experience: {
+                        percentage: xpPercentage,
+                    },
+                    currencies: {
+                        coins,
+                        gems,
+                    },
+                }}
+            />
 
 
             {/* =================================================

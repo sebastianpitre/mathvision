@@ -21,6 +21,7 @@ import {
 import "../styles/mathvision.css";
 
 import navigation from "../data/mock/navigation.json";
+import MainNav from "../components/navigation/MainNav";
 import assets from "../data/mock/assets.json";
 
 import AssetImage from "../components/common/AssetImage";
@@ -515,161 +516,24 @@ return (
 
 
         {/* =================================================
-                HEADER
-               ================================================= */}
+            HEADER / NAVEGACIÓN
+        ================================================= */}
 
-        <header className="mv-header">
-
-
-            {/* =================================================
-                    LOGO
-                   ================================================= */}
-
-            <div
-                className="mv-logo"
-                onClick={() =>
-                    navigate("/lobby")
-                }
-            >
-
-                <div className="mv-logo-main">
-                    MATH<span>VISION</span>
-                </div>
-
-                <div className="mv-logo-sub">
-                    JUEGA • APRENDE • CONECTA
-                </div>
-
-            </div>
-
-
-            {/* =================================================
-                    NAVEGACIÓN
-                   ================================================= */}
-
-            <nav className="mv-nav">
-
-                {navigation.map(
-                    (item) => (
-
-                        <button
-                            key={item.id}
-                            className={
-                                `mv-nav-item ${item.id === "character"
-                                    ? "active"
-                                    : ""
-                                }`
-                            }
-                            onClick={() =>
-                                navigate(
-                                    item.route
-                                )
-                            }
-                        >
-
-                            <b>
-                                {item.icon}
-                            </b>
-
-                            <span>
-                                {item.label}
-                            </span>
-
-                        </button>
-
-                    )
-                )}
-
-            </nav>
-
-
-            {/* =================================================
-                    USUARIO
-                   ================================================= */}
-
-            <div className="lobby-header-player">
-
-                <div className="mv-avatar-small">
-
-                    <AssetImage
-                        src={avatar}
-                        type="player"
-                        alt={displayName}
-                    />
-
-                </div>
-
-
-                <div className="lobby-header-player-info">
-
-                    <strong>
-                        {displayName}
-                    </strong>
-
-
-                    <span>
-                        NIVEL {level}
-                    </span>
-
-
-                    <div className="mv-xp">
-
-                        <div
-                            style={{
-                                width:
-                                    `${xpPercentage}%`
-                            }}
-                        />
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            {/* =================================================
-                    MONEDAS
-                   ================================================= */}
-
-            <div className="lobby-currencies">
-
-                <div>
-
-                    🪙
-
-                    <strong>
-                        {coins.toLocaleString()}
-                    </strong>
-
-                </div>
-
-
-                <div>
-
-                    💎
-
-                    <strong>
-                        {gems}
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-            {/* =================================================
-                    CONFIGURACIÓN
-                   ================================================= */}
-
-            <button
-                className="mv-settings"
-                type="button"
-            >
-                ⚙
-            </button>
-
-        </header>
+        <MainNav
+            navigation={navigation}
+            player={{
+                avatar,
+                displayName,
+                level,
+                experience: {
+                    percentage: xpPercentage,
+                },
+                currencies: {
+                    coins,
+                    gems,
+                },
+            }}
+        />
 
 
         {/* =================================================
