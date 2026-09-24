@@ -120,7 +120,7 @@ button:focus-visible {
 .mv-logo-sub {
     margin-top: 5px;
 
-    font-size: 7px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 3px;
 
@@ -258,7 +258,7 @@ button:focus-visible {
 .lobby-header-player-info span {
     margin-top: 2px;
 
-    font-size: 7px;
+    font-size: 10px;
     font-weight: 800;
     letter-spacing: 1px;
 
@@ -308,7 +308,7 @@ button:focus-visible {
 }
 
 .lobby-currencies strong {
-    font-size: 10px;
+    font-size: 15px;
 }
 
 .mv-settings {
@@ -575,7 +575,7 @@ button:focus-visible {
 .lobby-card-label {
     margin-bottom: 14px;
 
-    font-size: 7px;
+    font-size: 10px;
     font-weight: 900;
     letter-spacing: 1.8px;
 
@@ -622,7 +622,7 @@ button:focus-visible {
 
     text-align: center;
 
-    font-size: 7px;
+    font-size: 10px;
     font-weight: 900;
     letter-spacing: 1.5px;
 
@@ -665,7 +665,7 @@ button:focus-visible {
 
     text-align: right;
 
-    font-size: 7px;
+    font-size: 10px;
 
     color: rgba(255, 255, 255, 0.35);
 }
@@ -701,7 +701,7 @@ button:focus-visible {
 
     margin-top: 3px;
 
-    font-size: 7px;
+    font-size: 10px;
 
     color: rgba(255, 255, 255, 0.40);
 }
@@ -782,13 +782,13 @@ button:focus-visible {
 .lobby-event-card strong {
     margin-top: 3px;
 
-    font-size: 10px;
+    font-size: 15px;
 }
 
 .lobby-event-card small {
     margin-top: 3px;
 
-    font-size: 7px;
+    font-size: 10px;
 
     color: rgba(255, 255, 255, 0.40);
 }
@@ -875,7 +875,7 @@ button:focus-visible {
 .lobby-quick-card small {
     margin-top: 2px;
 
-    font-size: 7px;
+    font-size: 10px;
 
     color: rgba(255, 255, 255, 0.35);
 }
@@ -985,7 +985,7 @@ button:focus-visible {
     background: rgba(32, 217, 123, 0.08);
     border: 1px solid rgba(32, 217, 123, 0.14);
 
-    font-size: 7px;
+    font-size: 10px;
     font-weight: 900;
     letter-spacing: 1px;
 
@@ -1111,12 +1111,12 @@ button:focus-visible {
 }
 
 .lobby-world-bottom strong {
-    font-size: 7px;
+    font-size: 10px;
     letter-spacing: 1px;
 }
 
 .lobby-world-bottom small {
-    font-size: 7px;
+    font-size: 10px;
 
     color: rgba(255, 255, 255, 0.35);
 }
@@ -1297,7 +1297,7 @@ button:focus-visible {
 .lobby-game-content span {
     margin-top: 5px;
 
-    font-size: 7px;
+    font-size: 10px;
     line-height: 1.35;
 
     color: rgba(255, 255, 255, 0.40);
@@ -1306,7 +1306,7 @@ button:focus-visible {
 .lobby-game-content small {
     margin-top: 7px;
 
-    font-size: 7px;
+    font-size: 10px;
 
     color: var(--game-color);
 }
@@ -1327,7 +1327,7 @@ button:focus-visible {
 
     text-align: center;
 
-    font-size: 7px;
+    font-size: 15px;
     font-weight: 900;
     letter-spacing: 3px;
 
@@ -1438,7 +1438,7 @@ button:focus-visible {
 .lobby-card-heading h3 {
     margin: 3px 0 0;
 
-    font-size: 10px;
+    font-size: 15px;
 }
 
 .lobby-notification {
@@ -1496,7 +1496,7 @@ button:focus-visible {
 .lobby-invite-player small {
     margin-top: 3px;
 
-    font-size: 7px;
+    font-size: 10px;
 
     color: rgba(255, 255, 255, 0.38);
 }
@@ -1644,7 +1644,7 @@ button:focus-visible {
 
     color: #39bfff;
 
-    font-size: 7px;
+    font-size: 10px;
     font-weight: 800;
 
     cursor: pointer;
@@ -1708,7 +1708,7 @@ button:focus-visible {
 
     color: #39bfff;
 
-    font-size: 10px;
+    font-size: 15px;
 }
 
 .lobby-room-row > div:nth-child(2) {
@@ -1722,7 +1722,7 @@ button:focus-visible {
 }
 
 .lobby-room-row strong {
-    font-size: 7px;
+    font-size: 10px;
 }
 
 .lobby-room-row small {

@@ -2,6 +2,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
+import MainNav from "../components/navigation/MainNav";
 
 import {
     FaArrowRight,
@@ -610,125 +611,10 @@ export default function Lobby() {
                 HEADER
                ================================================= */}
 
-            <header className="mv-header lobby-header">
-
-                <div
-                    className="mv-logo"
-                    onClick={() => navigate("/")}
-                >
-
-                    <div className="mv-logo-main">
-                        LUDO<span>RA</span>
-                    </div>
-
-                    <div className="mv-logo-sub">
-                        JUEGA • APRENDE • CONECTA
-                    </div>
-
-                </div>
-
-
-                <nav className="mv-nav">
-
-                    {navigation.map((item) => (
-
-                        <button
-                            key={item.id}
-                            className={`mv-nav-item ${item.id === "home"
-                                    ? "active"
-                                    : ""
-                                }`}
-                            onClick={() =>
-                                navigate(item.route)
-                            }
-                        >
-
-                            <b>
-                                {item.icon}
-                            </b>
-
-                            <span>
-                                {item.label}
-                            </span>
-
-                        </button>
-
-                    ))}
-
-                </nav>
-
-
-                {/* JUGADOR */}
-
-                <div className="lobby-header-player">
-
-                    <div
-                        className="mv-avatar-small"
-                        onClick={() => navigate("/profile")}
-                        title="Ver mi perfil"
-                        style={{ cursor: "pointer" }}
-                    >
-
-                        <AssetImage
-                            src={player.avatar}
-                            type="player"
-                            alt={player.name}
-                        />
-
-                    </div>
-
-                    <div className="lobby-header-player-info">
-
-                        <strong>
-                            {player.displayName}
-                        </strong>
-
-                        <span>
-                            NIVEL {player.level}
-                        </span>
-
-                        <div className="mv-xp">
-
-                            <div
-                                style={{
-                                    width:
-                                        `${player.experience.percentage}%`
-                                }}
-                            />
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                {/* MONEDAS */}
-
-                <div className="lobby-currencies">
-
-                    <div>
-                        🪙
-                        <strong>
-                            {player.currencies.coins.toLocaleString()}
-                        </strong>
-                    </div>
-
-                    <div>
-                        💎
-                        <strong>
-                            {player.currencies.gems}
-                        </strong>
-                    </div>
-
-                </div>
-
-
-                <button className="mv-settings">
-                    ⚙
-                </button>
-
-            </header>
+            <MainNav
+                navigation={navigation}
+                player={player}
+            />
 
 
             {/* =================================================
@@ -1511,7 +1397,7 @@ export default function Lobby() {
                         SALAS
                        ================================================= */}
 
-                    <section className="lobby-rooms-card">
+                    {/* <section className="lobby-rooms-card">
 
                         <div className="lobby-card-heading">
 
@@ -1583,7 +1469,7 @@ export default function Lobby() {
                             + CREAR SALA
                         </button>
 
-                    </section>
+                    </section> */}
 
                 </aside>
 
