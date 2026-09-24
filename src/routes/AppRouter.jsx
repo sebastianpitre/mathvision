@@ -31,11 +31,11 @@ function AppRouter() {
                 element={<AuthTest />}
             />
 
-            <Route path="/games/rooms" element={<Rooms />} />
+            <Route path="/games/rooms" element={<Lobby />} />
 
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Lobby />} />
 
-            <Route path="/games" element={<Games />} />
+            <Route path="/games" element={<Lobby />} />
             <Route path="/world" element={<World />} />
             <Route
                 path="/games/escape-algebra"
@@ -53,8 +53,8 @@ function AppRouter() {
             {/* Rutas nuevas */}
             <Route path="/lobby" element={<Lobby />} />
             <Route path="/" element={<Lobby />} />
-            <Route path="/friends" element={<Friends />} />
-            <Route path="/room" element={<Room />} />
+            <Route path="/friends" element={<Lobby />} />
+            <Route path="/room" element={<Lobby />} />
             <Route path="/character" element={<Character />} />
             <Route
                 path="/profile"
@@ -66,7 +66,7 @@ function AppRouter() {
                 element={<Profile />}
             />
 
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<Lobby />} />
 
         </Routes>
 

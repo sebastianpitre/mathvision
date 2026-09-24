@@ -1603,15 +1603,15 @@ button:focus-visible {
 }
 
 .lobby-friend-info strong {
-    font-size: 8px;
+    font-size: 13px;
 }
 
 .lobby-friend-info small {
     margin-top: 2px;
 
-    font-size: 6px;
+    font-size: 9px;
 
-    color: rgba(255, 255, 255, 0.34);
+    color: rgb(172, 137, 22);
 }
 
 .lobby-friend-row > button {

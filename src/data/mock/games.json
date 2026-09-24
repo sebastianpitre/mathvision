@@ -37,18 +37,5 @@
     "status": "coming-soon",
     "route": "/games/escape-algebra",
     "color": "#20d97b"
-  },
-  {
-    "id": "batalla-matematica",
-    "name": "Batalla Matemática",
-    "shortName": "Batalla",
-    "description": "Enfréntate a otro jugador.",
-    "icon": "⚔️",
-    "image": "/img/games/batalla-matematica.jpg",
-    "minPlayers": 2,
-    "maxPlayers": 8,
-    "status": "coming-soon",
-    "route": "/games",
-    "color": "#ff416c"
   }
 ]

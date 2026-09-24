@@ -90,6 +90,9 @@ function TriquiGame() {
     const [sendingEmoji, setSendingEmoji] =
         useState(false);
 
+    const [timeRemaining, setTimeRemaining] =
+        useState(20);
+
     /* =====================================================
        SOCKET
     ===================================================== */
@@ -349,6 +352,40 @@ function TriquiGame() {
                 );
             };
 
+        const handleTurnTimeout =
+            ({
+                failedPlayerId,
+                failedPlayerName,
+                nextPlayerName,
+            }) => {
+
+                const isMe =
+                    failedPlayerId ===
+                    socket.id;
+
+                if (isMe) {
+
+                    setTurnNotice(
+                        `⏰ ${failedPlayerName}, se acabó el tiempo. ¡Pierdes el turno!`
+                    );
+
+                } else {
+
+                    setTurnNotice(
+                        `⏰ ${failedPlayerName} se quedó sin tiempo. ¡Ahora es tu turno!`
+                    );
+                }
+
+                setTimeout(
+                    () => {
+
+                        setTurnNotice("");
+
+                    },
+                    3000
+                );
+            };
+
         const handleEmoji =
             ({
                 emoji,
@@ -434,6 +471,11 @@ function TriquiGame() {
         );
 
         socket.on(
+            "game:turnTimeout",
+            handleTurnTimeout
+        );
+
+        socket.on(
             "game:emoji",
             handleEmoji
         );
@@ -497,6 +539,11 @@ function TriquiGame() {
             );
 
             socket.off(
+                "game:turnTimeout",
+                handleTurnTimeout
+            );
+
+            socket.off(
                 "game:emoji",
                 handleEmoji
             );
@@ -513,6 +560,70 @@ function TriquiGame() {
         };
 
     }, []);
+
+    /* =====================================================
+   TEMPORIZADOR
+===================================================== */
+
+    useEffect(() => {
+
+        if (
+            !game ||
+            game.status !== "playing" ||
+            !game.turnStartedAt
+        ) {
+
+            setTimeRemaining(
+                game?.turnTime || 20
+            );
+
+            return;
+        }
+
+        const turnTime =
+            game.turnTime || 20;
+
+        const updateTimer = () => {
+
+            const elapsed =
+                Math.floor(
+                    (
+                        Date.now() -
+                        game.turnStartedAt
+                    ) / 1000
+                );
+
+            const remaining =
+                Math.max(
+                    0,
+                    turnTime - elapsed
+                );
+
+            setTimeRemaining(
+                remaining
+            );
+        };
+
+        updateTimer();
+
+        const interval =
+            setInterval(
+                updateTimer,
+                250
+            );
+
+        return () => {
+
+            clearInterval(
+                interval
+            );
+        };
+
+    }, [
+        game?.turnStartedAt,
+        game?.status,
+        game?.turnTime,
+    ]);
 
     /* =====================================================
        DATOS DEL JUGADOR
@@ -977,6 +1088,10 @@ function TriquiGame() {
                                 <small>
                                     Selecciona una casilla
                                 </small>
+
+                                <div className="triqui-timer">
+                                    ⏱️ {timeRemaining}s
+                                </div>
                             </>
 
                         ) : (
@@ -1001,6 +1116,10 @@ function TriquiGame() {
                                 <small>
                                     Espera tu turno
                                 </small>
+                                
+                                <div className="triqui-timer">
+                                    ⏱️ {timeRemaining}s
+                                </div>
                             </>
 
                         )
@@ -1312,6 +1431,10 @@ function TriquiGame() {
                                             myPlayer?.symbol
                                         }
                                     </strong>
+
+                                <div className="triqui-timer">
+                                    ⏱️ {timeRemaining}s
+                                </div>
 
                                 </div>
 
