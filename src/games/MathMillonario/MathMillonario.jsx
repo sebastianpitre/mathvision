@@ -15,7 +15,7 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
-import questions from "./data/questions-normal";
+import questions from "./data/questions-quinto";
 import {
     playSound,
     createBackgroundMusic
