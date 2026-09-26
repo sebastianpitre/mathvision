@@ -102,6 +102,8 @@ export default function Lobby() {
     const [invitations, setInvitations] = useState([]);
     const [onlineMessage, setOnlineMessage] = useState("");
 
+    const [invitationAlert, setInvitationAlert] = useState(null);
+
 
     /* =====================================================
        CONEXIÓN AL MUNDO ONLINE
@@ -167,28 +169,32 @@ export default function Lobby() {
                 return;
             }
 
-            setInvitations((current) => {
 
-                const invitationId =
-                    invitation.fromPlayerId ||
-                    invitation.fromPlayer?.id ||
-                    invitation.playerId ||
-                    invitation.id;
+            const invitationId =
+                invitation.fromPlayerId ||
+                invitation.fromPlayer?.id ||
+                invitation.playerId ||
+                invitation.id;
+
+
+            setInvitations((current) => {
 
                 const exists =
                     current.some(
                         (item) =>
-                            (
+                            String(
                                 item.fromPlayerId ||
                                 item.fromPlayer?.id ||
                                 item.playerId ||
                                 item.id
-                            ) === invitationId
+                            ) === String(invitationId)
                     );
+
 
                 if (exists) {
                     return current;
                 }
+
 
                 return [
                     ...current,
@@ -196,6 +202,20 @@ export default function Lobby() {
                 ];
 
             });
+
+
+            /*
+             * ALERTA TEMPORAL
+             */
+
+            setInvitationAlert(invitation);
+
+
+            setTimeout(() => {
+
+                setInvitationAlert(null);
+
+            }, 4000);
 
         };
 
@@ -615,6 +635,137 @@ export default function Lobby() {
                 navigation={navigation}
                 player={player}
             />
+
+            {/* =================================================
+    ALERTA TEMPORAL DE INVITACIÓN
+   ================================================= */}
+
+            {invitationAlert && (
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        setInvitationAlert(null);
+                    }}
+                    style={{
+                        position: "fixed",
+                        top: "85px",
+                        right: "25px",
+                        zIndex: 2000,
+                        width: "340px",
+                        maxWidth: "calc(100vw - 40px)",
+                        padding: "16px",
+                        borderRadius: "14px",
+                        background: "rgba(20, 24, 35, 0.96)",
+                        border: "1px solid rgba(255, 255, 255, 0.12)",
+                        boxShadow: "0 15px 40px rgba(0, 0, 0, 0.45)",
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        animation: "mvInvitationAlert 0.25s ease-out",
+                        textAlign: "left",
+                        cursor: "pointer",
+                    }}
+                >
+
+                    <div
+                        style={{
+                            width: "46px",
+                            height: "46px",
+                            minWidth: "46px",
+                            borderRadius: "50%",
+                            overflow: "hidden",
+                            background: "rgba(255,255,255,0.08)",
+                        }}
+                    >
+
+                        <AssetImage
+                            src={
+                                invitationAlert.fromPlayerAvatar ||
+                                invitationAlert.fromPlayer?.avatar
+                            }
+                            type="player"
+                            alt={
+                                invitationAlert.fromPlayerName ||
+                                invitationAlert.fromPlayer?.name ||
+                                "Jugador"
+                            }
+                        />
+
+                    </div>
+
+
+                    <div
+                        style={{
+                            flex: 1,
+                            minWidth: 0,
+                        }}
+                    >
+
+                        <div
+                            style={{
+                                fontSize: "11px",
+                                fontWeight: 800,
+                                opacity: 0.65,
+                                marginBottom: "3px",
+                            }}
+                        >
+                            <FaBell />
+                            {" "}NUEVA INVITACIÓN
+                        </div>
+
+
+                        <strong
+                            style={{
+                                display: "block",
+                                fontSize: "15px",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                            }}
+                        >
+                            {invitationAlert.fromPlayerName ||
+                                invitationAlert.fromPlayer?.name ||
+                                "Jugador"}
+                        </strong>
+
+
+                        <small
+                            style={{
+                                display: "block",
+                                marginTop: "3px",
+                                opacity: 0.75,
+                            }}
+                        >
+                            quiere jugar contigo
+                        </small>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        onClick={() => {
+
+                            setInvitationAlert(null);
+
+                        }}
+                        style={{
+                            border: "none",
+                            background: "transparent",
+                            color: "white",
+                            opacity: 0.6,
+                            cursor: "pointer",
+                            fontSize: "16px",
+                        }}
+                    >
+                        <FaTimes />
+                    </button>
+
+                </button>
+
+            )}
 
 
             {/* =================================================
