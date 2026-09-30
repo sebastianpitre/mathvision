@@ -32,8 +32,8 @@
     "description": "Desbloquea la puerta.",
     "icon": "💡",
     "image": "/img/games/quiz-matematico.jpg",
-    "minPlayers": 2,
-    "maxPlayers": 8,
+    "minPlayers": 1,
+    "maxPlayers": 1,
     "status": "coming-soon",
     "route": "/games/escape-algebra",
     "color": "#20d97b"

@@ -84,7 +84,7 @@
     border-radius: 14px;
 
     background:
-        rgba(255, 255, 255, 0.035);
+        rgba(0, 0, 0, 0.467);
 
     backdrop-filter:
         blur(10px);
@@ -177,7 +177,7 @@
     border-radius: 12px;
 
     background:
-        rgba(255, 255, 255, 0.035);
+        rgba(0, 0, 0, 0.467);
 
     transition:
         border .2s,
@@ -190,7 +190,7 @@
         rgba(66, 211, 146, 0.65);
 
     background:
-        rgba(66, 211, 146, 0.08);
+        rgba(66, 211, 146, 0.16);
 
     box-shadow:
         0 0 25px
@@ -383,7 +383,7 @@
 
 .triqui-turn.opponent-turn {
     background:
-        rgba(255, 255, 255, 0.035);
+        rgba(0, 0, 0, 0.467);
 
     border:
         1px solid
@@ -997,32 +997,7 @@
         blur(12px);
 }
 
-.triqui-modal {
-    width:
-        min(
-            500px,
-            94vw
-        );
 
-    border-radius: 20px;
-
-    background:
-        #101722;
-
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.1);
-
-    box-shadow:
-        0 30px 100px
-        rgba(0, 0, 0, .65);
-
-    overflow: hidden;
-
-    animation:
-        modalAppear .2s
-        ease-out;
-}
 
 @keyframes modalAppear {
 
@@ -1924,4 +1899,370 @@
 
 .triqui-timer{
     font-size: 30px;
+}
+
+
+/* =========================================================
+   1) REEMPLAZA tu bloque .triqui-page por este
+   ---------------------------------------------------------
+   Pon tu imagen en /public/images/triqui-bg.jpg
+   (o cambia la ruta del url()).
+   La primera capa (linear-gradient) es la capa oscura.
+   Sube o baja el 0.78 / 0.9 para oscurecer más o menos.
+========================================================= */
+
+.triqui-page {
+    width: 100vw;
+    height: 100dvh;
+    min-height: 100dvh;
+
+    background:
+        /* capa oscura encima */
+        linear-gradient(180deg,
+            rgba(7, 11, 18, 0.915) 0%,
+            rgba(7, 11, 18, 0.9) 100%),
+        /* brillos de color */
+        radial-gradient(circle at 50% -20%,
+            rgba(66, 150, 255, 0.18),
+            transparent 45%),
+        radial-gradient(circle at 0% 100%,
+            rgba(66, 211, 146, 0.08),
+            transparent 35%),
+        /* imagen de fondo */
+        url("/img/lobby.jpeg") center / cover no-repeat,
+        #070b12;
+
+    overflow: hidden;
+    position: relative;
+}
+
+
+/* =========================================================
+   2) REEMPLAZA .triqui-modal (más angosto, deja sitio al teclado)
+========================================================= */
+
+.triqui-modal {
+    width: min(440px, 100%);
+    max-height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    border-radius: 20px;
+    background: #101722;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 30px 100px rgba(0, 0, 0, .65);
+
+    overflow: hidden;
+
+    animation: modalAppear .2s ease-out;
+}
+
+.triqui-modal-content {
+    padding: clamp(14px, 3vh, 30px) 18px;
+    text-align: center;
+    overflow-y: auto;
+}
+
+
+/* =========================================================
+   3) AGREGA: contenedor modal + teclado lado a lado
+========================================================= */
+
+.triqui-modal-layout {
+    width: min(720px, 100%);
+    max-height: 100%;
+
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 12px;
+}
+
+
+/* =========================================================
+   4) AGREGA: teclado numérico
+========================================================= */
+
+.triqui-keypad {
+    flex: 0 0 auto;
+
+    width: clamp(150px, 26vw, 220px);
+
+    padding: 10px;
+
+    display: flex;
+    align-items: center;
+
+    border-radius: 20px;
+    background: rgba(16, 23, 34, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 30px 100px rgba(0, 0, 0, .65);
+
+    animation: keypadAppear .22s ease-out;
+}
+
+@keyframes keypadAppear {
+    from {
+        opacity: 0;
+        transform: translateX(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.triqui-keypad-grid {
+    width: 100%;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+}
+
+.triqui-key {
+    height: clamp(40px, 7vh, 54px);
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+
+    background: rgba(255, 255, 255, 0.06);
+    color: white;
+
+    font-size: clamp(17px, 2.6vh, 22px);
+    font-weight: 900;
+
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+
+    transition:
+        transform .08s,
+        background .12s;
+}
+
+.triqui-key:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.triqui-key:active {
+    transform: scale(0.93);
+    background: rgba(85, 168, 255, 0.25);
+}
+
+.triqui-key.key-sign {
+    color: #ffc857;
+}
+
+.triqui-key.key-del {
+    color: #ff8990;
+    background: rgba(255, 93, 104, 0.1);
+}
+
+.triqui-key.key-clear {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 15px;
+}
+
+.triqui-key.key-submit {
+    grid-column: span 2;
+
+    background: #55a8ff;
+    color: #07111c;
+    border: none;
+
+    font-size: clamp(9px, 1.4vh, 11px);
+    letter-spacing: 1px;
+}
+
+.triqui-key.key-submit:active {
+    background: #3d8ee6;
+}
+
+
+/* =========================================================
+   5) AGREGA al final: responsive del modal + teclado
+========================================================= */
+
+/* Celular: modal y teclado siguen lado a lado, más compactos */
+@media (max-width: 650px) {
+
+    .triqui-modal-overlay {
+        padding: 8px;
+    }
+
+    .triqui-modal-layout {
+        gap: 6px;
+    }
+
+    .triqui-modal {
+        flex: 1;
+        min-width: 0;
+        border-radius: 14px;
+    }
+
+    .triqui-modal-header {
+        min-height: 44px;
+        padding: 6px 9px;
+    }
+
+    .triqui-modal-icon,
+    .triqui-modal-content p {
+        display: none;
+    }
+
+    .triqui-modal-content {
+        padding: 12px 10px;
+    }
+
+    .triqui-question-operation {
+        font-size: clamp(24px, 8vw, 38px);
+        margin-bottom: 10px;
+    }
+
+    .triqui-answer input {
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .triqui-timer {
+        font-size: 18px;
+    }
+
+    .triqui-keypad {
+        width: 138px;
+        padding: 6px;
+        border-radius: 14px;
+    }
+
+    .triqui-keypad-grid {
+        gap: 5px;
+    }
+
+    .triqui-key {
+        height: 40px;
+        font-size: 17px;
+        border-radius: 8px;
+    }
+}
+
+/* Celulares muy angostos: el teclado pasa debajo */
+@media (max-width: 400px) {
+
+    .triqui-modal-layout {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .triqui-modal {
+        width: 100%;
+        flex: 0 1 auto;
+    }
+
+    .triqui-keypad {
+        width: 100%;
+    }
+
+    .triqui-key {
+        height: 38px;
+    }
+}
+
+/* Pantallas bajitas (celular horizontal) */
+@media (max-height: 500px) {
+
+    .triqui-modal-icon,
+    .triqui-modal-content p,
+    .triqui-selected-cell {
+        display: none;
+    }
+
+    .triqui-key {
+        height: 34px;
+    }
+}
+
+/* =========================================================
+   SIN SELECCIÓN DE TEXTO NI CURSOR DE TEXTO
+========================================================= */
+
+.triqui-page,
+.triqui-page * {
+    -webkit-user-select: none;
+    user-select: none;
+
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-drag: none;
+
+    caret-color: transparent;
+}
+
+.triqui-page {
+    cursor: default;
+}
+
+.triqui-page button {
+    cursor: pointer;
+}
+
+.triqui-page button:disabled {
+    cursor: default;
+}
+
+/* El input sí mantiene su cursor visible */
+.triqui-page input {
+    -webkit-user-select: text;
+    user-select: text;
+
+    caret-color: #55a8ff;
+    cursor: text;
+}
+
+.triqui-page ::selection {
+    background: transparent;
+}
+
+.triqui-page input::selection {
+    background: rgba(85, 168, 255, 0.35);
+}
+
+/* =========================================================
+   BOTÓN DE SONIDO
+========================================================= */
+
+.triqui-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.triqui-sound-toggle {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+
+    font-size: 16px;
+}
+
+.triqui-sound-toggle:active {
+    transform: scale(0.92);
+}
+
+@media (max-width: 650px) {
+    .triqui-sound-toggle {
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
+    }
 }
