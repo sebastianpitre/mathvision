@@ -2266,3 +2266,32 @@
         font-size: 13px;
     }
 }
+
+/* =========================================================
+   SWEETALERT
+========================================================= */
+
+.triqui-swal {
+    z-index: 5000 !important;
+}
+
+.triqui-swal-popup {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px !important;
+    font-family: inherit;
+}
+
+.triqui-swal .swal2-title {
+    font-weight: 900;
+}
+
+.triqui-swal .swal2-toast .swal2-title {
+    font-size: 13px;
+}
+
+/* Los botones y textos de las alertas siguen sin seleccionarse */
+.triqui-swal,
+.triqui-swal * {
+    user-select: none;
+    -webkit-user-select: none;
+}

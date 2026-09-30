@@ -56,6 +56,7 @@ function AppRouter() {
             <Route path="/friends" element={<Lobby />} />
             <Route path="/room" element={<Lobby />} />
             <Route path="/character" element={<Character />} />
+            <Route path="/triqui-local" element={<TriquiGame mode="local" />} />
             <Route
                 path="/profile"
                 element={<Profile />}

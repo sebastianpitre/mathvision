@@ -8,7 +8,7 @@ const sounds = {
     retire: "/sounds/retire.mp3",
 
     background:
-        "/sounds/MathMillonario/fondo-millonario.wav"
+        "/sounds/triqui/retro.mp3"
 
 };
 
@@ -46,20 +46,31 @@ export const playSound = (
 // MÚSICA DE FONDO
 // =====================================================
 
-export const createBackgroundMusic = () => {
+export const createBackgroundMusic = (boost = 2) => {
 
-    const audio = new Audio(
-        sounds.background
-    );
+    const audio = new Audio(sounds.background);
 
     audio.loop = true;
-
     audio.volume = 1;
-
-    // Importante para evitar algunos
-    // problemas de reproducción
     audio.preload = "auto";
 
-    return audio;
+    // Amplificador: 1 = normal, 1.5 = 50% más fuerte, 2 = el doble
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const source = ctx.createMediaElementSource(audio);
+        const gain = ctx.createGain();
 
+        gain.gain.value = boost;
+
+        source.connect(gain);
+        gain.connect(ctx.destination);
+
+        // El navegador pausa el contexto hasta que el usuario toca la pantalla
+        audio.addEventListener("play", () => ctx.resume());
+    } catch {
+        /* si el navegador no soporta Web Audio, suena normal */
+    }
+
+    return audio;
 };

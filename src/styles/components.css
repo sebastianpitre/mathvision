@@ -592,12 +592,12 @@ button:focus-visible {
     align-items: center;
     justify-content: center;
 
-    border-radius: 50%;
+    border-radius: 30%;
 
     background:
         radial-gradient(
             circle at 35% 25%,
-            rgba(57, 191, 255, 0.28),
+            rgba(22, 142, 198, 0.28),
             rgba(155, 77, 255, 0.12)
         );
 
@@ -608,7 +608,14 @@ button:focus-visible {
     box-shadow:
         0 0 30px rgba(57, 191, 255, 0.08);
 }
+.lobby-profile-avatar-img{
+    width: 100%;
+    height: 100%;
 
+    border-radius: 30%;
+
+    object-fit: cover;
+}
 .lobby-profile-card h2 {
     margin: 0;
 

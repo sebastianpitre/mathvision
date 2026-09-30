@@ -881,6 +881,17 @@ export default function World() {
                             <span>←</span>
                         </button>
 
+                        <button
+                            className="mv-btn mv-btn-secondary lobby-profile-button"
+                            onClick={() =>
+                                navigate("/triqui-local", {
+                                    state: { playerName: user.name },
+                                })
+                            }
+                        >
+                            👥 JUGAR 2 EN ESTE DISPOSITIVO
+                        </button>
+
                     </section>
 
                 </aside>

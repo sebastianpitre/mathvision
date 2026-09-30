@@ -6,10 +6,21 @@ import {
 } from "react";
 
 import {
+    useLocation,
     useNavigate,
 } from "react-router-dom";
 
-import { socket } from "../../services/socket";
+import { socket as onlineSocket } from "../../services/socket";
+
+import { createLocalTriquiSocket } from "./localTriquiSocket";
+
+import {
+    alertOpponentLeft,
+    closeAlerts,
+    confirmLeaveGame,
+    showErrorToast,
+    showToast,
+} from "./triquiAlerts";
 
 // ⚠️ Ajusta la ruta a donde tengas tu archivo de sonidos
 import {
@@ -57,10 +68,10 @@ const GAME_SOUNDS = {
     timeout: "incorrect",
     win: "victory",
     lose: "gameOver",
-    draw: "retire",
+    draw: "gameOver",
     emoji: "lifeline",
-    leave: "retire",
-    disconnected: "retire",
+    leave: "gameOver",
+    disconnected: "gameOver",
     myTurn: "turn",
     tick: "tick",
 };
@@ -76,12 +87,39 @@ const readSoundPreference = () => {
     }
 };
 
-function TriquiGame() {
+/* =========================================================
+   MODO
+   mode="online" (por defecto): partida contra un amigo por
+   el servidor, como siempre.
+   mode="local": dos jugadores en el mismo dispositivo. El
+   segundo jugador es "<tu nombre> Clone". No usa el servidor.
+========================================================= */
+
+function TriquiGame({ mode = "online", playerName } = {}) {
 
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const isLocal = mode === "local";
+
+    // Un solo socket durante toda la vida del componente
+    const [socket] = useState(() =>
+        isLocal
+            ? createLocalTriquiSocket({
+                playerName:
+                    playerName ||
+                    location.state?.playerName ||
+                    "Jugador",
+            })
+            : onlineSocket
+    );
+
+    // Al salir del modo local se apagan sus timers
+    useEffect(() => {
+        return () => socket.dispose?.();
+    }, [socket]);
 
     const [game, setGame] = useState(null);
-    const [error, setError] = useState("");
 
     const [selectedCell, setSelectedCell] = useState(null);
     const selectedCellRef = useRef(null);
@@ -96,7 +134,6 @@ function TriquiGame() {
 
     const [emojiPanelOpen, setEmojiPanelOpen] = useState(false);
     const [floatingEmoji, setFloatingEmoji] = useState(null);
-    const [turnNotice, setTurnNotice] = useState("");
     const [showResult, setShowResult] = useState(false);
     const [sendingEmoji, setSendingEmoji] = useState(false);
     const [timeRemaining, setTimeRemaining] = useState(20);
@@ -182,7 +219,6 @@ function TriquiGame() {
     ===================================================== */
 
     const timersRef = useRef(new Set());
-    const noticeTimerRef = useRef(null);
     const messageTimerRef = useRef(null);
     const emojiTimerRef = useRef(null);
 
@@ -206,18 +242,16 @@ function TriquiGame() {
         }
     }, []);
 
+    // Avisos de turno -> SweetAlert (toast)
     const showTurnNotice = useCallback((message, ms = 3000) => {
+        showToast(message, { timer: ms });
+    }, []);
 
-        cancel(noticeTimerRef.current);
+    // Acción de salir sin confirmar (la usa la alerta de rival desconectado)
+    const leaveRef = useRef(() => { });
 
-        setTurnNotice(message);
-
-        noticeTimerRef.current = schedule(() => {
-            setTurnNotice("");
-            noticeTimerRef.current = null;
-        }, ms);
-
-    }, [cancel, schedule]);
+    // Cierra cualquier alerta abierta al salir de la pantalla
+    useEffect(() => closeAlerts, []);
 
     /* =====================================================
        FOCO DEL INPUT
@@ -278,9 +312,7 @@ function TriquiGame() {
 
             setGame(game);
             resetSelection();
-            setTurnNotice("");
             setShowResult(false);
-            setError("");
         };
 
         const handleGameState = ({ game }) => {
@@ -294,7 +326,6 @@ function TriquiGame() {
             console.log("🔄 ESTADO:", game);
 
             setGame(game);
-            setError("");
         };
 
         const handleGameFinished = ({ game }) => {
@@ -319,11 +350,11 @@ function TriquiGame() {
 
         const handleGameError = ({ message }) => {
             console.error("🔴 GAME ERROR:", message);
-            setError(message);
+            showErrorToast(message);
         };
 
         const handlePlayError = ({ message }) => {
-            setError(message);
+            showErrorToast(message);
         };
 
         const handleAnswerResult = ({ success, correct, message }) => {
@@ -387,7 +418,7 @@ function TriquiGame() {
             setAnswerCorrect(false);
             setAnswerMessage(message);
 
-            showTurnNotice(message, 2200);
+            showToast(message, { icon: "error", timer: 2200 });
 
             messageTimerRef.current = schedule(() => {
                 setAnswerMessage("");
@@ -452,10 +483,13 @@ function TriquiGame() {
         };
 
         const handlePlayerDisconnected = ({ message }) => {
-            setError(message);
             setShowResult(false);
             resetSelection();
             sfx("disconnected");
+
+            alertOpponentLeft(message).then((volver) => {
+                if (volver) leaveRef.current();
+            });
         };
 
         const requestState = () => {
@@ -503,7 +537,7 @@ function TriquiGame() {
             timers.clear();
         };
 
-    }, [cancel, resetSelection, schedule, showTurnNotice, sfx]);
+    }, [cancel, resetSelection, schedule, showTurnNotice, sfx, socket]);
 
     /* =====================================================
        TEMPORIZADOR
@@ -652,12 +686,11 @@ function TriquiGame() {
 
     const seleccionarCasilla = (index) => {
 
-        setError("");
 
         if (!game || !isPlaying) return;
 
         if (!isMyTurn) {
-            setError("⏳ Espera tu turno.");
+            showToast("⏳ Espera tu turno.", { timer: 2000 });
             return;
         }
 
@@ -969,7 +1002,6 @@ function TriquiGame() {
     const jugarRevancha = () => {
         setShowResult(false);
         resetSelection();
-        setError("");
         socket.emit("game:rematch");
     };
 
@@ -977,12 +1009,26 @@ function TriquiGame() {
        VOLVER
     ===================================================== */
 
-    const salir = () => {
+    const salirSinConfirmar = () => {
+        closeAlerts();
         sfx("leave");
         socket.emit("room:leave");
         resetSelection();
         setGame(null);
         navigate("/world");
+    };
+
+    leaveRef.current = salirSinConfirmar;
+
+    // Durante la partida pide confirmación con SweetAlert
+    const salir = async () => {
+
+        if (isPlaying) {
+            const ok = await confirmLeaveGame({ isLocal });
+            if (!ok) return;
+        }
+
+        salirSinConfirmar();
     };
 
     // Evita el menú de "copiar / seleccionar" al mantener presionado
@@ -1025,10 +1071,6 @@ function TriquiGame() {
                     <h1>TRIQUI MATEMÁTICO</h1>
 
                     <p>Esperando partida...</p>
-
-                    {error && (
-                        <div className="triqui-error">{error}</div>
-                    )}
 
                 </div>
 
@@ -1106,7 +1148,7 @@ function TriquiGame() {
 
                                     <strong>
                                         {player.name ?? ""}
-                                        {isMe && (
+                                        {isMe && !isLocal && (
                                             <span className="triqui-you">TÚ</span>
                                         )}
                                     </strong>
@@ -1132,7 +1174,16 @@ function TriquiGame() {
 
                     {isPlaying ? (
 
-                        isMyTurn ? (
+                        isLocal ? (
+                            <>
+                                <span>🟢</span>
+                                <strong>{`TURNO DE ${currentPlayerName}`}</strong>
+                                <small>{`Juega con la ${myPlayer?.symbol ?? ""}`}</small>
+                                <div className={`triqui-timer ${timeRemaining <= 5 ? "danger" : ""}`}>
+                                    {`⏱️ ${timeRemaining}s`}
+                                </div>
+                            </>
+                        ) : isMyTurn ? (
                             <>
                                 <span>🟢</span>
                                 <strong>ES TU TURNO</strong>
@@ -1223,31 +1274,21 @@ function TriquiGame() {
                     >
                         <div>{floatingEmoji.emoji}</div>
                         <span>
-                            {floatingEmoji.isMe ? "TÚ" : floatingEmoji.playerName}
+                            {floatingEmoji.isMe && !isLocal ? "TÚ" : floatingEmoji.playerName}
                         </span>
                     </div>
-                )}
-
-                {/* ================= AVISO DE TURNO ================= */}
-
-                {turnNotice && (
-                    <div className="triqui-turn-notice">{turnNotice}</div>
                 )}
 
                 {/* ================= INSTRUCCIÓN ================= */}
 
                 {isPlaying && selectedCell === null && (
                     <div className="triqui-instruction">
-                        {isMyTurn
-                            ? "🎯 Selecciona la casilla donde quieres colocar tu ficha."
-                            : "⏳ Espera a que termine el turno de tu rival."}
+                        {isLocal
+                            ? `🎯 ${currentPlayerName}, selecciona una casilla para tu ficha.`
+                            : isMyTurn
+                                ? "🎯 Selecciona la casilla donde quieres colocar tu ficha."
+                                : "⏳ Espera a que termine el turno de tu rival."}
                     </div>
-                )}
-
-                {/* ================= ERROR ================= */}
-
-                {error && (
-                    <div className="triqui-error">{error}</div>
                 )}
 
                 {/* ================= SALIR ================= */}
@@ -1279,7 +1320,7 @@ function TriquiGame() {
                             <div className="triqui-modal-header">
 
                                 <div>
-                                    <span>TU FICHA</span>
+                                    <span>{isLocal ? `FICHA DE ${myPlayer?.name ?? ""}` : "TU FICHA"}</span>
 
                                     <strong className={`symbol-${myPlayer?.symbol?.toLowerCase()}`}>
                                         {myPlayer?.symbol}

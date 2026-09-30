@@ -784,7 +784,7 @@ export default function Lobby() {
 
                     {/* PERFIL */}
 
-                    <section className="lobby-profile-card">
+                    <section className="lobby-profile-card ">
 
                         <div className="lobby-card-label">
                             PERFIL DEL JUGADOR
@@ -796,6 +796,7 @@ export default function Lobby() {
                                 src={player.avatar}
                                 type="player"
                                 alt={player.name}
+                                className="lobby-profile-avatar-img"
                             />
 
                         </div>
