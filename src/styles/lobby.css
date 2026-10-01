@@ -184,7 +184,9 @@
         linear-gradient(180deg, rgba(5, 8, 15, 0.25), rgba(5, 8, 15, 0.45));
 }
 
-.lb> :not(.lb-bg):not(.lb-toast-region):not(.lb-skip):not(.lb-modal) {
+/* El menú superior (header) NO entra aquí: lleva su propio
+   z-index para que su menú desplegable quede encima de todo */
+.lb> :not(.lb-bg):not(.lb-toast-region):not(.lb-skip):not(.lb-modal):not(header) {
     position: relative;
     z-index: 1;
 }
@@ -922,7 +924,6 @@
     font-family: var(--lb-font);
     box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
     overflow: hidden;
-    margin: 0 auto;
 }
 
 .lb-modal[open] {
@@ -1363,7 +1364,8 @@
     position: fixed;
     top: 88px;
     right: 20px;
-    z-index: 2500;
+    z-index: 900;
+    /* encima del contenido, debajo del menú superior */
     width: min(380px, calc(100vw - 32px));
 }
 

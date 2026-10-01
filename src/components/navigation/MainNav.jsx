@@ -1,993 +1,511 @@
 import React, {
+    useCallback,
     useEffect,
+    useId,
     useRef,
-    useState
+    useState,
 } from "react";
 
-import {
-    FaUser,
-    FaCog,
-    FaSignOutAlt,
-    FaChevronDown,
-    FaBars,
-    FaTimes,
-    FaCoins,
-    FaGem,
-    FaUserCircle
-} from "react-icons/fa";
-
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 import {
-    motion,
-    AnimatePresence
-} from "framer-motion";
+    LuChevronDown,
+    LuCoins,
+    LuGem,
+    LuLogOut,
+    LuMenu,
+    LuSettings,
+    LuUser,
+    LuX,
+} from "react-icons/lu";
 
 import AssetImage from "../common/AssetImage";
-
 import { useAuth } from "../../context/AuthContext";
 
+import "./mainnav.css";
+
+/* =========================================================
+   MARCA
+   ---------------------------------------------------------
+   · logoSrc: ruta de tu imagen de logo (ej. "/images/logo.png").
+     Déjalo en null para usar el logo de texto.
+   · showNameWithLogo: true = imagen + nombre al lado.
+   También puedes pasarlo como prop: <MainNav logo={{ ... }} />
+========================================================= */
+
+const BRAND = {
+    logoSrc: null,
+    logoAlt: "LudoGamif",
+    showNameWithLogo: true,
+    name: "LUDO",
+    nameAccent: "GAMIF",
+    tagline: "Juega · Aprende · Conecta",
+    homeRoute: "/",
+};
+
+const PROFILE_MENU = [
+    { id: "profile", label: "Mi perfil", icon: LuUser, route: "/profile" },
+    { id: "settings", label: "Configuración", icon: LuSettings, route: "/settings" },
+];
+
+const formatNumber = (value) =>
+    (Number(value) || 0).toLocaleString("es-CO");
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+function Brand({ brand, onClick }) {
+
+    const [imageFailed, setImageFailed] = useState(false);
+    const hasImage = brand.logoSrc && !imageFailed;
+
+    return (
+        <button
+            type="button"
+            className="mn-brand"
+            onClick={onClick}
+            aria-label={`${brand.logoAlt || `${brand.name}${brand.nameAccent}`}, ir al inicio`}
+        >
+            {hasImage && (
+                <img
+                    className="mn-brand-logo"
+                    src={brand.logoSrc}
+                    alt=""
+                    draggable="false"
+                    onError={() => setImageFailed(true)}
+                />
+            )}
+
+            {(!hasImage || brand.showNameWithLogo) && (
+                <span className="mn-brand-text" aria-hidden="true">
+                    <span className="mn-brand-name">
+                        {brand.name}
+                        <span className="mn-brand-accent">{brand.nameAccent}</span>
+                    </span>
+                    {brand.tagline && (
+                        <span className="mn-brand-tagline">{brand.tagline}</span>
+                    )}
+                </span>
+            )}
+        </button>
+    );
+}
+
+/* =========================================================
+   MONEDAS
+========================================================= */
+
+function Currencies({ player, className = "" }) {
+    return (
+        <ul className={`mn-currencies ${className}`} aria-label="Tus monedas">
+            <li className="mn-currency mn-currency-coins">
+                <LuCoins aria-hidden="true" />
+                <span className="mn-sr-only">Monedas:</span>
+                <strong>{formatNumber(player?.currencies?.coins)}</strong>
+            </li>
+            <li className="mn-currency mn-currency-gems">
+                <LuGem aria-hidden="true" />
+                <span className="mn-sr-only">Gemas:</span>
+                <strong>{formatNumber(player?.currencies?.gems)}</strong>
+            </li>
+        </ul>
+    );
+}
+
+/* =========================================================
+   MAIN NAV
+========================================================= */
 
 export default function MainNav({
     navigation = [],
-    player
+    player,
+    logo,
 }) {
 
+    const brand = { ...BRAND, ...(logo || {}) };
+
     const navigate = useNavigate();
+    const location = useLocation();
+    const { logout } = useAuth();
+    const reduceMotion = useReducedMotion();
 
-    const {
-        logout
-    } = useAuth();
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
 
+    const menuRef = useRef(null);
+    const menuButtonRef = useRef(null);
+    const menuListRef = useRef(null);
+    const mobileButtonRef = useRef(null);
+    const mobilePanelRef = useRef(null);
 
-    const [menuOpen, setMenuOpen] =
-        useState(false);
+    const menuId = useId();
+    const mobileId = useId();
 
-    const [mobileOpen, setMobileOpen] =
-        useState(false);
+    const displayName = player?.displayName || player?.name || "Jugador";
+    const level = player?.level || 1;
+    const xp = Math.round(Math.min(100, Math.max(0, Number(player?.experience?.percentage) || 0)));
 
+    /* ---------- Ruta activa ---------- */
 
-    const menuRef =
-        useRef(null);
+    const isActive = (route) => {
+        if (!route) return false;
+        if (route === "/") return location.pathname === "/";
+        return location.pathname === route || location.pathname.startsWith(`${route}/`);
+    };
 
+    /* ---------- Navegar ---------- */
 
-    /* =====================================================
-       CERRAR MENÚ AL HACER CLICK AFUERA
-    ===================================================== */
+    const goTo = useCallback((route) => {
+        setMenuOpen(false);
+        setMobileOpen(false);
+        navigate(route);
+    }, [navigate]);
+
+    const handleLogout = async () => {
+        setMenuOpen(false);
+        setMobileOpen(false);
+        await logout();
+        navigate("/");
+    };
+
+    /* ---------- Cerrar al hacer clic afuera ---------- */
 
     useEffect(() => {
 
-        function handleClickOutside(event) {
+        if (!menuOpen) return;
 
-            if (
-                menuRef.current &&
-                !menuRef.current.contains(
-                    event.target
-                )
-            ) {
-
+        const onPointerDown = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
                 setMenuOpen(false);
-
             }
-
-        }
-
-
-        document.addEventListener(
-            "mousedown",
-            handleClickOutside
-        );
-
-
-        return () => {
-
-            document.removeEventListener(
-                "mousedown",
-                handleClickOutside
-            );
-
         };
 
+        document.addEventListener("pointerdown", onPointerDown);
+        return () => document.removeEventListener("pointerdown", onPointerDown);
+
+    }, [menuOpen]);
+
+    /* ---------- Escape cierra y devuelve el foco ---------- */
+
+    useEffect(() => {
+
+        if (!menuOpen && !mobileOpen) return;
+
+        const onKeyDown = (event) => {
+
+            if (event.key !== "Escape") return;
+
+            if (menuOpen) {
+                setMenuOpen(false);
+                menuButtonRef.current?.focus();
+            }
+
+            if (mobileOpen) {
+                setMobileOpen(false);
+                mobileButtonRef.current?.focus();
+            }
+        };
+
+        document.addEventListener("keydown", onKeyDown);
+        return () => document.removeEventListener("keydown", onKeyDown);
+
+    }, [menuOpen, mobileOpen]);
+
+    /* ---------- Al abrir el menú, foco en la primera opción ---------- */
+
+    useEffect(() => {
+        if (menuOpen) {
+            requestAnimationFrame(() => {
+                menuListRef.current?.querySelector('[role="menuitem"]')?.focus();
+            });
+        }
+    }, [menuOpen]);
+
+    useEffect(() => {
+        if (mobileOpen) {
+            requestAnimationFrame(() => {
+                mobilePanelRef.current?.querySelector("button")?.focus();
+            });
+        }
+    }, [mobileOpen]);
+
+    // Si la pantalla crece, se cierra el panel del celular
+    useEffect(() => {
+        const media = window.matchMedia("(min-width: 1024px)");
+        const onChange = (e) => e.matches && setMobileOpen(false);
+        media.addEventListener?.("change", onChange);
+        return () => media.removeEventListener?.("change", onChange);
     }, []);
 
+    /* ---------- Flechas dentro del menú ---------- */
+
+    const onMenuKeyDown = (event) => {
+
+        const items = [...(menuListRef.current?.querySelectorAll('[role="menuitem"]') || [])];
+        const index = items.indexOf(document.activeElement);
+
+        const focusAt = (i) => {
+            event.preventDefault();
+            items[(i + items.length) % items.length]?.focus();
+        };
+
+        if (event.key === "ArrowDown") focusAt(index + 1);
+        if (event.key === "ArrowUp") focusAt(index - 1);
+        if (event.key === "Home") focusAt(0);
+        if (event.key === "End") focusAt(items.length - 1);
+        if (event.key === "Tab") setMenuOpen(false);
+    };
+
+    const motionProps = reduceMotion
+        ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
+        : {
+            initial: { opacity: 0, y: -8, scale: 0.97 },
+            animate: { opacity: 1, y: 0, scale: 1 },
+            exit: { opacity: 0, y: -8, scale: 0.97 },
+            transition: { duration: 0.16 },
+        };
 
     /* =====================================================
-       NAVEGAR
+       RENDER
     ===================================================== */
-
-    function goTo(route) {
-
-        setMobileOpen(false);
-        setMenuOpen(false);
-
-        navigate(route);
-
-    }
-
-
-    /* =====================================================
-       LOGOUT
-    ===================================================== */
-
-    async function handleLogout() {
-
-        setMenuOpen(false);
-        setMobileOpen(false);
-
-        await logout();
-
-        navigate("/");
-
-    }
-
 
     return (
+        <header className="mn">
 
-        <header
-            className="
-                sticky top-0 z-50
-                w-full
-                border-b border-white/10
-                bg-slate-950/75
-                backdrop-blur-xl
-                supports-[backdrop-filter]:bg-slate-950/60
-            "
-        >
+            <div className="mn-bar">
 
-            <div
-                className="
-                    mx-auto
-                    flex
-                    min-h-[76px]
-                    w-full
-                    max-w-[1600px]
-                    items-center
-                    gap-4
-                    px-4
-                    sm:px-6
-                    lg:px-8
-                "
-            >
+                <Brand brand={brand} onClick={() => goTo(brand.homeRoute)} />
 
-                {/* =================================================
-                    LOGO
-                ================================================= */}
+                {/* ---------- Navegación de escritorio ---------- */}
 
-                <button
-                    type="button"
-                    onClick={() =>
-                        goTo("/")
-                    }
-                    className="
-                        group
-                        shrink-0
-                        text-left
-                        outline-none
-                    "
-                >
+                <nav className="mn-nav" aria-label="Principal">
+                    <ul>
+                        {navigation.map((item) => {
 
-                    <div
-                        className="
-                            text-[21px]
-                            font-black
-                            leading-none
-                            tracking-tight
-                            text-white
-                            transition-transform
-                            duration-200
-                            group-hover:scale-[1.03]
-                        "
-                    >
-
-                        LUDO
-                        <span className="text-indigo-400">
-                            GAMIF
-                        </span>
-
-                    </div>
-
-
-                    <div
-                        className="
-                            mt-1
-                            hidden
-                            text-[8px]
-                            font-bold
-                            tracking-[0.18em]
-                            text-white/40
-                            sm:block
-                        "
-                    >
-                        JUEGA • APRENDE • CONECTA
-                    </div>
-
-                </button>
-
-
-                {/* =================================================
-                    NAV DESKTOP
-                ================================================= */}
-
-                <nav
-                    className="
-                        ml-3
-                        hidden
-                        items-center
-                        gap-1
-                        lg:flex
-                    "
-                >
-
-                    {navigation.map(
-                        (item) => {
-
-                            const isHome =
-                                item.id === "home";
-
+                            const active = isActive(item.route);
 
                             return (
-
-                                <button
-                                    key={item.id}
-                                    type="button"
-                                    onClick={() =>
-                                        goTo(
-                                            item.route
-                                        )
-                                    }
-                                    className={`
-                                        group
-                                        relative
-                                        flex
-                                        items-center
-                                        gap-2
-                                        rounded-xl
-                                        px-4
-                                        py-2.5
-                                        text-sm
-                                        font-bold
-                                        transition-all
-                                        duration-200
-                                        ${isHome
-                                            ? `
-                                                    bg-white/10
-                                                    text-white
-                                                  `
-                                            : `
-                                                    text-white/55
-                                                    hover:bg-white/[0.06]
-                                                    hover:text-white
-                                                  `
-                                        }
-                                    `}
-                                >
-
-                                    <span
-                                        className="
-                                            text-[15px]
-                                            transition-transform
-                                            duration-200
-                                            group-hover:scale-110
-                                        "
+                                <li key={item.id}>
+                                    <button
+                                        type="button"
+                                        className="mn-link"
+                                        aria-current={active ? "page" : undefined}
+                                        onClick={() => goTo(item.route)}
                                     >
-                                        {item.icon}
-                                    </span>
+                                        {item.icon && (
+                                            <span className="mn-link-icon" aria-hidden="true">
+                                                {item.icon}
+                                            </span>
+                                        )}
+                                        <span>{item.label}</span>
 
-                                    <span>
-                                        {item.label}
-                                    </span>
-
-
-                                    {isHome && (
-
-                                        <motion.span
-                                            layoutId="main-nav-active"
-                                            className="
-                                                absolute
-                                                bottom-0.5
-                                                left-1/2
-                                                h-0.5
-                                                w-5
-                                                -translate-x-1/2
-                                                rounded-full
-                                                bg-indigo-400
-                                            "
-                                        />
-
-                                    )}
-
-                                </button>
-
+                                        {active && (
+                                            <motion.span
+                                                layoutId="mn-active"
+                                                className="mn-link-bar"
+                                                aria-hidden="true"
+                                            />
+                                        )}
+                                    </button>
+                                </li>
                             );
-
-                        }
-                    )}
-
+                        })}
+                    </ul>
                 </nav>
 
+                <div className="mn-spacer" />
 
-                {/* =================================================
-                    ESPACIADOR
-                ================================================= */}
+                <Currencies player={player} className="mn-hide-sm" />
 
-                <div className="flex-1" />
+                {/* ---------- Jugador + menú desplegable ---------- */}
 
-
-                {/* =================================================
-                    MONEDAS
-                ================================================= */}
-
-                <div
-                    className="
-                        hidden
-                        items-center
-                        gap-2
-                        md:flex
-                    "
-                >
-
-                    <div
-                        className="
-                            flex
-                            items-center
-                            gap-2
-                            rounded-xl
-                            border
-                            border-white/10
-                            bg-white/[0.045]
-                            px-3
-                            py-2
-                            text-sm
-                            text-white
-                            transition
-                            hover:bg-white/[0.08]
-                        "
-                    >
-
-                        <FaCoins
-                            className="
-                                text-amber-300
-                            "
-                        />
-
-                        <strong>
-                            {(
-                                player?.currencies?.coins ||
-                                0
-                            ).toLocaleString()}
-                        </strong>
-
-                    </div>
-
-
-                    <div
-                        className="
-                            flex
-                            items-center
-                            gap-2
-                            rounded-xl
-                            border
-                            border-white/10
-                            bg-white/[0.045]
-                            px-3
-                            py-2
-                            text-sm
-                            text-white
-                            transition
-                            hover:bg-white/[0.08]
-                        "
-                    >
-
-                        <FaGem
-                            className="
-                                text-cyan-300
-                            "
-                        />
-
-                        <strong>
-                            {
-                                player?.currencies?.gems ||
-                                0
-                            }
-                        </strong>
-
-                    </div>
-
-                </div>
-
-
-                {/* =================================================
-                    JUGADOR
-                ================================================= */}
-
-                <div
-                    ref={menuRef}
-                    className="relative"
-                >
+                <div className="mn-player" ref={menuRef}>
 
                     <button
+                        ref={menuButtonRef}
                         type="button"
-                        onClick={() =>
-                            setMenuOpen(
-                                previous =>
-                                    !previous
-                            )
-                        }
-                        className="
-                            group
-                            flex
-                            items-center
-                            gap-2.5
-                            rounded-2xl
-                            border
-                            border-white/10
-                            bg-white/[0.045]
-                            p-1.5
-                            pr-2.5
-                            text-left
-                            transition-all
-                            duration-200
-                            hover:border-white/20
-                            hover:bg-white/[0.08]
-                            active:scale-[0.98]
-                        "
+                        className="mn-player-btn"
+                        aria-haspopup="menu"
+                        aria-expanded={menuOpen}
+                        aria-controls={menuId}
+                        aria-label={`Menú de ${displayName}, nivel ${level}`}
+                        onClick={() => setMenuOpen((open) => !open)}
                     >
-
-                        <div
-                            className="
-                                relative
-                                h-10
-                                w-10
-                                shrink-0
-                                overflow-hidden
-                                rounded-xl
-                                border
-                                border-white/15
-                                bg-slate-800
-                            "
-                            onClick={(event) => {
-
-                                event.stopPropagation();
-
-                                goTo("/profile");
-
-                            }}
-                        >
-
+                        <span className="mn-avatar">
                             <AssetImage
-                                src={
-                                    player?.avatar
-                                }
+                                src={player?.avatar}
                                 type="player"
-                                alt={
-                                    player?.name ||
-                                    player?.displayName ||
-                                    "Jugador"
-                                }
-                                className="
-                                    h-full
-                                    w-full
-                                    object-cover
-                                "
+                                alt=""
                             />
+                        </span>
 
-                        </div>
-
-
-                        <div
-                            className="
-                                hidden
-                                min-w-0
-                                sm:block
-                            "
-                        >
-
-                            <strong
-                                className="
-                                    block
-                                    max-w-[120px]
-                                    truncate
-                                    text-xs
-                                    font-extrabold
-                                    text-white
-                                "
-                            >
-                                {
-                                    player?.displayName ||
-                                    player?.name ||
-                                    "Jugador"
-                                }
-                            </strong>
-
-
-                            <span
-                                className="
-                                    block
-                                    text-[9px]
-                                    font-bold
-                                    tracking-wider
-                                    text-white/40
-                                "
-                            >
-                                NIVEL {
-                                    player?.level ||
-                                    1
-                                }
+                        <span className="mn-player-info" aria-hidden="true">
+                            <span className="mn-player-name">{displayName}</span>
+                            <span className="mn-player-level">
+                                <span>{`Nivel ${level}`}</span>
+                                <span className="mn-xp">
+                                    <span style={{ width: `${xp}%` }} />
+                                </span>
                             </span>
+                        </span>
 
-                        </div>
-
-
-                        <FaChevronDown
-                            className={`
-                                hidden
-                                text-[10px]
-                                text-white/40
-                                transition-transform
-                                duration-200
-                                sm:block
-                                ${menuOpen
-                                    ? "rotate-180"
-                                    : ""
-                                }
-                            `}
+                        <LuChevronDown
+                            aria-hidden="true"
+                            className={`mn-chevron ${menuOpen ? "is-open" : ""}`}
                         />
-
                     </button>
 
-
-                    {/* =================================================
-                        DROPDOWN
-                    ================================================= */}
-
                     <AnimatePresence>
-
                         {menuOpen && (
-
                             <motion.div
-                                initial={{
-                                    opacity: 0,
-                                    y: -8,
-                                    scale: 0.97
-                                }}
-                                animate={{
-                                    opacity: 1,
-                                    y: 0,
-                                    scale: 1
-                                }}
-                                exit={{
-                                    opacity: 0,
-                                    y: -8,
-                                    scale: 0.97
-                                }}
-                                transition={{
-                                    duration: 0.16
-                                }}
-                                className="
-                                    absolute
-                                    right-0
-                                    top-[calc(100%+10px)]
-                                    w-64
-                                    overflow-hidden
-                                    rounded-2xl
-                                    border
-                                    border-white/10
-                                    bg-slate-900/95
-                                    shadow-2xl
-                                    shadow-black/40
-                                    backdrop-blur-2xl
-                                "
+                                {...motionProps}
+                                className="mn-menu"
+                                id={menuId}
                             >
+                                <div className="mn-menu-head">
+                                    <span className="mn-avatar mn-avatar-lg">
+                                        <AssetImage src={player?.avatar} type="player" alt="" />
+                                    </span>
+                                    <div className="mn-menu-id">
+                                        <p className="mn-menu-name">{displayName}</p>
+                                        <p className="mn-menu-level">{`Nivel ${level} · ${xp}% al siguiente`}</p>
+                                    </div>
+                                </div>
 
-                                {/* PERFIL */}
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        goTo(
-                                            "/profile"
-                                        )
-                                    }
-                                    className="
-                                        flex
-                                        w-full
-                                        items-center
-                                        gap-3
-                                        px-4
-                                        py-3.5
-                                        text-left
-                                        text-sm
-                                        font-bold
-                                        text-white/75
-                                        transition
-                                        hover:bg-white/[0.07]
-                                        hover:text-white
-                                    "
+                                <ul
+                                    ref={menuListRef}
+                                    role="menu"
+                                    aria-label={`Opciones de ${displayName}`}
+                                    onKeyDown={onMenuKeyDown}
                                 >
+                                    {PROFILE_MENU.map(({ id, label, icon: Icon, route }) => (
+                                        <li key={id} role="none">
+                                            <button
+                                                type="button"
+                                                role="menuitem"
+                                                className="mn-menu-item"
+                                                onClick={() => goTo(route)}
+                                            >
+                                                <span className="mn-menu-icon" aria-hidden="true">
+                                                    <Icon />
+                                                </span>
+                                                <span>{label}</span>
+                                            </button>
+                                        </li>
+                                    ))}
 
-                                    <span
-                                        className="
-                                            flex
-                                            h-9
-                                            w-9
-                                            items-center
-                                            justify-center
-                                            rounded-xl
-                                            bg-indigo-500/10
-                                            text-indigo-300
-                                        "
-                                    >
-                                        <FaUser />
-                                    </span>
+                                    <li role="separator" className="mn-menu-sep" />
 
-                                    <span>
-                                        Mi perfil
-                                    </span>
-
-                                </button>
-
-
-                                {/* CONFIGURACIÓN */}
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        goTo(
-                                            "/settings"
-                                        )
-                                    }
-                                    className="
-                                        flex
-                                        w-full
-                                        items-center
-                                        gap-3
-                                        px-4
-                                        py-3.5
-                                        text-left
-                                        text-sm
-                                        font-bold
-                                        text-white/75
-                                        transition
-                                        hover:bg-white/[0.07]
-                                        hover:text-white
-                                    "
-                                >
-
-                                    <span
-                                        className="
-                                            flex
-                                            h-9
-                                            w-9
-                                            items-center
-                                            justify-center
-                                            rounded-xl
-                                            bg-white/5
-                                            text-white/60
-                                        "
-                                    >
-                                        <FaCog />
-                                    </span>
-
-                                    <span>
-                                        Configuración
-                                    </span>
-
-                                </button>
-
-
-                                <div
-                                    className="
-                                        mx-3
-                                        border-t
-                                        border-white/10
-                                    "
-                                />
-
-
-                                {/* CERRAR SESIÓN */}
-
-                                <button
-                                    type="button"
-                                    onClick={
-                                        handleLogout
-                                    }
-                                    className="
-                                        flex
-                                        w-full
-                                        items-center
-                                        gap-3
-                                        px-4
-                                        py-3.5
-                                        text-left
-                                        text-sm
-                                        font-bold
-                                        text-red-300/80
-                                        transition
-                                        hover:bg-red-500/10
-                                        hover:text-red-300
-                                    "
-                                >
-
-                                    <span
-                                        className="
-                                            flex
-                                            h-9
-                                            w-9
-                                            items-center
-                                            justify-center
-                                            rounded-xl
-                                            bg-red-500/10
-                                        "
-                                    >
-                                        <FaSignOutAlt />
-                                    </span>
-
-                                    <span>
-                                        Cerrar sesión
-                                    </span>
-
-                                </button>
-
+                                    <li role="none">
+                                        <button
+                                            type="button"
+                                            role="menuitem"
+                                            className="mn-menu-item mn-menu-danger"
+                                            onClick={handleLogout}
+                                        >
+                                            <span className="mn-menu-icon" aria-hidden="true">
+                                                <LuLogOut />
+                                            </span>
+                                            <span>Cerrar sesión</span>
+                                        </button>
+                                    </li>
+                                </ul>
                             </motion.div>
-
                         )}
-
                     </AnimatePresence>
-
                 </div>
 
-
-                {/* =================================================
-                    MOBILE BUTTON
-                ================================================= */}
+                {/* ---------- Botón del menú en celular ---------- */}
 
                 <button
+                    ref={mobileButtonRef}
                     type="button"
-                    onClick={() =>
-                        setMobileOpen(
-                            previous =>
-                                !previous
-                        )
-                    }
-                    className="
-                        flex
-                        h-10
-                        w-10
-                        items-center
-                        justify-center
-                        rounded-xl
-                        border
-                        border-white/10
-                        bg-white/[0.05]
-                        text-white
-                        transition
-                        hover:bg-white/10
-                        lg:hidden
-                    "
+                    className="mn-burger"
+                    aria-expanded={mobileOpen}
+                    aria-controls={mobileId}
+                    aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+                    onClick={() => setMobileOpen((open) => !open)}
                 >
-
-                    <AnimatePresence
-                        mode="wait"
-                        initial={false}
-                    >
-
-                        {mobileOpen ? (
-
-                            <motion.span
-                                key="close"
-                                initial={{
-                                    rotate: -90,
-                                    opacity: 0
-                                }}
-                                animate={{
-                                    rotate: 0,
-                                    opacity: 1
-                                }}
-                                exit={{
-                                    rotate: 90,
-                                    opacity: 0
-                                }}
-                            >
-                                <FaTimes />
-                            </motion.span>
-
-                        ) : (
-
-                            <motion.span
-                                key="menu"
-                                initial={{
-                                    rotate: 90,
-                                    opacity: 0
-                                }}
-                                animate={{
-                                    rotate: 0,
-                                    opacity: 1
-                                }}
-                                exit={{
-                                    rotate: -90,
-                                    opacity: 0
-                                }}
-                            >
-                                <FaBars />
-                            </motion.span>
-
-                        )}
-
-                    </AnimatePresence>
-
+                    {mobileOpen ? <LuX aria-hidden="true" /> : <LuMenu aria-hidden="true" />}
                 </button>
-
             </div>
 
-
-            {/* =====================================================
-                MOBILE NAV
-            ===================================================== */}
+            {/* ---------- Panel del celular ---------- */}
 
             <AnimatePresence>
-
                 {mobileOpen && (
+                    <>
+                        <motion.div
+                            className="mn-scrim"
+                            aria-hidden="true"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setMobileOpen(false)}
+                        />
 
-                    <motion.div
-                        initial={{
-                            height: 0,
-                            opacity: 0
-                        }}
-                        animate={{
-                            height: "auto",
-                            opacity: 1
-                        }}
-                        exit={{
-                            height: 0,
-                            opacity: 0
-                        }}
-                        className="
-                            overflow-hidden
-                            border-t
-                            border-white/10
-                            bg-slate-950/95
-                            lg:hidden
-                        "
-                    >
-
-                        <nav
-                            className="
-                                flex
-                                flex-col
-                                gap-1
-                                p-3
-                            "
+                        <motion.nav
+                            ref={mobilePanelRef}
+                            id={mobileId}
+                            className="mn-mobile"
+                            aria-label="Menú principal"
+                            initial={reduceMotion ? false : { opacity: 0, y: -12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: reduceMotion ? 0 : -12 }}
+                            transition={{ duration: 0.18 }}
                         >
-
-                            {navigation.map(
-                                (item) => (
-
-                                    <button
-                                        key={item.id}
-                                        type="button"
-                                        onClick={() =>
-                                            goTo(
-                                                item.route
-                                            )
-                                        }
-                                        className="
-                                            flex
-                                            items-center
-                                            gap-3
-                                            rounded-xl
-                                            px-4
-                                            py-3
-                                            text-left
-                                            text-sm
-                                            font-bold
-                                            text-white/65
-                                            transition
-                                            hover:bg-white/[0.07]
-                                            hover:text-white
-                                        "
-                                    >
-
-                                        <span
-                                            className="
-                                                text-indigo-300
-                                            "
+                            <ul className="mn-mobile-links">
+                                {navigation.map((item) => (
+                                    <li key={item.id}>
+                                        <button
+                                            type="button"
+                                            className="mn-mobile-link"
+                                            aria-current={isActive(item.route) ? "page" : undefined}
+                                            onClick={() => goTo(item.route)}
                                         >
-                                            {item.icon}
-                                        </span>
+                                            {item.icon && (
+                                                <span className="mn-link-icon" aria-hidden="true">
+                                                    {item.icon}
+                                                </span>
+                                            )}
+                                            <span>{item.label}</span>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
 
-                                        {item.label}
+                            <Currencies player={player} className="mn-currencies-mobile" />
 
+                            <ul className="mn-mobile-links mn-mobile-account">
+                                {PROFILE_MENU.map(({ id, label, icon: Icon, route }) => (
+                                    <li key={id}>
+                                        <button
+                                            type="button"
+                                            className="mn-mobile-link"
+                                            onClick={() => goTo(route)}
+                                        >
+                                            <span className="mn-menu-icon" aria-hidden="true"><Icon /></span>
+                                            <span>{label}</span>
+                                        </button>
+                                    </li>
+                                ))}
+                                <li>
+                                    <button
+                                        type="button"
+                                        className="mn-mobile-link mn-menu-danger"
+                                        onClick={handleLogout}
+                                    >
+                                        <span className="mn-menu-icon" aria-hidden="true"><LuLogOut /></span>
+                                        <span>Cerrar sesión</span>
                                     </button>
-
-                                )
-                            )}
-
-
-                            {/* MOBILE CURRENCIES */}
-
-                            <div
-                                className="
-                                    mt-2
-                                    grid
-                                    grid-cols-2
-                                    gap-2
-                                    border-t
-                                    border-white/10
-                                    pt-3
-                                "
-                            >
-
-                                <div
-                                    className="
-                                        flex
-                                        items-center
-                                        justify-center
-                                        gap-2
-                                        rounded-xl
-                                        bg-white/[0.05]
-                                        py-3
-                                        text-sm
-                                        text-white
-                                    "
-                                >
-
-                                    <FaCoins
-                                        className="
-                                            text-amber-300
-                                        "
-                                    />
-
-                                    <strong>
-                                        {(
-                                            player?.currencies?.coins ||
-                                            0
-                                        ).toLocaleString()}
-                                    </strong>
-
-                                </div>
-
-
-                                <div
-                                    className="
-                                        flex
-                                        items-center
-                                        justify-center
-                                        gap-2
-                                        rounded-xl
-                                        bg-white/[0.05]
-                                        py-3
-                                        text-sm
-                                        text-white
-                                    "
-                                >
-
-                                    <FaGem
-                                        className="
-                                            text-cyan-300
-                                        "
-                                    />
-
-                                    <strong>
-                                        {
-                                            player?.currencies?.gems ||
-                                            0
-                                        }
-                                    </strong>
-
-                                </div>
-
-                            </div>
-
-                        </nav>
-
-                    </motion.div>
-
+                                </li>
+                            </ul>
+                        </motion.nav>
+                    </>
                 )}
-
             </AnimatePresence>
-
         </header>
-
     );
-
 }

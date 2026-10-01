@@ -164,7 +164,9 @@
         linear-gradient(180deg, rgba(5, 8, 15, 0.25), rgba(5, 8, 15, 0.45));
 }
 
-.wd> :not(.wd-bg):not(.wd-alert):not(.wd-dialog) {
+/* El menú superior (header) NO entra aquí: lleva su propio
+   z-index para que su menú desplegable quede encima de todo */
+.wd> :not(.wd-bg):not(.wd-alert):not(.wd-dialog):not(header) {
     position: relative;
     z-index: 1;
 }

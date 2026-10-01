@@ -1,0 +1,653 @@
+/* =========================================================
+   MENÚ SUPERIOR — MathVision
+   ---------------------------------------------------------
+   · z-index alto: el menú desplegable queda SIEMPRE encima
+     del contenido de la página.
+   · Mismo estilo del lobby y del mundo.
+   · Letra mínima 14px, foco visible, botones de 44px o más.
+========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap");
+
+.mn {
+    --mn-h: 72px;
+    --mn-bg: rgba(8, 12, 22, 0.78);
+    --mn-surface: rgba(255, 255, 255, 0.06);
+    --mn-surface-2: rgba(255, 255, 255, 0.1);
+    --mn-border: rgba(255, 255, 255, 0.12);
+    --mn-border-strong: rgba(255, 255, 255, 0.2);
+    --mn-text: #f4f6fb;
+    --mn-text-muted: #c1c9da;
+    --mn-accent: #5aa9ff;
+    --mn-accent-soft: rgba(90, 169, 255, 0.16);
+    --mn-on-accent: #06101d;
+    --mn-gold: #fbbf24;
+    --mn-cyan: #67e8f9;
+    --mn-danger: #f87171;
+    --mn-danger-soft: rgba(248, 113, 113, 0.14);
+    --mn-focus: 0 0 0 3px #070b14, 0 0 0 6px var(--mn-accent);
+
+    /* Por encima de TODO el contenido de la página */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    flex-shrink: 0;
+
+    width: 100%;
+    border-bottom: 1px solid var(--mn-border);
+    color: var(--mn-text);
+    font-family: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+/* El vidrio esmerilado va en una capa aparte: si se pone
+   directo en el header, el panel del celular (position:
+   fixed) quedaría atrapado dentro de la barra */
+.mn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--mn-bg);
+    backdrop-filter: blur(18px) saturate(1.3);
+    -webkit-backdrop-filter: blur(18px) saturate(1.3);
+}
+
+.mn *,
+.mn *::before,
+.mn *::after {
+    box-sizing: border-box;
+}
+
+.mn ul,
+.mn p {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mn button {
+    font: inherit;
+    color: inherit;
+}
+
+.mn svg {
+    flex-shrink: 0;
+}
+
+.mn :focus-visible {
+    outline: none;
+    box-shadow: var(--mn-focus);
+}
+
+.mn-sr-only {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* =========================================================
+   BARRA
+========================================================= */
+
+.mn-bar {
+    width: min(1600px, 100%);
+    min-height: var(--mn-h);
+    margin: 0 auto;
+    padding: 0 clamp(12px, 2vw, 28px);
+    display: flex;
+    align-items: center;
+    gap: clamp(8px, 1.2vw, 16px);
+}
+
+.mn-spacer {
+    flex: 1;
+}
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.mn-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    min-height: 48px;
+    padding: 4px 8px 4px 4px;
+    margin-left: -4px;
+    border: none;
+    border-radius: 14px;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.mn-brand:hover {
+    background: var(--mn-surface);
+}
+
+/* Imagen del logo: se ajusta sola al alto de la barra */
+.mn-brand-logo {
+    display: block;
+    height: 44px;
+    width: auto;
+    max-width: 160px;
+    object-fit: contain;
+    transition: transform 0.2s;
+}
+
+.mn-brand:hover .mn-brand-logo {
+    transform: scale(1.04) rotate(-2deg);
+}
+
+.mn-brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mn-brand-name {
+    font-size: 1.375rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.01em;
+}
+
+.mn-brand-accent {
+    background: linear-gradient(90deg, var(--mn-accent), #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.mn-brand-tagline {
+    color: var(--mn-text-muted);
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+/* =========================================================
+   NAVEGACIÓN (escritorio)
+========================================================= */
+
+.mn-nav {
+    display: none;
+    margin-left: 8px;
+}
+
+.mn-nav ul {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mn-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--mn-text-muted);
+    font-size: 1rem;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.mn-link:hover {
+    background: var(--mn-surface);
+    color: var(--mn-text);
+}
+
+.mn-link[aria-current="page"] {
+    background: var(--mn-surface-2);
+    color: var(--mn-text);
+}
+
+.mn-link-icon {
+    display: inline-flex;
+    font-size: 1.05em;
+    line-height: 1;
+    transition: transform 0.2s;
+}
+
+.mn-link:hover .mn-link-icon {
+    transform: scale(1.15);
+}
+
+.mn-link-bar {
+    position: absolute;
+    left: 50%;
+    bottom: 4px;
+    width: 22px;
+    height: 3px;
+    margin-left: -11px;
+    border-radius: 999px;
+    background: var(--mn-accent);
+}
+
+/* =========================================================
+   MONEDAS
+========================================================= */
+
+.mn-currencies {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mn-currency {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--mn-border);
+    border-radius: 12px;
+    background: var(--mn-surface);
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.mn-currency svg {
+    width: 18px;
+    height: 18px;
+}
+
+.mn-currency strong {
+    font-weight: 900;
+}
+
+.mn-currency-coins svg {
+    color: var(--mn-gold);
+}
+
+.mn-currency-gems svg {
+    color: var(--mn-cyan);
+}
+
+/* =========================================================
+   JUGADOR Y MENÚ DESPLEGABLE
+========================================================= */
+
+.mn-player {
+    position: relative;
+}
+
+.mn-player-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 5px 12px 5px 5px;
+    border: 1px solid var(--mn-border);
+    border-radius: 16px;
+    background: var(--mn-surface);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.mn-player-btn:hover,
+.mn-player-btn[aria-expanded="true"] {
+    background: var(--mn-surface-2);
+    border-color: var(--mn-border-strong);
+}
+
+.mn-player-btn:active {
+    transform: scale(0.98);
+}
+
+.mn-avatar {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 2px solid var(--mn-accent);
+    background: #1e293b;
+}
+
+.mn-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mn-avatar-lg {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+}
+
+.mn-player-info {
+    display: none;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.mn-player-name {
+    max-width: 140px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.mn-player-level {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--mn-text-muted);
+    font-size: 0.875rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.mn-xp {
+    width: 52px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--mn-surface-2);
+    overflow: hidden;
+}
+
+.mn-xp span {
+    display: block;
+    height: 100%;
+    min-width: 4px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--mn-accent), #34d399);
+}
+
+.mn-chevron {
+    display: none;
+    width: 18px;
+    height: 18px;
+    color: var(--mn-text-muted);
+    transition: transform 0.2s;
+}
+
+.mn-chevron.is-open {
+    transform: rotate(180deg);
+}
+
+/* El desplegable */
+.mn-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
+    z-index: 1100;
+    width: 280px;
+    max-width: calc(100vw - 24px);
+    overflow: hidden;
+    border: 1px solid var(--mn-border-strong);
+    border-radius: 20px;
+    background: rgba(12, 18, 30, 0.98);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transform-origin: top right;
+}
+
+.mn-menu-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background:
+        radial-gradient(circle at 0% 0%, rgba(90, 169, 255, 0.25), transparent 70%);
+    border-bottom: 1px solid var(--mn-border);
+}
+
+.mn-menu-id {
+    min-width: 0;
+}
+
+.mn-menu-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 1.125rem;
+    font-weight: 900;
+}
+
+.mn-menu-level {
+    color: var(--mn-text-muted);
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.mn-menu ul {
+    padding: 8px;
+}
+
+.mn-menu-item,
+.mn-mobile-link {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    font-size: 1rem;
+    font-weight: 800;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.mn-menu-item:hover,
+.mn-menu-item:focus-visible,
+.mn-mobile-link:hover {
+    background: var(--mn-surface-2);
+}
+
+.mn-menu-icon {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: var(--mn-accent-soft);
+    color: var(--mn-accent);
+}
+
+.mn-menu-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.mn-menu-sep {
+    height: 1px;
+    margin: 6px 8px;
+    background: var(--mn-border);
+}
+
+.mn-menu-danger {
+    color: #fca5a5;
+}
+
+.mn-menu-danger .mn-menu-icon {
+    background: var(--mn-danger-soft);
+    color: var(--mn-danger);
+}
+
+.mn-menu-danger:hover {
+    background: var(--mn-danger-soft);
+}
+
+/* =========================================================
+   CELULAR
+========================================================= */
+
+.mn-burger {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid var(--mn-border);
+    border-radius: 14px;
+    background: var(--mn-surface);
+    cursor: pointer;
+}
+
+.mn-burger svg {
+    width: 22px;
+    height: 22px;
+}
+
+.mn-scrim {
+    position: fixed;
+    inset: var(--mn-h) 0 0 0;
+    z-index: 1;
+    background: rgba(3, 6, 12, 0.6);
+}
+
+.mn-mobile {
+    position: fixed;
+    top: calc(var(--mn-h) + 8px);
+    left: 8px;
+    right: 8px;
+    z-index: 2;
+    max-height: calc(100dvh - var(--mn-h) - 16px);
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid var(--mn-border-strong);
+    border-radius: 20px;
+    background: rgba(12, 18, 30, 0.98);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.mn-mobile-links {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mn-mobile-link[aria-current="page"] {
+    background: var(--mn-surface-2);
+    box-shadow: inset 3px 0 0 var(--mn-accent);
+}
+
+.mn-mobile-link .mn-link-icon {
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: var(--mn-surface);
+}
+
+.mn-currencies-mobile {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 10px 0;
+    padding: 10px 0;
+    border-top: 1px solid var(--mn-border);
+    border-bottom: 1px solid var(--mn-border);
+}
+
+.mn-currencies-mobile .mn-currency {
+    justify-content: center;
+    min-height: 48px;
+}
+
+/* =========================================================
+   TAMAÑOS DE PANTALLA
+========================================================= */
+
+/* Celular muy pequeño: logo compacto */
+@media (max-width: 479px) {
+    .mn {
+        --mn-h: 64px;
+    }
+
+    .mn-brand-tagline {
+        display: none;
+    }
+
+    .mn-brand-name {
+        font-size: 1.125rem;
+    }
+
+    .mn-brand-logo {
+        height: 36px;
+    }
+}
+
+@media (max-width: 767px) {
+    .mn-hide-sm {
+        display: none;
+    }
+}
+
+/* Tablet en adelante: nombre y nivel junto al avatar */
+@media (min-width: 640px) {
+    .mn-player-info {
+        display: flex;
+    }
+
+    .mn-chevron {
+        display: block;
+    }
+}
+
+/* Escritorio: navegación visible y sin botón de celular */
+@media (min-width: 1024px) {
+    .mn-nav {
+        display: block;
+    }
+
+    .mn-burger,
+    .mn-scrim,
+    .mn-mobile {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .mn *,
+    .mn *::before,
+    .mn *::after {
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@media (forced-colors: active) {
+
+    .mn-player-btn,
+    .mn-currency,
+    .mn-menu,
+    .mn-burger {
+        border: 1px solid CanvasText;
+    }
+}
