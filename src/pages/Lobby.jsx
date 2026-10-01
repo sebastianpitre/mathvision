@@ -1,31 +1,49 @@
-import React, { Suspense, useEffect, useState } from "react";
+import React, {
+    Suspense,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
+
 import { useNavigate } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
+
 import MainNav from "../components/navigation/MainNav";
 
+/*
+ * Iconos Lucide (vienen dentro de react-icons, no hay que
+ * instalar nada nuevo). Son de línea, modernos y uniformes.
+ */
 import {
-    FaArrowRight,
-    FaBell,
-    FaCheck,
-    FaCircle,
-    FaGamepad,
-    FaGlobeAmericas,
-    FaLock,
-    FaPaperPlane,
-    FaTimes,
-    FaTrophy,
-    FaUserPlus,
-    FaUsers,
-} from "react-icons/fa";
+    LuArrowRight,
+    LuBell,
+    LuCheck,
+    LuFlame,
+    LuGamepad2,
+    LuGlobe,
+    LuHand,
+    LuHourglass,
+    LuLock,
+    LuLogIn,
+    LuPalette,
+    LuShoppingBag,
+    LuSmartphone,
+    LuSparkles,
+    LuSwords,
+    LuTarget,
+    LuTrophy,
+    LuUserPlus,
+    LuUsers,
+    LuX,
+} from "react-icons/lu";
 
 import "../styles/mathvision.css";
+import "../styles/lobby.css";
 
-import {
-    useAuth
-} from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
-import rooms from "../data/mock/rooms.json";
 import games from "../data/mock/games.json";
 import navigation from "../data/mock/navigation.json";
 import assets from "../data/mock/assets.json";
@@ -35,106 +53,380 @@ import VRMCharacter from "../components/character/VRMCharacter";
 
 import { socket } from "../services/socket";
 
+/* =========================================================
+   UTILIDADES
+========================================================= */
+
+// "1 jugador", "2 jugadores", "2–4 jugadores"
+const playersLabel = (min, max) => {
+
+    const low = Number(min) || 0;
+    const high = Number(max) || low;
+
+    if (!low && !high) return null;
+
+    if (!high || low === high) {
+        return `${low} ${low === 1 ? "jugador" : "jugadores"}`;
+    }
+
+    return `${low}–${high} jugadores`;
+};
+
+/*
+ * Foto del juego tomada del JSON.
+ * Si en tu games.json el campo se llama distinto,
+ * agrégalo aquí.
+ */
+const gameImage = (game) =>
+    game?.image ||
+    game?.cover ||
+    game?.thumbnail ||
+    game?.banner ||
+    game?.img ||
+    game?.photo ||
+    null;
+
+const invitationKey = (invitation) =>
+    String(
+        invitation?.fromPlayerId ||
+        invitation?.fromPlayer?.id ||
+        invitation?.playerId ||
+        invitation?.id ||
+        ""
+    );
+
+const invitationName = (invitation) =>
+    invitation?.fromPlayerName ||
+    invitation?.fromPlayer?.name ||
+    invitation?.name ||
+    "Jugador";
+
+const invitationAvatar = (invitation) =>
+    invitation?.fromPlayerAvatar ||
+    invitation?.fromPlayer?.avatar;
+
+const STATUS = {
+    available: { label: "Disponible", tone: "online" },
+    inviting: { label: "Invitando…", tone: "busy" },
+    invited: { label: "Con invitación", tone: "busy" },
+    playing: { label: "En partida", tone: "playing" },
+};
+
+const statusOf = (player) =>
+    STATUS[player?.status || "available"] || STATUS.playing;
 
 /* =========================================================
-   TARJETA DE JUEGO
-   ========================================================= */
+   COMPONENTES PEQUEÑOS
+========================================================= */
 
-function GameCard({ game, onClick }) {
+function SectionHeader({ id, eyebrow, icon: Icon, title, action }) {
+    return (
+        <header className="lb-section-header">
+            <div>
+                {eyebrow && (
+                    <p className="lb-eyebrow">
+                        {Icon && <Icon aria-hidden="true" />}
+                        <span>{eyebrow}</span>
+                    </p>
+                )}
+                <h2 id={id} className="lb-title">
+                    {title}
+                </h2>
+            </div>
+
+            {action}
+        </header>
+    );
+}
+
+function EmptyState({ icon: Icon, children }) {
+    return (
+        <div className="lb-empty">
+            <span className="lb-empty-icon" aria-hidden="true">
+                <Icon />
+            </span>
+            <p>{children}</p>
+        </div>
+    );
+}
+
+function ComingSoonTile({ icon: Icon, title }) {
+    return (
+        <li className="lb-soon" aria-disabled="true">
+            <span className="lb-soon-icon" aria-hidden="true">
+                <Icon />
+            </span>
+            <span className="lb-soon-title">{title}</span>
+            <span className="lb-badge">
+                <LuLock aria-hidden="true" />
+                <span>Pronto</span>
+            </span>
+        </li>
+    );
+}
+
+// Foto del juego (o un respaldo con color si no tiene foto)
+function GamePhoto({ game, className = "" }) {
+
+    const [failed, setFailed] = useState(false);
+    const src = gameImage(game);
+
+    if (!src || failed) {
+        return (
+            <span
+                className={`lb-photo lb-photo-fallback ${className}`}
+                style={{ "--game-color": game?.color || "#5aa9ff" }}
+                aria-hidden="true"
+            >
+                <span>{game?.name}</span>
+            </span>
+        );
+    }
+
+    return (
+        <img
+            className={`lb-photo ${className}`}
+            src={src}
+            alt=""
+            loading="lazy"
+            draggable="false"
+            onError={() => setFailed(true)}
+        />
+    );
+}
+
+/* =========================================================
+   TARJETA "ELIGE TU JUEGO" (collage)
+========================================================= */
+
+function GamesBanner({ games: list, onOpen }) {
+
+    const photos = list.slice(0, 4);
+
     return (
         <button
-            className="lobby-game-card"
-            style={{ "--game-color": game.color }}
-            onClick={onClick}
+            type="button"
+            className="lb-banner"
+            onClick={onOpen}
+            aria-haspopup="dialog"
         >
-            <div className="lobby-game-glow" />
-
-            <div className="lobby-game-icon">
-                {game.icon}
-            </div>
-
-            <div className="lobby-game-content">
-                <strong>
-                    {game.name}
-                </strong>
-
-                <span>
-                    {game.description}
+            <span className="lb-banner-text">
+                <span className="lb-eyebrow">
+                    <LuGamepad2 aria-hidden="true" />
+                    <span>Multijugador</span>
                 </span>
 
-                <small>
-                    <FaUsers />
-                    {" "}
-                    {game.minPlayers}
-                    {game.maxPlayers !== game.minPlayers &&
-                        ` - ${game.maxPlayers}`}
-                    {game.maxPlayers === game.minPlayers &&
-                        " jugadores"}
-                </small>
-            </div>
+                <span className="lb-banner-title">Elige tu juego</span>
 
-            <div className="lobby-game-arrow">
-                <FaArrowRight />
-            </div>
+                <span className="lb-banner-sub">
+                    {`${list.length} ${list.length === 1 ? "juego disponible" : "juegos disponibles"}`}
+                </span>
+            </span>
+
+            <span className="lb-collage" aria-hidden="true">
+                {photos.map((game, index) => (
+                    <span
+                        key={game.id ?? index}
+                        className="lb-collage-frame"
+                        style={{ "--i": index }}
+                    >
+                        <GamePhoto game={game} />
+                    </span>
+                ))}
+            </span>
+
+            <span className="lb-banner-cta">
+                <span>Ver juegos</span>
+                <LuArrowRight aria-hidden="true" />
+            </span>
         </button>
     );
 }
 
+/* =========================================================
+   MODAL DE JUEGOS
+   Usa <dialog>: el navegador maneja el foco, Escape
+   lo cierra y el fondo queda bloqueado.
+========================================================= */
+
+function GamesModal({ open, onClose, games: list, onPlay, onPlayLocal, playerName }) {
+
+    const dialogRef = useRef(null);
+
+    useEffect(() => {
+
+        const dialog = dialogRef.current;
+
+        if (!dialog) return;
+
+        if (open && !dialog.open) dialog.showModal();
+        if (!open && dialog.open) dialog.close();
+
+    }, [open]);
+
+    return (
+        <dialog
+            ref={dialogRef}
+            className="lb-modal"
+            aria-labelledby="lb-modal-title"
+            onClose={onClose}
+            onCancel={(e) => {
+                e.preventDefault();
+                onClose();
+            }}
+            onClick={(e) => {
+                // Clic fuera de la caja cierra el modal
+                if (e.target === dialogRef.current) onClose();
+            }}
+        >
+            <div className="lb-modal-box">
+
+                <header className="lb-modal-header">
+                    <div>
+                        <p className="lb-eyebrow">
+                            <LuGamepad2 aria-hidden="true" />
+                            <span>Multijugador</span>
+                        </p>
+                        <h2 id="lb-modal-title" className="lb-title">
+                            Elige tu juego
+                        </h2>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="lb-icon-btn"
+                        onClick={onClose}
+                        aria-label="Cerrar lista de juegos"
+                    >
+                        <LuX aria-hidden="true" />
+                    </button>
+                </header>
+
+                <div className="lb-modal-body">
+
+                    <ul className="lb-game-grid">
+                        {list.map((game) => {
+
+                            const label = playersLabel(game.minPlayers, game.maxPlayers);
+
+                            return (
+                                <li key={game.id}>
+                                    <button
+                                        type="button"
+                                        className="lb-game-card"
+                                        style={{ "--game-color": game.color || "#5aa9ff" }}
+                                        onClick={() => onPlay(game)}
+                                    >
+                                        <span className="lb-game-cover">
+                                            <GamePhoto game={game} />
+                                        </span>
+
+                                        <span className="lb-game-info">
+                                            <span className="lb-game-name">{game.name}</span>
+
+                                            {game.description && (
+                                                <span className="lb-game-desc">
+                                                    {game.description}
+                                                </span>
+                                            )}
+
+                                            <span className="lb-game-footer">
+                                                {label && (
+                                                    <span className="lb-pill">
+                                                        <LuUsers aria-hidden="true" />
+                                                        <span>{label}</span>
+                                                    </span>
+                                                )}
+
+                                                <span className="lb-game-play">
+                                                    <span>Jugar</span>
+                                                    <LuArrowRight aria-hidden="true" />
+                                                </span>
+                                            </span>
+                                        </span>
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+
+                    <button
+                        type="button"
+                        className="lb-local"
+                        onClick={onPlayLocal}
+                    >
+                        <span className="lb-local-icon" aria-hidden="true">
+                            <LuSmartphone />
+                        </span>
+                        <span className="lb-local-body">
+                            <span className="lb-local-title">
+                                Triqui en este dispositivo
+                            </span>
+                            <span className="lb-muted">
+                                {`Juega contra ${playerName} Clone, turnándose en la misma pantalla`}
+                            </span>
+                        </span>
+                        <LuArrowRight aria-hidden="true" className="lb-local-go" />
+                    </button>
+                </div>
+            </div>
+        </dialog>
+    );
+}
 
 /* =========================================================
    LOBBY
-   ========================================================= */
+========================================================= */
 
 export default function Lobby() {
 
     const navigate = useNavigate();
 
-    const {
-        user,
-        loading,
-    } = useAuth();
-
-    /* =====================================================
-       ONLINE
-       ===================================================== */
+    const { user, loading } = useAuth();
 
     const [onlinePlayers, setOnlinePlayers] = useState([]);
     const [invitations, setInvitations] = useState([]);
     const [onlineMessage, setOnlineMessage] = useState("");
-
     const [invitationAlert, setInvitationAlert] = useState(null);
+    const [gamesOpen, setGamesOpen] = useState(false);
 
+    const alertTimerRef = useRef(null);
+    const messageTimerRef = useRef(null);
+
+    const showOnlineMessage = useCallback((text, ms = 3000) => {
+        clearTimeout(messageTimerRef.current);
+        setOnlineMessage(text);
+        messageTimerRef.current = setTimeout(() => setOnlineMessage(""), ms);
+    }, []);
+
+    const hideAlert = useCallback(() => {
+        clearTimeout(alertTimerRef.current);
+        setInvitationAlert(null);
+    }, []);
+
+    const scheduleAlertHide = useCallback((ms = 8000) => {
+        clearTimeout(alertTimerRef.current);
+        alertTimerRef.current = setTimeout(() => setInvitationAlert(null), ms);
+    }, []);
+
+    useEffect(() => () => {
+        clearTimeout(alertTimerRef.current);
+        clearTimeout(messageTimerRef.current);
+    }, []);
 
     /* =====================================================
-       CONEXIÓN AL MUNDO ONLINE
-       ===================================================== */
+       CONEXIÓN AL MUNDO ONLINE (misma lógica de antes)
+    ===================================================== */
 
     useEffect(() => {
 
-        if (!user) {
-            return;
-        }
-
-
-        /*
-         * Cuando Socket.IO conecta,
-         * entramos al mundo online.
-         */
+        if (!user) return;
 
         const handleConnect = () => {
-
             socket.emit("world:join");
-
         };
 
-
-        /*
-         * Lista actualizada de jugadores.
-         */
-
         const handlePlayers = (data = {}) => {
-            console.log("🌎 Jugadores recibidos en Lobby:", data);
-            console.log("👤 Usuario actual:", user);
 
             const players = Array.isArray(data)
                 ? data
@@ -142,250 +434,92 @@ export default function Lobby() {
                     ? data.players
                     : [];
 
-            const currentUserId =
-                user?.id ||
-                user?.user_id ||
-                user?.userId;
+            const currentUserId = user?.id || user?.user_id || user?.userId;
 
-            const otherPlayers = currentUserId
-                ? players.filter(
-                    (player) =>
-                        String(player.id) !== String(currentUserId)
-                )
-                : players;
-
-            console.log("👥 Otros jugadores online:", otherPlayers);
-
-            setOnlinePlayers(otherPlayers);
+            setOnlinePlayers(
+                currentUserId
+                    ? players.filter(
+                        (p) => String(p.id) !== String(currentUserId)
+                    )
+                    : players
+            );
         };
-
-        /*
-         * Invitación recibida.
-         */
 
         const handleInvitation = (invitation) => {
 
-            if (!invitation) {
-                return;
-            }
+            if (!invitation) return;
 
+            const key = invitationKey(invitation);
 
-            const invitationId =
-                invitation.fromPlayerId ||
-                invitation.fromPlayer?.id ||
-                invitation.playerId ||
-                invitation.id;
-
-
-            setInvitations((current) => {
-
-                const exists =
-                    current.some(
-                        (item) =>
-                            String(
-                                item.fromPlayerId ||
-                                item.fromPlayer?.id ||
-                                item.playerId ||
-                                item.id
-                            ) === String(invitationId)
-                    );
-
-
-                if (exists) {
-                    return current;
-                }
-
-
-                return [
-                    ...current,
-                    invitation,
-                ];
-
-            });
-
-
-            /*
-             * ALERTA TEMPORAL
-             */
-
-            setInvitationAlert(invitation);
-
-
-            setTimeout(() => {
-
-                setInvitationAlert(null);
-
-            }, 4000);
-
-        };
-
-
-        /*
-         * Confirmación de invitación enviada.
-         */
-
-        const handleInviteSent = () => {
-
-            setOnlineMessage(
-                "Invitación enviada"
+            setInvitations((current) =>
+                current.some((item) => invitationKey(item) === key)
+                    ? current
+                    : [...current, invitation]
             );
 
-            setTimeout(() => {
-                setOnlineMessage("");
-            }, 2500);
-
+            setInvitationAlert(invitation);
+            scheduleAlertHide();
         };
 
+        const handleInviteSent = () => {
+            showOnlineMessage("Invitación enviada", 2500);
+        };
 
-        /*
-         * Una invitación que nosotros enviamos
-         * fue rechazada.
-         */
-
-        const handleInvitationRejected = ({
-            playerName,
-        } = {}) => {
-
-            setOnlineMessage(
+        const handleInvitationRejected = ({ playerName } = {}) => {
+            showOnlineMessage(
                 playerName
                     ? `${playerName} rechazó la invitación`
                     : "La invitación fue rechazada"
             );
-
-            setTimeout(() => {
-                setOnlineMessage("");
-            }, 3000);
-
         };
-
-
-        /*
-         * La partida fue creada al aceptar
-         * una invitación.
-         *
-         * Conservamos el comportamiento actual
-         * del proyecto: Triqui inicia directamente.
-         */
 
         const handleGameCreated = () => {
-
             navigate("/games/triqui");
-
         };
-
-
-        /*
-         * Registramos listeners antes de conectar.
-         */
 
         socket.on("connect", handleConnect);
-
-        socket.on(
-            "world:players",
-            handlePlayers
-        );
-
-        socket.on(
-            "world:invitation",
-            handleInvitation
-        );
-
-        socket.on(
-            "world:inviteSent",
-            handleInviteSent
-        );
-
-        socket.on(
-            "world:invitationRejected",
-            handleInvitationRejected
-        );
-
-        socket.on(
-            "world:gameCreated",
-            handleGameCreated
-        );
-
-
-        /*
-         * Si ya estaba conectado porque venimos
-         * desde /world, simplemente entramos otra vez.
-         */
+        socket.on("world:players", handlePlayers);
+        socket.on("world:invitation", handleInvitation);
+        socket.on("world:inviteSent", handleInviteSent);
+        socket.on("world:invitationRejected", handleInvitationRejected);
+        socket.on("world:gameCreated", handleGameCreated);
 
         if (socket.connected) {
-
             socket.emit("world:join");
-
         } else {
-
             socket.connect();
-
         }
 
-
         return () => {
-
-            socket.off(
-                "connect",
-                handleConnect
-            );
-
-            socket.off(
-                "world:players",
-                handlePlayers
-            );
-
-            socket.off(
-                "world:invitation",
-                handleInvitation
-            );
-
-            socket.off(
-                "world:inviteSent",
-                handleInviteSent
-            );
-
-            socket.off(
-                "world:invitationRejected",
-                handleInvitationRejected
-            );
-
-            socket.off(
-                "world:gameCreated",
-                handleGameCreated
-            );
-
+            socket.off("connect", handleConnect);
+            socket.off("world:players", handlePlayers);
+            socket.off("world:invitation", handleInvitation);
+            socket.off("world:inviteSent", handleInviteSent);
+            socket.off("world:invitationRejected", handleInvitationRejected);
+            socket.off("world:gameCreated", handleGameCreated);
         };
 
-    }, [user, navigate]);
-
+    }, [user, navigate, scheduleAlertHide, showOnlineMessage]);
 
     /* =====================================================
-       INVITAR JUGADOR
-       ===================================================== */
+       ACCIONES
+    ===================================================== */
 
     const handleInvite = (player) => {
 
-        if (!player) {
+        if (!player || (player.status || "available") !== "available") {
             return;
         }
 
-        if (player.status !== "available") {
-            return;
-        }
-
-        socket.emit(
-            "world:invite",
-            {
-                targetPlayerId: player.id,
-            }
-        );
-
+        socket.emit("world:invite", { targetPlayerId: player.id });
     };
 
-
-    /* =====================================================
-       ACEPTAR INVITACIÓN
-       ===================================================== */
+    const removeInvitation = (invitation) => {
+        const key = invitationKey(invitation);
+        setInvitations((current) =>
+            current.filter((item) => invitationKey(item) !== key)
+        );
+    };
 
     const handleAcceptInvitation = (invitation) => {
 
@@ -394,34 +528,13 @@ export default function Lobby() {
             invitation?.fromPlayer?.id ||
             invitation?.playerId;
 
-        if (!fromPlayerId) {
-            return;
-        }
+        if (!fromPlayerId) return;
 
-        setInvitations((current) =>
-            current.filter(
-                (item) =>
-                    (
-                        item.fromPlayerId ||
-                        item.fromPlayer?.id ||
-                        item.playerId
-                    ) !== fromPlayerId
-            )
-        );
+        removeInvitation(invitation);
+        hideAlert();
 
-        socket.emit(
-            "world:acceptInvitation",
-            {
-                fromPlayerId,
-            }
-        );
-
+        socket.emit("world:acceptInvitation", { fromPlayerId });
     };
-
-
-    /* =====================================================
-       RECHAZAR INVITACIÓN
-       ===================================================== */
 
     const handleRejectInvitation = (invitation) => {
 
@@ -430,1203 +543,546 @@ export default function Lobby() {
             invitation?.fromPlayer?.id ||
             invitation?.playerId;
 
-        if (!fromPlayerId) {
-            return;
-        }
+        if (!fromPlayerId) return;
 
-        setInvitations((current) =>
-            current.filter(
-                (item) =>
-                    (
-                        item.fromPlayerId ||
-                        item.fromPlayer?.id ||
-                        item.playerId
-                    ) !== fromPlayerId
-            )
-        );
+        removeInvitation(invitation);
+        hideAlert();
 
-        socket.emit(
-            "world:rejectInvitation",
-            {
-                fromPlayerId,
-            }
-        );
-
+        socket.emit("world:rejectInvitation", { fromPlayerId });
     };
 
+    const goToProfile = (id) => navigate(`/profile/${id}`);
 
     /* =====================================================
-       CARGANDO
-       ===================================================== */
+       CARGANDO / SIN SESIÓN
+    ===================================================== */
 
     if (loading) {
-
         return (
-            <div className="mv-app lobby-page">
-
-                <div className="lobby-background" />
-
-                <div
-                    style={{
-                        minHeight: "100vh",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "white",
-                        fontSize: "20px",
-                        fontWeight: "bold",
-                    }}
-                >
-                    Cargando perfil...
-                </div>
-
+            <div className="mv-app lb">
+                <div className="lb-bg" aria-hidden="true" />
+                <main className="lb-center-state" aria-busy="true">
+                    <span className="lb-spinner" aria-hidden="true" />
+                    <p role="status">Cargando tu perfil…</p>
+                </main>
             </div>
         );
-
     }
-
-
-    /* =====================================================
-       SIN SESIÓN
-       ===================================================== */
 
     if (!user) {
-
         return (
-            <div className="mv-app lobby-page">
-
-                <div className="lobby-background" />
-
-                <div
-                    style={{
-                        minHeight: "100vh",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "white",
-                        gap: "20px",
-                    }}
-                >
-
-                    <h1>
-                        Sesión no encontrada
-                    </h1>
-
+            <div className="mv-app lb">
+                <div className="lb-bg" aria-hidden="true" />
+                <main className="lb-center-state">
+                    <h1 className="lb-title">Sesión no encontrada</h1>
+                    <p>Inicia sesión para entrar al mundo MathVision.</p>
                     <button
-                        className="mv-btn mv-btn-primary"
+                        type="button"
+                        className="lb-btn lb-btn-primary"
                         onClick={() => navigate("/")}
                     >
-                        INICIAR SESIÓN
+                        <LuLogIn aria-hidden="true" />
+                        <span>Iniciar sesión</span>
                     </button>
-
-                </div>
-
+                </main>
             </div>
         );
-
     }
-
 
     /* =====================================================
        PERFIL
-       ===================================================== */
+    ===================================================== */
 
-    const xp =
-        Number(user.xp) || 0;
-
-    const level =
-        Number(user.level) || 1;
-
-    const xpPercentage =
-        Math.min(
-            100,
-            Math.max(
-                0,
-                ((xp % 1000) / 1000) * 100
-            )
-        );
-
+    const xp = Number(user.xp) || 0;
+    const level = Number(user.level) || 1;
+    const xpInLevel = xp % 1000;
+    const xpPercentage = Math.round(
+        Math.min(100, Math.max(0, (xpInLevel / 1000) * 100))
+    );
 
     const player = {
-
-        displayName:
-            user.display_name ||
-            user.username ||
-            "Jugador",
-
+        displayName: user.display_name || user.username || "Jugador",
         level,
-
-        avatar:
-            user.avatar ||
-            assets.players.defaultAvatar,
-
-        characterModel:
-            user.character_model_path || null,
-
-        characterName:
-            user.character_name ||
-            "Personaje",
-
+        avatar: user.avatar || assets.players.defaultAvatar,
+        characterModel: user.character_model_path || null,
+        characterName: user.character_name || "Personaje",
         experience: {
-
-            current:
-                xp % 1000,
-
-            percentage:
-                xpPercentage,
-
+            current: xpInLevel,
+            percentage: xpPercentage,
         },
-
         currencies: {
-
-            coins:
-                Number(user.coins) || 0,
-
-            gems:
-                Number(user.gems) || 0,
-
+            coins: Number(user.coins) || 0,
+            gems: Number(user.gems) || 0,
         },
-
         statistics: {
-
-            wins:
-                Number(user.games_won) || 0,
-
-            matches:
-                Number(user.games_played) || 0,
-
-            winStreak:
-                0,
-
+            wins: Number(user.games_won) || 0,
+            matches: Number(user.games_played) || 0,
+            winStreak: 0,
         },
-
-        statusLabel:
-            "ONLINE",
-
+        statusLabel: "ONLINE",
     };
 
+    const connectedCount = onlinePlayers.length + 1;
 
     /* =====================================================
        RENDER
-       ===================================================== */
+    ===================================================== */
 
     return (
-        <div className="mv-app lobby-page">
-
-            {/* =================================================
-                BACKGROUND
-               ================================================= */}
+        <div className="mv-app lb">
 
             <div
-                className="lobby-background"
-                style={{
-                    backgroundImage:
-                        `url(${assets.backgrounds.lobby})`
-                }}
+                className="lb-bg"
+                aria-hidden="true"
+                style={{ backgroundImage: `url(${assets.backgrounds.lobby})` }}
             />
 
+            <a className="lb-skip" href="#lb-games-banner">
+                Saltar a los juegos
+            </a>
 
-            {/* =================================================
-                HEADER
-               ================================================= */}
+            <MainNav navigation={navigation} player={player} />
 
-            <MainNav
-                navigation={navigation}
-                player={player}
-            />
+            {/* ============ ALERTA DE INVITACIÓN ============ */}
 
-            {/* =================================================
-    ALERTA TEMPORAL DE INVITACIÓN
-   ================================================= */}
-
-            {invitationAlert && (
-
-                <button
-                    type="button"
-                    onClick={() => {
-                        setInvitationAlert(null);
-                    }}
-                    style={{
-                        position: "fixed",
-                        top: "85px",
-                        right: "25px",
-                        zIndex: 2000,
-                        width: "340px",
-                        maxWidth: "calc(100vw - 40px)",
-                        padding: "16px",
-                        borderRadius: "14px",
-                        background: "rgba(20, 24, 35, 0.96)",
-                        border: "1px solid rgba(255, 255, 255, 0.12)",
-                        boxShadow: "0 15px 40px rgba(0, 0, 0, 0.45)",
-                        color: "white",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                        animation: "mvInvitationAlert 0.25s ease-out",
-                        textAlign: "left",
-                        cursor: "pointer",
-                    }}
-                >
-
+            <div className="lb-toast-region" aria-live="polite">
+                {invitationAlert && (
                     <div
-                        style={{
-                            width: "46px",
-                            height: "46px",
-                            minWidth: "46px",
-                            borderRadius: "50%",
-                            overflow: "hidden",
-                            background: "rgba(255,255,255,0.08)",
-                        }}
+                        className="lb-toast"
+                        role="dialog"
+                        aria-labelledby="lb-toast-title"
+                        onMouseEnter={() => clearTimeout(alertTimerRef.current)}
+                        onMouseLeave={() => scheduleAlertHide(4000)}
+                        onFocus={() => clearTimeout(alertTimerRef.current)}
                     >
+                        <span className="lb-avatar lb-avatar-md">
+                            <AssetImage
+                                src={invitationAvatar(invitationAlert)}
+                                type="player"
+                                alt=""
+                            />
+                        </span>
 
-                        <AssetImage
-                            src={
-                                invitationAlert.fromPlayerAvatar ||
-                                invitationAlert.fromPlayer?.avatar
-                            }
-                            type="player"
-                            alt={
-                                invitationAlert.fromPlayerName ||
-                                invitationAlert.fromPlayer?.name ||
-                                "Jugador"
+                        <div className="lb-toast-body">
+                            <p className="lb-eyebrow">
+                                <LuBell aria-hidden="true" />
+                                <span>Nueva invitación</span>
+                            </p>
+                            <p id="lb-toast-title" className="lb-toast-title">
+                                {`${invitationName(invitationAlert)} quiere jugar contigo`}
+                            </p>
+
+                            <div className="lb-toast-actions">
+                                <button
+                                    type="button"
+                                    className="lb-btn lb-btn-primary lb-btn-sm"
+                                    onClick={() => handleAcceptInvitation(invitationAlert)}
+                                >
+                                    <LuCheck aria-hidden="true" />
+                                    <span>Aceptar</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="lb-btn lb-btn-ghost lb-btn-sm"
+                                    onClick={() => handleRejectInvitation(invitationAlert)}
+                                >
+                                    <span>Rechazar</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="lb-icon-btn"
+                            onClick={hideAlert}
+                            aria-label="Cerrar aviso"
+                        >
+                            <LuX aria-hidden="true" />
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            <h1 className="lb-sr-only">Lobby de MathVision</h1>
+
+            <main className="lb-main">
+
+                {/* ================= IZQUIERDA ================= */}
+
+                <aside className="lb-col lb-col-left" aria-label="Tu perfil">
+
+                    <section className="lb-card lb-profile" aria-labelledby="lb-profile-title">
+
+                        <div className="lb-profile-top">
+                            <span className="lb-avatar lb-avatar-xl">
+                                <AssetImage
+                                    src={player.avatar}
+                                    type="player"
+                                    alt={`Avatar de ${player.displayName}`}
+                                    className="lobby-profile-avatar-img"
+                                />
+                            </span>
+
+                            <div className="lb-profile-id">
+                                <p className="lb-eyebrow">
+                                    <span>Perfil</span>
+                                </p>
+                                <h2 id="lb-profile-title" className="lb-profile-name">
+                                    {player.displayName}
+                                </h2>
+                                <span className="lb-level">
+                                    {`Nivel ${player.level}`}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="lb-xp">
+                            <div className="lb-xp-labels">
+                                <span>Experiencia</span>
+                                <span>{`${player.experience.current} / 1000 XP`}</span>
+                            </div>
+
+                            <div
+                                className="lb-xp-bar"
+                                role="progressbar"
+                                aria-label={`Progreso al nivel ${player.level + 1}`}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                aria-valuenow={player.experience.percentage}
+                                aria-valuetext={`${player.experience.percentage}% para el nivel ${player.level + 1}`}
+                            >
+                                <span style={{ width: `${player.experience.percentage}%` }} />
+                            </div>
+
+                            <p className="lb-muted">
+                                {`${player.experience.percentage}% para el nivel ${player.level + 1}`}
+                            </p>
+                        </div>
+
+                        <dl className="lb-stats">
+                            <div>
+                                <dt>
+                                    <LuTrophy aria-hidden="true" />
+                                    <span>Victorias</span>
+                                </dt>
+                                <dd>{player.statistics.wins}</dd>
+                            </div>
+                            <div>
+                                <dt>
+                                    <LuSwords aria-hidden="true" />
+                                    <span>Partidas</span>
+                                </dt>
+                                <dd>{player.statistics.matches}</dd>
+                            </div>
+                            <div>
+                                <dt>
+                                    <LuFlame aria-hidden="true" />
+                                    <span>Racha</span>
+                                </dt>
+                                <dd>{player.statistics.winStreak}</dd>
+                            </div>
+                        </dl>
+
+                        <button
+                            type="button"
+                            className="lb-btn lb-btn-secondary lb-btn-block"
+                            onClick={() => navigate("/character")}
+                        >
+                            <LuPalette aria-hidden="true" />
+                            <span>Personalizar</span>
+                            <LuArrowRight aria-hidden="true" className="lb-btn-end" />
+                        </button>
+                    </section>
+
+                    <section className="lb-card" aria-labelledby="lb-soon-title">
+                        <SectionHeader
+                            id="lb-soon-title"
+                            eyebrow="En camino"
+                            icon={LuSparkles}
+                            title="Próximamente"
+                        />
+
+                        <ul className="lb-soon-grid">
+                            <ComingSoonTile icon={LuSparkles} title="Skins" />
+                            <ComingSoonTile icon={LuShoppingBag} title="Tienda" />
+                            <ComingSoonTile icon={LuTarget} title="Misiones" />
+                            <ComingSoonTile icon={LuTrophy} title="Ranking" />
+                        </ul>
+                    </section>
+                </aside>
+
+                {/* ================= CENTRO ================= */}
+
+                <div className="lb-col lb-col-center">
+
+                    {/* Personaje sin fondo: se ve el colegio detrás */}
+                    <section className="lb-stage" aria-label="Tu personaje">
+
+                        <div
+                            className="lb-stage-canvas"
+                            role="img"
+                            aria-label={`Personaje 3D de ${player.displayName}. Arrastra para girarlo.`}
+                        >
+                            <Canvas
+                                gl={{ alpha: true }}
+                                camera={{ position: [0, 1.35, 4.5], fov: 42 }}
+                            >
+                                <ambientLight intensity={1.7} />
+                                <directionalLight position={[3, 5, 4]} intensity={3} />
+                                <Environment preset="sunset" />
+
+                                <Suspense fallback={null}>
+                                    {player.characterModel && (
+                                        <VRMCharacter
+                                            key={player.characterModel}
+                                            url={player.characterModel}
+                                            scale={1.9}
+                                            position={[0, -1.7, 0]}
+                                            rotation={[0, 0, 0]}
+                                        />
+                                    )}
+                                </Suspense>
+
+                                <OrbitControls
+                                    enableZoom={false}
+                                    enablePan={false}
+                                    enableRotate
+                                    enableDamping
+                                    minPolarAngle={Math.PI / 2}
+                                    maxPolarAngle={Math.PI / 2}
+                                />
+                            </Canvas>
+                        </div>
+
+                        <div className="lb-stage-tag">
+                            <span className="lb-stage-tag-icon" aria-hidden="true">
+                                <LuGamepad2 />
+                            </span>
+                            <div>
+                                <p className="lb-stage-name">{player.displayName}</p>
+                                <p className="lb-stage-level">{`Nivel ${player.level}`}</p>
+                            </div>
+                        </div>
+
+                        <p className="lb-stage-hint" aria-hidden="true">
+                            <LuHand />
+                            <span>Arrastra para girar</span>
+                        </p>
+                    </section>
+
+                    <div id="lb-games-banner" className="lb-banner-wrap">
+                        <GamesBanner
+                            games={games}
+                            onOpen={() => setGamesOpen(true)}
+                        />
+                    </div>
+                </div>
+
+                {/* ================= DERECHA ================= */}
+
+                <aside className="lb-col lb-col-right" aria-label="Comunidad">
+
+                    <section className="lb-card lb-status" aria-label="Estado de conexión">
+                        <span className="lb-status-dot" aria-hidden="true" />
+                        <div className="lb-status-body">
+                            <p className="lb-status-title">En línea</p>
+                            <p className="lb-muted">
+                                {`${connectedCount} ${connectedCount === 1 ? "jugador conectado" : "jugadores conectados"}`}
+                            </p>
+                        </div>
+                        <LuGlobe aria-hidden="true" className="lb-status-icon" />
+                    </section>
+
+                    {/* INVITACIONES */}
+
+                    <section className="lb-card lb-invitations" aria-labelledby="lb-inv-title">
+                        <SectionHeader
+                            id="lb-inv-title"
+                            eyebrow="Para ti"
+                            icon={LuBell}
+                            title="Invitaciones"
+                            action={
+                                invitations.length > 0 && (
+                                    <span
+                                        className="lb-count lb-count-alert"
+                                        aria-label={`${invitations.length} pendientes`}
+                                    >
+                                        {invitations.length}
+                                    </span>
+                                )
                             }
                         />
 
-                    </div>
-
-
-                    <div
-                        style={{
-                            flex: 1,
-                            minWidth: 0,
-                        }}
-                    >
-
-                        <div
-                            style={{
-                                fontSize: "11px",
-                                fontWeight: 800,
-                                opacity: 0.65,
-                                marginBottom: "3px",
-                            }}
-                        >
-                            <FaBell />
-                            {" "}NUEVA INVITACIÓN
-                        </div>
-
-
-                        <strong
-                            style={{
-                                display: "block",
-                                fontSize: "15px",
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                            }}
-                        >
-                            {invitationAlert.fromPlayerName ||
-                                invitationAlert.fromPlayer?.name ||
-                                "Jugador"}
-                        </strong>
-
-
-                        <small
-                            style={{
-                                display: "block",
-                                marginTop: "3px",
-                                opacity: 0.75,
-                            }}
-                        >
-                            quiere jugar contigo
-                        </small>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        onClick={() => {
-
-                            setInvitationAlert(null);
-
-                        }}
-                        style={{
-                            border: "none",
-                            background: "transparent",
-                            color: "white",
-                            opacity: 0.6,
-                            cursor: "pointer",
-                            fontSize: "16px",
-                        }}
-                    >
-                        <FaTimes />
-                    </button>
-
-                </button>
-
-            )}
-
-
-            {/* =================================================
-                CONTENIDO PRINCIPAL
-               ================================================= */}
-
-            <main className="lobby-main">
-
-
-                {/* =================================================
-                    IZQUIERDA
-                   ================================================= */}
-
-                <aside className="lobby-sidebar lobby-sidebar-left">
-
-
-                    {/* PERFIL */}
-
-                    <section className="lobby-profile-card ">
-
-                        <div className="lobby-card-label">
-                            PERFIL DEL JUGADOR
-                        </div>
-
-                        <div className="lobby-profile-avatar">
-
-                            <AssetImage
-                                src={player.avatar}
-                                type="player"
-                                alt={player.name}
-                                className="lobby-profile-avatar-img"
-                            />
-
-                        </div>
-
-                        <h2>
-                            {player.displayName}
-                        </h2>
-
-                        <div className="lobby-level">
-                            NIVEL {player.level}
-                        </div>
-
-
-                        <div className="lobby-profile-xp">
-
-                            <div className="lobby-profile-xp-bar">
-
-                                <span
-                                    style={{
-                                        width:
-                                            `${player.experience.percentage}%`
-                                    }}
-                                />
-
-                            </div>
-
-                            <small>
-                                {player.experience.percentage}% para nivel{" "}
-                                {player.level + 1}
-                            </small>
-
-                        </div>
-
-
-                        <div className="lobby-stat-grid">
-
-                            <div>
-                                <strong>
-                                    {player.statistics.wins}
-                                </strong>
-
-                                <span>
-                                    Victorias
-                                </span>
-                            </div>
-
-                            <div>
-                                <strong>
-                                    {player.statistics.matches}
-                                </strong>
-
-                                <span>
-                                    Partidas
-                                </span>
-                            </div>
-
-                            <div>
-                                <strong>
-                                    {player.statistics.winStreak}
-                                </strong>
-
-                                <span>
-                                    Racha
-                                </span>
-                            </div>
-
-                        </div>
-
-
-                        <button
-                            className="mv-btn mv-btn-secondary lobby-profile-button"
-                            onClick={() =>
-                                navigate("/character")
-                            }
-                        >
-
-                            PERSONALIZAR
-
-                            <span>
-                                <FaArrowRight />
-                            </span>
-
-                        </button>
-
-                    </section>
-
-
-                    {/* FUTURO: SKINS */}
-
-                    <section className="lobby-event-card">
-
-                        <div className="lobby-event-icon">
-                            🐲
-                        </div>
-
-                        <div>
-
-                            <span>
-                                PRÓXIMAMENTE
-                            </span>
-
-                            <strong>
-                                Nuevas skins
-                            </strong>
-
-                            <small>
-                                Personaliza tu personaje
-                            </small>
-
-                        </div>
-
-                        <button disabled>
-                            <FaArrowRight />
-                        </button>
-
-                    </section>
-
-
-                    {/* FUNCIONES FUTURAS */}
-
-                    <section className="lobby-quick-card">
-
-                        <button disabled>
-
-                            <span>
-                                🛒
-                            </span>
-
-                            <div>
-                                <strong>
-                                    Tienda
-                                </strong>
-
-                                <small>
-                                    PRÓXIMAMENTE
-                                </small>
-                            </div>
-
-                            <b>
-                                <FaLock />
-                            </b>
-
-                        </button>
-
-
-                        <button disabled>
-
-                            <span>
-                                🎯
-                            </span>
-
-                            <div>
-                                <strong>
-                                    Misiones
-                                </strong>
-
-                                <small>
-                                    PRÓXIMAMENTE
-                                </small>
-                            </div>
-
-                            <b>
-                                <FaLock />
-                            </b>
-
-                        </button>
-
-
-                        <button disabled>
-
-                            <span>
-                                <FaTrophy />
-                            </span>
-
-                            <div>
-                                <strong>
-                                    Clasificación
-                                </strong>
-
-                                <small>
-                                    PRÓXIMAMENTE
-                                </small>
-                            </div>
-
-                            <b>
-                                <FaLock />
-                            </b>
-
-                        </button>
-
-                    </section>
-
-                </aside>
-
-
-                {/* =================================================
-                    CENTRO
-                   ================================================= */}
-
-                <section className="lobby-center">
-
-
-                    {/* PERSONAJE */}
-
-                    <section className="lobby-world">
-
-                        <Canvas
-                            className="lobby-canvas"
-                            camera={{
-                                position: [0, 1.35, 4.5],
-                                fov: 42
-                            }}
-                        >
-
-                            <ambientLight
-                                intensity={1.7}
-                            />
-
-                            <directionalLight
-                                position={[3, 5, 4]}
-                                intensity={3}
-                            />
-
-                            <Environment
-                                preset="sunset"
-                            />
-
-                            <Suspense fallback={null}>
-
-                                {player.characterModel && (
-
-                                    <VRMCharacter
-                                        key={player.characterModel}
-                                        url={player.characterModel}
-                                        scale={1.9}
-                                        position={[
-                                            0,
-                                            -1.7,
-                                            0
-                                        ]}
-                                        rotation={[
-                                            0,
-                                            0,
-                                            0
-                                        ]}
-                                    />
-
-                                )}
-
-                            </Suspense>
-
-
-                            <OrbitControls
-                                enableZoom={false}
-                                enablePan={false}
-                                enableRotate={true}
-                                enableDamping={true}
-                                minPolarAngle={Math.PI / 2}
-                                maxPolarAngle={Math.PI / 2}
-                                minAzimuthAngle={-Infinity}
-                                maxAzimuthAngle={Infinity}
-                            />
-
-                        </Canvas>
-
-
-                        <div className="lobby-character-name">
-
-                            <span>
-                                <FaGamepad />
-                            </span>
-
-                            <div>
-
-                                <strong>
-                                    {player.displayName}
-                                </strong>
-
-                                <small>
-                                    NIVEL {player.level}
-                                </small>
-
-                            </div>
-
-                        </div>
-
-                    </section>
-
-
-                    {/* JUEGOS */}
-
-                    <section className="lobby-games-section">
-
-                        <div className="lobby-section-heading">
-
-                            <div>
-
-                                <span className="eyebrow">
-                                    MULTIJUGADOR
-                                </span>
-
-                                <h2>
-                                    ELIGE TU JUEGO
-                                </h2>
-
-                            </div>
-
-                            <button
-                                onClick={() =>
-                                    navigate("/games")
-                                }
-                            >
-                                Ver todos{" "}
-                                <FaArrowRight />
-                            </button>
-
-                        </div>
-
-
-                        <div className="lobby-games-grid">
-
-                            {games.map((game) => (
-
-                                <GameCard
-                                    key={game.id}
-                                    game={game}
-                                    onClick={() =>
-                                        navigate(game.route)
-                                    }
-                                />
-
-                            ))}
-
-                        </div>
-
-                    </section>
-
-
-                    <div className="lobby-slogan">
-                        Create by - Sebastian Pitre
-                    </div>
-
-                </section>
-
-
-                {/* =================================================
-                    DERECHA
-                   ================================================= */}
-
-                <aside className="lobby-sidebar lobby-sidebar-right">
-
-
-                    {/* ESTADO ONLINE */}
-
-                    <section className="lobby-status-card">
-
-                        <div>
-
-                            <span className="lobby-status-dot" />
-
-                            <div>
-
-                                <strong>
-                                    ONLINE
-                                </strong>
-
-                                <small>
-                                    {onlinePlayers.length + 1} jugadores conectados
-                                </small>
-
-                            </div>
-
-                        </div>
-
-                        <FaGlobeAmericas />
-
-                    </section>
-
-
-                    {/* =================================================
-                        INVITACIONES
-                       ================================================= */}
-
-                    <section className="lobby-invite-card">
-
-                        <div className="lobby-card-heading">
-
-                            <div>
-
-                                <span className="eyebrow">
-                                    <FaBell /> ONLINE
-                                </span>
-
-                                <h3>
-                                    INVITACIONES
-                                </h3>
-
-                            </div>
-
-                            {invitations.length > 0 && (
-
-                                <span className="lobby-notification">
-                                    {invitations.length}
-                                </span>
-
-                            )}
-
-                        </div>
-
-
                         {invitations.length === 0 ? (
-
-                            <div
-                                style={{
-                                    padding: "18px 5px",
-                                    textAlign: "center",
-                                    opacity: 0.7,
-                                }}
-                            >
-
-                                <FaBell
-                                    size={22}
-                                    style={{
-                                        marginBottom: "8px"
-                                    }}
-                                />
-
-                                <small
-                                    style={{
-                                        display: "block"
-                                    }}
-                                >
-                                    No tienes invitaciones
-                                </small>
-
-                            </div>
-
+                            <EmptyState icon={LuBell}>
+                                No tienes invitaciones por ahora.
+                            </EmptyState>
                         ) : (
+                            <ul className="lb-list lb-scroll">
+                                {invitations.map((invitation, index) => {
 
-                            <div
-                                className="mv-list mv-scroll"
-                                style={{
-                                    maxHeight: "230px"
-                                }}
-                            >
-
-                                {invitations.map(
-                                    (invitation, index) => {
-
-                                        const playerName =
-                                            invitation.fromPlayerName ||
-                                            invitation.fromPlayer?.name ||
-                                            invitation.name ||
-                                            "Jugador";
-
-                                        const invitationMessage =
-                                            invitation.message ||
-                                            "Te invitó a jugar";
-
-                                        const invitationId =
-                                            invitation.fromPlayerId ||
-                                            invitation.fromPlayer?.id ||
-                                            invitation.playerId ||
-                                            index;
-
-                                        return (
-
-                                            <div
-                                                className="lobby-friend-row"
-                                                key={invitationId}
-                                            >
-
-                                                <div className="lobby-friend-avatar">
-
-                                                    <div
-                                                        style={{
-                                                            width: "100%",
-                                                            height: "100%",
-                                                            display: "flex",
-                                                            alignItems: "center",
-                                                            justifyContent: "center",
-                                                            fontSize: "18px"
-                                                        }}
-                                                    >
-                                                        <AssetImage
-                                                            src={invitation.fromPlayerAvatar}
-                                                            type="player"
-                                                            alt={invitation.fromPlayerName}
-                                                        />
-                                                    </div>
-
-                                                </div>
-
-
-                                                <div className="lobby-friend-info">
-
-                                                    <strong>
-                                                        {playerName}
-                                                    </strong>
-
-                                                    <small>
-                                                        {invitationMessage}
-                                                    </small>
-
-                                                </div>
-
-
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        gap: "5px"
-                                                    }}
-                                                >
-
-                                                    <button
-                                                        onClick={() =>
-                                                            handleAcceptInvitation(
-                                                                invitation
-                                                            )
-                                                        }
-                                                        title="Aceptar"
-                                                    >
-                                                        <FaCheck />
-                                                    </button>
-
-                                                    <button
-                                                        onClick={() =>
-                                                            handleRejectInvitation(
-                                                                invitation
-                                                            )
-                                                        }
-                                                        title="Rechazar"
-                                                    >
-                                                        <FaTimes />
-                                                    </button>
-
-                                                </div>
-
-                                            </div>
-
-                                        );
-
-                                    }
-                                )}
-
-                            </div>
-
-                        )}
-
-                    </section>
-
-
-                    {/* =================================================
-                        JUGADORES ONLINE
-                       ================================================= */}
-
-                    <section className="lobby-friends-card">
-
-                        <div className="lobby-card-heading">
-
-                            <div>
-
-                                <span className="eyebrow">
-                                    <FaUsers /> COMUNIDAD
-                                </span>
-
-                                <h3>
-                                    JUGADORES ONLINE
-                                </h3>
-
-                            </div>
-
-                            <strong>
-                                {onlinePlayers.length}
-                            </strong>
-
-                        </div>
-
-
-                        <div className="mv-list mv-scroll lobby-friends-list">
-
-                            {onlinePlayers.length === 0 ? (
-
-                                <div
-                                    style={{
-                                        padding: "20px 5px",
-                                        textAlign: "center",
-                                        opacity: 0.7,
-                                    }}
-                                >
-
-                                    <FaUsers
-                                        size={22}
-                                        style={{
-                                            marginBottom: "8px"
-                                        }}
-                                    />
-
-                                    <small
-                                        style={{
-                                            display: "block"
-                                        }}
-                                    >
-                                        No hay otros jugadores online
-                                    </small>
-
-                                </div>
-
-                            ) : (
-
-                                onlinePlayers.map((onlinePlayer) => {
-
-                                    const status =
-                                        onlinePlayer.status ||
-                                        "available";
-
-                                    const isAvailable =
-                                        status === "available";
-
-                                    const statusLabel =
-                                        isAvailable
-                                            ? "Disponible"
-                                            : status === "inviting"
-                                                ? "Invitando..."
-                                                : status === "invited"
-                                                    ? "Con invitación"
-                                                    : "En partida";
+                                    const name = invitationName(invitation);
 
                                     return (
-
-                                        <div
-                                            className="lobby-friend-row"
-                                            key={onlinePlayer.id}
+                                        <li
+                                            className="lb-row"
+                                            key={invitationKey(invitation) || index}
                                         >
-
-                                            {/* AVATAR → PERFIL */}
-
-                                            <div
-                                                className="lobby-friend-avatar"
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/profile/${onlinePlayer.id}`
-                                                    )
-                                                }
-                                                style={{
-                                                    cursor: "pointer"
-                                                }}
-                                                title="Ver perfil"
-                                            >
-
+                                            <span className="lb-avatar">
                                                 <AssetImage
-                                                    src={
-                                                        onlinePlayer.avatar
-                                                    }
+                                                    src={invitationAvatar(invitation)}
                                                     type="player"
-                                                    alt={
-                                                        onlinePlayer.name
-                                                    }
+                                                    alt=""
                                                 />
+                                            </span>
 
-                                                <span
-                                                    className={
-                                                        isAvailable
-                                                            ? "friend-online"
-                                                            : "friend-busy"
-                                                    }
-                                                />
-
+                                            <div className="lb-row-body">
+                                                <p className="lb-row-title">{name}</p>
+                                                <p className="lb-muted">
+                                                    {invitation.message || "Te invitó a jugar"}
+                                                </p>
                                             </div>
 
-
-                                            {/* NOMBRE → PERFIL */}
-
-                                            <div className="lobby-friend-info">
-
-                                                <strong
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/profile/${onlinePlayer.id}`
-                                                        )
-                                                    }
-                                                    style={{
-                                                        cursor: "pointer"
-                                                    }}
-                                                    title="Ver perfil"
+                                            <div className="lb-row-actions">
+                                                <button
+                                                    type="button"
+                                                    className="lb-icon-btn lb-icon-btn-success"
+                                                    onClick={() => handleAcceptInvitation(invitation)}
+                                                    aria-label={`Aceptar invitación de ${name}`}
+                                                    title="Aceptar"
                                                 >
-                                                    {onlinePlayer.name}
-                                                </strong>
-
-                                                <small>
-                                                    {statusLabel}
-                                                </small>
-
+                                                    <LuCheck aria-hidden="true" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="lb-icon-btn lb-icon-btn-danger"
+                                                    onClick={() => handleRejectInvitation(invitation)}
+                                                    aria-label={`Rechazar invitación de ${name}`}
+                                                    title="Rechazar"
+                                                >
+                                                    <LuX aria-hidden="true" />
+                                                </button>
                                             </div>
-
-
-                                            {/* INVITAR */}
-
-                                            <button
-                                                disabled={!isAvailable}
-                                                onClick={() =>
-                                                    handleInvite(
-                                                        onlinePlayer
-                                                    )
-                                                }
-                                                title={
-                                                    isAvailable
-                                                        ? "Invitar a jugar"
-                                                        : statusLabel
-                                                }
-                                            >
-
-                                                {isAvailable
-                                                    ? <FaUserPlus />
-                                                    : <FaCircle />
-                                                }
-
-                                            </button>
-
-                                        </div>
-
+                                        </li>
                                     );
-
-                                })
-
-                            )}
-
-                        </div>
-
-
-                        {onlineMessage && (
-
-                            <div
-                                style={{
-                                    padding: "8px 10px",
-                                    fontSize: "12px",
-                                    textAlign: "center",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                {onlineMessage}
-                            </div>
-
+                                })}
+                            </ul>
                         )}
-
                     </section>
 
+                    {/* JUGADORES ONLINE */}
 
-                    {/* =================================================
-                        SALAS
-                       ================================================= */}
-
-                    {/* <section className="lobby-rooms-card">
-
-                        <div className="lobby-card-heading">
-
-                            <div>
-
-                                <span className="eyebrow">
-                                    MULTIJUGADOR
-                                </span>
-
-                                <h3>
-                                    SALAS
-                                </h3>
-
-                            </div>
-
-                            <button
-                                onClick={() =>
-                                    navigate("/room")
-                                }
-                            >
-                                +
-                            </button>
-
-                        </div>
-
-
-                        <div className="mv-list mv-scroll lobby-rooms-list">
-
-                            {rooms.map((room) => (
-
-                                <div
-                                    className="lobby-room-row"
-                                    key={room.id}
+                    <section className="lb-card lb-players" aria-labelledby="lb-players-title">
+                        <SectionHeader
+                            id="lb-players-title"
+                            eyebrow="Comunidad"
+                            icon={LuUsers}
+                            title="Jugadores en línea"
+                            action={
+                                <span
+                                    className="lb-count"
+                                    aria-label={`${onlinePlayers.length} en línea`}
                                 >
-
-                                    <div className="lobby-room-icon">
-                                        {room.gameIcon}
-                                    </div>
-
-                                    <div>
-
-                                        <strong>
-                                            {room.name}
-                                        </strong>
-
-                                        <small>
-                                            {room.gameName}
-                                        </small>
-
-                                    </div>
-
-                                    <span>
-                                        {room.players}/{room.maxPlayers}
-                                    </span>
-
-                                </div>
-
-                            ))}
-
-                        </div>
-
-
-                        <button
-                            className="mv-btn mv-btn-primary lobby-create-room"
-                            onClick={() =>
-                                navigate("/room")
+                                    {onlinePlayers.length}
+                                </span>
                             }
-                        >
-                            + CREAR SALA
-                        </button>
+                        />
 
-                    </section> */}
+                        {onlinePlayers.length === 0 ? (
+                            <EmptyState icon={LuUsers}>
+                                No hay otros jugadores en línea. ¡Invita a un amigo!
+                            </EmptyState>
+                        ) : (
+                            <ul
+                                className="lb-list lb-scroll"
+                                tabIndex={0}
+                                aria-label="Lista de jugadores en línea"
+                            >
+                                {onlinePlayers.map((onlinePlayer) => {
 
+                                    const status = statusOf(onlinePlayer);
+                                    const isAvailable =
+                                        (onlinePlayer.status || "available") === "available";
+                                    const name = onlinePlayer.name || "Jugador";
+
+                                    return (
+                                        <li className="lb-row" key={onlinePlayer.id}>
+
+                                            <button
+                                                type="button"
+                                                className="lb-row-profile"
+                                                onClick={() => goToProfile(onlinePlayer.id)}
+                                                aria-label={`Ver perfil de ${name}, ${status.label}`}
+                                            >
+                                                <span className="lb-avatar">
+                                                    <AssetImage
+                                                        src={onlinePlayer.avatar}
+                                                        type="player"
+                                                        alt=""
+                                                    />
+                                                    <span
+                                                        className={`lb-presence lb-presence-${status.tone}`}
+                                                        aria-hidden="true"
+                                                    />
+                                                </span>
+
+                                                <span className="lb-row-body">
+                                                    <span className="lb-row-title">{name}</span>
+                                                    <span className={`lb-status-text lb-status-${status.tone}`}>
+                                                        {status.label}
+                                                    </span>
+                                                </span>
+                                            </button>
+
+                                            {isAvailable ? (
+                                                <button
+                                                    type="button"
+                                                    className="lb-btn lb-btn-primary lb-btn-sm"
+                                                    onClick={() => handleInvite(onlinePlayer)}
+                                                    aria-label={`Invitar a ${name} a jugar`}
+                                                >
+                                                    <LuUserPlus aria-hidden="true" />
+                                                    <span>Invitar</span>
+                                                </button>
+                                            ) : (
+                                                <span className="lb-waiting" title={status.label}>
+                                                    <LuHourglass aria-hidden="true" />
+                                                    <span className="lb-sr-only">{status.label}</span>
+                                                </span>
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+
+                        <p className="lb-inline-status" role="status" aria-live="polite">
+                            {onlineMessage}
+                        </p>
+                    </section>
+
+                    <p className="lb-credits">Creado por Sebastián Pitre</p>
                 </aside>
-
             </main>
 
+            {/* ================= MODAL DE JUEGOS ================= */}
+
+            <GamesModal
+                open={gamesOpen}
+                onClose={() => setGamesOpen(false)}
+                games={games}
+                playerName={player.displayName}
+                onPlay={(game) => {
+                    setGamesOpen(false);
+                    navigate(game.route);
+                }}
+                onPlayLocal={() => {
+                    setGamesOpen(false);
+                    navigate("/triqui-local", {
+                        state: { playerName: player.displayName },
+                    });
+                }}
+            />
         </div>
     );
 }
