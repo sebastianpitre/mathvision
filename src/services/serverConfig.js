@@ -1,16 +1,19 @@
 // ============================================================
 // LUDOGAMIF · A QUÉ SERVIDOR SE CONECTA EL JUEGO
+// ------------------------------------------------------------
+// Se configura con la variable VITE_SERVER_URL:
+//   • En tu PC  → archivo .env.local
+//   • En Vercel → Settings → Environment Variables
 // ============================================================
 
-// true  = usa el servidor de tu PC (http://localhost)
-// false = usa el servidor de la nube
-const USE_LOCAL_SERVER = false;
-
 export const SERVER_URL =
-    USE_LOCAL_SERVER
-        ? `http://${window.location.hostname}`   // tu PC, puerto 80
-        : "https://ludogamif-api.ocloudev.lat";  // VPS Contabo
+    (
+        import.meta.env.VITE_SERVER_URL ||
+        "https://ludogamif-api.ocloudev.lat"
+    ).replace(/\/+$/, "");   // quita "/" final si alguien lo pone
 
 // Para fetch (login, registro, perfil...)
 export const API_URL =
     `${SERVER_URL}/api`;
+
+// Para Socket.IO se usa SERVER_URL (sin /api)
