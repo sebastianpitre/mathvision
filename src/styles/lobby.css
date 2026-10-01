@@ -922,6 +922,7 @@
     font-family: var(--lb-font);
     box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
     overflow: hidden;
+    margin: 0 auto;
 }
 
 .lb-modal[open] {
