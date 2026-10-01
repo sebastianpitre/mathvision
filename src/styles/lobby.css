@@ -407,6 +407,7 @@
 
 .lb-avatar {
     position: relative;
+    display: inline-block;
     width: 46px;
     height: 46px;
     flex-shrink: 0;
@@ -780,29 +781,33 @@
     font-weight: 700;
 }
 
-/* Collage de fotos */
+/* Collage de fotos: ocupa el fondo de la tarjeta, desde
+   la mitad hacia la derecha, y se recorta en los bordes */
 .lb-collage {
-    flex: 1;
-    min-width: 0;
-    height: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 34%;
+    right: -40px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    padding-left: 10px;
+    pointer-events: none;
 }
 
 .lb-collage-frame {
-    --rot: calc((var(--i) - 1.5) * 5deg);
+    --rot: calc((var(--i) - 1.5) * 4deg);
 
-    width: clamp(92px, 11vw, 150px);
+    height: 112%;
     aspect-ratio: 4 / 3;
     flex-shrink: 0;
-    margin-left: -18px;
-    padding: 4px;
-    border-radius: 12px;
+    margin-left: -26px;
+    padding: 5px;
+    border-radius: 14px;
     background: #ffffff;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
-    transform: rotate(var(--rot)) translateY(calc(var(--i) * 2px));
-    transition: transform 0.25s ease, margin 0.25s ease;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5);
+    transform: rotate(var(--rot)) translateY(calc(var(--i) * 6% - 8%));
+    transition: transform 0.3s ease;
 }
 
 .lb-collage-frame:first-child {
@@ -812,16 +817,35 @@
 .lb-collage-frame .lb-photo {
     width: 100%;
     height: 100%;
-    border-radius: 9px;
+    border-radius: 10px;
 }
 
 .lb-banner:hover .lb-collage-frame {
-    margin-left: 6px;
-    transform: rotate(calc(var(--rot) * 0.4)) translateY(-4px);
+    transform: rotate(calc(var(--rot) * 1.6)) translateY(calc(var(--i) * 6% - 12%));
 }
 
-.lb-banner:hover .lb-collage-frame:first-child {
-    margin-left: 0;
+/* Degradado para que el texto siempre se lea sobre las fotos */
+.lb-banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(90deg,
+            rgba(10, 16, 28, 0.96) 0%,
+            rgba(10, 16, 28, 0.9) 32%,
+            rgba(10, 16, 28, 0.2) 55%,
+            transparent 70%);
+    pointer-events: none;
+}
+
+.lb-banner-text {
+    position: relative;
+}
+
+.lb-banner-cta {
+    position: relative;
+    margin-left: auto;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
 }
 
 .lb-banner-cta {
@@ -1446,10 +1470,8 @@
     }
 
     .lb-soon {
-        flex-direction: row;
-        align-items: center;
-        flex-wrap: wrap;
         padding: 8px 10px;
+        gap: 4px;
     }
 
     .lb-soon-icon {
@@ -1537,12 +1559,21 @@
 
     .lb-collage {
         grid-area: collage;
-        height: 76px;
-        justify-content: flex-start;
+        position: relative;
+        left: auto;
+        right: auto;
+        height: 84px;
+        padding-left: 4px;
     }
 
     .lb-collage-frame {
-        width: 96px;
+        height: 100%;
+        margin-left: -14px;
+        transform: rotate(var(--rot));
+    }
+
+    .lb-banner::before {
+        background: linear-gradient(180deg, rgba(10, 16, 28, 0.6), transparent 60%);
     }
 
     .lb-modal {

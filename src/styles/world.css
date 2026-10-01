@@ -1,0 +1,1553 @@
+/* =========================================================
+   WORLD — MathVision
+   ---------------------------------------------------------
+   Mismo sistema de diseño del lobby, con su propio CSS
+   (prefijo wd-) para que no choquen entre sí.
+
+   · La página NUNCA pasa del alto de la pantalla.
+   · Letra mínima de 14px, todo en rem.
+   · Contraste AA, foco visible, botones de 44px o más.
+   · Respeta "reducir movimiento".
+========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap");
+
+.wd {
+    --wd-bg: #070b14;
+    --wd-surface: rgba(12, 18, 30, 0.8);
+    --wd-surface-2: rgba(255, 255, 255, 0.06);
+    --wd-surface-3: rgba(255, 255, 255, 0.1);
+    --wd-border: rgba(255, 255, 255, 0.12);
+    --wd-border-strong: rgba(255, 255, 255, 0.2);
+
+    --wd-text: #f4f6fb;
+    --wd-text-muted: #c1c9da;
+
+    --wd-accent: #5aa9ff;
+    --wd-accent-strong: #3d8ff0;
+    --wd-accent-soft: rgba(90, 169, 255, 0.16);
+    --wd-on-accent: #06101d;
+
+    --wd-success: #34d399;
+    --wd-success-soft: rgba(52, 211, 153, 0.16);
+    --wd-warning: #fbbf24;
+    --wd-warning-soft: rgba(251, 191, 36, 0.16);
+    --wd-danger: #f87171;
+    --wd-danger-soft: rgba(248, 113, 113, 0.16);
+
+    --wd-font: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+    --wd-fs-sm: 0.875rem;
+    --wd-fs-base: 1rem;
+    --wd-fs-md: 1.125rem;
+    --wd-fs-lg: 1.375rem;
+    --wd-fs-xl: 1.625rem;
+
+    --wd-radius-sm: 10px;
+    --wd-radius: 16px;
+    --wd-radius-lg: 22px;
+    --wd-gap: clamp(10px, 1.3vw, 18px);
+    --wd-pad: clamp(14px, 1.5vw, 20px);
+    --wd-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+    --wd-focus: 0 0 0 3px var(--wd-bg), 0 0 0 6px var(--wd-accent);
+
+    /* Si tu MainNav es position: fixed, pon aquí su alto */
+    --wd-nav-offset: 0px;
+
+    position: relative;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    background: var(--wd-bg);
+    color: var(--wd-text);
+    font-family: var(--wd-font);
+    font-size: var(--wd-fs-base);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+.wd *,
+.wd *::before,
+.wd *::after {
+    box-sizing: border-box;
+}
+
+.wd p,
+.wd h1,
+.wd h2,
+.wd dl,
+.wd dd,
+.wd ul,
+.wd ol {
+    margin: 0;
+}
+
+.wd ul,
+.wd ol {
+    padding: 0;
+    list-style: none;
+}
+
+.wd button,
+.wd input {
+    font: inherit;
+    color: inherit;
+}
+
+.wd svg {
+    flex-shrink: 0;
+}
+
+.wd :focus-visible {
+    outline: none;
+    box-shadow: var(--wd-focus);
+}
+
+.wd-sr-only {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.wd-muted {
+    color: var(--wd-text-muted);
+    font-size: var(--wd-fs-sm);
+}
+
+.wd-text-online {
+    color: var(--wd-success);
+}
+
+.wd-text-busy {
+    color: var(--wd-warning);
+}
+
+.wd-text-playing {
+    color: var(--wd-danger);
+}
+
+.wd-scroll,
+.wd-col {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+/* =========================================================
+   FONDO (el colegio se ve)
+========================================================= */
+
+.wd-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-color: var(--wd-bg);
+    background-size: cover;
+    background-position: center;
+    pointer-events: none;
+}
+
+.wd-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 50% 45%, transparent 30%, rgba(5, 8, 15, 0.55) 100%),
+        linear-gradient(180deg, rgba(5, 8, 15, 0.25), rgba(5, 8, 15, 0.45));
+}
+
+.wd> :not(.wd-bg):not(.wd-alert):not(.wd-dialog) {
+    position: relative;
+    z-index: 1;
+}
+
+.wd>nav,
+.wd>header {
+    flex-shrink: 0;
+}
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.wd-main {
+    flex: 1;
+    min-height: 0;
+    width: min(1560px, 100%);
+    margin: 0 auto;
+    padding: calc(var(--wd-gap) + var(--wd-nav-offset)) var(--wd-gap) var(--wd-gap);
+    display: grid;
+    grid-template-columns: minmax(270px, 320px) minmax(0, 1fr) minmax(290px, 340px);
+    grid-template-rows: minmax(0, 1fr);
+    gap: var(--wd-gap);
+}
+
+.wd-col {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wd-gap);
+}
+
+.wd-col-left,
+.wd-col-right {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 2px;
+    margin: -2px;
+}
+
+.wd-col-center {
+    overflow: hidden;
+}
+
+/* =========================================================
+   TARJETAS
+========================================================= */
+
+.wd-card {
+    flex-shrink: 0;
+    padding: var(--wd-pad);
+    border-radius: var(--wd-radius-lg);
+    background: var(--wd-surface);
+    border: 1px solid var(--wd-border);
+    box-shadow: var(--wd-shadow);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.wd-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.wd-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--wd-accent);
+    font-size: var(--wd-fs-sm);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.wd-eyebrow svg {
+    width: 1em;
+    height: 1em;
+}
+
+.wd-title {
+    margin-top: 2px;
+    font-size: var(--wd-fs-lg);
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.wd-count {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--wd-surface-3);
+    font-weight: 900;
+}
+
+/* =========================================================
+   BOTONES
+========================================================= */
+
+.wd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font-size: var(--wd-fs-base);
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s, opacity 0.15s;
+}
+
+.wd-btn:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.wd-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.wd-btn svg {
+    width: 1.15em;
+    height: 1.15em;
+}
+
+.wd-btn-primary {
+    background: var(--wd-accent);
+    color: var(--wd-on-accent);
+}
+
+.wd-btn-primary:hover:not(:disabled) {
+    background: var(--wd-accent-strong);
+}
+
+.wd-btn-secondary {
+    background: var(--wd-surface-3);
+    border-color: var(--wd-border-strong);
+}
+
+.wd-btn-secondary:hover {
+    border-color: var(--wd-accent);
+    background: var(--wd-accent-soft);
+}
+
+.wd-btn-ghost {
+    background: rgba(7, 11, 20, 0.5);
+    border-color: var(--wd-border-strong);
+}
+
+.wd-btn-ghost:hover {
+    background: var(--wd-surface-3);
+}
+
+.wd-btn-sm {
+    min-height: 44px;
+    padding: 0 14px;
+    font-size: var(--wd-fs-sm);
+}
+
+.wd-btn-lg {
+    min-height: 54px;
+    padding: 0 26px;
+    font-size: var(--wd-fs-md);
+    font-weight: 900;
+}
+
+.wd-btn-block {
+    width: 100%;
+}
+
+.wd-icon-btn {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid var(--wd-border);
+    border-radius: 12px;
+    background: var(--wd-surface-2);
+    cursor: pointer;
+}
+
+.wd-icon-btn:hover {
+    background: var(--wd-surface-3);
+}
+
+.wd-icon-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* =========================================================
+   AVATARES
+========================================================= */
+
+.wd-avatar {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--wd-surface-3);
+    border: 2px solid var(--wd-border-strong);
+}
+
+.wd-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+.wd-avatar-md {
+    width: 52px;
+    height: 52px;
+}
+
+.wd-avatar-lg {
+    width: 72px;
+    height: 72px;
+    border: 3px solid var(--wd-accent);
+    box-shadow: 0 0 0 5px var(--wd-accent-soft);
+}
+
+.wd-avatar-xl {
+    width: 96px;
+    height: 96px;
+    border: 3px solid var(--wd-accent);
+}
+
+.wd-presence {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 3px solid #0f1522;
+}
+
+.wd-presence-online {
+    background: var(--wd-success);
+}
+
+.wd-presence-busy {
+    background: var(--wd-warning);
+}
+
+.wd-presence-playing {
+    background: var(--wd-danger);
+}
+
+/* =========================================================
+   TU ESTADO
+========================================================= */
+
+.wd-me {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.wd-me-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.wd-me-id {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+}
+
+.wd-me-name {
+    font-size: var(--wd-fs-xl);
+    font-weight: 900;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+.wd-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--wd-success-soft);
+    color: var(--wd-success);
+    font-size: var(--wd-fs-sm);
+    font-weight: 800;
+}
+
+.wd-live-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: wd-blink 1.6s ease-in-out infinite;
+}
+
+@keyframes wd-blink {
+    50% {
+        opacity: 0.35;
+    }
+}
+
+.wd-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.wd-stats>div {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 4px;
+    border-radius: var(--wd-radius);
+    background: var(--wd-surface-2);
+    border: 1px solid var(--wd-border);
+}
+
+.wd-stats dt {
+    color: var(--wd-text-muted);
+    font-size: var(--wd-fs-sm);
+    font-weight: 700;
+}
+
+.wd-stats dd {
+    font-size: var(--wd-fs-xl);
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+/* =========================================================
+   RETO DEL DÍA
+========================================================= */
+
+.wd-streak {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--wd-warning-soft);
+    color: var(--wd-warning);
+    font-size: var(--wd-fs-sm);
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.wd-daily-question {
+    margin-bottom: 12px;
+    padding: 12px;
+    border-radius: var(--wd-radius);
+    background:
+        linear-gradient(135deg, rgba(90, 169, 255, 0.18), rgba(52, 211, 153, 0.12));
+    border: 1px solid rgba(90, 169, 255, 0.3);
+    text-align: center;
+    font-size: clamp(1.5rem, 2.1vw, 1.875rem);
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.wd-daily-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+}
+
+.wd-daily-form .wd-btn {
+    padding: 0 14px;
+}
+
+.wd-daily-form input {
+    flex: 1;
+    min-width: 0;
+    height: 48px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid var(--wd-border-strong);
+    background: rgba(255, 255, 255, 0.07);
+    font-size: var(--wd-fs-md);
+    font-weight: 800;
+    text-align: center;
+}
+
+.wd-daily-form input::placeholder {
+    color: var(--wd-text-muted);
+    font-weight: 600;
+    font-size: var(--wd-fs-base);
+}
+
+.wd-daily-form input[aria-invalid="true"] {
+    border-color: var(--wd-danger);
+    animation: wd-shake 0.3s;
+}
+
+@keyframes wd-shake {
+    25% {
+        transform: translateX(-4px);
+    }
+
+    75% {
+        transform: translateX(4px);
+    }
+}
+
+.wd-daily-feedback {
+    margin-top: 8px;
+    color: var(--wd-danger);
+    font-size: var(--wd-fs-sm);
+    font-weight: 700;
+}
+
+.wd-daily-feedback:empty {
+    display: none;
+}
+
+.wd-daily-done {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border-radius: var(--wd-radius);
+    background: var(--wd-success-soft);
+    color: var(--wd-success);
+    font-size: var(--wd-fs-sm);
+    font-weight: 800;
+}
+
+.wd-daily-done svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* =========================================================
+   TIPS
+========================================================= */
+
+.wd-tips-nav {
+    display: flex;
+    gap: 6px;
+}
+
+.wd-tip {
+    min-height: 4.5em;
+    font-size: var(--wd-fs-base);
+    font-weight: 600;
+    line-height: 1.5;
+    animation: wd-fade 0.35s ease;
+}
+
+@keyframes wd-fade {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.wd-tips .wd-muted {
+    margin-top: 8px;
+}
+
+/* =========================================================
+   LA PLAZA (personaje + jugadores alrededor)
+========================================================= */
+
+.wd-stage {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+}
+
+.wd-stage-canvas {
+    position: absolute;
+    inset: 0;
+    cursor: grab;
+    touch-action: pan-y;
+}
+
+.wd-stage-canvas:active {
+    cursor: grabbing;
+}
+
+.wd-stage-canvas canvas {
+    display: block;
+    background: transparent !important;
+}
+
+.wd-stage::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 4%;
+    width: min(260px, 45%);
+    height: 34px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.45), transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.wd-plaza {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.wd-plaza-spot {
+    --edge: 70px;
+
+    position: absolute;
+    /* Nunca se sale por los lados del escenario */
+    left: clamp(var(--edge), var(--x, 50%), calc(100% - var(--edge)));
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+    animation: wd-float 4s ease-in-out infinite;
+    animation-delay: var(--d, 0s);
+}
+
+@keyframes wd-float {
+    50% {
+        translate: 0 -6px;
+    }
+}
+
+.wd-bubble {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 96px;
+    max-width: 132px;
+    padding: 8px 10px 10px;
+    border: 1px solid var(--wd-border);
+    border-radius: var(--wd-radius);
+    background: rgba(7, 11, 20, 0.74);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.wd-bubble:hover {
+    transform: scale(1.05);
+    border-color: var(--wd-accent);
+}
+
+.wd-bubble[aria-disabled="true"] {
+    cursor: default;
+}
+
+.wd-bubble[aria-disabled="true"]:hover {
+    transform: none;
+    border-color: var(--wd-border);
+}
+
+.wd-bubble-name {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--wd-fs-sm);
+    font-weight: 900;
+}
+
+.wd-bubble-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--wd-surface-3);
+    color: var(--wd-text-muted);
+    font-size: var(--wd-fs-sm);
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.wd-bubble-action svg {
+    width: 1em;
+    height: 1em;
+}
+
+.wd-bubble-online .wd-bubble-action {
+    background: var(--wd-accent);
+    color: var(--wd-on-accent);
+}
+
+.wd-plaza-empty {
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: max-content;
+    max-width: calc(100% - 20px);
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(7, 11, 20, 0.72);
+    font-size: var(--wd-fs-sm);
+    font-weight: 700;
+}
+
+.wd-plaza-more {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(7, 11, 20, 0.72);
+    font-size: var(--wd-fs-sm);
+    font-weight: 800;
+}
+
+.wd-stage-tag {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px 8px 8px;
+    border-radius: var(--wd-radius);
+    background: rgba(7, 11, 20, 0.74);
+    border: 1px solid var(--wd-border);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.wd-stage-tag-icon {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: var(--wd-accent);
+    color: var(--wd-on-accent);
+}
+
+.wd-stage-tag-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.wd-stage-name {
+    font-size: var(--wd-fs-md);
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.wd-stage-sub {
+    color: var(--wd-success);
+    font-size: var(--wd-fs-sm);
+    font-weight: 800;
+}
+
+/* =========================================================
+   PARTIDA RÁPIDA
+========================================================= */
+
+.wd-quick {
+    container-type: inline-size;
+    flex-shrink: 0;
+    min-height: clamp(96px, 13vh, 124px);
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 2vw, 24px);
+    padding: 14px clamp(16px, 2vw, 26px);
+    border: 1px solid rgba(90, 169, 255, 0.45);
+    border-radius: var(--wd-radius-lg);
+    background:
+        radial-gradient(circle at 0% 0%, rgba(90, 169, 255, 0.35), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(251, 191, 36, 0.2), transparent 55%),
+        rgba(10, 16, 28, 0.88);
+    box-shadow: var(--wd-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.wd-quick-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.wd-quick-title {
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    font-weight: 900;
+    line-height: 1.15;
+}
+
+.wd-quick-sub {
+    color: var(--wd-text-muted);
+    font-size: var(--wd-fs-sm);
+    font-weight: 700;
+}
+
+.wd-quick-faces {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+}
+
+/* Las caras solo se muestran si hay espacio de sobra */
+@container (max-width: 860px) {
+    .wd-quick-faces {
+        display: none;
+    }
+}
+
+.wd-quick-faces .wd-avatar {
+    margin-left: -14px;
+    border: 3px solid #0d1422;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.wd-quick-faces .wd-avatar:first-child {
+    margin-left: 0;
+}
+
+.wd-quick-actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+/* =========================================================
+   JUGADORES (búsqueda + filtros + lista)
+========================================================= */
+
+.wd-players {
+    flex: 1 1 auto;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+}
+
+.wd-search {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.wd-search svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    transform: translateY(-50%);
+    color: var(--wd-text-muted);
+    pointer-events: none;
+}
+
+.wd-search input {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px 0 42px;
+    border-radius: 12px;
+    border: 1px solid var(--wd-border-strong);
+    background: rgba(255, 255, 255, 0.06);
+    font-size: var(--wd-fs-base);
+}
+
+.wd-search input::placeholder {
+    color: var(--wd-text-muted);
+}
+
+.wd-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.wd-chip {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--wd-border-strong);
+    border-radius: 999px;
+    background: transparent;
+    font-size: var(--wd-fs-sm);
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.wd-chip:hover {
+    background: var(--wd-surface-3);
+}
+
+.wd-chip[aria-pressed="true"] {
+    background: var(--wd-accent);
+    border-color: var(--wd-accent);
+    color: var(--wd-on-accent);
+}
+
+.wd-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.wd-players .wd-scroll {
+    flex: 1;
+    min-height: 0;
+}
+
+.wd-scroll {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 2px 4px 2px 2px;
+    margin: -2px -4px -2px -2px;
+    border-radius: var(--wd-radius);
+}
+
+.wd-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 66px;
+    padding: 10px;
+    border-radius: var(--wd-radius);
+    background: var(--wd-surface-2);
+    border: 1px solid var(--wd-border);
+}
+
+.wd-row-profile {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px;
+    margin: -4px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+.wd-row-profile:hover .wd-row-title {
+    color: var(--wd-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.wd-row-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.wd-row-title {
+    font-size: var(--wd-fs-base);
+    font-weight: 800;
+    line-height: 1.3;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.wd-status-text {
+    font-size: var(--wd-fs-sm);
+    font-weight: 700;
+}
+
+.wd-waiting {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: var(--wd-surface-3);
+    color: var(--wd-text-muted);
+}
+
+.wd-waiting svg {
+    width: 20px;
+    height: 20px;
+}
+
+.wd-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 10px;
+    text-align: center;
+    color: var(--wd-text-muted);
+    font-size: var(--wd-fs-sm);
+    font-weight: 600;
+}
+
+.wd-empty-icon {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--wd-surface-2);
+    border: 1px dashed var(--wd-border-strong);
+}
+
+.wd-empty-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* =========================================================
+   ACTIVIDAD
+========================================================= */
+
+.wd-feed-list {
+    max-height: 210px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.wd-feed-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 6px;
+    border-radius: 12px;
+    animation: wd-fade 0.3s ease;
+}
+
+.wd-feed-item+.wd-feed-item {
+    border-top: 1px solid var(--wd-border);
+    border-radius: 0;
+}
+
+.wd-feed-icon {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: var(--wd-surface-3);
+    color: var(--wd-text-muted);
+}
+
+.wd-feed-icon svg {
+    width: 17px;
+    height: 17px;
+}
+
+.wd-feed-join .wd-feed-icon,
+.wd-feed-me .wd-feed-icon {
+    background: var(--wd-success-soft);
+    color: var(--wd-success);
+}
+
+.wd-feed-sent .wd-feed-icon,
+.wd-feed-received .wd-feed-icon {
+    background: var(--wd-accent-soft);
+    color: var(--wd-accent);
+}
+
+.wd-feed-rejected .wd-feed-icon,
+.wd-feed-leave .wd-feed-icon {
+    background: var(--wd-warning-soft);
+    color: var(--wd-warning);
+}
+
+.wd-feed-error .wd-feed-icon {
+    background: var(--wd-danger-soft);
+    color: var(--wd-danger);
+}
+
+.wd-feed-text {
+    min-width: 0;
+    font-size: var(--wd-fs-sm);
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.wd-feed-time {
+    color: var(--wd-text-muted);
+    font-size: var(--wd-fs-sm);
+    white-space: nowrap;
+}
+
+/* =========================================================
+   AVISO DE ERROR
+========================================================= */
+
+.wd-alert {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    z-index: 2500;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: calc(100vw - 32px);
+    padding: 8px 8px 8px 16px;
+    border-radius: var(--wd-radius);
+    background: #2a1115;
+    border: 1px solid rgba(248, 113, 113, 0.5);
+    color: #ffd9d9;
+    font-weight: 800;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+}
+
+.wd-alert>svg {
+    width: 20px;
+    height: 20px;
+    color: var(--wd-danger);
+}
+
+/* =========================================================
+   DIÁLOGO DE INVITACIÓN
+========================================================= */
+
+.wd-dialog {
+    width: min(440px, calc(100vw - 32px));
+    padding: 0;
+    border: 1px solid var(--wd-border-strong);
+    border-radius: 26px;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(90, 169, 255, 0.28), transparent 60%),
+        #0c1220;
+    color: var(--wd-text);
+    font-family: var(--wd-font);
+    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
+}
+
+.wd-dialog[open] {
+    animation: wd-pop 0.28s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+
+.wd-dialog::backdrop {
+    background: rgba(3, 6, 12, 0.75);
+    backdrop-filter: blur(6px);
+}
+
+@keyframes wd-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.wd-dialog-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 28px 24px 24px;
+    text-align: center;
+}
+
+.wd-dialog-ring {
+    display: inline-flex;
+    padding: 6px;
+    margin-bottom: 6px;
+    border-radius: 50%;
+    background: conic-gradient(var(--wd-accent), var(--wd-success), var(--wd-warning), var(--wd-accent));
+    animation: wd-spin 4s linear infinite;
+}
+
+.wd-dialog-ring>.wd-avatar {
+    animation: wd-spin 4s linear infinite reverse;
+    border-color: #0c1220;
+}
+
+@keyframes wd-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.wd-dialog-title {
+    font-size: var(--wd-fs-xl);
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.wd-dialog-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 10px;
+    width: 100%;
+    margin-top: 12px;
+}
+
+/* =========================================================
+   PANTALLA DE CONEXIÓN
+========================================================= */
+
+.wd-connect {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.wd-connect-card {
+    width: min(440px, 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 32px 24px;
+    text-align: center;
+}
+
+.wd-connect-orb {
+    width: 84px;
+    height: 84px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--wd-accent-soft);
+    color: var(--wd-accent);
+    box-shadow: 0 0 0 10px rgba(90, 169, 255, 0.07);
+    animation: wd-float 3s ease-in-out infinite;
+}
+
+.wd-connect-orb svg {
+    width: 40px;
+    height: 40px;
+}
+
+.wd-connect-orb.is-error {
+    background: var(--wd-danger-soft);
+    color: var(--wd-danger);
+    box-shadow: 0 0 0 10px rgba(248, 113, 113, 0.07);
+    animation: none;
+}
+
+.wd-connect-title {
+    font-size: var(--wd-fs-xl);
+    font-weight: 900;
+}
+
+.wd-loader {
+    width: 140px;
+    height: 6px;
+    border-radius: 999px;
+    background:
+        linear-gradient(90deg, transparent, var(--wd-accent), transparent) 0 0 / 50% 100% no-repeat,
+        var(--wd-surface-3);
+    animation: wd-load 1.2s ease-in-out infinite;
+}
+
+@keyframes wd-load {
+    from {
+        background-position: -100% 0, 0 0;
+    }
+
+    to {
+        background-position: 200% 0, 0 0;
+    }
+}
+
+.wd-connect-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+/* =========================================================
+   PANTALLAS BAJITAS (portátiles)
+========================================================= */
+
+@media (max-height: 820px) and (min-width: 1181px) {
+
+    .wd {
+        --wd-pad: 14px;
+        --wd-gap: 10px;
+    }
+
+    .wd-avatar-lg {
+        width: 60px;
+        height: 60px;
+    }
+
+    .wd-stats>div {
+        padding: 6px 4px;
+    }
+
+    .wd-tip {
+        min-height: 0;
+    }
+
+    .wd-bubble {
+        min-width: 84px;
+        padding: 6px 8px 8px;
+    }
+
+    .wd-bubble .wd-avatar-md {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* =========================================================
+   TABLET Y CELULAR
+   La página sigue midiendo el alto de la pantalla; lo que
+   no cabe hace scroll dentro del mundo.
+========================================================= */
+
+@media (max-width: 1180px) {
+
+    .wd-main {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: auto;
+        align-content: start;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+    }
+
+    .wd-col-center {
+        grid-column: 1 / -1;
+        order: -1;
+        height: calc(100dvh - 140px - var(--wd-nav-offset));
+        min-height: 420px;
+    }
+
+    .wd-col-left,
+    .wd-col-right {
+        overflow: visible;
+    }
+
+    .wd-players {
+        min-height: 0;
+    }
+
+    .wd-players .wd-scroll {
+        max-height: 360px;
+    }
+}
+
+@media (max-width: 720px) {
+
+    .wd-main {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 10px;
+    }
+
+    .wd-col-center {
+        height: calc(100dvh - 120px - var(--wd-nav-offset));
+        min-height: 460px;
+    }
+
+    /* En celular solo caben 4 jugadores alrededor */
+    .wd-plaza-spot:nth-child(n + 5) {
+        display: none;
+    }
+
+    .wd-plaza-spot {
+        --edge: 46px;
+    }
+
+    .wd-bubble {
+        min-width: 0;
+        max-width: 88px;
+        padding: 6px;
+    }
+
+    .wd-bubble .wd-avatar-md {
+        width: 40px;
+        height: 40px;
+    }
+
+    .wd-quick {
+        flex-wrap: wrap;
+        padding: 14px;
+    }
+
+    .wd-quick-faces {
+        display: none;
+    }
+
+    /* Botón principal arriba, ocupando todo el ancho */
+    .wd-quick-actions {
+        width: 100%;
+        margin-left: 0;
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .wd-quick-actions .wd-btn {
+        width: 100%;
+    }
+
+    .wd-quick-actions .wd-btn-lg {
+        font-size: var(--wd-fs-base);
+    }
+}
+
+@media (max-width: 380px) {
+    .wd-row {
+        flex-wrap: wrap;
+    }
+}
+
+/* =========================================================
+   ACCESIBILIDAD DEL SISTEMA
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .wd *,
+    .wd *::before,
+    .wd *::after,
+    .wd-dialog,
+    .wd-dialog * {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@media (forced-colors: active) {
+
+    .wd-card,
+    .wd-row,
+    .wd-quick,
+    .wd-bubble,
+    .wd-btn,
+    .wd-chip,
+    .wd-icon-btn {
+        border: 1px solid CanvasText;
+    }
+}

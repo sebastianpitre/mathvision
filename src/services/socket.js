@@ -1,16 +1,20 @@
 import { io } from "socket.io-client";
-
-const SOCKET_URL =
-    `http://${window.location.hostname}:3000`;
+import { SERVER_URL } from "./serverConfig.js";
 
 const TOKEN_KEY =
     "mathvision_token";
 
 
 export const socket = io(
-    SOCKET_URL,
+    SERVER_URL,
     {
         autoConnect: false,
+
+        // WebSocket primero; si falla, usa polling.
+        transports: [
+            "websocket",
+            "polling",
+        ],
 
         auth: (cb) => {
 
