@@ -15,7 +15,7 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
-import questions from "./data/questions-segundo";
+import questions from "./data/preguntas_autoconocimiento";
 import {
     playSound,
     createBackgroundMusic
@@ -983,7 +983,7 @@ export default function MathMillonario() {
                             text-cyan-400
                         ">
 
-                            MathVision
+                            LudoGamift
 
                         </p>
 
@@ -992,7 +992,7 @@ export default function MathMillonario() {
                             font-black
                         ">
 
-                            MATH MILLONARIO
+                            LUDO MILLONARIO
 
                         </h1>
 
