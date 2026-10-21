@@ -1,0 +1,120 @@
+{
+  "nivel": {
+    "nombre": "Repaso de segundo · Fácil",
+    "descripcion": "Sumas, restas y problemas sencillos.",
+    "grado": "2°",
+    "asignatura": "Repaso general",
+    "dificultad": "facil",
+    "preguntas_por_partida": 10,
+    "segundos_por_pregunta": 30,
+    "vidas": 3,
+    "tipo_recompensa": "puntos",
+    "recompensa_xp": 30,
+    "recompensa_oro": 10,
+    "recompensa_diamantes": 0,
+    "porcentaje_minimo": 50,
+    "orden": 1
+  },
+  "preguntas": [
+    {
+      "pregunta": "¿Cuánto es 8 + 5?",
+      "opciones": [
+        "12",
+        "13",
+        "14",
+        "15"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuánto es 15 - 7?",
+      "opciones": [
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuánto es 20 + 30?",
+      "opciones": [
+        "40",
+        "50",
+        "60",
+        "70"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuánto es 2 × 4?",
+      "opciones": [
+        "6",
+        "8",
+        "10",
+        "12"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es el número mayor?",
+      "opciones": [
+        "45",
+        "54",
+        "39",
+        "48"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué número viene después del 99?",
+      "opciones": [
+        "98",
+        "101",
+        "100",
+        "110"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuántas decenas hay en el número 30?",
+      "opciones": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "Ana tiene 6 manzanas y compra 4 más. ¿Cuántas manzanas tiene ahora?",
+      "opciones": [
+        "8",
+        "9",
+        "10",
+        "11"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es la mitad de 10?",
+      "opciones": [
+        "5",
+        "4",
+        "6",
+        "2"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "Un cuaderno cuesta $2.000. Si compras 3, ¿cuánto pagas?",
+      "opciones": [
+        "$4.000",
+        "$5.000",
+        "$6.000",
+        "$8.000"
+      ],
+      "respuesta": 2
+    }
+  ]
+}

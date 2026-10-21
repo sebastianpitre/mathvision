@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Servidor y despliegue
+.env
+.env.*
+!.env.ejemplo
+!.env.local.ejemplo
+servidor/.env
+respaldos/
+.detras-de-nginx

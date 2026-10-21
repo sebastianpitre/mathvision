@@ -1,0 +1,120 @@
+{
+  "nivel": {
+    "nombre": "Repaso de quinto · Fácil",
+    "descripcion": "Operaciones básicas.",
+    "grado": "5°",
+    "asignatura": "Repaso general",
+    "dificultad": "facil",
+    "preguntas_por_partida": 10,
+    "segundos_por_pregunta": 30,
+    "vidas": 3,
+    "tipo_recompensa": "puntos",
+    "recompensa_xp": 30,
+    "recompensa_oro": 10,
+    "recompensa_diamantes": 0,
+    "porcentaje_minimo": 50,
+    "orden": 4
+  },
+  "preguntas": [
+    {
+      "pregunta": "¿Cuánto es 125 + 378?",
+      "opciones": [
+        "493",
+        "503",
+        "513",
+        "523"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuánto es 900 - 457?",
+      "opciones": [
+        "433",
+        "443",
+        "453",
+        "463"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuánto es 24 × 6?",
+      "opciones": [
+        "124",
+        "134",
+        "144",
+        "154"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuánto es 144 ÷ 12?",
+      "opciones": [
+        "10",
+        "11",
+        "12",
+        "14"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es el número mayor?",
+      "opciones": [
+        "4.509",
+        "4.590",
+        "4.059",
+        "4.095"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué fracción representa 3 partes de un total de 8?",
+      "opciones": [
+        "3/5",
+        "3/6",
+        "3/8",
+        "5/8"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál fracción es equivalente a 1/2?",
+      "opciones": [
+        "2/4",
+        "2/3",
+        "3/5",
+        "4/6"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál es el resultado de 2/5 + 1/5?",
+      "opciones": [
+        "2/10",
+        "3/5",
+        "3/10",
+        "1/5"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es el 50% de 200?",
+      "opciones": [
+        "50",
+        "75",
+        "100",
+        "150"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "Un cuaderno cuesta $8.000. Si compras 3, ¿cuánto pagas?",
+      "opciones": [
+        "$16.000",
+        "$20.000",
+        "$24.000",
+        "$28.000"
+      ],
+      "respuesta": 2
+    }
+  ]
+}

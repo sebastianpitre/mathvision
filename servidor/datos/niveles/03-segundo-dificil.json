@@ -1,0 +1,720 @@
+{
+  "nivel": {
+    "nombre": "Repaso de segundo · Difícil",
+    "descripcion": "Ciencias, sociales, valores, inglés y tecnología.",
+    "grado": "2°",
+    "asignatura": "Repaso general",
+    "dificultad": "dificil",
+    "preguntas_por_partida": 10,
+    "segundos_por_pregunta": 30,
+    "vidas": 3,
+    "tipo_recompensa": "puntos",
+    "recompensa_xp": 80,
+    "recompensa_oro": 35,
+    "recompensa_diamantes": 1,
+    "porcentaje_minimo": 50,
+    "orden": 3
+  },
+  "preguntas": [
+    {
+      "pregunta": "¿Cuál de estos animales es mamífero?",
+      "opciones": [
+        "Gallina",
+        "Vaca",
+        "Pez",
+        "Serpiente"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué necesitan las plantas para crecer?",
+      "opciones": [
+        "Agua y luz solar",
+        "Plástico",
+        "Dulces",
+        "Piedras"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Con qué sentido percibimos los olores?",
+      "opciones": [
+        "Vista",
+        "Oído",
+        "Olfato",
+        "Tacto"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Con qué órgano de los sentidos vemos?",
+      "opciones": [
+        "Oídos",
+        "Ojos",
+        "Nariz",
+        "Lengua"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Con qué sentido percibimos los sabores?",
+      "opciones": [
+        "Vista",
+        "Oído",
+        "Tacto",
+        "Gusto"
+      ],
+      "respuesta": 3
+    },
+    {
+      "pregunta": "¿Cómo se llama el planeta donde vivimos?",
+      "opciones": [
+        "Marte",
+        "Tierra",
+        "Venus",
+        "Júpiter"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué astro nos da luz y calor durante el día?",
+      "opciones": [
+        "La Luna",
+        "Las estrellas",
+        "El Sol",
+        "Un planeta"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿En qué estado se encuentra el agua que bebemos?",
+      "opciones": [
+        "Sólido",
+        "Líquido",
+        "Gaseoso",
+        "Polvo"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál de estos animales vive en el agua?",
+      "opciones": [
+        "Loro",
+        "Gato",
+        "Caballo",
+        "Pez"
+      ],
+      "respuesta": 3
+    },
+    {
+      "pregunta": "¿Cuál de estos animales nace de un huevo?",
+      "opciones": [
+        "Gallina",
+        "Perro",
+        "Vaca",
+        "Gato"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué parte de la planta absorbe el agua del suelo?",
+      "opciones": [
+        "Hoja",
+        "Flor",
+        "Raíz",
+        "Fruto"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué color se forma al mezclar amarillo y azul?",
+      "opciones": [
+        "Morado",
+        "Verde",
+        "Naranja",
+        "Gris"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es la capital de Colombia?",
+      "opciones": [
+        "Cali",
+        "Medellín",
+        "Bogotá",
+        "Cartagena"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuáles son los colores de la bandera de Colombia?",
+      "opciones": [
+        "Amarillo, azul y rojo",
+        "Verde, blanco y rojo",
+        "Negro, blanco y azul",
+        "Naranja, verde y amarillo"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál es el departamento cuya capital es Valledupar?",
+      "opciones": [
+        "Magdalena",
+        "Cesar",
+        "Bolívar",
+        "Atlántico"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es un símbolo patrio de Colombia?",
+      "opciones": [
+        "El escudo",
+        "Un balón",
+        "Un carro",
+        "Un lápiz"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué es un barrio?",
+      "opciones": [
+        "Un tipo de animal",
+        "Una parte de la ciudad donde viven personas",
+        "Un instrumento",
+        "Una comida"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Quién nos enseña en la escuela?",
+      "opciones": [
+        "Médico",
+        "Bombero",
+        "Conductor",
+        "Docente"
+      ],
+      "respuesta": 3
+    },
+    {
+      "pregunta": "¿Cuál de estos es un medio de transporte aéreo?",
+      "opciones": [
+        "Barco",
+        "Bus",
+        "Avión",
+        "Bicicleta"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál de estos es un medio de transporte acuático?",
+      "opciones": [
+        "Barco",
+        "Moto",
+        "Tren",
+        "Camión"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál de estos es un servicio público?",
+      "opciones": [
+        "Un videojuego",
+        "El agua potable",
+        "Un juguete",
+        "Una golosina"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué debemos hacer con la basura?",
+      "opciones": [
+        "Dejarla en el piso",
+        "Tirarla al río",
+        "Depositarla en la caneca",
+        "Esconderla"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "En Colombia, ¿en qué caneca se depositan los residuos orgánicos (restos de comida)?",
+      "opciones": [
+        "Blanca",
+        "Negra",
+        "Verde",
+        "Roja"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "Si un compañero te presta un lápiz, ¿qué debes hacer?",
+      "opciones": [
+        "Quedártelo",
+        "Devolverlo y dar las gracias",
+        "Romperlo",
+        "Esconderlo"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál de estas es una palabra de cortesía?",
+      "opciones": [
+        "Ya",
+        "Nada",
+        "Callado",
+        "Por favor"
+      ],
+      "respuesta": 3
+    },
+    {
+      "pregunta": "Si un compañero se cae en el recreo, ¿qué debes hacer?",
+      "opciones": [
+        "Ayudarlo",
+        "Reírte",
+        "Ignorarlo",
+        "Gritarle"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál es una buena norma para el salón de clases?",
+      "opciones": [
+        "Gritar cuando quieras",
+        "Correr por el salón",
+        "Levantar la mano para hablar",
+        "Quitarle cosas a los demás"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué significa \"book\"?",
+      "opciones": [
+        "Casa",
+        "Libro",
+        "Mesa",
+        "Perro"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué significa \"cat\"?",
+      "opciones": [
+        "Perro",
+        "Pájaro",
+        "Gato",
+        "Pez"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué significa \"red\"?",
+      "opciones": [
+        "Azul",
+        "Verde",
+        "Amarillo",
+        "Rojo"
+      ],
+      "respuesta": 3
+    },
+    {
+      "pregunta": "¿Qué significa \"Hello\"?",
+      "opciones": [
+        "Adiós",
+        "Hola",
+        "Gracias",
+        "Por favor"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cómo se dice el número \"tres\" en inglés?",
+      "opciones": [
+        "One",
+        "Two",
+        "Three",
+        "Four"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cómo se dice \"perro\" en inglés?",
+      "opciones": [
+        "Dog",
+        "Cat",
+        "Bird",
+        "Fish"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué significa \"Good night\"?",
+      "opciones": [
+        "Buenos días",
+        "Buenas tardes",
+        "Buenas noches",
+        "Hasta pronto"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué dispositivo usamos para escribir en el computador?",
+      "opciones": [
+        "Mouse",
+        "Teclado",
+        "Monitor",
+        "Parlante"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué parte del computador nos muestra las imágenes?",
+      "opciones": [
+        "Monitor",
+        "Teclado",
+        "Mouse",
+        "Cable"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué debemos hacer con nuestra contraseña?",
+      "opciones": [
+        "Compartirla con todos",
+        "Mantenerla en secreto",
+        "Escribirla en la pared",
+        "Decírsela a desconocidos"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "Para cuidar nuestros ojos al usar pantallas, ¿qué debemos hacer?",
+      "opciones": [
+        "Mirar la pantalla sin parar",
+        "Acercarnos mucho",
+        "Usarla en la oscuridad",
+        "Descansar y hacer pausas"
+      ],
+      "respuesta": 3
+    },
+    {
+      "pregunta": "¿Qué debemos hacer antes de comer?",
+      "opciones": [
+        "Dormir",
+        "Gritar",
+        "Lavarnos las manos",
+        "Saltar"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuándo debemos cepillarnos los dientes?",
+      "opciones": [
+        "Nunca",
+        "Una vez al mes",
+        "Después de las comidas",
+        "Solo los domingos"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuánto es 46 + 27?",
+      "opciones": [
+        "63",
+        "72",
+        "73",
+        "83"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuánto es 82 - 35?",
+      "opciones": [
+        "43",
+        "47",
+        "57",
+        "53"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuánto es 5 × 6?",
+      "opciones": [
+        "25",
+        "30",
+        "35",
+        "40"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuánto es 10 × 7?",
+      "opciones": [
+        "17",
+        "60",
+        "70",
+        "700"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "En el número 358, ¿cuál es el valor del dígito 5?",
+      "opciones": [
+        "5",
+        "50",
+        "500",
+        "300"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué número se forma con 400 + 30 + 2?",
+      "opciones": [
+        "342",
+        "432",
+        "423",
+        "234"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál grupo de números está ordenado de menor a mayor?",
+      "opciones": [
+        "47, 31, 25, 12",
+        "31, 12, 25, 47",
+        "12, 25, 31, 47",
+        "25, 12, 47, 31"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es el doble de 15?",
+      "opciones": [
+        "20",
+        "25",
+        "30",
+        "35"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es la mitad de 24?",
+      "opciones": [
+        "10",
+        "12",
+        "14",
+        "16"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "Luis tenía 50 canicas y perdió 18. ¿Cuántas canicas le quedan?",
+      "opciones": [
+        "32",
+        "38",
+        "28",
+        "42"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "Un dulce cuesta $500 y un chocolate $1.500. ¿Cuánto cuestan los dos juntos?",
+      "opciones": [
+        "$1.000",
+        "$2.000",
+        "$2.500",
+        "$1.500"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuántas horas tiene un día?",
+      "opciones": [
+        "12",
+        "20",
+        "24",
+        "60"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Con qué unidad medimos la longitud de un salón?",
+      "opciones": [
+        "Metro",
+        "Litro",
+        "Kilogramo",
+        "Segundo"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Con qué unidad medimos el peso de una bolsa de arroz?",
+      "opciones": [
+        "Metro",
+        "Litro",
+        "Minuto",
+        "Kilogramo"
+      ],
+      "respuesta": 3
+    },
+    {
+      "pregunta": "¿Qué fracción representa la mitad?",
+      "opciones": [
+        "1/3",
+        "1/2",
+        "1/4",
+        "2/3"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué cuerpo geométrico tiene forma de balón?",
+      "opciones": [
+        "Cubo",
+        "Cilindro",
+        "Esfera",
+        "Cono"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuántas caras tiene un cubo?",
+      "opciones": [
+        "6",
+        "4",
+        "8",
+        "12"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué número continúa la secuencia: 2, 4, 6, 8, ___?",
+      "opciones": [
+        "9",
+        "10",
+        "11",
+        "12"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué número continúa la secuencia: 100, 90, 80, 70, ___?",
+      "opciones": [
+        "60",
+        "50",
+        "65",
+        "75"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué signos usamos para expresar sorpresa o emoción?",
+      "opciones": [
+        ".",
+        ",",
+        "¿?",
+        "¡!"
+      ],
+      "respuesta": 3
+    },
+    {
+      "pregunta": "Completa: \"___ perro ladra.\"",
+      "opciones": [
+        "El",
+        "La",
+        "Los",
+        "Las"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "Completa: \"___ niñas juegan en el parque.\"",
+      "opciones": [
+        "El",
+        "La",
+        "Los",
+        "Las"
+      ],
+      "respuesta": 3
+    },
+    {
+      "pregunta": "¿Cuál es el femenino de \"gato\"?",
+      "opciones": [
+        "Gato",
+        "Gata",
+        "Gatos",
+        "Gatito"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es el diminutivo de \"casa\"?",
+      "opciones": [
+        "Casona",
+        "Casas",
+        "Casita",
+        "Casón"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál palabra es un adjetivo?",
+      "opciones": [
+        "Correr",
+        "Casa",
+        "Lápiz",
+        "Alegre"
+      ],
+      "respuesta": 3
+    },
+    {
+      "pregunta": "¿Cuál palabra va primero en orden alfabético?",
+      "opciones": [
+        "Sol",
+        "Luna",
+        "Casa",
+        "Pato"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "Ana tiene un perro llamado Toby. Toby juega con la pelota todas las tardes. ¿Cómo se llama el perro de Ana?",
+      "opciones": [
+        "Pelota",
+        "Ana",
+        "Tarde",
+        "Toby"
+      ],
+      "respuesta": 3
+    },
+    {
+      "pregunta": "¿Cuáles son las partes principales de una planta?",
+      "opciones": [
+        "Raíz, tallo, hojas y flores",
+        "Cabeza, tronco y patas",
+        "Ruedas y motor",
+        "Pantalla y teclado"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué animal produce la miel?",
+      "opciones": [
+        "Mariposa",
+        "Abeja",
+        "Hormiga",
+        "Mosca"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "Cuando el agua líquida se calienta mucho, ¿en qué se convierte?",
+      "opciones": [
+        "Hielo",
+        "Arena",
+        "Vapor",
+        "Tierra"
+      ],
+      "respuesta": 2
+    }
+  ]
+}

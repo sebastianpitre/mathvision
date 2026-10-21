@@ -1,0 +1,220 @@
+{
+  "nivel": {
+    "nombre": "Repaso de quinto · Medio",
+    "descripcion": "Matemáticas y lenguaje.",
+    "grado": "5°",
+    "asignatura": "Repaso general",
+    "dificultad": "media",
+    "preguntas_por_partida": 10,
+    "segundos_por_pregunta": 30,
+    "vidas": 3,
+    "tipo_recompensa": "puntos",
+    "recompensa_xp": 50,
+    "recompensa_oro": 20,
+    "recompensa_diamantes": 0,
+    "porcentaje_minimo": 50,
+    "orden": 5
+  },
+  "preguntas": [
+    {
+      "pregunta": "¿Cuántos lados tiene un hexágono?",
+      "opciones": [
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuánto mide el perímetro de un cuadrado de lado 9 cm?",
+      "opciones": [
+        "18 cm",
+        "27 cm",
+        "36 cm",
+        "81 cm"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es el área de un rectángulo de 7 cm × 4 cm?",
+      "opciones": [
+        "11 cm²",
+        "22 cm²",
+        "28 cm²",
+        "32 cm²"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuántos minutos hay en 2 horas?",
+      "opciones": [
+        "60",
+        "90",
+        "120",
+        "180"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es una fuente de energía renovable?",
+      "opciones": [
+        "Carbón",
+        "Petróleo",
+        "Energía solar",
+        "Gas natural"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es el sinónimo de \"feliz\"?",
+      "opciones": [
+        "Triste",
+        "Alegre",
+        "Enojado",
+        "Cansado"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es el antónimo de \"rápido\"?",
+      "opciones": [
+        "Veloz",
+        "Ligero",
+        "Lento",
+        "Ágil"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál palabra es un sustantivo?",
+      "opciones": [
+        "Correr",
+        "Azul",
+        "Perro",
+        "Rápidamente"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál palabra es un verbo?",
+      "opciones": [
+        "Casa",
+        "Saltar",
+        "Bonito",
+        "Grande"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál oración está correctamente escrita?",
+      "opciones": [
+        "el niño juega en el parque.",
+        "El niño juega en el parque.",
+        "El niño juega en el Parque",
+        "el Niño juega en el parque."
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué signo se utiliza al final de una pregunta?",
+      "opciones": [
+        "!",
+        ".",
+        "¿?",
+        ":"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál palabra es aguda?",
+      "opciones": [
+        "Árbol",
+        "Lápiz",
+        "Canción",
+        "Mesa"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál palabra es esdrújula?",
+      "opciones": [
+        "Camión",
+        "Árbol",
+        "Música",
+        "Papel"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es el sujeto en \"María prepara la comida\"?",
+      "opciones": [
+        "Prepara",
+        "La comida",
+        "María",
+        "Comida"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál oración está en pasado?",
+      "opciones": [
+        "Juan juega fútbol.",
+        "Juan jugará fútbol.",
+        "Juan jugó fútbol.",
+        "Juan está jugando fútbol."
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué es una fábula?",
+      "opciones": [
+        "Una noticia",
+        "Una narración que suele dejar una enseñanza",
+        "Una receta",
+        "Una lista"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué elemento suele aparecer al final de una fábula?",
+      "opciones": [
+        "Una moraleja",
+        "Una operación",
+        "Una dirección",
+        "Un mapa"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál es el plural de \"lápiz\"?",
+      "opciones": [
+        "Lápizes",
+        "Lápizs",
+        "Lápices",
+        "Lápicess"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál palabra está escrita correctamente?",
+      "opciones": [
+        "Avión",
+        "Abión",
+        "Havión",
+        "Habión"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál oración expresa una pregunta?",
+      "opciones": [
+        "¡Qué bonito día!",
+        "Hoy hace calor.",
+        "¿Dónde está mi cuaderno?",
+        "Guarda el libro."
+      ],
+      "respuesta": 2
+    }
+  ]
+}
