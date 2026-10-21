@@ -4,7 +4,45 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/img/logo.png" />
     <!-- viewport-fit=cover: usa toda la pantalla también en teléfonos con muesca -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      /*
+       * TELÉFONO Y TABLET EN HORIZONTAL: SE VE COMO EN EL PC, MÁS PEQUEÑO
+       * El navegador dibuja el juego con el ancho de un computador
+       * (alto "virtual" de ~660 px) y lo reduce para que quepa en la
+       * pantalla. Así el diseño es el mismo del PC: letras, íconos y
+       * tarjetas se ven proporcionalmente más pequeños.
+       * En computador (mouse) no se toca nada.
+       */
+      (function () {
+        var meta = document.getElementById("viewport");
+        var ALTO_VIRTUAL = 660;
+        var actual = "";
+
+        function ajustar() {
+          var tactil = matchMedia("(pointer: coarse)").matches && !matchMedia("(pointer: fine)").matches;
+          var ancho = window.innerWidth, alto = window.innerHeight;
+          var contenido = "width=device-width, initial-scale=1.0, viewport-fit=cover";
+
+          // La proporción ancho/alto no cambia con el zoom: sirve para
+          // calcular el ancho virtual aunque ya se haya aplicado antes.
+          if (tactil && ancho > alto && alto > 0) {
+            var virtual = Math.round(ALTO_VIRTUAL * (ancho / alto));
+            virtual = Math.max(1240, Math.min(1700, virtual));
+            contenido = "width=" + virtual + ", viewport-fit=cover";
+          }
+
+          if (contenido !== actual) {
+            actual = contenido;
+            meta.setAttribute("content", contenido);
+          }
+        }
+
+        ajustar();
+        window.addEventListener("resize", ajustar);
+        window.addEventListener("orientationchange", function () { setTimeout(ajustar, 250); });
+      })();
+    </script>
     <meta name="theme-color" content="#070b14" />
     <!-- Se puede instalar como app: abre en pantalla completa y horizontal -->
     <link rel="manifest" href="/manifest.webmanifest" />
