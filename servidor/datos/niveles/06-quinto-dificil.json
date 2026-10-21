@@ -1,0 +1,720 @@
+{
+  "nivel": {
+    "nombre": "Repaso de quinto · Difícil",
+    "descripcion": "Ciencias, tecnología, inglés y más.",
+    "grado": "5°",
+    "asignatura": "Repaso general",
+    "dificultad": "dificil",
+    "preguntas_por_partida": 10,
+    "segundos_por_pregunta": 30,
+    "vidas": 3,
+    "tipo_recompensa": "puntos",
+    "recompensa_xp": 80,
+    "recompensa_oro": 35,
+    "recompensa_diamantes": 1,
+    "porcentaje_minimo": 50,
+    "orden": 6
+  },
+  "preguntas": [
+    {
+      "pregunta": "¿Cuál órgano bombea la sangre por el cuerpo?",
+      "opciones": [
+        "Pulmón",
+        "Cerebro",
+        "Corazón",
+        "Estómago"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué necesitan principalmente las plantas para realizar la fotosíntesis?",
+      "opciones": [
+        "Luz solar",
+        "Arena",
+        "Plástico",
+        "Sal"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál es el estado sólido del agua?",
+      "opciones": [
+        "Vapor",
+        "Hielo",
+        "Lluvia",
+        "Niebla"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué planeta es conocido como el planeta rojo?",
+      "opciones": [
+        "Venus",
+        "Marte",
+        "Júpiter",
+        "Saturno"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es la estrella más cercana a la Tierra?",
+      "opciones": [
+        "La Luna",
+        "Marte",
+        "El Sol",
+        "Venus"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué órgano utilizamos principalmente para respirar?",
+      "opciones": [
+        "Corazón",
+        "Pulmón",
+        "Riñón",
+        "Hígado"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál de estos animales es mamífero?",
+      "opciones": [
+        "Gallina",
+        "Rana",
+        "Delfín",
+        "Tortuga"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué gas necesitan los seres humanos para respirar?",
+      "opciones": [
+        "Oxígeno",
+        "Helio",
+        "Hidrógeno",
+        "Dióxido de carbono"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué fuerza hace que los objetos caigan hacia el suelo?",
+      "opciones": [
+        "Electricidad",
+        "Gravedad",
+        "Magnetismo",
+        "Fricción"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué órgano controla gran parte de las funciones del cuerpo?",
+      "opciones": [
+        "Cerebro",
+        "Estómago",
+        "Pulmón",
+        "Intestino"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál es el proceso mediante el cual las plantas producen su alimento?",
+      "opciones": [
+        "Digestión",
+        "Respiración",
+        "Fotosíntesis",
+        "Evaporación"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué sucede con el agua cuando se congela?",
+      "opciones": [
+        "Se convierte en gas",
+        "Se convierte en sólido",
+        "Desaparece",
+        "Se convierte en fuego"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál de estos es un ecosistema?",
+      "opciones": [
+        "Un lápiz",
+        "Una selva",
+        "Una mesa",
+        "Una mochila"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué debemos hacer para cuidar los recursos naturales?",
+      "opciones": [
+        "Desperdiciar agua",
+        "Tirar basura al río",
+        "Reducir y reciclar residuos",
+        "Dejar las luces encendidas"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es la capital de Colombia?",
+      "opciones": [
+        "Medellín",
+        "Cali",
+        "Bogotá",
+        "Cartagena"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es la moneda de Colombia?",
+      "opciones": [
+        "Dólar",
+        "Peso colombiano",
+        "Euro",
+        "Sol"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿En qué continente está Colombia?",
+      "opciones": [
+        "Europa",
+        "Asia",
+        "América",
+        "África"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál océano se encuentra al occidente de Colombia?",
+      "opciones": [
+        "Atlántico",
+        "Pacífico",
+        "Índico",
+        "Ártico"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál océano se encuentra al norte de Colombia?",
+      "opciones": [
+        "Pacífico",
+        "Índico",
+        "Atlántico",
+        "Antártico"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué representa un mapa?",
+      "opciones": [
+        "Una representación de un territorio",
+        "Una receta",
+        "Una historia",
+        "Una canción"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál es el río más largo de Colombia?",
+      "opciones": [
+        "Magdalena",
+        "Amazonas",
+        "Cauca",
+        "Bogotá"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es uno de los principales ríos de Colombia y atraviesa gran parte del país?",
+      "opciones": [
+        "Magdalena",
+        "Nilo",
+        "Amazonas",
+        "Sena"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué es una comunidad?",
+      "opciones": [
+        "Un grupo de personas que comparten un espacio o características comunes",
+        "Un objeto",
+        "Una montaña",
+        "Un animal"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál es una función importante de un alcalde?",
+      "opciones": [
+        "Administrar el municipio o distrito",
+        "Dirigir otro país",
+        "Crear planetas",
+        "Controlar el clima"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué símbolo representa a Colombia?",
+      "opciones": [
+        "La bandera",
+        "Un semáforo",
+        "Un computador",
+        "Un avión"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué línea imaginaria divide la Tierra en hemisferio norte y sur?",
+      "opciones": [
+        "Trópico de Cáncer",
+        "Ecuador",
+        "Meridiano de Greenwich",
+        "Trópico de Capricornio"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué instrumento sirve para orientarnos mediante los puntos cardinales?",
+      "opciones": [
+        "Microscopio",
+        "Brújula",
+        "Termómetro",
+        "Regla"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuáles son los cuatro puntos cardinales?",
+      "opciones": [
+        "Arriba, abajo, izquierda y derecha",
+        "Norte, sur, este y oeste",
+        "Cerca, lejos, arriba y abajo",
+        "Centro, esquina, lado y frente"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál de estos es un departamento de Colombia?",
+      "opciones": [
+        "Valledupar",
+        "Cesar",
+        "Cartagena",
+        "Medellín"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué dispositivo permite escribir letras y números en un computador?",
+      "opciones": [
+        "Monitor",
+        "Teclado",
+        "Parlante",
+        "Impresora"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál dispositivo permite mover el puntero en la pantalla?",
+      "opciones": [
+        "Mouse",
+        "Monitor",
+        "CPU",
+        "Memoria USB"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Para qué sirve un monitor?",
+      "opciones": [
+        "Para mostrar información visual",
+        "Para imprimir documentos",
+        "Para grabar sonidos",
+        "Para almacenar agua"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué programa se utiliza principalmente para escribir documentos?",
+      "opciones": [
+        "Word",
+        "Paint",
+        "Calculadora",
+        "Cámara"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué programa se utiliza principalmente para crear presentaciones?",
+      "opciones": [
+        "PowerPoint",
+        "Bloc de notas",
+        "Calculadora",
+        "Explorador"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué es Internet?",
+      "opciones": [
+        "Una red mundial de dispositivos conectados",
+        "Un tipo de teclado",
+        "Una impresora",
+        "Un videojuego"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál contraseña es más segura?",
+      "opciones": [
+        "123456",
+        "contraseña",
+        "Sebastian123",
+        "T9#kL7!pQ2"
+      ],
+      "respuesta": 3
+    },
+    {
+      "pregunta": "¿Qué debemos hacer si recibimos un mensaje extraño de un desconocido en Internet?",
+      "opciones": [
+        "Darle nuestra contraseña",
+        "Enviarle información personal",
+        "Ignorarlo y pedir ayuda a un adulto de confianza",
+        "Enviarle fotografías personales"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué dispositivo almacena información y puede conectarse mediante USB?",
+      "opciones": [
+        "Memoria USB",
+        "Monitor",
+        "Parlante",
+        "Mouse"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué significa \"guardar\" un archivo?",
+      "opciones": [
+        "Eliminarlo",
+        "Conservar la información para utilizarla después",
+        "Apagar el computador",
+        "Imprimirlo siempre"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué es un navegador web?",
+      "opciones": [
+        "Un programa para acceder a páginas de Internet",
+        "Un dispositivo de sonido",
+        "Una impresora",
+        "Un cable"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál de estos es un navegador?",
+      "opciones": [
+        "Chrome",
+        "Word",
+        "Excel",
+        "Paint"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué tecla permite normalmente borrar el carácter situado antes del cursor?",
+      "opciones": [
+        "Enter",
+        "Shift",
+        "Backspace",
+        "Ctrl"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué combinación se utiliza normalmente para copiar información?",
+      "opciones": [
+        "Ctrl + V",
+        "Ctrl + C",
+        "Ctrl + X",
+        "Ctrl + Z"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué combinación se utiliza normalmente para pegar información?",
+      "opciones": [
+        "Ctrl + P",
+        "Ctrl + C",
+        "Ctrl + V",
+        "Ctrl + A"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué significa \"book\"?",
+      "opciones": [
+        "Casa",
+        "Libro",
+        "Escuela",
+        "Mesa"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué significa \"apple\"?",
+      "opciones": [
+        "Naranja",
+        "Manzana",
+        "Pera",
+        "Uva"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es el significado de \"Good morning\"?",
+      "opciones": [
+        "Buenas noches",
+        "Buenas tardes",
+        "Buenos días",
+        "Hasta luego"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es el número \"ten\" en español?",
+      "opciones": [
+        "Ocho",
+        "Nueve",
+        "Diez",
+        "Once"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué significa \"blue\"?",
+      "opciones": [
+        "Rojo",
+        "Verde",
+        "Azul",
+        "Amarillo"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "Completa: \"I ___ a student.\"",
+      "opciones": [
+        "am",
+        "is",
+        "are",
+        "be"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "Completa: \"She ___ my friend.\"",
+      "opciones": [
+        "am",
+        "are",
+        "is",
+        "be"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "Si encuentras dinero en el salón y no sabes de quién es, ¿qué deberías hacer?",
+      "opciones": [
+        "Guardarlo",
+        "Compartirlo con amigos",
+        "Entregarlo a un docente",
+        "Gastarlo"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "Un compañero está hablando mientras otro participa. ¿Qué sería una buena actitud?",
+      "opciones": [
+        "Gritarle",
+        "Escucharlo y respetar su turno",
+        "Burlarse",
+        "Ignorarlo siempre"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué significa trabajar en equipo?",
+      "opciones": [
+        "Hacer todo individualmente",
+        "Colaborar para alcanzar un objetivo común",
+        "Dejar que otra persona haga todo",
+        "Competir constantemente"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "Si encuentras una noticia en Internet, ¿qué deberías hacer antes de compartirla?",
+      "opciones": [
+        "Compartirla inmediatamente",
+        "Revisar si la información proviene de una fuente confiable",
+        "Cambiarle el título",
+        "Enviarla a todos"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "Si dos compañeros tienen opiniones diferentes, ¿qué pueden hacer?",
+      "opciones": [
+        "Insultarse",
+        "Escucharse y argumentar respetuosamente",
+        "Dejar de hablarse",
+        "Gritar más fuerte"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es un ejemplo de responsabilidad?",
+      "opciones": [
+        "Culpar a otro por nuestros errores",
+        "Cumplir con nuestras tareas",
+        "Romper materiales",
+        "Ignorar las reglas"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué significa cuidar la información personal en Internet?",
+      "opciones": [
+        "Publicar todas nuestras contraseñas",
+        "Compartir nuestra dirección con desconocidos",
+        "Proteger datos como contraseñas y dirección",
+        "Dar nuestros datos a cualquier página"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "Si una información parece demasiado sorprendente para ser cierta, ¿qué conviene hacer?",
+      "opciones": [
+        "Compartirla inmediatamente",
+        "Verificarla en fuentes confiables",
+        "Inventar más información",
+        "Cambiar la información"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál de estas acciones demuestra respeto hacia los demás?",
+      "opciones": [
+        "Interrumpir constantemente",
+        "Escuchar cuando otra persona habla",
+        "Burlarse de los errores",
+        "Ignorar las opiniones"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es el promedio de 6, 8 y 10?",
+      "opciones": [
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es la tercera parte de 90?",
+      "opciones": [
+        "20",
+        "30",
+        "40",
+        "45"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "Si 4 lápices cuestan $6.000, ¿cuánto cuesta cada uno?",
+      "opciones": [
+        "$1.000",
+        "$1.500",
+        "$2.000",
+        "$2.500"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué decimal representa 1/4?",
+      "opciones": [
+        "0,15",
+        "0,20",
+        "0,25",
+        "0,50"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "Un ángulo de 90° se llama:",
+      "opciones": [
+        "Agudo",
+        "Obtuso",
+        "Recto",
+        "Llano"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es el 25% de 80?",
+      "opciones": [
+        "15",
+        "20",
+        "25",
+        "30"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "Una camisa cuesta $80.000 y tiene un descuento del 10%. ¿Cuál es su precio final?",
+      "opciones": [
+        "$70.000",
+        "$72.000",
+        "$74.000",
+        "$78.000"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál de los siguientes números es primo?",
+      "opciones": [
+        "21",
+        "27",
+        "29",
+        "33"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué número continúa la secuencia: 5, 10, 15, 20, ___?",
+      "opciones": [
+        "22",
+        "24",
+        "25",
+        "30"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "Si una secuencia comienza 3, 6, 12, 24..., ¿cuál es el siguiente número?",
+      "opciones": [
+        "36",
+        "42",
+        "48",
+        "54"
+      ],
+      "respuesta": 2
+    }
+  ]
+}

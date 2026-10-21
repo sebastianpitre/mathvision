@@ -16,11 +16,12 @@ import {
 } from "react-icons/fa";
 
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
+import ProtegerError from "../../components/common/ProtegerError";
+import LucesPersonaje from "../../components/character/LucesPersonaje";
 
 import { useAuth } from "../../context/AuthContext";
-import { getToken } from "../../services/authService";
-import { API_URL } from "../../services/serverConfig";
+import { api } from "../../services/api";
 
 import assets from "../../data/mock/assets.json";
 import icons from "../../data/mock/icons.json";
@@ -29,45 +30,13 @@ import AssetImage from "../../components/common/AssetImage";
 import VRMCharacter from "../../components/character/VRMCharacter";
 
 
-/* =========================================================
-   PETICIÓN AL SERVIDOR
-   Usa API_URL (sale de VITE_SERVER_URL).
-   auth: true  → envía el token (perfil propio, guardar)
-   auth: false → petición pública (perfil de otro jugador)
-========================================================= */
-
-async function apiRequest(endpoint, { auth = true, ...options } = {}) {
-
-    const headers = {
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-    };
-
-    if (auth) {
-        const token = getToken();
-
-        if (!token) {
-            throw new Error("Sesión no encontrada.");
-        }
-
-        headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${API_URL}${endpoint}`, {
-        ...options,
-        headers,
+/* Peticiones al servidor: services/api.js */
+async function apiRequest(endpoint, { method = "GET", body, auth = true } = {}) {
+    return api(endpoint, {
+        metodo: method,
+        auth,
+        body: body === undefined ? undefined : JSON.parse(body),
     });
-
-    // Si el servidor responde algo que no es JSON (502, 404 de Nginx...)
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-        throw new Error(
-            data?.message || `Error del servidor (${response.status}).`
-        );
-    }
-
-    return data;
 }
 
 
@@ -293,7 +262,7 @@ export default function Profile() {
     const characterModel =
         profile.character_model_path || assets.characters.defaultModel;
     const characterName = profile.character_name || "Personaje";
-    const xpProgress = (Number(profile.xp || 0) % 1000) / 10;
+    const xpProgress = Math.min(100, (100 * (Number(profile.xp_en_nivel) || 0)) / (Number(profile.xp_para_subir) || 100));
 
 
     /* =====================================================
@@ -357,16 +326,12 @@ export default function Profile() {
                         </div>
 
                         <div className="relative min-h-0 flex-1">
+                            <ProtegerError respaldo={<p className="sin-3d">Tu personaje 3D no se pudo mostrar en este dispositivo.</p>}>
                             <Canvas
                                 className="h-full w-full"
                                 camera={{ position: [0, 1.4, 3.4], fov: 35 }}
                             >
-                                <ambientLight intensity={1.8} />
-                                <directionalLight
-                                    position={[3, 5, 3]}
-                                    intensity={3}
-                                />
-                                <Environment preset="city" />
+                                <LucesPersonaje />
 
                                 <Suspense fallback={null}>
                                     <VRMCharacter
@@ -382,6 +347,7 @@ export default function Profile() {
                                     target={[0, 1.1, 0]}
                                 />
                             </Canvas>
+</ProtegerError>
                         </div>
 
                         <div className="shrink-0 border-t border-white/10 bg-black/20 px-4 py-3">
@@ -437,7 +403,7 @@ export default function Profile() {
                                     EXPERIENCIA
                                 </span>
                                 <strong className="text-xs text-cyan-400">
-                                    {profile.xp || 0} XP
+                                    {`${profile.xp_en_nivel ?? 0} / ${profile.xp_para_subir ?? 100} XP`}
                                 </strong>
                             </div>
 

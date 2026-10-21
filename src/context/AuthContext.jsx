@@ -1,222 +1,94 @@
-import {
-    createContext,
-    useContext,
-    useEffect,
-    useState
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import {
     login as loginService,
     register as registerService,
     getSession,
-    logout as logoutService
+    logout as logoutService,
 } from "../services/authService";
 
+import { socket } from "../services/socket";
 
-const AuthContext =
-    createContext(null);
+const AuthContext = createContext(null);
 
+export function AuthProvider({ children }) {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-export function AuthProvider({
-    children
-}) {
-
-    const [
-        user,
-        setUser
-    ] = useState(null);
-
-
-    const [
-        loading,
-        setLoading
-    ] = useState(true);
-
-
-    /* =====================================================
-       RESTAURAR SESIÓN
-       ===================================================== */
-
+    /* Restaurar la sesión al abrir el juego */
     useEffect(() => {
+        let cancelado = false;
 
-        async function restoreSession() {
-
-            const session =
-                await getSession();
-
-
-            if (session) {
-
-                setUser(
-                    session
-                );
-
-            }
-
-
+        getSession().then((session) => {
+            if (cancelado) return;
+            if (session) setUser(session);
             setLoading(false);
+        });
 
-        }
-
-
-        restoreSession();
-
+        return () => {
+            cancelado = true;
+        };
     }, []);
 
-
-    /* =====================================================
-       LOGIN
-       ===================================================== */
-
-    const login = async (
-        username,
-        password
-    ) => {
-
-        const result =
-            await loginService(
-                username,
-                password
-            );
-
-
-        if (!result.success) {
-
-            return result;
-
-        }
-
-
-        setUser(
-            result.user
-        );
-
-
+    const login = useCallback(async (username, password) => {
+        const result = await loginService(username, password);
+        if (result?.success) setUser(result.user);
         return result;
+    }, []);
 
-    };
-
-
-    /* =====================================================
-       REGISTRO
-       ===================================================== */
-
-    const register = async (
-        username,
-        email,
-        password
-    ) => {
-
-        const result =
-            await registerService(
-                username,
-                email,
-                password
-            );
-
-
-        if (!result.success) {
-
-            return result;
-
-        }
-
-
-        setUser(
-            result.user
-        );
-
-
+    const register = useCallback(async (username, email, password) => {
+        const result = await registerService(username, email, password);
+        if (result?.success) setUser(result.user);
         return result;
+    }, []);
 
-    };
-
-
-    /* =====================================================
-       ACTUALIZAR PERFIL DESDE EL SERVIDOR
-       ===================================================== */
-
-    const refreshUser = async () => {
-
-        const session =
-            await getSession();
-
-
-        if (session) {
-
-            setUser(
-                session
-            );
-
-        }
-
-
+    /* Volver a pedir el perfil al servidor */
+    const refreshUser = useCallback(async () => {
+        const session = await getSession();
+        if (session) setUser(session);
         return session;
+    }, []);
 
-    };
+    /*
+     * Cuando el servidor ya devolvió el perfil nuevo (al
+     * terminar una partida o comprar algo) se usa directo,
+     * sin otra petición.
+     */
+    const actualizarUsuario = useCallback((perfil) => {
+        if (perfil) setUser((anterior) => ({ ...anterior, ...perfil }));
+    }, []);
 
-
-    /* =====================================================
-       LOGOUT
-       ===================================================== */
-
-    const logout = () => {
-
+    const logout = useCallback(() => {
         logoutService();
-
+        if (socket.connected) socket.disconnect();
         setUser(null);
+    }, []);
 
-    };
-
-
-    const value = {
-
-        user,
-
-        loading,
-
-        isAuthenticated:
-            Boolean(user),
-
-        login,
-
-        register,
-
-        logout,
-
-        refreshUser,
-
-    };
-
-
-    return (
-        <AuthContext.Provider
-            value={value}
-        >
-            {children}
-        </AuthContext.Provider>
+    const value = useMemo(
+        () => ({
+            user,
+            loading,
+            isAuthenticated: Boolean(user),
+            esAdmin: Boolean(user?.es_admin),
+            login,
+            register,
+            logout,
+            refreshUser,
+            actualizarUsuario,
+        }),
+        [user, loading, login, register, logout, refreshUser, actualizarUsuario]
     );
 
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
-
-    const context =
-        useContext(
-            AuthContext
-        );
-
+    const context = useContext(AuthContext);
 
     if (!context) {
-
-        throw new Error(
-            "useAuth debe utilizarse dentro de AuthProvider"
-        );
-
+        throw new Error("useAuth debe utilizarse dentro de AuthProvider");
     }
 
-
     return context;
-
 }

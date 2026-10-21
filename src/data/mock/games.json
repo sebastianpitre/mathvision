@@ -1,9 +1,22 @@
 [
   {
+    "id": "preguntas",
+    "name": "Ludo Millonario",
+    "shortName": "Preguntas",
+    "description": "Preguntas de tu grado y asignatura. ¡Gana oro y diamantes!",
+    "icon": "❓",
+    "image": "/img/MathMillonario/portada.jpg",
+    "minPlayers": 1,
+    "maxPlayers": 1,
+    "status": "available",
+    "route": "/games/preguntas",
+    "color": "#9b4dff"
+  },
+  {
     "id": "triqui-matematico",
     "name": "Triqui Matemático",
     "shortName": "Triqui",
-    "description": "Resuelve y conquista el tablero.",
+    "description": "Invita a un amigo del Mundo y conquista el tablero.",
     "icon": "⭕❌",
     "image": "/img/Triqui/portada.jpeg",
     "minPlayers": 2,
@@ -13,28 +26,15 @@
     "color": "#39bfff"
   },
   {
-    "id": "Math-millonary",
-    "name": "Math Millonario",
-    "shortName": "Millonary",
-    "description": "Vuelvete millonario.",
-    "icon": "🎱",
-    "image": "/img/MathMillonario/portada.png",
-    "minPlayers": 1,
-    "maxPlayers": 1,
-    "status": "coming-soon",
-    "route": "/games/math-millonario",
-    "color": "#9b4dff"
-  },
-  {
-    "id": "Escape-algebra",
-    "name": "Escape Algebra",
+    "id": "escape-algebra",
+    "name": "Escape Álgebra",
     "shortName": "Escape",
-    "description": "Desbloquea la puerta.",
+    "description": "Resuelve ecuaciones para abrir cada puerta.",
     "icon": "💡",
-    "image": "/img/EscapeAlgebra/portada.png",
+    "image": "/img/EscapeAlgebra/portada.jpg",
     "minPlayers": 1,
     "maxPlayers": 1,
-    "status": "coming-soon",
+    "status": "available",
     "route": "/games/escape-algebra",
     "color": "#20d97b"
   }

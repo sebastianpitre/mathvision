@@ -8,7 +8,7 @@ const sounds = {
     retire: "/sounds/retire.mp3",
 
     background:
-        "/sounds/MathMillonario/fondo-millonario.wav"
+        "/sounds/MathMillonario/fondo-millonario.mp3"
 
 };
 

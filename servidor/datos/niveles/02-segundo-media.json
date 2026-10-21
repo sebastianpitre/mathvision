@@ -1,0 +1,220 @@
+{
+  "nivel": {
+    "nombre": "Repaso de segundo · Medio",
+    "descripcion": "Geometría, tiempo y lenguaje.",
+    "grado": "2°",
+    "asignatura": "Repaso general",
+    "dificultad": "media",
+    "preguntas_por_partida": 10,
+    "segundos_por_pregunta": 30,
+    "vidas": 3,
+    "tipo_recompensa": "puntos",
+    "recompensa_xp": 50,
+    "recompensa_oro": 20,
+    "recompensa_diamantes": 0,
+    "porcentaje_minimo": 50,
+    "orden": 2
+  },
+  "preguntas": [
+    {
+      "pregunta": "¿Cuántos lados tiene un triángulo?",
+      "opciones": [
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuántos lados tiene un cuadrado?",
+      "opciones": [
+        "4",
+        "3",
+        "5",
+        "6"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál de estas figuras es redonda?",
+      "opciones": [
+        "Cuadrado",
+        "Triángulo",
+        "Círculo",
+        "Rectángulo"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuántos días tiene una semana?",
+      "opciones": [
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuántos meses tiene un año?",
+      "opciones": [
+        "12",
+        "10",
+        "11",
+        "13"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué día de la semana viene después del lunes?",
+      "opciones": [
+        "Domingo",
+        "Martes",
+        "Miércoles",
+        "Viernes"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuántos minutos tiene una hora?",
+      "opciones": [
+        "30",
+        "50",
+        "60",
+        "100"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál de estos números es par?",
+      "opciones": [
+        "11",
+        "14",
+        "9",
+        "7"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál de estos números es impar?",
+      "opciones": [
+        "8",
+        "10",
+        "13",
+        "20"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuánto es 5 × 2?",
+      "opciones": [
+        "7",
+        "10",
+        "12",
+        "25"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál palabra es un sustantivo?",
+      "opciones": [
+        "Correr",
+        "Mesa",
+        "Rápido",
+        "Saltar"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuántas sílabas tiene la palabra \"mariposa\"?",
+      "opciones": [
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Con qué tipo de letra empieza una oración?",
+      "opciones": [
+        "Mayúscula",
+        "Minúscula",
+        "Número",
+        "Ninguna"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál es el antónimo de \"grande\"?",
+      "opciones": [
+        "Enorme",
+        "Pequeño",
+        "Alto",
+        "Gordo"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es el plural de \"flor\"?",
+      "opciones": [
+        "Flors",
+        "Flores",
+        "Florez",
+        "Flor es"
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál palabra rima con \"casa\"?",
+      "opciones": [
+        "Masa",
+        "Perro",
+        "Luz",
+        "Sol"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál palabra es un verbo?",
+      "opciones": [
+        "Jugar",
+        "Mesa",
+        "Rojo",
+        "Sol"
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál oración está correctamente escrita?",
+      "opciones": [
+        "el gato duerme en la cama",
+        "el Gato duerme en la cama.",
+        "El gato duerme en la cama.",
+        "El gato duerme en la cama"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuántas vocales tiene el abecedario?",
+      "opciones": [
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué es un cuento?",
+      "opciones": [
+        "Una narración corta con personajes",
+        "Una lista de compras",
+        "Una operación",
+        "Un mapa"
+      ],
+      "respuesta": 0
+    }
+  ]
+}

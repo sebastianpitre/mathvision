@@ -7,6 +7,13 @@ import {
 } from "./context/AuthContext";
 
 import App from "./App";
+// Letra del juego incluida en el proyecto (no depende de
+// Google Fonts, que algunas redes de colegio bloquean).
+import "@fontsource/nunito/500.css";
+import "@fontsource/nunito/700.css";
+import "@fontsource/nunito/800.css";
+import "@fontsource/nunito/900.css";
+
 import "./styles/globals.css";
 import "./styles/components.css";
 

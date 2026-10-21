@@ -9,7 +9,6 @@
    · Respeta "reducir movimiento" del sistema.
 ========================================================= */
 
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap");
 
 .lb {
     /* ---------- Colores ---------- */
@@ -587,6 +586,22 @@
     border-radius: var(--lb-radius);
     background: var(--lb-surface-2);
     border: 1px solid var(--lb-border);
+}
+
+.lb-soon-link {
+    width: 100%;
+    height: 100%;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.lb-soon-link:hover {
+    border-color: var(--lb-accent);
+    background: var(--lb-accent-soft);
+    transform: translateY(-1px);
 }
 
 .lb-soon-icon {

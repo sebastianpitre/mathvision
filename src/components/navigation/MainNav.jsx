@@ -15,13 +15,15 @@ import {
     LuGem,
     LuLogOut,
     LuMenu,
-    LuSettings,
+    LuShieldCheck,
     LuUser,
     LuX,
 } from "react-icons/lu";
 
 import AssetImage from "../common/AssetImage";
 import { useAuth } from "../../context/AuthContext";
+import { jugadorDesdeUsuario } from "../../services/jugador";
+import defaultNavigation from "../../data/mock/navigation.json";
 
 import "./mainnav.css";
 
@@ -46,8 +48,14 @@ const BRAND = {
 
 const PROFILE_MENU = [
     { id: "profile", label: "Mi perfil", icon: LuUser, route: "/profile" },
-    { id: "settings", label: "Configuración", icon: LuSettings, route: "/settings" },
 ];
+
+const ADMIN_MENU = {
+    id: "admin",
+    label: "Panel de administración",
+    icon: LuShieldCheck,
+    route: "/admin",
+};
 
 const formatNumber = (value) =>
     (Number(value) || 0).toLocaleString("es-CO");
@@ -119,8 +127,8 @@ function Currencies({ player, className = "" }) {
 ========================================================= */
 
 export default function MainNav({
-    navigation = [],
-    player,
+    navigation = defaultNavigation,
+    player: playerProp,
     logo,
 }) {
 
@@ -128,7 +136,12 @@ export default function MainNav({
 
     const navigate = useNavigate();
     const location = useLocation();
-    const { logout } = useAuth();
+    const { logout, user, esAdmin } = useAuth();
+
+    // Si la pantalla no pasa el jugador, se arma con la sesión.
+    const player = playerProp || jugadorDesdeUsuario(user);
+
+    const profileMenu = esAdmin ? [...PROFILE_MENU, ADMIN_MENU] : PROFILE_MENU;
     const reduceMotion = useReducedMotion();
 
     const [menuOpen, setMenuOpen] = useState(false);
@@ -380,7 +393,7 @@ export default function MainNav({
                                     aria-label={`Opciones de ${displayName}`}
                                     onKeyDown={onMenuKeyDown}
                                 >
-                                    {PROFILE_MENU.map(({ id, label, icon: Icon, route }) => (
+                                    {profileMenu.map(({ id, label, icon: Icon, route }) => (
                                         <li key={id} role="none">
                                             <button
                                                 type="button"
@@ -479,7 +492,7 @@ export default function MainNav({
                             <Currencies player={player} className="mn-currencies-mobile" />
 
                             <ul className="mn-mobile-links mn-mobile-account">
-                                {PROFILE_MENU.map(({ id, label, icon: Icon, route }) => (
+                                {profileMenu.map(({ id, label, icon: Icon, route }) => (
                                     <li key={id}>
                                         <button
                                             type="button"

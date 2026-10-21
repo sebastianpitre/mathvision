@@ -1,15 +1,6 @@
 [
-  {
-    "id": "home",
-    "label": "Inicio",
-    "icon": "⌂",
-    "route": "/lobby"
-  },
-  
-  {
-    "id": "character",
-    "label": "Personaje",
-    "icon": "♙",
-    "route": "/character"
-  }
+  { "id": "home", "label": "Inicio", "icon": "⌂", "route": "/lobby" },
+  { "id": "preguntas", "label": "Preguntas", "icon": "?", "route": "/games/preguntas" },
+  { "id": "world", "label": "Mundo", "icon": "◎", "route": "/world" },
+  { "id": "tienda", "label": "Personajes", "icon": "♙", "route": "/tienda" }
 ]

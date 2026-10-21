@@ -1,0 +1,250 @@
+{
+  "nivel": {
+    "nombre": "Conócete a ti mismo",
+    "descripcion": "Emociones, fortalezas y convivencia.",
+    "grado": "General",
+    "asignatura": "Ética y valores",
+    "dificultad": "media",
+    "preguntas_por_partida": 10,
+    "segundos_por_pregunta": 30,
+    "vidas": 3,
+    "tipo_recompensa": "puntos",
+    "recompensa_xp": 50,
+    "recompensa_oro": 20,
+    "recompensa_diamantes": 0,
+    "porcentaje_minimo": 50,
+    "orden": 7
+  },
+  "preguntas": [
+    {
+      "pregunta": "¿Qué significa conocerse a uno mismo?",
+      "opciones": [
+        "Reconocer mis emociones, fortalezas, necesidades y aspectos por mejorar.",
+        "Saber siempre lo que los demás piensan de mí.",
+        "Evitar cometer errores.",
+        "Actuar como lo hace la mayoría."
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Cuál de estas opciones es una emoción?",
+      "opciones": [
+        "Ser responsable.",
+        "Sentir tristeza.",
+        "Ser estudiante.",
+        "Tener una mochila."
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Para qué sirve identificar lo que siento?",
+      "opciones": [
+        "Para ocultarlo mejor.",
+        "Para evitar cualquier emoción desagradable.",
+        "Para comprender qué necesito y elegir cómo actuar.",
+        "Para lograr que otras personas hagan lo que quiero."
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "Si siento mucha rabia, ¿qué puedo hacer antes de responder?",
+      "opciones": [
+        "Insultar para desahogarme.",
+        "Respirar despacio y darme un momento.",
+        "Publicar de inmediato lo que pienso.",
+        "Buscar a alguien para descargarme con esa persona."
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es una señal física que puede acompañar a la ansiedad o los nervios?",
+      "opciones": [
+        "El corazón late más rápido.",
+        "Siempre aparece fiebre alta.",
+        "El cuerpo deja de sentir cualquier cosa.",
+        "Todas las personas reaccionan exactamente igual."
+      ],
+      "respuesta": 0
+    },
+    {
+      "pregunta": "¿Qué diferencia hay entre sentir una emoción y actuar impulsivamente?",
+      "opciones": [
+        "No existe ninguna diferencia.",
+        "Sentir rabia significa que debo agredir.",
+        "Las emociones son válidas, pero puedo elegir cómo actuar.",
+        "Solo las personas tranquilas tienen emociones."
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué es la autoestima?",
+      "opciones": [
+        "Creer que soy mejor que todas las personas.",
+        "Reconocer mi valor y tratarme con respeto, incluso cuando me equivoco.",
+        "Necesitar que todos me aprueben.",
+        "No aceptar críticas nunca."
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "Si cometo un error, ¿qué respuesta demuestra una actitud de crecimiento?",
+      "opciones": [
+        "Decirme que no sirvo para nada.",
+        "Negar lo ocurrido y culpar a alguien.",
+        "Reconocerlo, reparar si es posible y aprender de la experiencia.",
+        "Abandonar todo para no volver a equivocarme."
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué significa la empatía?",
+      "opciones": [
+        "Estar de acuerdo con todo lo que otra persona hace.",
+        "Intentar comprender cómo puede sentirse otra persona, sin dejar de tener criterio propio.",
+        "Resolver todos los problemas ajenos.",
+        "Sentir exactamente lo mismo que los demás en todo momento."
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "Un compañero está callado y parece triste. ¿Qué sería más empático?",
+      "opciones": [
+        "Decirle que deje de exagerar.",
+        "Contarles a todos lo que supones que le pasa.",
+        "Preguntarle en privado si está bien y si quiere hablar.",
+        "Obligarlo a contar lo que siente."
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál es un límite personal saludable?",
+      "opciones": [
+        "Controlar con quién puede hablar mi pareja o amistad.",
+        "Decir con respeto qué me incomoda y qué no acepto.",
+        "Aceptar todo para que nadie se moleste.",
+        "Dejar de hablar con cualquiera que piense diferente."
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "Si un grupo te presiona para hacer algo que consideras riesgoso, ¿qué decisión es más responsable?",
+      "opciones": [
+        "Hacerlo para que no se burlen.",
+        "Evaluar los riesgos, decir que no y buscar apoyo si lo necesito.",
+        "Esperar a que otra persona decida por mí.",
+        "Hacerlo y después pensar en las consecuencias."
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué es regular una emoción?",
+      "opciones": [
+        "Eliminarla para siempre.",
+        "Fingir que no existe.",
+        "Reconocerla y usar estrategias para expresarla y manejarla de forma saludable.",
+        "Dejar que decida todo por mí."
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál puede ser una estrategia útil cuando los pensamientos negativos se repiten?",
+      "opciones": [
+        "Tomarlos automáticamente como verdades.",
+        "Preguntarme qué evidencia tengo y qué otra explicación es posible.",
+        "Evitar hablar o pensar en cualquier problema.",
+        "Criticarme hasta que desaparezcan."
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué significa ser resiliente?",
+      "opciones": [
+        "No sentir tristeza ni miedo.",
+        "Resolver todo sin ayuda.",
+        "Adaptarse y buscar maneras de seguir adelante ante las dificultades, aprendiendo cuando sea posible.",
+        "No hablar nunca de los problemas."
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Cuál de estas frases expresa una comunicación asertiva?",
+      "opciones": [
+        "\"Si no haces lo que digo, no me importas\".",
+        "\"Nunca entiendes nada\".",
+        "\"Me incomodó lo que pasó; quisiera que lo hablemos con respeto\".",
+        "\"Está bien\", aunque en realidad no esté de acuerdo."
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué es un valor personal?",
+      "opciones": [
+        "Una regla que todos deben seguir exactamente igual.",
+        "Algo importante que orienta mis decisiones, como el respeto o la honestidad.",
+        "Una emoción que dura unos minutos.",
+        "Una opinión que nunca puede cambiar."
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué conviene hacer antes de tomar una decisión importante?",
+      "opciones": [
+        "Elegir lo primero que me ocurra.",
+        "Pensar en opciones, consecuencias y en lo que es importante para mí.",
+        "Decidir solo para agradar a los demás.",
+        "Ignorar la información que no me gusta."
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Qué puedo hacer si una emoción se vuelve demasiado intensa y me cuesta manejarla?",
+      "opciones": [
+        "Esperar a que empeore sin contárselo a nadie.",
+        "Lastimarme o lastimar a alguien para liberar tensión.",
+        "Usar una estrategia segura y pedir apoyo a una persona de confianza o profesional.",
+        "Suponer que debo poder resolverlo todo a solas."
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Por qué es importante reconocer mis fortalezas y mis aspectos por mejorar?",
+      "opciones": [
+        "Para compararme todo el tiempo con los demás.",
+        "Para conocer mis recursos y establecer metas realistas de crecimiento.",
+        "Para demostrar que nunca necesito ayuda.",
+        "Para evitar probar cosas nuevas."
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "En redes sociales, ver la vida aparentemente perfecta de otras personas puede hacerme sentir menos. ¿Qué sería útil recordar?",
+      "opciones": [
+        "Que lo que se publica muestra necesariamente toda la realidad.",
+        "Que mi valor depende de los comentarios y los \"me gusta\".",
+        "Que las publicaciones suelen mostrar solo una parte de la vida y que mi valor no depende de compararme.",
+        "Que debo publicar más para demostrar que soy feliz."
+      ],
+      "respuesta": 2
+    },
+    {
+      "pregunta": "¿Qué significa asumir la responsabilidad por mis acciones?",
+      "opciones": [
+        "Castigarme cada vez que me equivoco.",
+        "Reconocer mi participación, considerar el impacto y reparar el daño cuando sea posible.",
+        "Buscar excusas para evitar consecuencias.",
+        "Aceptar la culpa por todo, incluso por lo que no controlo."
+      ],
+      "respuesta": 1
+    },
+    {
+      "pregunta": "¿Cuál es una señal de autoconocimiento en una situación difícil?",
+      "opciones": [
+        "Reconocer qué estoy sintiendo, qué necesito y qué opciones tengo antes de actuar.",
+        "Esperar que los demás adivinen lo que me pasa.",
+        "Actuar de inmediato para no sentir incomodidad.",
+        "Creer que pedir ayuda significa fracasar."
+      ],
+      "respuesta": 0
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# =========================================================
+# LUDOGAMIF · SERVIDOR (detrás del nginx que ya existe)
+# ---------------------------------------------------------
+# • El juego queda SOLO en 127.0.0.1:8082 (8080 y 8081 ya
+#   están ocupados por el catálogo y el POS). Desde internet
+#   no se llega a ese puerto: solo el nginx del sistema.
+# • Cualquier nginx propio sigue apagado (perfil "nunca").
+#
+# Uso:  docker compose -f docker-compose.yml -f docker-compose.detras-de-nginx.yml up -d
+#       (ludogamif.sh lo hace solo cuando instalaste con --detras-de-nginx)
+# =========================================================
+
+services:
+  app:
+    ports:
+      - "127.0.0.1:${PUERTO_APP:-8082}:3000"
+
+  nginx:
+    profiles: ["nunca"]

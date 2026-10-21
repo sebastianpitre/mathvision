@@ -47,12 +47,12 @@ import { useAuth } from "../context/AuthContext";
 import "../styles/mathvision.css";
 import "../styles/world.css";
 
-import navigation from "../data/mock/navigation.json";
 import assets from "../data/mock/assets.json";
 
 import AssetImage from "../components/common/AssetImage";
 import VRMCharacter from "../components/character/VRMCharacter";
 import MainNav from "../components/navigation/MainNav";
+import ProtegerError from "../components/common/ProtegerError";
 
 /* =========================================================
    CONSTANTES
@@ -721,9 +721,8 @@ export default function World() {
 
     const characterModel = user?.character_model_path || "/models/characters/Adan2.vrm";
 
-    const xp = Number(user?.xp) || 0;
     const level = Number(user?.level) || 1;
-    const xpPercentage = Math.min(100, Math.max(0, ((xp % 1000) / 1000) * 100));
+    const xpPercentage = Math.min(100, Math.max(0, (100 * (Number(user?.xp_en_nivel) || 0)) / (Number(user?.xp_para_subir) || 100)));
     const displayName = user?.display_name || user?.username || "Jugador";
     const avatar = user?.avatar || assets.players.defaultAvatar;
     const coins = Number(user?.coins) || 0;
@@ -810,7 +809,6 @@ export default function World() {
             {background}
 
             <MainNav
-                navigation={navigation}
                 player={{
                     avatar,
                     displayName,
@@ -898,6 +896,7 @@ export default function World() {
                             role="img"
                             aria-label={`Personaje 3D de ${displayName}. Arrastra para girarlo.`}
                         >
+                            <ProtegerError respaldo={<p className="sin-3d">Tu personaje 3D no se pudo mostrar en este dispositivo.</p>}>
                             <Canvas
                                 gl={{ alpha: true }}
                                 camera={{ position: [0, 1.2, 6], fov: 35 }}
@@ -925,6 +924,7 @@ export default function World() {
                                     maxPolarAngle={Math.PI / 2}
                                 />
                             </Canvas>
+                            </ProtegerError>
                         </div>
 
                         {/* Jugadores alrededor del personaje */}

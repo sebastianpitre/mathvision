@@ -17,6 +17,11 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
+import { api } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
+import Recompensas from "../../components/common/Recompensas";
+import "../../styles/ludo.css";
+
 import questions from "./data/questions";
 
 import QuestionCard from "./components/QuestionCard";
@@ -31,6 +36,12 @@ const QUESTIONS_PER_GAME = 5;
 export default function EscapeAlgebra() {
 
     const navigate = useNavigate();
+
+    const { actualizarUsuario } = useAuth();
+
+    // Premio que entrega el servidor al terminar (con tope diario).
+    const [premio, setPremio] = useState(null);
+    const premioPedidoRef = useRef(false);
     const warningAudioRef = useRef(null);
 
     const stopWarningSound = () => {
@@ -349,24 +360,6 @@ export default function EscapeAlgebra() {
 
 
             // =============================================
-            // XP GLOBAL
-            // =============================================
-
-            const currentXP =
-                Number(
-                    localStorage.getItem(
-                        "mathvision_xp"
-                    )
-                ) || 0;
-
-
-            localStorage.setItem(
-                "mathvision_xp",
-                currentXP + points
-            );
-
-
-            // =============================================
             // COMBO
             // =============================================
 
@@ -464,20 +457,6 @@ export default function EscapeAlgebra() {
             // JUEGO COMPLETADO
             // =============================================
 
-            const completedGames =
-                Number(
-                    localStorage.getItem(
-                        "mathvision_games"
-                    )
-                ) || 0;
-
-
-            localStorage.setItem(
-                "mathvision_games",
-                completedGames + 1
-            );
-
-
             // =============================================
             // IMPORTANTE:
             // NO MARCAMOS EL MUNDO COMO COMPLETADO
@@ -553,6 +532,8 @@ export default function EscapeAlgebra() {
 
         setFinished(false);
 
+        setPremio(null);
+
         setTime(MAX_TIME);
 
         setCorrectAnswers(0);
@@ -567,7 +548,32 @@ export default function EscapeAlgebra() {
     useEffect(() => {
 
         if (!finished) {
+            premioPedidoRef.current = false;
             return;
+        }
+
+
+        // -------------------------------------------------
+        // GUARDAR LA PARTIDA Y COBRAR EL PREMIO
+        // -------------------------------------------------
+
+        if (!premioPedidoRef.current) {
+
+            premioPedidoRef.current = true;
+
+            api("/partidas/registrar", {
+                metodo: "POST",
+                body: {
+                    juego: "escape-algebra",
+                    aciertos: correctAnswers,
+                    total: gameQuestions.length,
+                },
+            })
+                .then((r) => {
+                    setPremio(r);
+                    actualizarUsuario(r.perfil);
+                })
+                .catch(() => setPremio({ error: true }));
         }
 
 
@@ -676,7 +682,8 @@ export default function EscapeAlgebra() {
     }, [
         finished,
         correctAnswers,
-        gameQuestions
+        gameQuestions,
+        actualizarUsuario
     ]);
 
 
@@ -1063,6 +1070,40 @@ export default function EscapeAlgebra() {
 
 
                     {/* =====================================
+                        PREMIO (lo calcula el servidor)
+                    ===================================== */}
+
+                    <div className="mt-6 flex flex-col items-center gap-2">
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                            Premio
+                        </p>
+                        {premio === null ? (
+                            <p className="text-sm text-slate-400">Guardando tu partida…</p>
+                        ) : premio.error ? (
+                            <p className="text-sm text-red-300">No se pudo guardar el premio. Revisa tu conexión.</p>
+                        ) : (
+                            <>
+                                <Recompensas
+                                    xp={premio.recompensa.xp}
+                                    oro={premio.recompensa.oro}
+                                    grande
+                                />
+                                {premio.recompensa.subio_nivel && (
+                                    <p className="font-black text-emerald-300">
+                                        {`🎉 ¡Subiste al nivel ${premio.recompensa.nivel_nuevo}!`}
+                                    </p>
+                                )}
+                                {premio.limite_diario_alcanzado && (
+                                    <p className="text-sm text-slate-400">
+                                        Ya ganaste premios en Escape Álgebra varias veces hoy. ¡Vuelve mañana!
+                                    </p>
+                                )}
+                            </>
+                        )}
+                    </div>
+
+
+                    {/* =====================================
                         ESTADISTICAS
                     ===================================== */}
 
@@ -1094,7 +1135,7 @@ export default function EscapeAlgebra() {
                                 font-bold
                                 text-slate-500
                             ">
-                                XP
+                                PUNTOS
                             </p>
 
                             <p className="

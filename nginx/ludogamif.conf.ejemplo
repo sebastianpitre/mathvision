@@ -1,0 +1,77 @@
+# =========================================================
+# LUDOGAMIF · BLOQUE PARA EL NGINX DEL SERVIDOR
+# ---------------------------------------------------------
+# Copiar a:   /etc/nginx/sites-available/ludogamif.conf
+# Enlazar:    ln -s /etc/nginx/sites-available/ludogamif.conf /etc/nginx/sites-enabled/
+# Probar:     sudo nginx -t        (si falla, NO recargar)
+# Recargar:   sudo systemctl reload nginx
+#
+#   Internet → Cloudflare → nginx (443) → Docker 127.0.0.1:8082
+#
+# • Sin default_server: no le quita nada al catálogo, al POS
+#   ni a las APIs. El nombre exacto le gana al comodín
+#   *.ocloudev.lat del catálogo.
+# • Usa el certificado de origen de Cloudflare que ya existe.
+# • El nombre de la variable del map es propio de este
+#   archivo (ludogamif_juego_upgrade) para no chocar con
+#   ningún otro bloque.
+# =========================================================
+
+map $http_upgrade $ludogamif_juego_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+# HTTP → HTTPS
+server {
+    listen 80;
+    server_name ludogamif.ocloudev.lat;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name ludogamif.ocloudev.lat;
+
+    ssl_certificate     /etc/ssl/cloudflare/ocloudev.crt;
+    ssl_certificate_key /etc/ssl/cloudflare/ocloudev.key;
+
+    # Archivos JSON de preguntas que sube el administrador.
+    client_max_body_size 5m;
+
+    # ---------- Tiempo real (Socket.IO / WebSockets) ----------
+    location /socket.io/ {
+        proxy_pass http://127.0.0.1:8082;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $ludogamif_juego_upgrade;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+
+        # Las partidas pueden durar: que nginx no corte la conexión.
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        proxy_buffering off;
+    }
+
+    # ---------- Juego y API ----------
+    location / {
+        proxy_pass http://127.0.0.1:8082;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $ludogamif_juego_upgrade;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+
+        proxy_read_timeout 120s;
+    }
+}

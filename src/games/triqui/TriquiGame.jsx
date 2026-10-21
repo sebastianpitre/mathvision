@@ -11,6 +11,7 @@ import {
 } from "react-router-dom";
 
 import { socket as onlineSocket } from "../../services/socket";
+import { useAuth } from "../../context/AuthContext";
 
 import { createLocalTriquiSocket } from "./localTriquiSocket";
 
@@ -101,6 +102,8 @@ function TriquiGame({ mode = "online", playerName } = {}) {
     const location = useLocation();
 
     const isLocal = mode === "local";
+
+    const { refreshUser } = useAuth();
 
     // Un solo socket durante toda la vida del componente
     const [socket] = useState(() =>
@@ -348,6 +351,23 @@ function TriquiGame({ mode = "online", playerName } = {}) {
             }
         };
 
+        // Premio que guarda el servidor al terminar (solo en línea).
+        const handleReward = ({ recompensa } = {}) => {
+            if (!recompensa) return;
+
+            const partes = [`+${recompensa.xp} XP`];
+            if (recompensa.oro > 0) partes.push(`+${recompensa.oro} de oro`);
+
+            showToast(
+                recompensa.xp + recompensa.oro > 0
+                    ? `Ganaste ${partes.join(" y ")}${recompensa.subio_nivel ? ` · ¡Subiste al nivel ${recompensa.nivel_nuevo}!` : ""}`
+                    : "Ya ganaste muchos premios de Triqui hoy. ¡Vuelve mañana!",
+                { icon: "success", timer: 4500 }
+            );
+
+            refreshUser();
+        };
+
         const handleGameError = ({ message }) => {
             console.error("🔴 GAME ERROR:", message);
             showErrorToast(message);
@@ -507,6 +527,7 @@ function TriquiGame({ mode = "online", playerName } = {}) {
         socket.on("game:turnTimeout", handleTurnTimeout);
         socket.on("game:emoji", handleEmoji);
         socket.on("game:playerDisconnected", handlePlayerDisconnected);
+        socket.on("game:reward", handleReward);
 
         // Si se reconecta, pedimos el estado de nuevo
         socket.on("connect", requestState);
@@ -524,6 +545,7 @@ function TriquiGame({ mode = "online", playerName } = {}) {
             socket.off("game:started", handleGameStarted);
             socket.off("game:state", handleGameState);
             socket.off("game:finished", handleGameFinished);
+            socket.off("game:reward", handleReward);
             socket.off("game:error", handleGameError);
             socket.off("game:playError", handlePlayError);
             socket.off("game:answerResult", handleAnswerResult);
@@ -537,7 +559,7 @@ function TriquiGame({ mode = "online", playerName } = {}) {
             timers.clear();
         };
 
-    }, [cancel, resetSelection, schedule, showTurnNotice, sfx, socket]);
+    }, [cancel, resetSelection, schedule, showTurnNotice, sfx, socket, refreshUser]);
 
     /* =====================================================
        TEMPORIZADOR
