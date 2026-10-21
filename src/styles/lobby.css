@@ -928,6 +928,8 @@
 ========================================================= */
 
 .lb-modal {
+    /* <dialog> centrado (Tailwind le quita el margin: auto del navegador) */
+    margin: auto;
     width: min(1040px, calc(100vw - 32px));
     max-width: none;
     max-height: calc(100dvh - 32px);
@@ -1505,7 +1507,7 @@
    Primero se ve el personaje + "Elige tu juego".
 ========================================================= */
 
-@media (max-width: 1180px) {
+@media (max-width: 1180px) and (orientation: portrait) {
 
     .lb-main {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1537,7 +1539,7 @@
     }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 720px) and (orientation: portrait) {
 
     .lb-main {
         grid-template-columns: minmax(0, 1fr);
@@ -1620,6 +1622,233 @@
 
     .lb-collage-frame:nth-child(4) {
         display: none;
+    }
+}
+
+/* =========================================================
+   HORIZONTAL EN TABLET Y PANTALLAS MEDIANAS
+   Siempre las 3 columnas; los lados más angostos.
+========================================================= */
+
+@media (max-width: 1180px) and (orientation: landscape) {
+    .lb-main {
+        grid-template-columns: minmax(200px, 250px) minmax(0, 1fr) minmax(210px, 260px);
+    }
+
+    .lb-banner-cta span {
+        display: none;
+    }
+}
+
+/* =========================================================
+   TELÉFONO HORIZONTAL (pantallas bajitas)
+   Nada hace scroll como página: cada columna lateral hace
+   scroll por dentro y el centro (personaje + juegos) se
+   ajusta al alto que queda.
+========================================================= */
+
+@media (orientation: landscape) and (max-height: 560px) {
+    .lb {
+        --lb-pad: 10px;
+        --lb-gap: 8px;
+        --lb-radius-lg: 16px;
+        --lb-fs-base: 0.875rem;
+        --lb-fs-md: 0.95rem;
+        --lb-fs-lg: 1.05rem;
+        --lb-fs-xl: 1.2rem;
+    }
+
+    .lb-main {
+        padding: 8px;
+        grid-template-columns: minmax(180px, 26%) minmax(0, 1fr) minmax(190px, 28%);
+    }
+
+    .lb-avatar-xl {
+        width: 46px;
+        height: 46px;
+        border-width: 2px;
+        box-shadow: 0 0 0 3px var(--lb-accent-soft);
+    }
+
+    .lb-profile-top {
+        gap: 10px;
+    }
+
+    .lb-profile .lb-eyebrow,
+    .lb-xp .lb-muted,
+    .lb-stage-hint,
+    .lb-stats dt svg {
+        display: none;
+    }
+
+    .lb-profile {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .lb-xp {
+        gap: 4px;
+    }
+
+    .lb-xp-bar {
+        height: 8px;
+    }
+
+    .lb-stats {
+        gap: 4px;
+    }
+
+    .lb-stats > div {
+        padding: 6px 2px;
+        border-radius: 10px;
+    }
+
+    .lb-stats dt {
+        font-size: 0.7rem;
+    }
+
+    .lb-btn {
+        min-height: 38px;
+        padding: 0 12px;
+        font-size: 0.875rem;
+    }
+
+    .lb-btn-sm {
+        min-height: 34px;
+        padding: 0 10px;
+    }
+
+    .lb-icon-btn {
+        width: 34px;
+        height: 34px;
+    }
+
+    .lb-section-header {
+        margin-bottom: 8px;
+    }
+
+    .lb-soon-grid {
+        gap: 6px;
+    }
+
+    .lb-soon {
+        padding: 8px;
+        gap: 4px;
+        border-radius: 12px;
+    }
+
+    .lb-soon-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+    }
+
+    .lb-soon-icon svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .lb-soon-title {
+        font-size: 0.8rem;
+    }
+
+    .lb-stage-tag {
+        padding: 4px 10px 4px 4px;
+        gap: 8px;
+    }
+
+    .lb-stage-tag-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+    }
+
+    .lb-banner {
+        height: 64px;
+        padding: 0 12px;
+        gap: 10px;
+    }
+
+    .lb-banner-sub,
+    .lb-banner .lb-eyebrow {
+        display: none;
+    }
+
+    .lb-banner-title {
+        font-size: 1.05rem;
+    }
+
+    .lb-banner-cta {
+        min-height: 38px;
+        padding: 0 12px;
+    }
+
+    .lb-collage {
+        height: 52px;
+    }
+
+    .lb-status {
+        padding: 8px 10px;
+    }
+
+    .lb-row {
+        padding: 6px;
+        gap: 8px;
+    }
+
+    .lb-empty {
+        padding: 10px 6px;
+        gap: 6px;
+    }
+
+    .lb-empty-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .lb-credits {
+        display: none;
+    }
+
+    .lb-modal {
+        max-height: calc(100dvh - 12px);
+    }
+
+    .lb-modal-body {
+        padding: 10px;
+        overflow-y: auto;
+    }
+
+    .lb-game-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    /* Tarjetas de juego bajitas para que se vean completas */
+    .lb-game-cover {
+        aspect-ratio: auto;
+        height: 92px;
+    }
+
+    .lb-game-info {
+        padding: 8px 10px 10px;
+    }
+
+    .lb-game-desc {
+        display: none;
+    }
+
+    .lb-modal-header {
+        padding: 8px 12px;
+    }
+
+    .lb-local {
+        padding: 8px 10px;
+    }
+
+    .lb-toast-region {
+        top: 52px;
     }
 }
 

@@ -1,0 +1,105 @@
+/* =========================================================
+   JUEGO DE PREGUNTAS · TELÉFONO HORIZONTAL
+   Todo tiene que caber en ~360 px de alto: encabezado
+   delgado, pregunta más pequeña y opciones en 2 columnas.
+   Si una pregunta es muy larga, hace scroll solo la zona
+   de la pregunta, nunca la página.
+========================================================= */
+
+@media (orientation: landscape) and (max-height: 560px) {
+    .jp-header {
+        height: 44px;
+        padding: 0 12px;
+    }
+
+    .jp-header h1 {
+        font-size: 0.95rem;
+    }
+
+    .jp-header p {
+        font-size: 10px;
+        letter-spacing: 0.15em;
+    }
+
+    .jp-zona {
+        justify-content: flex-start;
+        padding: 8px 14px 10px;
+    }
+
+    /* El margen automático centra cuando sobra espacio y
+       deja hacer scroll cuando falta. */
+    .jp-zona > * {
+        flex-shrink: 0;
+    }
+
+    .jp-zona > :first-child {
+        margin-top: auto;
+    }
+
+    .jp-zona > :last-child {
+        margin-bottom: auto;
+    }
+
+    .jp-indicadores {
+        margin-bottom: 8px;
+        gap: 6px;
+    }
+
+    .jp-indicadores span {
+        padding: 2px 10px;
+        font-size: 12px;
+    }
+
+    .jp-caja-pregunta {
+        padding: 10px 40px;
+    }
+
+    .jp-pregunta {
+        font-size: clamp(1rem, 4.2vh, 1.35rem);
+        line-height: 1.3;
+    }
+
+    .jp-opciones {
+        margin-top: 8px;
+        gap: 6px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .jp-opcion {
+        min-height: 44px;
+        padding: 8px 30px;
+        font-size: 0.95rem;
+    }
+
+    .jp-explicacion {
+        margin-top: 6px;
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .jp-ayudas {
+        margin-top: 8px;
+        gap: 8px;
+    }
+
+    .jp-ayudas button {
+        min-height: 36px;
+        padding: 4px 12px;
+    }
+
+    /* Pantalla final */
+    .final-tarjeta {
+        padding: 14px 20px !important;
+    }
+
+    .final-tarjeta > div:first-child {
+        width: 52px;
+        height: 52px;
+        margin-bottom: 4px;
+        font-size: 28px;
+    }
+
+    .final-tarjeta .lg-stats {
+        margin: 10px 0 !important;
+    }
+}

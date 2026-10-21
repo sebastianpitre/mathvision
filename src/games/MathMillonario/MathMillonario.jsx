@@ -18,6 +18,7 @@ import { NOMBRE_DIFICULTAD } from "../../data/textos";
 import { playSound, createBackgroundMusic } from "./components/GameAudio";
 
 import "../../styles/ludo.css";
+import "./juegoPreguntas.css";
 
 /* =========================================================
    LUDO MILLONARIO · JUEGO DE PREGUNTAS
@@ -291,7 +292,7 @@ export default function JuegoPreguntas() {
         <div className={`flex h-dvh overflow-hidden text-white ${FONDO}`}>
             <main className="flex min-w-0 flex-1 flex-col">
                 {/* ENCABEZADO */}
-                <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-800 bg-[#070b1d]/95 px-4 md:px-8">
+                <header className="jp-header flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-800 bg-[#070b1d]/95 px-4 md:px-8">
                     <button
                         type="button"
                         onClick={() => navigate("/games/preguntas")}
@@ -327,8 +328,8 @@ export default function JuegoPreguntas() {
                 </header>
 
                 {/* PREGUNTA */}
-                <section className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4 py-6 md:px-10">
-                    <div className="mb-5 flex flex-wrap items-center justify-center gap-2 text-center">
+                <section className="jp-zona flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4 py-6 md:px-10">
+                    <div className="jp-indicadores mb-5 flex flex-wrap items-center justify-center gap-2 text-center">
                         <span className="rounded-md bg-black/40 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em]">
                             {`Pregunta ${numero} de ${total}`}
                         </span>
@@ -354,12 +355,12 @@ export default function JuegoPreguntas() {
                     >
                         <div
                             style={{ clipPath: "polygon(40px 0%, calc(100% - 40px) 0%, 100% 50%, calc(100% - 40px) 100%, 40px 100%, 0% 50%)" }}
-                            className="border border-cyan-500/20 bg-slate-900/90 p-5 px-10 text-center"
+                            className="jp-caja-pregunta border border-cyan-500/20 bg-slate-900/90 p-5 px-10 text-center"
                         >
-                            <h2 className="text-xl font-bold leading-relaxed md:text-3xl">{pregunta?.texto}</h2>
+                            <h2 className="jp-pregunta text-xl font-bold leading-relaxed md:text-3xl">{pregunta?.texto}</h2>
                         </div>
 
-                        <div className="mt-5 grid gap-3 md:grid-cols-2">
+                        <div className="jp-opciones mt-5 grid gap-3 md:grid-cols-2">
                             {pregunta?.opciones.map((opcion, i) => {
                                 const oculta = ocultas.includes(i);
                                 const esLaCorrecta = correcta === i;
@@ -380,7 +381,7 @@ export default function JuegoPreguntas() {
                                         disabled={seleccion !== null || oculta || enviando}
                                         onClick={() => responder(i)}
                                         style={{ clipPath: "polygon(24px 0%, calc(100% - 24px) 0%, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0% 50%)" }}
-                                        className={`min-h-16 px-8 py-4 text-left font-bold transition ${tono}`}
+                                        className={`jp-opcion min-h-16 px-8 py-4 text-left font-bold transition ${tono}`}
                                     >
                                         <span className="mr-3 text-cyan-400">{String.fromCharCode(65 + i)}.</span>
                                         {oculta ? "Respuesta eliminada" : opcion}
@@ -390,13 +391,13 @@ export default function JuegoPreguntas() {
                         </div>
 
                         {explicacion && (
-                            <p className="mx-auto mt-4 max-w-3xl rounded-xl bg-black/50 px-4 py-3 text-center text-sm text-slate-200">
+                            <p className="jp-explicacion mx-auto mt-4 max-w-3xl rounded-xl bg-black/50 px-4 py-3 text-center text-sm text-slate-200">
                                 {explicacion}
                             </p>
                         )}
 
                         {/* AYUDAS */}
-                        <div className="mt-5 flex flex-wrap justify-center gap-3">
+                        <div className="jp-ayudas mt-5 flex flex-wrap justify-center gap-3">
                             <button
                                 type="button"
                                 disabled={partida.comodin_usado || seleccion !== null}
@@ -497,11 +498,11 @@ function PantallaFinal({ final, nivel, onOtraVez, navigate }) {
     }
 
     return (
-        <div className={`lg flex items-center justify-center px-4 py-8 ${FONDO}`}>
+        <div className={`lg flex items-center justify-center px-4 py-3 ${FONDO}`}>
             <motion.section
                 initial={{ opacity: 0, scale: 0.85, y: 30 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="lb-card relative w-full max-w-xl text-center"
+                className="lb-card lg-tarjeta-centrada final-tarjeta relative w-full max-w-xl text-center"
                 style={{ padding: "clamp(22px, 4vw, 40px)" }}
                 aria-labelledby="final-titulo"
             >

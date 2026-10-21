@@ -42,9 +42,15 @@
     --lb-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
     --lb-focus: 0 0 0 3px var(--lb-bg), 0 0 0 6px var(--lb-accent);
 
+    /* La pantalla mide exactamente el alto del teléfono o
+       del navegador: nunca hace scroll como página. Lo que
+       no cabe hace scroll DENTRO de su sección (.lg-scroll). */
     position: relative;
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     background-color: var(--lb-bg);
     color: var(--lb-text);
     font-family: var(--lb-font);
@@ -99,12 +105,42 @@
 .lg-main {
     position: relative;
     z-index: 1;
+    flex: 1;
+    min-height: 0;
     width: min(1200px, 100%);
     margin: 0 auto;
-    padding: var(--lb-pad) 16px 48px;
+    padding: var(--lb-pad) 16px var(--lb-pad);
     display: flex;
     flex-direction: column;
     gap: var(--lb-gap);
+    overflow: hidden;
+}
+
+.lg-main > * {
+    flex-shrink: 0;
+}
+
+/* Zona que hace scroll por dentro (listas, tablas, paneles) */
+.lg-main > .lg-scroll,
+.lg-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+    /* que no se corten las sombras ni el borde de enfoque */
+    padding: 3px;
+    margin: -3px;
+}
+
+/* Una tarjeta suelta (login, resultados) que no cabe:
+   scroll dentro de la tarjeta, nunca de la página. */
+.lg-tarjeta-centrada {
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .lg-head {
@@ -685,5 +721,223 @@
     .lg *::after {
         animation-duration: 0.01ms !important;
         transition-duration: 0.01ms !important;
+    }
+}
+
+
+/* =========================================================
+   TELÉFONO HORIZONTAL (pantallas bajitas)
+   Todo más compacto para que quepan encabezado, filtros y
+   la lista; la lista hace scroll por dentro.
+========================================================= */
+
+@media (orientation: landscape) and (max-height: 560px) {
+    .lg {
+        --lb-pad: 10px;
+        --lb-gap: 8px;
+        --lb-fs-base: 0.9375rem;
+        --lb-fs-md: 1rem;
+        --lb-fs-lg: 1.125rem;
+        --lb-fs-xl: 1.25rem;
+    }
+
+    .lg-main {
+        padding: 8px 12px;
+    }
+
+    .lg-lead,
+    .lg-ocultar-bajito {
+        display: none;
+    }
+
+    .lg-h1 {
+        line-height: 1.1;
+    }
+
+    .lg .lb-eyebrow {
+        font-size: 0.75rem;
+    }
+
+    .lg .lb-btn {
+        min-height: 40px;
+        padding: 0 14px;
+    }
+
+    .lg .lb-btn-sm,
+    .lg .lb-icon-btn {
+        min-height: 36px;
+    }
+
+    .lg .lb-icon-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .lg-filters {
+        flex-wrap: nowrap;
+        align-items: center;
+        padding: 8px 10px;
+    }
+
+    /* Las etiquetas se ocultan a la vista (no a los lectores
+       de pantalla); las opciones ya dicen qué filtran. */
+    .lg-filters .lg-field > span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .lg-chips {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .lg-chip {
+        min-height: 36px;
+        padding: 0 12px;
+        white-space: nowrap;
+    }
+
+    .lg-input,
+    .lg-select {
+        min-height: 38px;
+        padding: 6px 10px;
+    }
+
+    .lg-grid {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+    }
+
+    .lg-level {
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 16px;
+    }
+
+    .lg-level-desc {
+        display: none !important;
+    }
+
+    .lg-level-foot {
+        padding-top: 6px;
+    }
+
+    .lg-tabs {
+        padding: 4px;
+        border-radius: 12px;
+    }
+
+    .lg-tab {
+        min-height: 36px;
+        padding: 0 12px;
+        font-size: 0.875rem;
+    }
+
+    .lg-stats {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 120px), 1fr));
+    }
+
+    .lg-stat {
+        padding: 10px;
+    }
+
+    .lg-stat dd {
+        font-size: 1.3rem;
+    }
+
+    .lg-table th,
+    .lg-table td {
+        padding: 6px 8px;
+    }
+
+    .lg-bars {
+        height: 110px;
+    }
+
+    .lg-dialog {
+        max-height: calc(100dvh - 12px);
+    }
+
+    .lg-dialog-head,
+    .lg-dialog-foot {
+        padding: 8px 14px;
+    }
+
+    .lg-dialog-body {
+        padding: 12px 14px;
+        gap: 12px;
+    }
+
+    .lg-form-grid {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+        gap: 10px;
+    }
+}
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+.login-tarjeta {
+    position: relative;
+    z-index: 1;
+    width: min(420px, 100%);
+    padding: clamp(20px, 4vw, 34px);
+}
+
+.login-marca {
+    margin-bottom: 16px;
+}
+
+.login-lema {
+    display: none;
+    margin-top: 8px;
+    color: var(--lb-text-muted);
+    font-weight: 700;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Teléfono horizontal: marca a la izquierda, formulario a la derecha */
+@media (orientation: landscape) and (max-height: 560px) {
+    .login-tarjeta {
+        width: min(760px, 100%);
+        padding: 16px 20px;
+        display: grid;
+        grid-template-columns: 1fr 1.15fr;
+        gap: 24px;
+        align-items: center;
+    }
+
+    .login-marca {
+        margin: 0;
+    }
+
+    .login-marca .lg-h1 {
+        font-size: 2rem;
+    }
+
+    .login-lema {
+        display: block;
+    }
+
+    .login-form {
+        gap: 8px;
+    }
+
+    .login-form .lg-field {
+        gap: 3px;
+    }
+
+    .login-form .lg-help {
+        display: none;
     }
 }

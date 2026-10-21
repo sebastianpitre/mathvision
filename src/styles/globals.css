@@ -50,3 +50,24 @@ text-align:center;
 color:#c1c9da;
 font-weight:700;
 }
+
+/* =========================================================
+   PANTALLA DEL JUEGO
+   · La página nunca hace scroll ni rebota (tampoco el
+     "jalar para recargar" del celular): cada pantalla mide
+     exactamente lo que mide el teléfono y solo hacen scroll
+     las listas por dentro.
+   · En teléfonos con muesca, el contenido no queda debajo.
+========================================================= */
+html,body{
+overscroll-behavior:none;
+-webkit-text-size-adjust:100%;
+}
+body{
+-webkit-tap-highlight-color:transparent;
+touch-action:manipulation;
+}
+#root{
+padding-left:env(safe-area-inset-left);
+padding-right:env(safe-area-inset-right);
+}

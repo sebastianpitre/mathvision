@@ -129,7 +129,7 @@ export default function Niveles() {
                             value={asignatura}
                             onChange={(e) => setAsignatura(e.target.value)}
                         >
-                            <option value={TODOS}>Todas</option>
+                            <option value={TODOS}>Todas las asignaturas</option>
                             {asignaturas.map((a) => (
                                 <option key={a} value={a}>
                                     {a}
@@ -145,7 +145,7 @@ export default function Niveles() {
                             value={dificultad}
                             onChange={(e) => setDificultad(e.target.value)}
                         >
-                            <option value={TODOS}>Todas</option>
+                            <option value={TODOS}>Toda dificultad</option>
                             <option value="facil">Fácil</option>
                             <option value="media">Media</option>
                             <option value="dificil">Difícil</option>
@@ -154,6 +154,8 @@ export default function Niveles() {
                 </section>
 
                 {/* ---------- Niveles ---------- */}
+                {/* Solo la lista hace scroll; encabezado y filtros quedan fijos */}
+                <div className="lg-scroll">
                 {cargando ? (
                     <div className="lb-card lg-empty" role="status">
                         <span className="lg-spinner" style={{ margin: "0 auto 10px", display: "block" }} />
@@ -243,6 +245,7 @@ export default function Niveles() {
                         ))}
                     </ul>
                 )}
+                </div>
             </main>
         </div>
     );

@@ -76,7 +76,7 @@ export default function Admin() {
                     ))}
                 </div>
 
-                <section role="tabpanel" id={`panel-${activa}`} aria-labelledby={`tab-${activa}`}>
+                <section className="lg-scroll" role="tabpanel" id={`panel-${activa}`} aria-labelledby={`tab-${activa}`}>
                     <Componente />
                 </section>
             </main>

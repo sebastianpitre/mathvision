@@ -1,0 +1,76 @@
+/* =========================================================
+   PERFIL · TELÉFONO HORIZONTAL
+   Las tres tarjetas lado a lado; cada una hace scroll por
+   dentro si su contenido no cabe.
+========================================================= */
+
+/* Tablet en horizontal: también tres columnas */
+@media (orientation: landscape) and (min-width: 640px) {
+    .perfil-grid {
+        grid-template-columns: minmax(170px, 0.8fr) minmax(0, 1.4fr) minmax(170px, 0.8fr);
+    }
+
+    .perfil-grid > section {
+        min-height: 0;
+    }
+
+    /* La foto de perfil y su botón en una columna */
+    .perfil-grid > div:last-child,
+    .perfil-grid > section:last-child {
+        min-height: 0;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+    .perfil-main {
+        padding: 6px 8px;
+    }
+
+    .perfil-main > div:first-child {
+        margin-bottom: 4px;
+    }
+
+    .perfil-main h1 {
+        font-size: 1rem;
+    }
+
+    .perfil-grid {
+        gap: 8px;
+    }
+
+    .perfil-centro {
+        padding: 10px 12px;
+    }
+
+    .perfil-centro [class*="mt-5"] {
+        margin-top: 10px;
+    }
+
+    .perfil-centro [class*="mt-4"] {
+        margin-top: 8px;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+    /* Fotos de perfil: 2 por fila y botón de guardar delgado */
+    .perfil-grid > section:last-child .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 8px;
+        gap: 6px;
+    }
+
+    .perfil-grid > section:last-child > div:last-child {
+        padding: 6px 8px;
+    }
+
+    .perfil-grid > section:last-child > div:last-child button {
+        padding-top: 6px;
+        padding-bottom: 6px;
+        white-space: nowrap;
+    }
+
+    .perfil-grid > section > div:first-child {
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+}

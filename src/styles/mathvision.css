@@ -1648,7 +1648,9 @@ select {
     z-index: 2;
 
     width: 100%;
-    height: calc(100vh - 88px);
+    /* Ocupa lo que deja la barra superior (sea del alto que sea) */
+    flex: 1;
+    min-height: 0;
 
     padding: 28px 42px 20px;
 
@@ -2006,11 +2008,9 @@ select {
 }
 
 
-@media (max-width: 800px) {
+@media (max-width: 800px) and (orientation: portrait) {
 
     .character-main {
-        height: calc(100vh - 76px);
-
         padding: 20px 18px 15px;
     }
 
@@ -2032,7 +2032,7 @@ select {
 }
 
 
-@media (max-width: 600px) {
+@media (max-width: 600px) and (orientation: portrait) {
 
     .character-title-row h1 {
         font-size: 30px;
@@ -2183,3 +2183,101 @@ select {
 
 .shop-message-ok { color: #34d399; }
 .shop-message-error { color: #f87171; }
+
+
+/* =========================================================
+   PERSONAJES Y TIENDA · TELÉFONO HORIZONTAL
+   Personaje a la izquierda, tienda a la derecha (con scroll
+   por dentro). El título se reduce a una línea con el saldo.
+   ========================================================= */
+
+@media (orientation: landscape) and (max-height: 560px) {
+    .character-main {
+        padding: 8px 10px;
+    }
+
+    .character-title-row {
+        margin-bottom: 8px;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .character-title-row .eyebrow,
+    .character-title-row p {
+        display: none;
+    }
+
+    .character-title-row h1 {
+        margin: 0;
+        font-size: 1.15rem;
+        letter-spacing: 0;
+    }
+
+    .shop-wallet span {
+        padding: 4px 10px;
+        font-size: 0.85rem;
+    }
+
+    .character-editor {
+        gap: 8px;
+        grid-template-columns: minmax(0, 1fr) minmax(250px, 44%);
+    }
+
+    .character-preview {
+        min-height: 0;
+    }
+
+    .character-name {
+        transform: scale(0.85);
+        transform-origin: top left;
+    }
+
+    .character-preview-info {
+        display: none;
+    }
+
+    .customization-panel {
+        padding: 10px 12px;
+    }
+
+    .character-panel-heading {
+        padding-bottom: 6px !important;
+        margin-bottom: 6px !important;
+    }
+
+    .character-panel-heading h2 {
+        font-size: 0.95rem;
+    }
+
+    .shop-grid {
+        grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+        gap: 6px;
+    }
+
+    .shop-detail {
+        margin-top: 10px;
+        padding: 10px;
+        gap: 6px;
+    }
+
+    .shop-detail-name {
+        font-size: 1rem;
+    }
+
+    .shop-detail small {
+        font-size: 0.8rem;
+    }
+
+    .shop-detail .mv-btn,
+    .shop-buy .mv-btn {
+        min-height: 38px;
+        padding: 0 12px;
+        font-size: 0.85rem;
+    }
+
+    .shop-message {
+        min-height: 0;
+        margin-top: 6px;
+        font-size: 0.85rem;
+    }
+}

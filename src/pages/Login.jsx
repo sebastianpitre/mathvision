@@ -58,16 +58,21 @@ export default function Login() {
     const esRegistro = modo === "registro";
 
     return (
-        <div className="lg" style={{ display: "grid", placeItems: "center", padding: 16 }}>
+        <div className="lg" style={{ display: "grid", placeItems: "center", padding: 12 }}>
             <div className="lb-bg" aria-hidden="true" style={{ backgroundImage: `url(${assets.backgrounds.lobby})` }} />
 
-            <main className="lb-card" style={{ position: "relative", zIndex: 1, width: "min(420px, 100%)", padding: "clamp(22px, 4vw, 34px)" }}>
-                <p className="lb-eyebrow">Juega · Aprende · Conecta</p>
-                <h1 className="lg-h1" style={{ marginBottom: 18 }}>
-                    LUDO<span style={{ color: "var(--lb-accent)" }}>GAMIF</span>
-                </h1>
+            <main className="lb-card lg-tarjeta-centrada login-tarjeta">
+                <div className="login-marca">
+                    <p className="lb-eyebrow">Juega · Aprende · Conecta</p>
+                    <h1 className="lg-h1">
+                        LUDO<span style={{ color: "var(--lb-accent)" }}>GAMIF</span>
+                    </h1>
+                    <p className="login-lema">Preguntas, retos y amigos. Gana oro y diamantes mientras aprendes.</p>
+                </div>
 
-                <div className="lg-tabs" role="tablist" aria-label="Elige una opción" style={{ marginBottom: 18 }}>
+                <div className="login-formulario">
+
+                <div className="lg-tabs" role="tablist" aria-label="Elige una opción" style={{ marginBottom: 14 }}>
                     <button type="button" role="tab" className="lg-tab" style={{ flex: 1, justifyContent: "center" }} aria-selected={!esRegistro} onClick={() => { setModo("login"); setError(""); }}>
                         Entrar
                     </button>
@@ -76,7 +81,7 @@ export default function Login() {
                     </button>
                 </div>
 
-                <form onSubmit={enviar} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <form onSubmit={enviar} className="login-form">
                     <label className="lg-field">
                         <span>{esRegistro ? "Usuario" : "Usuario o correo"}</span>
                         <input
@@ -125,6 +130,7 @@ export default function Login() {
                         {enviando ? "Un momento…" : esRegistro ? "Crear mi cuenta" : "Entrar a jugar"}
                     </button>
                 </form>
+                </div>
             </main>
         </div>
     );
