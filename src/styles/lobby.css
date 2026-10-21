@@ -221,12 +221,32 @@
 }
 
 /* Laterales: si la pantalla es bajita, hacen scroll por dentro */
+/* Laterales: la columna NUNCA hace scroll. Todos los bloques
+   se ven completos y, si la pantalla es bajita, se reparten el
+   alto: cada bloque hace scroll por dentro. */
 .lb-col-left,
 .lb-col-right {
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    overflow: hidden;
     padding: 2px;
     margin: -2px;
+}
+
+.lb-col-left > .lb-card,
+.lb-col-right > .lb-card {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+/* Las listas de jugadores toman el espacio que sobre */
+.lb-col-left > .lb-players,
+.lb-col-right > .lb-players {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .lb-col-center {
@@ -1204,7 +1224,7 @@
    y hace scroll por dentro */
 .lb-players {
     flex: 1 1 auto;
-    min-height: 220px;
+    min-height: 0;
     display: flex;
     flex-direction: column;
 }
@@ -1883,4 +1903,9 @@
     .lb-xp-bar span {
         background: Highlight;
     }
+}
+/* El perfil y el estado de conexión no se encogen: siempre completos */
+.lb-col-left > .lb-profile,
+.lb-col-right > .lb-status {
+    flex-shrink: 0;
 }

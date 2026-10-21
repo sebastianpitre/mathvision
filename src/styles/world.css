@@ -199,12 +199,32 @@
     gap: var(--wd-gap);
 }
 
+/* Laterales: la columna NUNCA hace scroll. Todos los bloques
+   se ven completos y, si la pantalla es bajita, se reparten el
+   alto: cada bloque hace scroll por dentro. */
 .wd-col-left,
 .wd-col-right {
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    overflow: hidden;
     padding: 2px;
     margin: -2px;
+}
+
+.wd-col-left > .wd-card,
+.wd-col-right > .wd-card {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+/* Las listas de jugadores toman el espacio que sobre */
+.wd-col-left > .wd-players,
+.wd-col-right > .wd-players {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .wd-col-center {
@@ -937,7 +957,7 @@
 
 .wd-players {
     flex: 1 1 auto;
-    min-height: 260px;
+    min-height: 0;
     display: flex;
     flex-direction: column;
 }
@@ -1721,4 +1741,8 @@
     .wd-icon-btn {
         border: 1px solid CanvasText;
     }
+}
+/* Tu tarjeta del mundo no se encoge: siempre completa */
+.wd-col-left > .wd-me {
+    flex-shrink: 0;
 }
