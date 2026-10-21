@@ -2,7 +2,7 @@
   "nivel": {
     "nombre": "Conócete a ti mismo",
     "descripcion": "Emociones, fortalezas y convivencia.",
-    "grado": "Todos",
+    "grado": "General",
     "asignatura": "Ética y valores",
     "dificultad": "media",
     "preguntas_por_partida": 10,

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 
 import {
-    FaLock,
+
     FaKey,
     FaBolt
 } from "react-icons/fa";

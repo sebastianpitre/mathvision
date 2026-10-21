@@ -8,7 +8,9 @@ import React, {
 
 import { useNavigate } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
+import ProtegerError from "../components/common/ProtegerError";
+import LucesPersonaje from "../components/character/LucesPersonaje";
 
 import MainNav from "../components/navigation/MainNav";
 
@@ -19,8 +21,10 @@ import MainNav from "../components/navigation/MainNav";
 import {
     LuArrowRight,
     LuBell,
+    LuBookOpen,
+    LuShieldCheck,
     LuCheck,
-    LuFlame,
+    LuPercent,
     LuGamepad2,
     LuGlobe,
     LuHand,
@@ -32,7 +36,6 @@ import {
     LuSmartphone,
     LuSparkles,
     LuSwords,
-    LuTarget,
     LuTrophy,
     LuUserPlus,
     LuUsers,
@@ -45,8 +48,8 @@ import "../styles/lobby.css";
 import { useAuth } from "../context/AuthContext";
 
 import games from "../data/mock/games.json";
-import navigation from "../data/mock/navigation.json";
 import assets from "../data/mock/assets.json";
+import { jugadorDesdeUsuario } from "../services/jugador";
 
 import AssetImage from "../components/common/AssetImage";
 import VRMCharacter from "../components/character/VRMCharacter";
@@ -165,6 +168,19 @@ function ComingSoonTile({ icon: Icon, title }) {
     );
 }
 
+function AccessTile({ icon: Icon, title, onClick }) {
+    return (
+        <li>
+            <button type="button" className="lb-soon lb-soon-link" onClick={onClick}>
+                <span className="lb-soon-icon" aria-hidden="true">
+                    <Icon />
+                </span>
+                <span className="lb-soon-title">{title}</span>
+            </button>
+        </li>
+    );
+}
+
 // Foto del juego (o un respaldo con color si no tiene foto)
 function GamePhoto({ game, className = "" }) {
 
@@ -213,7 +229,7 @@ function GamesBanner({ games: list, onOpen }) {
             <span className="lb-banner-text">
                 <span className="lb-eyebrow">
                     <LuGamepad2 aria-hidden="true" />
-                    <span>Multijugador</span>
+                    <span>Juegos</span>
                 </span>
 
                 <span className="lb-banner-title">Elige tu juego</span>
@@ -285,7 +301,7 @@ function GamesModal({ open, onClose, games: list, onPlay, onPlayLocal, playerNam
                     <div>
                         <p className="lb-eyebrow">
                             <LuGamepad2 aria-hidden="true" />
-                            <span>Multijugador</span>
+                            <span>Juegos</span>
                         </p>
                         <h2 id="lb-modal-title" className="lb-title">
                             Elige tu juego
@@ -593,34 +609,7 @@ export default function Lobby() {
        PERFIL
     ===================================================== */
 
-    const xp = Number(user.xp) || 0;
-    const level = Number(user.level) || 1;
-    const xpInLevel = xp % 1000;
-    const xpPercentage = Math.round(
-        Math.min(100, Math.max(0, (xpInLevel / 1000) * 100))
-    );
-
-    const player = {
-        displayName: user.display_name || user.username || "Jugador",
-        level,
-        avatar: user.avatar || assets.players.defaultAvatar,
-        characterModel: user.character_model_path || null,
-        characterName: user.character_name || "Personaje",
-        experience: {
-            current: xpInLevel,
-            percentage: xpPercentage,
-        },
-        currencies: {
-            coins: Number(user.coins) || 0,
-            gems: Number(user.gems) || 0,
-        },
-        statistics: {
-            wins: Number(user.games_won) || 0,
-            matches: Number(user.games_played) || 0,
-            winStreak: 0,
-        },
-        statusLabel: "ONLINE",
-    };
+    const player = jugadorDesdeUsuario(user);
 
     const connectedCount = onlinePlayers.length + 1;
 
@@ -641,7 +630,7 @@ export default function Lobby() {
                 Saltar a los juegos
             </a>
 
-            <MainNav navigation={navigation} player={player} />
+            <MainNav player={player} />
 
             {/* ============ ALERTA DE INVITACIÓN ============ */}
 
@@ -739,7 +728,7 @@ export default function Lobby() {
                         <div className="lb-xp">
                             <div className="lb-xp-labels">
                                 <span>Experiencia</span>
-                                <span>{`${player.experience.current} / 1000 XP`}</span>
+                                <span>{`${player.experience.current} / ${player.experience.needed} XP`}</span>
                             </div>
 
                             <div
@@ -776,10 +765,10 @@ export default function Lobby() {
                             </div>
                             <div>
                                 <dt>
-                                    <LuFlame aria-hidden="true" />
-                                    <span>Racha</span>
+                                    <LuPercent aria-hidden="true" />
+                                    <span>Aciertos</span>
                                 </dt>
-                                <dd>{player.statistics.winStreak}</dd>
+                                <dd>{`${player.statistics.accuracy}%`}</dd>
                             </div>
                         </dl>
 
@@ -797,15 +786,31 @@ export default function Lobby() {
                     <section className="lb-card" aria-labelledby="lb-soon-title">
                         <SectionHeader
                             id="lb-soon-title"
-                            eyebrow="En camino"
+                            eyebrow="Atajos"
                             icon={LuSparkles}
-                            title="Próximamente"
+                            title="Para ti"
                         />
 
                         <ul className="lb-soon-grid">
-                            <ComingSoonTile icon={LuSparkles} title="Skins" />
-                            <ComingSoonTile icon={LuShoppingBag} title="Tienda" />
-                            <ComingSoonTile icon={LuTarget} title="Misiones" />
+                            <AccessTile
+                                icon={LuBookOpen}
+                                title="Preguntas"
+                                onClick={() => navigate("/games/preguntas")}
+                            />
+                            <AccessTile
+                                icon={LuShoppingBag}
+                                title="Tienda"
+                                onClick={() => navigate("/tienda")}
+                            />
+                            {player.esAdmin ? (
+                                <AccessTile
+                                    icon={LuShieldCheck}
+                                    title="Administrar"
+                                    onClick={() => navigate("/admin")}
+                                />
+                            ) : (
+                                <ComingSoonTile icon={LuSparkles} title="Misiones" />
+                            )}
                             <ComingSoonTile icon={LuTrophy} title="Ranking" />
                         </ul>
                     </section>
@@ -823,13 +828,12 @@ export default function Lobby() {
                             role="img"
                             aria-label={`Personaje 3D de ${player.displayName}. Arrastra para girarlo.`}
                         >
+                            <ProtegerError respaldo={<p className="sin-3d">Tu personaje 3D no se pudo mostrar en este dispositivo.</p>}>
                             <Canvas
                                 gl={{ alpha: true }}
                                 camera={{ position: [0, 1.35, 4.5], fov: 42 }}
                             >
-                                <ambientLight intensity={1.7} />
-                                <directionalLight position={[3, 5, 4]} intensity={3} />
-                                <Environment preset="sunset" />
+                                <LucesPersonaje calida />
 
                                 <Suspense fallback={null}>
                                     {player.characterModel && (
@@ -852,6 +856,7 @@ export default function Lobby() {
                                     maxPolarAngle={Math.PI / 2}
                                 />
                             </Canvas>
+</ProtegerError>
                         </div>
 
                         <div className="lb-stage-tag">

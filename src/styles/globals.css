@@ -13,3 +13,40 @@ overflow-x:hidden;
 
 }
 
+
+/* Pantalla de carga mientras se descarga cada página */
+.pantalla-carga{
+min-height:100vh;
+min-height:100dvh;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+gap:14px;
+background:#070b14;
+color:#c1c9da;
+font-family:"Nunito",system-ui,sans-serif;
+font-weight:800;
+}
+.pantalla-carga-spinner{
+width:40px;
+height:40px;
+border-radius:50%;
+border:4px solid rgba(255,255,255,.12);
+border-top-color:#5aa9ff;
+animation:pantalla-carga-girar .8s linear infinite;
+}
+@keyframes pantalla-carga-girar{to{transform:rotate(360deg)}}
+
+/* Si el personaje 3D no carga en un dispositivo */
+.sin-3d{
+display:flex;
+height:100%;
+min-height:160px;
+align-items:center;
+justify-content:center;
+padding:20px;
+text-align:center;
+color:#c1c9da;
+font-weight:700;
+}

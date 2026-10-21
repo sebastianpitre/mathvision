@@ -1,0 +1,689 @@
+/* =========================================================
+   PANTALLAS NUEVAS (niveles, resultados, panel admin)
+   ---------------------------------------------------------
+   Usan los mismos colores, letra y botones del lobby
+   (lobby.css). La diferencia: estas páginas sí hacen scroll.
+========================================================= */
+
+@import "./lobby.css";
+
+.lg {
+    --lb-bg: #070b14;
+    --lb-surface: rgba(12, 18, 30, 0.86);
+    --lb-surface-2: rgba(255, 255, 255, 0.06);
+    --lb-surface-3: rgba(255, 255, 255, 0.1);
+    --lb-border: rgba(255, 255, 255, 0.12);
+    --lb-border-strong: rgba(255, 255, 255, 0.2);
+    --lb-text: #f4f6fb;
+    --lb-text-muted: #c1c9da;
+    --lb-accent: #5aa9ff;
+    --lb-accent-strong: #3d8ff0;
+    --lb-accent-soft: rgba(90, 169, 255, 0.16);
+    --lb-on-accent: #06101d;
+    --lb-success: #34d399;
+    --lb-success-soft: rgba(52, 211, 153, 0.16);
+    --lb-warning: #fbbf24;
+    --lb-warning-soft: rgba(251, 191, 36, 0.16);
+    --lb-danger: #f87171;
+    --lb-danger-soft: rgba(248, 113, 113, 0.16);
+    --lb-gem: #c084fc;
+    --lb-gem-soft: rgba(192, 132, 252, 0.16);
+    --lb-font: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --lb-fs-sm: 0.875rem;
+    --lb-fs-base: 1rem;
+    --lb-fs-md: 1.125rem;
+    --lb-fs-lg: 1.375rem;
+    --lb-fs-xl: 1.75rem;
+    --lb-radius-sm: 10px;
+    --lb-radius: 16px;
+    --lb-radius-lg: 22px;
+    --lb-gap: clamp(10px, 1.3vw, 18px);
+    --lb-pad: clamp(14px, 1.6vw, 22px);
+    --lb-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+    --lb-focus: 0 0 0 3px var(--lb-bg), 0 0 0 6px var(--lb-accent);
+
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background-color: var(--lb-bg);
+    color: var(--lb-text);
+    font-family: var(--lb-font);
+    font-size: var(--lb-fs-base);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+.lg *,
+.lg *::before,
+.lg *::after {
+    box-sizing: border-box;
+}
+
+.lg h1,
+.lg h2,
+.lg h3,
+.lg p,
+.lg ul,
+.lg ol,
+.lg dl,
+.lg dd {
+    margin: 0;
+}
+
+.lg ul,
+.lg ol {
+    padding: 0;
+    list-style: none;
+}
+
+.lg button,
+.lg input,
+.lg select,
+.lg textarea {
+    font: inherit;
+    color: inherit;
+}
+
+.lg :focus-visible {
+    outline: none;
+    box-shadow: var(--lb-focus);
+}
+
+.lg button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* ---------- Estructura ---------- */
+
+.lg-main {
+    position: relative;
+    z-index: 1;
+    width: min(1200px, 100%);
+    margin: 0 auto;
+    padding: var(--lb-pad) 16px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--lb-gap);
+}
+
+.lg-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.lg-h1 {
+    font-size: var(--lb-fs-xl);
+    font-weight: 900;
+    line-height: 1.15;
+}
+
+.lg-lead {
+    margin-top: 4px;
+    color: var(--lb-text-muted);
+    max-width: 60ch;
+}
+
+.lg-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.lg-spacer {
+    flex: 1;
+}
+
+.lg-card-title {
+    font-size: var(--lb-fs-md);
+    font-weight: 900;
+}
+
+/* ---------- Filtros ---------- */
+
+.lg-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: end;
+}
+
+.lg-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.lg-field > span {
+    font-size: var(--lb-fs-sm);
+    font-weight: 800;
+    color: var(--lb-text-muted);
+}
+
+.lg-input,
+.lg-select,
+.lg-textarea {
+    min-height: 44px;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--lb-border-strong);
+    background: rgba(5, 9, 18, 0.7);
+    color: var(--lb-text);
+}
+
+.lg-textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.lg-select option {
+    background: #0c1220;
+}
+
+.lg-input:focus,
+.lg-select:focus,
+.lg-textarea:focus {
+    border-color: var(--lb-accent);
+}
+
+.lg-help {
+    font-size: var(--lb-fs-sm);
+    color: var(--lb-text-muted);
+}
+
+.lg-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.lg-chip {
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--lb-border-strong);
+    background: var(--lb-surface-2);
+    font-weight: 800;
+    font-size: var(--lb-fs-sm);
+    cursor: pointer;
+}
+
+.lg-chip[aria-pressed="true"] {
+    background: var(--lb-accent);
+    border-color: var(--lb-accent);
+    color: var(--lb-on-accent);
+}
+
+/* ---------- Tarjetas de nivel ---------- */
+
+.lg-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
+    gap: var(--lb-gap);
+}
+
+.lg-level {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: var(--lb-pad);
+    border-radius: var(--lb-radius-lg);
+    border: 1px solid var(--lb-border);
+    background: var(--lb-surface);
+    box-shadow: var(--lb-shadow);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.lg-level:hover {
+    transform: translateY(-2px);
+    border-color: var(--lb-accent);
+}
+
+.lg-level-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.lg-level-name {
+    font-size: var(--lb-fs-md);
+    font-weight: 900;
+    line-height: 1.25;
+}
+
+.lg-level-desc {
+    color: var(--lb-text-muted);
+    font-size: var(--lb-fs-sm);
+}
+
+.lg-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    color: var(--lb-text-muted);
+    font-size: var(--lb-fs-sm);
+}
+
+.lg-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.lg-level-foot {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--lb-border);
+}
+
+/* ---------- Insignias ---------- */
+
+.lg-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: var(--lb-fs-sm);
+    font-weight: 800;
+    background: var(--lb-surface-3);
+    color: var(--lb-text-muted);
+    white-space: nowrap;
+}
+
+.lg-tag-facil {
+    background: var(--lb-success-soft);
+    color: var(--lb-success);
+}
+
+.lg-tag-media {
+    background: var(--lb-warning-soft);
+    color: var(--lb-warning);
+}
+
+.lg-tag-dificil {
+    background: var(--lb-danger-soft);
+    color: var(--lb-danger);
+}
+
+.lg-tag-on {
+    background: var(--lb-success-soft);
+    color: var(--lb-success);
+}
+
+.lg-tag-off {
+    background: var(--lb-surface-3);
+    color: var(--lb-text-muted);
+}
+
+/* ---------- Recompensas (XP, oro, diamantes) ---------- */
+
+.lg-rewards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.lg-reward {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-weight: 900;
+    font-size: var(--lb-fs-sm);
+    font-variant-numeric: tabular-nums;
+}
+
+.lg-reward svg {
+    width: 1.05em;
+    height: 1.05em;
+}
+
+.lg-reward-xp {
+    background: var(--lb-accent-soft);
+    color: var(--lb-accent);
+}
+
+.lg-reward-oro {
+    background: var(--lb-warning-soft);
+    color: var(--lb-warning);
+}
+
+.lg-reward-gem {
+    background: var(--lb-gem-soft);
+    color: var(--lb-gem);
+}
+
+.lg-reward-lg {
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-size: var(--lb-fs-lg);
+}
+
+/* ---------- Estados ---------- */
+
+.lg-empty {
+    padding: 36px 20px;
+    text-align: center;
+    color: var(--lb-text-muted);
+}
+
+.lg-alert {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    background: var(--lb-danger-soft);
+    color: #fecaca;
+    font-weight: 700;
+}
+
+.lg-ok {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(52, 211, 153, 0.35);
+    background: var(--lb-success-soft);
+    color: #bbf7d0;
+    font-weight: 700;
+}
+
+/* ---------- Pestañas ---------- */
+
+.lg-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 16px;
+    background: var(--lb-surface);
+    border: 1px solid var(--lb-border);
+    overflow-x: auto;
+}
+
+.lg-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.lg-tab[aria-selected="true"] {
+    background: var(--lb-accent);
+    color: var(--lb-on-accent);
+}
+
+/* ---------- Números grandes ---------- */
+
+.lg-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+    gap: var(--lb-gap);
+}
+
+.lg-stat {
+    padding: 16px;
+    border-radius: var(--lb-radius);
+    border: 1px solid var(--lb-border);
+    background: var(--lb-surface);
+}
+
+.lg-stat dt {
+    font-size: var(--lb-fs-sm);
+    font-weight: 800;
+    color: var(--lb-text-muted);
+}
+
+.lg-stat dd {
+    margin-top: 4px;
+    font-size: 1.75rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Tablas ---------- */
+
+.lg-table-wrap {
+    overflow-x: auto;
+    border-radius: var(--lb-radius);
+    border: 1px solid var(--lb-border);
+}
+
+.lg-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--lb-fs-sm);
+}
+
+.lg-table th,
+.lg-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--lb-border);
+    vertical-align: middle;
+}
+
+.lg-table th {
+    position: sticky;
+    top: 0;
+    background: #0d1424;
+    color: var(--lb-text-muted);
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.lg-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.lg-num {
+    text-align: right !important;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Gráfico de barras simple ---------- */
+
+.lg-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 150px;
+    padding-top: 18px;
+}
+
+.lg-bar {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+}
+
+.lg-bar-fill {
+    width: 100%;
+    max-width: 34px;
+    min-height: 3px;
+    border-radius: 6px 6px 2px 2px;
+    background: linear-gradient(180deg, var(--lb-accent), var(--lb-accent-strong));
+}
+
+.lg-bar-value {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--lb-text-muted);
+}
+
+.lg-bar-label {
+    margin-top: 4px;
+    font-size: 0.7rem;
+    color: var(--lb-text-muted);
+    white-space: nowrap;
+}
+
+/* ---------- Formulario del panel ---------- */
+
+.lg-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+    gap: 14px;
+}
+
+.lg-span-2 {
+    grid-column: span 2;
+}
+
+@media (max-width: 520px) {
+    .lg-span-2 {
+        grid-column: auto;
+    }
+}
+
+.lg-drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 22px;
+    border: 2px dashed var(--lb-border-strong);
+    border-radius: var(--lb-radius);
+    background: var(--lb-surface-2);
+    text-align: center;
+    cursor: pointer;
+}
+
+.lg-drop:hover,
+.lg-drop-activo {
+    border-color: var(--lb-accent);
+    background: var(--lb-accent-soft);
+}
+
+.lg-drop svg {
+    width: 28px;
+    height: 28px;
+    color: var(--lb-accent);
+}
+
+.lg-q {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--lb-surface-2);
+    border: 1px solid var(--lb-border);
+}
+
+.lg-q ol {
+    margin-top: 6px;
+    display: grid;
+    gap: 4px;
+    list-style: upper-alpha;
+    padding-left: 22px;
+}
+
+.lg-q li {
+    color: var(--lb-text-muted);
+}
+
+.lg-q li.lg-q-ok {
+    color: var(--lb-success);
+    font-weight: 800;
+}
+
+/* ---------- Ventana modal ---------- */
+
+.lg-dialog {
+    margin: auto;
+    width: min(760px, calc(100vw - 24px));
+    max-height: calc(100dvh - 24px);
+    padding: 0;
+    border: 1px solid var(--lb-border-strong);
+    border-radius: var(--lb-radius-lg);
+    background: #0b111f;
+    color: var(--lb-text);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+.lg-dialog::backdrop {
+    background: rgba(3, 6, 12, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.lg-dialog-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 20px;
+    background: #0b111f;
+    border-bottom: 1px solid var(--lb-border);
+}
+
+.lg-dialog-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.lg-dialog-foot {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 20px;
+    background: #0b111f;
+    border-top: 1px solid var(--lb-border);
+}
+
+/* ---------- Carga ---------- */
+
+.lg-spinner {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 4px solid var(--lb-surface-3);
+    border-top-color: var(--lb-accent);
+    animation: lg-girar 0.8s linear infinite;
+}
+
+@keyframes lg-girar {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lg *,
+    .lg *::before,
+    .lg *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
