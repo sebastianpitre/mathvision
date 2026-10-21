@@ -1428,7 +1428,7 @@
    no cabe hace scroll dentro del mundo.
 ========================================================= */
 
-@media (max-width: 1180px) {
+@media (max-width: 1180px) and (orientation: portrait) {
 
     .wd-main {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1460,7 +1460,7 @@
     }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 720px) and (orientation: portrait) {
 
     .wd-main {
         grid-template-columns: minmax(0, 1fr);
@@ -1521,6 +1521,176 @@
 @media (max-width: 380px) {
     .wd-row {
         flex-wrap: wrap;
+    }
+}
+
+/* =========================================================
+   HORIZONTAL EN TABLET Y PANTALLAS MEDIANAS
+========================================================= */
+
+@media (max-width: 1180px) and (orientation: landscape) {
+    .wd-main {
+        grid-template-columns: minmax(200px, 250px) minmax(0, 1fr) minmax(210px, 260px);
+    }
+
+    .wd-quick-faces {
+        display: none;
+    }
+}
+
+/* =========================================================
+   TELÉFONO HORIZONTAL (pantallas bajitas)
+   Las columnas laterales hacen scroll por dentro; el centro
+   (plaza + partida rápida) se ajusta al alto que queda.
+========================================================= */
+
+@media (orientation: landscape) and (max-height: 560px) {
+    .wd {
+        --wd-pad: 10px;
+        --wd-gap: 8px;
+        --wd-radius-lg: 16px;
+        --wd-fs-base: 0.875rem;
+        --wd-fs-md: 0.95rem;
+        --wd-fs-lg: 1.05rem;
+        --wd-fs-xl: 1.2rem;
+    }
+
+    .wd-main {
+        padding: 8px;
+        grid-template-columns: minmax(180px, 26%) minmax(0, 1fr) minmax(190px, 28%);
+    }
+
+    .wd-avatar-lg {
+        width: 42px;
+        height: 42px;
+    }
+
+    .wd-me-top {
+        gap: 10px;
+    }
+
+    .wd-me .wd-eyebrow,
+    .wd-quick-text,
+    .wd-quick-sub,
+    .wd-quick-faces,
+    .wd-plaza-title {
+        display: none;
+    }
+
+    .wd-stats > div {
+        padding: 5px 2px;
+        font-size: 0.75rem;
+    }
+
+    .wd-quick {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .wd-quick-actions {
+        width: 100%;
+    }
+
+    .wd-quick-actions .wd-btn {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .wd-streak {
+        display: none;
+    }
+
+    .wd-quick-actions {
+        margin-left: 0;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .wd-quick-actions .wd-btn {
+        min-height: 34px;
+        padding: 0 10px;
+        font-size: 0.8rem;
+    }
+
+    .wd-btn {
+        min-height: 38px;
+        padding: 0 12px;
+        font-size: 0.875rem;
+    }
+
+    .wd-btn-lg {
+        min-height: 40px;
+        font-size: 0.9rem;
+    }
+
+    .wd-btn-sm {
+        min-height: 34px;
+    }
+
+    .wd-icon-btn {
+        width: 34px;
+        height: 34px;
+    }
+
+    .wd-section-header {
+        margin-bottom: 8px;
+    }
+
+    .wd-quick {
+        padding: 8px 12px;
+        gap: 8px;
+    }
+
+    .wd-quick-title {
+        font-size: 0.95rem;
+    }
+
+    .wd-quick-actions {
+        gap: 6px;
+    }
+
+    .wd-search input {
+        min-height: 38px;
+    }
+
+    .wd-chip {
+        min-height: 32px;
+        padding: 0 10px;
+        font-size: 0.8rem;
+    }
+
+    .wd-row {
+        padding: 6px;
+        gap: 8px;
+    }
+
+    .wd-tip {
+        min-height: 0;
+    }
+
+    .wd-bubble {
+        min-width: 0;
+        max-width: 84px;
+        padding: 4px 6px;
+    }
+
+    .wd-bubble .wd-avatar-md {
+        width: 34px;
+        height: 34px;
+    }
+
+    .wd-plaza-spot:nth-child(n + 5) {
+        display: none;
+    }
+
+    .wd-stage-tag {
+        padding: 4px 10px 4px 4px;
+        gap: 8px;
+    }
+
+    .wd-stage-tag-icon {
+        width: 30px;
+        height: 30px;
     }
 }
 

@@ -1,5 +1,6 @@
 import AppRouter from "./routes/AppRouter";
 import ProtegerError from "./components/common/ProtegerError";
+import PantallaHorizontal from "./components/common/PantallaHorizontal";
 
 /* Si algo inesperado falla, se ofrece recargar en vez de
    dejar la pantalla en blanco. */
@@ -22,7 +23,9 @@ function ErrorGeneral() {
 function App() {
     return (
         <ProtegerError respaldo={<ErrorGeneral />}>
-            <AppRouter />
+            <PantallaHorizontal>
+                <AppRouter />
+            </PantallaHorizontal>
         </ProtegerError>
     );
 }

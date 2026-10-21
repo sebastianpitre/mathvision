@@ -312,7 +312,7 @@ export default function MainNav({
                                                 {item.icon}
                                             </span>
                                         )}
-                                        <span>{item.label}</span>
+                                        <span className="mn-link-text">{item.label}</span>
 
                                         {active && (
                                             <motion.span

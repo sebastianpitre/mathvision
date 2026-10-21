@@ -650,3 +650,101 @@
         border: 1px solid CanvasText;
     }
 }
+
+/* =========================================================
+   TELÉFONO HORIZONTAL (pantallas bajitas)
+   Barra delgada para dejarle el alto al juego. Hay ancho de
+   sobra, así que los enlaces se ven (sin menú hamburguesa).
+========================================================= */
+
+@media (orientation: landscape) and (max-height: 560px) {
+    .mn {
+        --mn-h: 46px;
+    }
+
+    .mn-bar {
+        gap: 6px;
+        padding: 0 10px;
+    }
+
+    .mn-brand {
+        min-height: 38px;
+        padding: 2px 6px 2px 2px;
+    }
+
+    .mn-brand-tagline,
+    .mn-player-info,
+    .mn-chevron,
+    .mn-link-bar {
+        display: none;
+    }
+
+    .mn-brand-name {
+        font-size: 1rem;
+    }
+
+    .mn-nav {
+        display: block;
+    }
+
+    .mn-burger,
+    .mn-scrim,
+    .mn-mobile {
+        display: none;
+    }
+
+    .mn-link {
+        min-height: 36px;
+        padding: 0 9px;
+        font-size: 0.875rem;
+    }
+
+    .mn-currency {
+        min-height: 32px;
+        padding: 0 8px;
+        font-size: 0.875rem;
+    }
+
+    .mn-currency svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .mn-player-btn {
+        min-height: 38px;
+        padding: 3px;
+    }
+
+    .mn-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .mn-menu {
+        max-height: calc(100dvh - var(--mn-h) - 12px);
+        overflow-y: auto;
+    }
+}
+
+/* Teléfono horizontal angosto (≤ 700 px): solo íconos */
+@media (orientation: landscape) and (max-height: 560px) and (max-width: 700px) {
+    .mn-link-text {
+        position: absolute !important;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .mn-link {
+        padding: 0 10px;
+    }
+}
+
+/* En horizontal sí hay espacio para el oro y los diamantes */
+@media (orientation: landscape) and (max-height: 560px) {
+    .mn-hide-sm {
+        display: flex;
+    }
+}

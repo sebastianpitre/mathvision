@@ -28,6 +28,9 @@ import icons from "../../data/mock/icons.json";
 
 import AssetImage from "../../components/common/AssetImage";
 import VRMCharacter from "../../components/character/VRMCharacter";
+import MainNav from "../../components/navigation/MainNav";
+
+import "./perfil.css";
 
 
 /* Peticiones al servidor: services/api.js */
@@ -199,7 +202,7 @@ export default function Profile() {
 
     if (loading) {
         return (
-            <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 text-white">
+            <div className="relative flex h-dvh items-center justify-center overflow-hidden bg-slate-950 text-white">
 
                 <Background overlay="bg-slate-950/70" />
 
@@ -221,7 +224,7 @@ export default function Profile() {
 
     if (!profile) {
         return (
-            <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4 text-white">
+            <div className="relative flex h-dvh items-center justify-center overflow-hidden bg-slate-950 px-4 text-white">
 
                 <Background overlay="bg-slate-950/75" />
 
@@ -270,11 +273,13 @@ export default function Profile() {
     ===================================================== */
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-slate-950 text-white">
+        <div className="relative flex h-dvh flex-col overflow-hidden bg-slate-950 text-white">
 
             <Background fixed />
 
-            <main className="relative z-10 mx-auto flex h-[calc(100vh-72px)] w-full max-w-[1500px] flex-col overflow-hidden px-3 py-2 sm:px-4 lg:px-5">
+            <MainNav />
+
+            <main className="perfil-main relative z-10 mx-auto flex min-h-0 w-full max-w-[1500px] flex-1 flex-col overflow-hidden px-3 py-2 sm:px-4 lg:px-5">
 
                 {/* CABECERA */}
                 <div className="mb-2 flex shrink-0 items-center justify-between">
@@ -311,7 +316,7 @@ export default function Profile() {
                 )}
 
                 {/* GRID */}
-                <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[minmax(210px,0.8fr)_minmax(360px,1.4fr)_minmax(210px,0.8fr)]">
+                <div className="perfil-grid grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[minmax(210px,0.8fr)_minmax(360px,1.4fr)_minmax(210px,0.8fr)]">
 
                     {/* ============ PERSONAJE ============ */}
                     <section className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/70 shadow-xl backdrop-blur-xl lg:min-h-0">
@@ -362,7 +367,7 @@ export default function Profile() {
                     </section>
 
                     {/* ============ INFORMACIÓN ============ */}
-                    <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/70 p-4 shadow-xl backdrop-blur-xl sm:p-5">
+                    <section className="perfil-centro min-w-0 overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-slate-950/70 p-4 shadow-xl backdrop-blur-xl sm:p-5">
 
                         {/* USUARIO */}
                         <div className="flex items-center gap-3">
@@ -482,7 +487,7 @@ export default function Profile() {
                                 </h2>
                             </div>
 
-                            <div className="grid min-h-0 flex-1 grid-cols-2 gap-2 overflow-y-auto p-3 sm:grid-cols-3 lg:grid-cols-2">
+                            <div className="grid min-h-0 flex-1 auto-rows-max content-start grid-cols-2 gap-2 overflow-y-auto overscroll-contain p-3 sm:grid-cols-3 lg:grid-cols-2">
                                 {icons.map((icon) => {
 
                                     const selected = selectedAvatar === icon.src;

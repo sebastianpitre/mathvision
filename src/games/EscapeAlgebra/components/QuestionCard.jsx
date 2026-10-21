@@ -11,6 +11,7 @@ import {
 import { PiKeyholeFill } from "react-icons/pi"; // Phosphor Icons, más simple/estilizado
 
 import NumberPad from "./NumberPad";
+import { usePantallaBajita } from "../../../hooks/usePantallaBajita";
 
 
 export default function QuestionCard({
@@ -21,6 +22,9 @@ export default function QuestionCard({
 }) {
 
     const [answer, setAnswer] = useState("");
+
+    // Teléfono horizontal: versión compacta (ver más abajo).
+    const bajita = usePantallaBajita();
 
     const correct =
         selectedAnswer &&
@@ -38,6 +42,55 @@ export default function QuestionCard({
 
     };
 
+
+    /* =====================================================
+       TELÉFONO HORIZONTAL
+       La puerta completa no cabe en ~250 px de alto: se
+       muestra el código a la izquierda y el teclado a la
+       derecha, con botones del tamaño normal para tocarlos.
+    ===================================================== */
+
+    if (bajita) {
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex h-full w-full items-center justify-center gap-4 px-4 py-2"
+            >
+                <div
+                    className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-2 self-stretch rounded-2xl border bg-slate-950/90 px-4 py-3 text-center ${correct ? "border-emerald-400/60" : "border-slate-600"}`}
+                >
+                    <span className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-cyan-400">
+                        <FaBolt aria-hidden="true" />
+                        Código de acceso
+                    </span>
+                    <p className="text-2xl font-black leading-tight text-white">
+                        {question.question}
+                    </p>
+                    <div
+                        className="mt-1 min-w-[140px] rounded-xl border border-slate-700 bg-black/60 px-5 py-2 font-mono text-2xl font-black tracking-[0.35em] text-cyan-300"
+                        aria-live="polite"
+                        aria-label={answer ? `Tu respuesta: ${answer}` : "Sin respuesta todavía"}
+                    >
+                        {answer || "----"}
+                    </div>
+                    <PiKeyholeFill
+                        aria-hidden="true"
+                        className={`text-2xl ${correct ? "text-emerald-400" : "text-yellow-500"}`}
+                    />
+                </div>
+
+                <div className="w-[min(46%,300px)] shrink-0">
+                    <NumberPad
+                        value={answer}
+                        onChange={setAnswer}
+                        onSubmit={submitAnswer}
+                        disabled={disabled}
+                    />
+                </div>
+            </motion.div>
+        );
+    }
 
     return (
 
