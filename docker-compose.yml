@@ -1,0 +1,83 @@
+# =========================================================
+# LUDOGAMIF · SERVICIOS
+# ---------------------------------------------------------
+# No lo uses solo: el script ludogamif.sh le suma el archivo
+# que corresponde (o hazlo tú con -f):
+#   • En el servidor:  docker-compose.detras-de-nginx.yml
+#   • En tu PC:        docker-compose.local.yml
+#
+# Aquí ningún servicio publica puertos: la base de datos
+# solo la ve la app por la red interna de Docker.
+# =========================================================
+
+name: ludogamif
+
+# Registros con tope (3 archivos de 10 MB por servicio) para
+# que no llenen el disco del servidor.
+x-registros: &registros
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+
+  # ---------- Base de datos ----------
+  db:
+    image: postgres:16-alpine
+    container_name: ludogamif-db
+    restart: unless-stopped
+    <<: *registros
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ludogamif}
+      POSTGRES_USER: ${POSTGRES_USER:-ludogamif}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en el .env}
+      TZ: UTC
+      PGTZ: UTC
+    volumes:
+      # Volumen con nombre: los datos sobreviven a las actualizaciones.
+      - ludogamif_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  # ---------- Juego + API + Socket.IO ----------
+  app:
+    build:
+      context: .
+      args:
+        VITE_SERVER_URL: ${VITE_SERVER_URL:-}
+    image: ludogamif-app:latest
+    container_name: ludogamif-app
+    restart: unless-stopped
+    <<: *registros
+    init: true
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
+      TZ: UTC
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ludogamif}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-ludogamif}
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en el .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      TRUST_PROXY: ${TRUST_PROXY:-true}
+
+  # ---------- Nginx propio (apagado) ----------
+  # En el servidor ya hay un nginx del sistema en 80/443 que
+  # reparte el tráfico. Este servicio existe solo para dejar
+  # claro que el juego NO trae nginx propio: el perfil
+  # "nunca" no se activa jamás.
+  nginx:
+    image: nginx:alpine
+    profiles: ["nunca"]
+
+volumes:
+  ludogamif_db:
+    name: ludogamif_db

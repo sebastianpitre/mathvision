@@ -84,9 +84,12 @@ export const config = Object.freeze({
 
     CORS_ORIGINS,
 
+    // Detrás de nginx/Cloudflare: lee la IP real del jugador.
+    // Si no se indica, se activa solo en producción.
     TRUST_PROXY:
-        process.env.TRUST_PROXY === "true" ||
-        isProduction,
+        process.env.TRUST_PROXY === undefined || process.env.TRUST_PROXY === ""
+            ? isProduction
+            : process.env.TRUST_PROXY === "true",
 
     DATABASE_URL: process.env.DATABASE_URL,
     DB_SSL: process.env.DB_SSL === "true",

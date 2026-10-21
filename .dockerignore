@@ -1,0 +1,19 @@
+# No se copian a la imagen
+.git
+.github
+node_modules
+servidor/node_modules
+dist
+respaldos
+.env
+.env.*
+servidor/.env
+.detras-de-nginx
+*.log
+.vscode
+.idea
+.DS_Store
+docker-compose*.yml
+ludogamif.sh
+nginx
+*.md
