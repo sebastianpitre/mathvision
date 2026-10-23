@@ -66,6 +66,7 @@ export class RoomManager {
             estado: "sala", // "sala" | "jugando"
             miembros: new Map([[miembro.userId, miembro]]),
             bloqueados: new Set(), // userId de los que el creador sacó
+            victorias: {}, // juego → Map(userId → partidas ganadas en esta sala)
             creadaEn: Date.now(),
 
             // Compatibilidad con el Triqui
@@ -134,6 +135,17 @@ export class RoomManager {
         return room;
     }
 
+    /* Suma una partida ganada en esta sala (se ve en la sala y en el juego). */
+    sumarVictoria(room, juego, userIds = []) {
+        if (!room) return;
+        room.victorias[juego] ||= new Map();
+        for (const id of userIds) {
+            if (!id) continue;
+            const clave = String(id);
+            room.victorias[juego].set(clave, (room.victorias[juego].get(clave) || 0) + 1);
+        }
+    }
+
     /* Prepara los datos que necesita el Triqui (por conexión). */
     prepararTriqui(room) {
         room.players = new Map();
@@ -160,6 +172,7 @@ export class RoomManager {
                 personaje: m.personaje,
                 conectado: m.conectado,
                 esCreador: m.userId === room.hostUserId,
+                victorias: room.victorias?.[room.juego]?.get(m.userId) || 0,
             }));
 
         return {

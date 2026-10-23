@@ -9,7 +9,7 @@ export const JUEGOS_SALA = {
     triqui: {
         id: "triqui",
         nombre: "Triqui Matemático",
-        descripcion: "Resuelve la operación y conquista el tablero.",
+        descripcion: "Resuelve y gana el tablero.",
         min: 2,
         max: 2,
         ruta: "/games/triqui",
@@ -17,7 +17,7 @@ export const JUEGOS_SALA = {
     siglo: {
         id: "siglo",
         nombre: "SigloGamif",
-        descripcion: "Tira el dado y llena 5 espacios hasta sumar 100. ¡Sin pasarte!",
+        descripcion: "Suma 100 en 5 tiros sin pasarte.",
         min: 2,
         max: 8,
         ruta: "/games/siglo",
@@ -25,6 +25,20 @@ export const JUEGOS_SALA = {
 };
 
 export const MAX_JUGADORES_SALA = 8;
+
+/*
+ * Emojis que se pueden enviar en la sala y en los juegos
+ * (la misma lista que muestra el navegador). Solo se
+ * reenvían los que están aquí.
+ */
+export const EMOJIS = [
+    "🫏", "😂", "🤣", "⌛", "😎", "😏", "🤔", "😱", "😡", "😭",
+    "😈", "🥳", "🔥", "👏", "💪", "👍", "👎", "❤️", "🎉", "🏆",
+    "⚡", "🧠", "👀", "🤝", "😮", "🙌", "😅", "😜", "💯", "🚀",
+];
+
+// Tiempo mínimo entre dos emojis de la misma persona.
+export const PAUSA_EMOJI_MS = 700;
 
 /*
  * ¿Se puede iniciar este juego con esta cantidad de jugadores?

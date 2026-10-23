@@ -1,0 +1,77 @@
+/* Emojis de la sala y los juegos */
+
+.em-selector {
+    position: relative;
+    display: inline-flex;
+}
+
+.em-boton {
+    font-size: 1.15rem;
+}
+
+.em-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 80;
+    width: 252px;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2px;
+    border-radius: 14px;
+    border: 1px solid var(--lb-border, rgba(255, 255, 255, 0.12));
+    background: rgba(12, 17, 30, 0.97);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
+}
+
+.em-panel-arriba {
+    top: auto;
+    bottom: calc(100% + 8px);
+}
+
+.em-opcion {
+    aspect-ratio: 1;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.1s;
+}
+
+.em-opcion:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.15);
+}
+
+.em-opcion:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* Emoji que aparece, flota un poco y se desvanece */
+.em-burbuja {
+    display: inline-grid;
+    place-items: center;
+    font-size: 2rem;
+    line-height: 1;
+    pointer-events: none;
+    animation: em-flotar 3s ease-out forwards;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.45));
+}
+
+@keyframes em-flotar {
+    0% { transform: translateY(10px) scale(0.3); opacity: 0; }
+    12% { transform: translateY(0) scale(1.15); opacity: 1; }
+    20% { transform: scale(1); }
+    80% { opacity: 1; }
+    100% { transform: translateY(-14px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .em-burbuja {
+        animation: none;
+    }
+}

@@ -181,11 +181,15 @@ Todos los juegos de 2 o más jugadores pasan por una **sala** (`/sala`):
   invitar a alguien (si no tienes sala, se te crea una).
 - Se entra por **invitación** o con el **código** de 5 letras. Máximo 8 jugadores.
 - Se ven los **personajes 3D** de todos los que están.
-- El **creador** elige el juego e inicia. *Iniciar* solo se activa si la cantidad de
+- El **creador** elige el juego (botón *Cambiar*) e inicia. *Iniciar* solo se activa si la cantidad de
   jugadores sirve (Triqui: 2 · SigloGamif: 2 a 8). Si el creador se va, el siguiente
   pasa a serlo.
 - El creador puede **sacar** a alguien antes de iniciar. Esa persona ya no puede volver
   con el código; solo si el creador la vuelve a invitar.
+- **Emojis:** en la sala aparecen sobre el personaje de quien los envía; en SigloGamif,
+  en su fila del tablero; en el Triqui, como siempre.
+- La sala lleva la cuenta de las **partidas ganadas** de cada uno (por juego).
+- Al terminar SigloGamif, el creador puede **Jugar otra vez** sin volver a la sala.
 - Al terminar la partida todos vuelven a la sala. Si alguien recarga la página, tiene
   20 segundos para volver sin perder su lugar.
 

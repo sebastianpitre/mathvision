@@ -29,17 +29,16 @@ import {
     createBackgroundMusic,
 } from "./GameAudio";
 
+import { EMOJIS } from "../../data/emojis";
+
 import "./triqui.css";
 
 /* =========================================================
    EMOJIS
 ========================================================= */
 
-export const GAME_EMOJIS = [
-    "🫏", "😂", "🤣", "⌛", "😎", "😏", "🤔", "😱", "😡", "😭",
-    "😈", "🥳", "🔥", "👏", "💪", "👍", "👎", "❤️", "🎉", "🏆",
-    "⚡", "🧠", "👀", "🤝", "😮", "🙌", "😅", "😜", "💯", "🚀",
-];
+// La misma lista de la sala (el servidor solo acepta estos).
+export const GAME_EMOJIS = EMOJIS;
 
 /* =========================================================
    TECLADO NUMÉRICO
