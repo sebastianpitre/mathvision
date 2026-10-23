@@ -16,7 +16,7 @@
     "id": "siglo",
     "name": "SigloGamif",
     "shortName": "Siglo",
-    "description": "De 2 a 4 jugadores: llena 5 espacios con el dado y llega a 100 sin pasarte.",
+    "description": "De 2 a 8 jugadores: llena 5 espacios con el dado y llega a 100 sin pasarte.",
     "icon": "🎲",
     "image": "/img/Siglo/portada.jpg",
     "minPlayers": 2,

@@ -94,9 +94,35 @@
     overscroll-behavior: contain;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    /* "safe": si no caben todos, se puede hacer scroll desde arriba */
+    justify-content: safe center;
     gap: 10px;
     padding: 3px;
+}
+
+/* De 5 a 8 jugadores: filas más bajas para que quepan */
+.sg-tablero-muchos {
+    gap: 6px;
+}
+
+.sg-tablero-muchos .sg-fila {
+    padding: 6px 14px;
+    gap: 10px;
+}
+
+.sg-tablero-muchos .sg-espacio {
+    aspect-ratio: auto;
+    height: clamp(28px, 5vh, 40px);
+    border-radius: 9px;
+    font-size: clamp(0.9rem, 1.8vw, 1.15rem);
+}
+
+.sg-tablero-muchos .sg-total strong {
+    font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+}
+
+.sg-tablero-muchos .sg-fila-nombre strong {
+    font-size: var(--lb-fs-sm);
 }
 
 .sg-fila {
@@ -258,6 +284,14 @@
 .sg-evento-ganador { color: #fde68a; background: var(--lb-warning-soft); font-weight: 800; }
 .sg-evento-desempate,
 .sg-evento-ronda { color: #bfdbfe; background: var(--lb-accent-soft); }
+.sg-evento-joker { color: #f5d0fe; background: rgba(192, 132, 252, 0.18); font-weight: 800; }
+
+.sg-uso-diamante {
+    display: inline-flex;
+    margin-left: 6px;
+    color: #67e8f9;
+    vertical-align: middle;
+}
 
 /* ---------- Acción ---------- */
 
@@ -323,6 +357,103 @@
 
 .sg-dado span {
     border-radius: 50%;
+}
+
+/* Cara del joker */
+.sg-dado-joker {
+    display: grid;
+    place-items: center;
+    padding: 6px;
+    background: linear-gradient(145deg, #f5d0fe, #c084fc);
+}
+
+.sg-dado .sg-joker-cara {
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+    color: #3b0764;
+}
+
+.sg-joker-cara > span {
+    font-size: 2.2rem;
+}
+
+.sg-joker-cara small {
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+/* Dado + botón de volver a tirar */
+.sg-dado-zona {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.sg-btn-retiro {
+    white-space: nowrap;
+}
+
+.sg-costo {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(103, 232, 249, 0.16);
+    color: #67e8f9;
+    font-weight: 900;
+}
+
+/* Joker: elegir número */
+.sg-joker {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sg-joker-numeros {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(44px, 1fr));
+    gap: 8px;
+    max-width: 560px;
+}
+
+.sg-joker-numero {
+    min-height: 56px;
+    border-radius: 14px;
+    border: 2px solid rgba(192, 132, 252, 0.6);
+    background: rgba(192, 132, 252, 0.14);
+    color: inherit;
+    font-size: 1.6rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.12s, background 0.12s;
+}
+
+.sg-joker-numero:hover {
+    transform: translateY(-2px);
+    background: rgba(192, 132, 252, 0.28);
+}
+
+.sg-joker-cambiar {
+    grid-column: 1 / -1;
+    justify-self: start;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(192, 132, 252, 0.6);
+    background: rgba(192, 132, 252, 0.14);
+    color: #f5d0fe;
+    font-weight: 800;
+    cursor: pointer;
 }
 
 .sg-dado .sg-punto {
@@ -456,5 +587,43 @@
 
     .sg-actividad {
         display: none;
+    }
+}
+
+/* Pantallas bajas (el teléfono en horizontal se dibuja con ~660 px de
+   alto virtual) con muchos jugadores: que quepan las 8 filas */
+@media (max-height: 700px) {
+    .sg-tablero-muchos {
+        gap: 3px;
+        justify-content: flex-start;
+    }
+
+    .sg-tablero-muchos .sg-fila {
+        padding: 2px 10px;
+        border-width: 1px;
+        border-radius: 10px;
+    }
+
+    .sg-tablero-muchos .sg-espacios {
+        gap: 5px;
+    }
+
+    .sg-tablero-muchos .sg-espacio {
+        height: 22px;
+        border-width: 1px;
+        border-radius: 6px;
+    }
+
+    .sg-tablero-muchos .sg-fila-nombre small {
+        font-size: 0.68rem;
+        line-height: 1.1;
+    }
+
+    .sg-tablero-muchos .sg-total {
+        gap: 2px;
+    }
+
+    .sg-tablero-muchos .sg-barra {
+        height: 5px;
     }
 }

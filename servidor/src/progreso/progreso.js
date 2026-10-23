@@ -16,6 +16,8 @@
    Premio por subir de nivel: oro y un diamante.
 ========================================================= */
 
+import { pool } from "../database/db.js";
+
 export const XP_BASE = 100;
 export const XP_INCREMENTO = 50;
 export const NIVEL_MAXIMO = 100;
@@ -151,5 +153,32 @@ export async function sumarEstadisticas(client, userId, {
         WHERE user_id = $1
         `,
         [userId, jugadas, ganadas, perdidas, respondidas, correctas, incorrectas]
+    );
+}
+
+/*
+ * Cobra diamantes (por ejemplo, volver a tirar en SigloGamif).
+ * Es una sola operación: si no le alcanzan, no se cobra nada.
+ * Devuelve los diamantes que le quedan, o null si no le alcanzan.
+ */
+export async function gastarDiamantes(userId, cantidad = 1) {
+    const { rows } = await pool.query(
+        `
+        UPDATE player_profiles
+        SET gems = gems - $2, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = $1 AND gems >= $2
+        RETURNING gems
+        `,
+        [userId, cantidad]
+    );
+
+    return rows.length ? Number(rows[0].gems) : null;
+}
+
+/* Devuelve diamantes cobrados si al final no se usaron. */
+export async function devolverDiamantes(userId, cantidad = 1) {
+    await pool.query(
+        `UPDATE player_profiles SET gems = gems + $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1`,
+        [userId, cantidad]
     );
 }

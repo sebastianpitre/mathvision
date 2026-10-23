@@ -19,12 +19,12 @@ export const JUEGOS_SALA = {
         nombre: "SigloGamif",
         descripcion: "Tira el dado y llena 5 espacios hasta sumar 100. ¡Sin pasarte!",
         min: 2,
-        max: 4,
+        max: 8,
         ruta: "/games/siglo",
     },
 };
 
-export const MAX_JUGADORES_SALA = 4;
+export const MAX_JUGADORES_SALA = 8;
 
 /*
  * ¿Se puede iniciar este juego con esta cantidad de jugadores?

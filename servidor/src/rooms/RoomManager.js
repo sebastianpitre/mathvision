@@ -1,10 +1,14 @@
 /* =========================================================
    SALAS MULTIJUGADOR
    ---------------------------------------------------------
-   Una sala reúne de 2 a 4 jugadores antes de jugar. El
+   Una sala reúne de 2 a 8 jugadores antes de jugar. El
    creador (anfitrión) elige el juego y lo inicia cuando la
    cantidad de jugadores sirve para ese juego. Al terminar la
    partida todos vuelven a la sala.
+
+   El creador puede sacar a alguien de la sala; esa persona
+   ya no puede volver a entrar con el código (solo si el
+   creador la vuelve a invitar).
 
    Los miembros se identifican por su usuario (userId), no por
    la conexión: si alguien recarga la página, vuelve a la misma
@@ -61,6 +65,7 @@ export class RoomManager {
             juego: "siglo",
             estado: "sala", // "sala" | "jugando"
             miembros: new Map([[miembro.userId, miembro]]),
+            bloqueados: new Set(), // userId de los que el creador sacó
             creadaEn: Date.now(),
 
             // Compatibilidad con el Triqui
@@ -85,6 +90,10 @@ export class RoomManager {
             // Ya estaba (por ejemplo, recargó la página).
             Object.assign(room.miembros.get(miembro.userId), miembro, { conectado: true });
             return { success: true, room };
+        }
+
+        if (room.bloqueados.has(miembro.userId)) {
+            return { success: false, message: "El creador te sacó de esa sala. Solo puedes volver si te invita." };
         }
 
         if (room.estado === "jugando") {

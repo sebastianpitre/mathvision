@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { LuArrowLeft, LuClock, LuDices, LuSkull, LuTrophy, LuVolume2, LuVolumeX } from "react-icons/lu";
+import { LuArrowLeft, LuClock, LuDices, LuGem, LuRotateCcw, LuSkull, LuTrophy, LuVolume2, LuVolumeX } from "react-icons/lu";
 
 import { useAuth } from "../../context/AuthContext";
 import { socket } from "../../services/socket";
@@ -14,6 +14,11 @@ import "./siglo.css";
    SIGLOGAMIF · PANTALLA DEL JUEGO
    El servidor decide el dado, los turnos y las sumas. Aquí
    solo se muestra el estado y se envía "tirar" / "elegir".
+
+   · JOKER: si el dado sale joker, el jugador elige un número
+     del 0 al 6 y luego unidad o decena.
+   · DIAMANTE: una vez por partida, después de tirar, puede
+     pagar 1 diamante para volver a tirar.
 ========================================================= */
 
 const SONIDOS = {
@@ -25,6 +30,8 @@ const SONIDOS = {
     perder: "/sounds/game-over.mp3",
 };
 
+const JOKER = "joker";
+
 const PUNTOS_DADO = {
     1: [5],
     2: [1, 9],
@@ -35,17 +42,26 @@ const PUNTOS_DADO = {
 };
 
 function Dado({ valor, girando }) {
+    const joker = valor === JOKER;
+
     return (
         <motion.div
-            className="sg-dado"
+            className={`sg-dado ${joker ? "sg-dado-joker" : ""}`}
             animate={girando ? { rotate: [0, 90, 180, 270, 360] } : { rotate: 0 }}
             transition={girando ? { duration: 0.5, repeat: Infinity, ease: "linear" } : { type: "spring" }}
             role="img"
-            aria-label={valor ? `Dado: ${valor}` : "Dado sin tirar"}
+            aria-label={joker ? "Dado: joker" : valor ? `Dado: ${valor}` : "Dado sin tirar"}
         >
-            {Array.from({ length: 9 }, (_, i) => (
-                <span key={i} className={valor && PUNTOS_DADO[valor].includes(i + 1) ? "sg-punto" : ""} />
-            ))}
+            {joker ? (
+                <span className="sg-joker-cara" aria-hidden="true">
+                    <span>🃏</span>
+                    <small>JOKER</small>
+                </span>
+            ) : (
+                Array.from({ length: 9 }, (_, i) => (
+                    <span key={i} className={valor && PUNTOS_DADO[valor]?.includes(i + 1) ? "sg-punto" : ""} />
+                ))
+            )}
         </motion.div>
     );
 }
@@ -69,6 +85,9 @@ export default function Siglo() {
     const [restante, setRestante] = useState(null);
     const [sonido, setSonido] = useState(true);
     const [tirando, setTirando] = useState(false);
+    // Número elegido con el joker, atado al tiro en que se eligió.
+    const [eleccionJoker, setEleccionJoker] = useState({ tiro: "", numero: null });
+    const [retirando, setRetirando] = useState(false);
 
     const desfase = useRef(0);
     const sonidoRef = useRef(true);
@@ -94,11 +113,13 @@ export default function Siglo() {
             if (!estado) return setPartida(null);
             desfase.current = estado.ahora - Date.now();
             setTirando(false);
+            setRetirando(false);
             setPartida(estado);
         };
 
         const alError = ({ message }) => {
             setTirando(false);
+            setRetirando(false);
             clearTimeout(errorTimer.current);
             setError(message);
             errorTimer.current = setTimeout(() => setError(""), 3000);
@@ -110,10 +131,14 @@ export default function Siglo() {
             refreshUser();
         };
 
+        // Gastó (o le devolvieron) un diamante.
+        const alProgreso = () => refreshUser();
+
         socket.on("connect", pedir);
         socket.on("siglo:estado", alEstado);
         socket.on("siglo:error", alError);
         socket.on("game:reward", alPremio);
+        socket.on("progreso:actualizar", alProgreso);
 
         if (socket.connected) pedir();
         else socket.connect();
@@ -123,6 +148,7 @@ export default function Siglo() {
             socket.off("siglo:estado", alEstado);
             socket.off("siglo:error", alError);
             socket.off("game:reward", alPremio);
+            socket.off("progreso:actualizar", alProgreso);
             clearTimeout(errorTimer.current);
         };
     }, [refreshUser]);
@@ -140,6 +166,7 @@ export default function Siglo() {
 
         if (ultimo && ultimo.en !== ultimoAntes?.en) {
             if (ultimo.tipo === "dado") sonar("dado");
+            else if (ultimo.tipo === "joker") sonar("ganar");
             else if (ultimo.tipo === "eliminado") sonar("eliminado");
             else if (ultimo.tipo === "info") sonar("poner");
         }
@@ -172,16 +199,28 @@ export default function Siglo() {
     const turnoDe = partida?.jugadores.find((j) => j.userId === partida.turno) || null;
     const miTurno = Boolean(partida && partida.turno === miId);
     const nombre = (id) => partida?.jugadores.find((j) => j.userId === id)?.nombre || "";
+    const esJoker = partida?.dado === JOKER;
+    const misDiamantes = Number(user?.gems) || 0;
+
+    // Cada tiro nuevo (o volver a tirar) borra el número elegido antes.
+    const claveTiro = partida ? `${partida.turno}-${partida.ronda}-${partida.eventos.at(-1)?.en}` : "";
+    const numeroJoker = esJoker && eleccionJoker.tiro === claveTiro ? eleccionJoker.numero : null;
+    const setNumeroJoker = (numero) => setEleccionJoker({ tiro: claveTiro, numero });
+
+    // El número que se pone: el del dado, o el elegido con el joker.
+    const base = esJoker ? numeroJoker : partida?.dado;
 
     const opciones = useMemo(() => {
-        if (!partida || !yo || !miTurno || partida.fase !== "jugando" || partida.dado === null) return [];
+        if (!partida || !yo || !miTurno || partida.fase !== "jugando" || base === null || base === undefined) return [];
 
         const restantes = partida.espacios - (partida.ronda + 1);
+        const lista = [
+            { opcion: "unidad", valor: base },
+            { opcion: "decena", valor: base * 10 },
+        ];
 
-        return [
-            { opcion: "unidad", valor: partida.dado },
-            { opcion: "decena", valor: partida.dado * 10 },
-        ].map((o) => {
+        // Con 0 las dos opciones dan lo mismo.
+        return (base === 0 ? lista.slice(0, 1) : lista).map((o) => {
             const total = yo.total + o.valor;
             let aviso = null;
             let tono = "ok";
@@ -199,7 +238,10 @@ export default function Siglo() {
 
             return { ...o, total, aviso, tono };
         });
-    }, [partida, yo, miTurno]);
+    }, [partida, yo, miTurno, base]);
+
+    const puedeVolverATirar =
+        miTurno && partida?.fase === "jugando" && partida.dado !== null && yo && !yo.retiroUsado && !yo.eliminado;
 
     /* ---------------- Acciones ---------------- */
 
@@ -208,7 +250,19 @@ export default function Siglo() {
         socket.emit("siglo:tirar");
     };
 
-    const elegir = (opcion) => socket.emit("siglo:elegir", { opcion });
+    const elegir = (opcion) =>
+        socket.emit("siglo:elegir", esJoker ? { opcion, numero: numeroJoker } : { opcion });
+
+    const volverATirar = () => {
+        if (misDiamantes < 1) {
+            setError("No tienes diamantes para volver a tirar.");
+            clearTimeout(errorTimer.current);
+            errorTimer.current = setTimeout(() => setError(""), 3000);
+            return;
+        }
+        setRetirando(true);
+        socket.emit("siglo:volverATirar");
+    };
 
     const salir = () => {
         if (partida && partida.fase !== "terminada" && yo && !yo.eliminado) {
@@ -291,7 +345,10 @@ export default function Siglo() {
 
             <main className="sg-main">
                 {/* ================= TABLERO ================= */}
-                <section className="sg-tablero" aria-label="Tablero de jugadores">
+                <section
+                    className={`sg-tablero ${partida.jugadores.length > 4 ? "sg-tablero-muchos" : ""}`}
+                    aria-label="Tablero de jugadores"
+                >
                     {partida.jugadores.map((j) => {
                         const esTurno = j.userId === partida.turno;
                         const gano = partida.resultado?.ganadores.includes(j.userId);
@@ -313,6 +370,12 @@ export default function Siglo() {
                                     <strong>
                                         {j.nombre}
                                         {j.userId === miId && <span className="sg-tu"> (tú)</span>}
+                                        {j.retiroUsado && (
+                                            <span className="sg-uso-diamante" title="Ya volvió a tirar con un diamante">
+                                                <LuGem aria-hidden="true" />
+                                                <span className="lb-sr-only">usó su diamante</span>
+                                            </span>
+                                        )}
                                     </strong>
                                     <small>
                                         {gano ? (
@@ -428,7 +491,25 @@ export default function Siglo() {
                         </div>
                     ) : miTurno && !yo?.eliminado ? (
                         <div className="sg-mi-turno">
-                            <Dado valor={partida.dado} girando={tirando} />
+                            <div className="sg-dado-zona">
+                                <Dado valor={partida.dado} girando={tirando || retirando} />
+                                {puedeVolverATirar && (
+                                    <button
+                                        type="button"
+                                        className="lb-btn lb-btn-secondary lb-btn-sm sg-btn-retiro"
+                                        onClick={volverATirar}
+                                        disabled={retirando}
+                                        title={misDiamantes < 1 ? "Necesitas 1 diamante" : "Solo una vez por partida"}
+                                    >
+                                        <LuRotateCcw aria-hidden="true" />
+                                        Volver a tirar
+                                        <span className="sg-costo">
+                                            1 <LuGem aria-hidden="true" />
+                                            <span className="lb-sr-only">diamante</span>
+                                        </span>
+                                    </button>
+                                )}
+                            </div>
 
                             {partida.dado === null || partida.fase === "desempate" ? (
                                 <div className="sg-mi-turno-texto">
@@ -440,10 +521,26 @@ export default function Siglo() {
                                         Tirar dado
                                     </button>
                                 </div>
+                            ) : esJoker && numeroJoker === null ? (
+                                <div className="sg-joker">
+                                    <strong className="sg-accion-titulo">¡JOKER! Elige tu número</strong>
+                                    <div className="sg-joker-numeros" role="group" aria-label="Elige un número del 0 al 6">
+                                        {(partida.numerosJoker || [0, 1, 2, 3, 4, 5, 6]).map((n) => (
+                                            <button key={n} type="button" className="sg-joker-numero" onClick={() => setNumeroJoker(n)}>
+                                                {n}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             ) : (
                                 <div className="sg-opciones">
+                                    {esJoker && (
+                                        <button type="button" className="sg-joker-cambiar" onClick={() => setNumeroJoker(null)}>
+                                            {`🃏 Elegiste ${numeroJoker} · cambiar`}
+                                        </button>
+                                    )}
                                     {opciones.map((o) => (
-                                        <button key={o.opcion} type="button" className={`sg-opcion sg-opcion-${o.tono}`} onClick={() => elegir(o.opcion)}>
+                                        <button key={o.opcion} type="button" className={`sg-opcion sg-opcion-${o.tono}`} onClick={() => elegir(o.opcion)} disabled={retirando}>
                                             <span className="sg-opcion-valor">{o.valor}</span>
                                             <span className="sg-opcion-texto">
                                                 <strong>{`Poner ${o.valor}`}</strong>

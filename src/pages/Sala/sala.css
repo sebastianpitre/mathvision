@@ -136,6 +136,30 @@
     color: var(--lb-danger);
 }
 
+/* Sacar a alguien (solo el creador) */
+.sl-sacar {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    color: var(--lb-text-muted);
+}
+
+.sl-sacar:hover {
+    color: var(--lb-danger);
+}
+
+.sl-sacar-confirmar {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sl-sacar-no {
+    width: 30px;
+    height: 30px;
+}
+
 .sl-vacio {
     padding: 10px 2px;
 }
@@ -208,6 +232,26 @@
 .sl-etiqueta svg {
     color: var(--lb-warning);
     flex-shrink: 0;
+}
+
+/* De 6 a 8 puestos: etiquetas más chicas */
+.sl-puestos-muchos {
+    gap: 4px;
+    padding: 0 4px;
+}
+
+.sl-puestos-muchos .sl-etiqueta {
+    padding: 4px 8px;
+    gap: 4px;
+    font-size: var(--lb-fs-sm);
+}
+
+.sl-puestos-muchos .sl-etiqueta small {
+    display: none;
+}
+
+.sl-puestos-muchos .sl-espera {
+    font-size: 0.72rem;
 }
 
 /* Puesto libre: silueta punteada a lo alto del escenario */
@@ -398,4 +442,14 @@
     color: var(--lb-text-muted, #c1c9da);
     font: 800 0.8rem "Nunito", system-ui, sans-serif;
     white-space: nowrap;
+}
+
+.sl-btn-sacar {
+    background: var(--lb-danger-soft);
+    color: var(--lb-danger);
+    border: 1px solid rgba(248, 113, 113, 0.45);
+}
+
+.sl-btn-sacar:hover {
+    background: rgba(248, 113, 113, 0.28);
 }
