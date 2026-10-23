@@ -11,6 +11,8 @@ import {
     LuLogIn,
     LuPlay,
     LuPlus,
+    LuRepeat,
+    LuTrophy,
     LuUserPlus,
     LuUserX,
     LuUsers,
@@ -21,6 +23,8 @@ import {
 import MainNav from "../../components/navigation/MainNav";
 import AssetImage from "../../components/common/AssetImage";
 import ProtegerError from "../../components/common/ProtegerError";
+import { BurbujaEmoji, SelectorEmojis } from "../../components/common/Emojis";
+import { useEmojisSala } from "../../components/common/useEmojisSala";
 import VRMCharacter from "../../components/character/VRMCharacter";
 import LucesPersonaje from "../../components/character/LucesPersonaje";
 import { useAuth } from "../../context/AuthContext";
@@ -39,6 +43,9 @@ import "./sala.css";
    · Cualquiera puede invitar a jugadores conectados o
      compartir el código de la sala.
    · El creador puede sacar a alguien antes de iniciar.
+   · El juego se elige en una ventana (solo el creador), así
+     la lista para invitar ocupa toda la columna derecha.
+   · Emojis: aparecen sobre el personaje de quien los envía.
 ========================================================= */
 
 const PUESTOS_MINIMOS = 4;
@@ -99,6 +106,8 @@ export default function Sala() {
     const [invitacion, setInvitacion] = useState(null);
     const [copiado, setCopiado] = useState(false);
     const [porSacar, setPorSacar] = useState(null); // userId que el creador está por sacar
+    const [eligiendoJuego, setEligiendoJuego] = useState(false);
+    const emojis = useEmojisSala();
 
     const avisoTimer = useRef(null);
     const crearAlEntrar = useRef(Boolean(location.state?.crear));
@@ -216,6 +225,19 @@ export default function Sala() {
         setInvitacion(null);
     };
 
+    const elegirJuego = (juego) => {
+        socket.emit("sala:elegirJuego", { juego });
+        setEligiendoJuego(false);
+    };
+
+    // La ventana de juegos se cierra con Escape.
+    useEffect(() => {
+        if (!eligiendoJuego) return;
+        const tecla = (e) => e.key === "Escape" && setEligiendoJuego(false);
+        document.addEventListener("keydown", tecla);
+        return () => document.removeEventListener("keydown", tecla);
+    }, [eligiendoJuego]);
+
     const sacar = (userId) => {
         socket.emit("sala:expulsar", { userId });
         setPorSacar(null);
@@ -322,7 +344,7 @@ export default function Sala() {
                                 {copiado ? <LuCheck aria-hidden="true" /> : <LuCopy aria-hidden="true" />}
                             </button>
                         </div>
-                        <p className="lb-muted">Comparte este código para que entren.</p>
+                        <p className="lb-muted">Compártelo para que entren.</p>
                         <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm lb-btn-block" onClick={salir}>
                             <LuDoorOpen aria-hidden="true" />
                             Salir de la sala
@@ -347,6 +369,13 @@ export default function Sala() {
                                         </strong>
                                         <small>
                                             {m.conectado ? `Nivel ${m.nivel}` : "Reconectando…"}
+                                            {m.victorias > 0 && (
+                                                <span className="sl-victorias" title={`Partidas ganadas en esta sala (${juegoActual?.nombre || ""})`}>
+                                                    <LuTrophy aria-hidden="true" />
+                                                    {m.victorias}
+                                                    <span className="lb-sr-only"> ganadas</span>
+                                                </span>
+                                            )}
                                         </small>
                                     </span>
                                     {m.esCreador && (
@@ -393,6 +422,17 @@ export default function Sala() {
                             </Canvas>
                         </ProtegerError>
 
+                        {/* Emojis sobre la cabeza de cada personaje */}
+                        <div className="sl-emojis" style={{ gridTemplateColumns: `repeat(${totalPuestos}, minmax(0, 1fr))` }} aria-hidden="true">
+                            {puestos.map((m, i) => (
+                                <span key={m?.userId ?? `e-${i}`} className="sl-emoji-puesto">
+                                    {m && <BurbujaEmoji dato={emojis[String(m.userId)]} />}
+                                </span>
+                            ))}
+                        </div>
+
+                        <SelectorEmojis className="sl-selector-emojis" />
+
                         <ol
                             className={`sl-puestos ${totalPuestos > 5 ? "sl-puestos-muchos" : ""}`}
                             style={{ gridTemplateColumns: `repeat(${totalPuestos}, minmax(0, 1fr))` }}
@@ -403,7 +443,11 @@ export default function Sala() {
                                         <span className="sl-etiqueta">
                                             {m.esCreador && <LuCrown aria-hidden="true" />}
                                             <strong>{m.nombre}</strong>
-                                            <small>{`Nv ${m.nivel}`}</small>
+                                            {m.victorias > 0 ? (
+                                                <small className="sl-etiqueta-victorias">{`🏆 ${m.victorias}`}</small>
+                                            ) : (
+                                                <small>{`Nv ${m.nivel}`}</small>
+                                            )}
                                         </span>
                                     ) : (
                                         <span className="sl-espera">
@@ -418,8 +462,17 @@ export default function Sala() {
 
                     <div className="lb-card sl-inicio">
                         <div className="sl-inicio-juego">
-                            <p className="lb-eyebrow">Juego elegido</p>
-                            <strong className="sl-inicio-nombre">{juegoActual?.nombre || "Sin elegir"}</strong>
+                            <p className="lb-eyebrow">Juego</p>
+                            <div className="sl-inicio-fila">
+                                <strong className="sl-inicio-nombre">{juegoActual?.nombre || "Sin elegir"}</strong>
+                                {juegoActual && <span className="lg-tag">{textoJugadores(juegoActual)}</span>}
+                                {soyCreador && sala.estado === "sala" && (
+                                    <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => setEligiendoJuego(true)}>
+                                        <LuRepeat aria-hidden="true" />
+                                        Cambiar
+                                    </button>
+                                )}
+                            </div>
                             <span className="lb-muted">
                                 {sala.estado === "jugando"
                                     ? "Partida en curso…"
@@ -443,53 +496,20 @@ export default function Sala() {
                                 Iniciar partida
                             </button>
                         ) : (
-                            <span className="sl-espera-creador">Esperando a que el creador inicie…</span>
+                            <span className="sl-espera-creador">El creador inicia…</span>
                         )}
                     </div>
                 </section>
 
                 {/* ================= DERECHA ================= */}
                 <aside className="sl-col">
-                    <section className="lb-card sl-juegos-card" aria-labelledby="sl-juegos">
-                        <div className="sl-card-head">
-                            <h2 id="sl-juegos" className="lg-card-title">Juegos</h2>
-                            {!soyCreador && <span className="lb-muted">Elige el creador</span>}
-                        </div>
-                        <ul className="sl-juegos" role="radiogroup" aria-labelledby="sl-juegos">
-                            {(sala.juegos || []).map((j) => {
-                                const elegido = j.id === sala.juego;
-                                const cabe = miembros.length >= j.min && miembros.length <= j.max;
-
-                                return (
-                                    <li key={j.id}>
-                                        <button
-                                            type="button"
-                                            role="radio"
-                                            aria-checked={elegido}
-                                            className={`sl-juego ${elegido ? "sl-juego-elegido" : ""}`}
-                                            disabled={!soyCreador || sala.estado !== "sala"}
-                                            onClick={() => socket.emit("sala:elegirJuego", { juego: j.id })}
-                                        >
-                                            <strong>{j.nombre}</strong>
-                                            <small>{j.descripcion}</small>
-                                            <span className={`lg-tag ${cabe ? "lg-tag-on" : "lg-tag-off"}`}>
-                                                <LuUsers aria-hidden="true" />
-                                                {textoJugadores(j)}
-                                            </span>
-                                        </button>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </section>
-
-                    <section className="lb-card sl-lista-card" aria-labelledby="sl-invitar">
+                    <section className="lb-card sl-lista-card sl-invitar" aria-labelledby="sl-invitar">
                         <div className="sl-card-head">
                             <h2 id="sl-invitar" className="lg-card-title">Invitar</h2>
                             <span className="lb-count">{invitables.length}</span>
                         </div>
                         {invitables.length === 0 ? (
-                            <p className="lb-muted sl-vacio">No hay más jugadores conectados. Comparte el código de la sala.</p>
+                            <p className="lb-muted sl-vacio">Nadie más conectado. Comparte el código.</p>
                         ) : (
                             <ul className="sl-lista">
                                 {invitables.map((p) => {
@@ -521,6 +541,54 @@ export default function Sala() {
                     </section>
                 </aside>
             </main>
+
+            {/* Ventana para elegir el juego (solo el creador) */}
+            {eligiendoJuego && (
+                <div className="sl-modal-fondo" onClick={() => setEligiendoJuego(false)}>
+                    <section
+                        className="lb-card sl-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="sl-modal-titulo"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="sl-card-head">
+                            <h2 id="sl-modal-titulo" className="lg-card-title">Elige el juego</h2>
+                            <button type="button" className="lb-icon-btn" onClick={() => setEligiendoJuego(false)} aria-label="Cerrar">
+                                <LuX aria-hidden="true" />
+                            </button>
+                        </div>
+                        <ul className="sl-juegos" role="radiogroup" aria-labelledby="sl-modal-titulo">
+                            {(sala.juegos || []).map((j) => {
+                                const elegido = j.id === sala.juego;
+                                const cabe = miembros.length >= j.min && miembros.length <= j.max;
+
+                                return (
+                                    <li key={j.id}>
+                                        <button
+                                            type="button"
+                                            role="radio"
+                                            aria-checked={elegido}
+                                            className={`sl-juego ${elegido ? "sl-juego-elegido" : ""}`}
+                                            onClick={() => elegirJuego(j.id)}
+                                            autoFocus={elegido}
+                                        >
+                                            <span className="sl-juego-texto">
+                                                <strong>{j.nombre}</strong>
+                                                <small>{j.descripcion}</small>
+                                            </span>
+                                            <span className={`lg-tag ${cabe ? "lg-tag-on" : "lg-tag-off"}`}>
+                                                <LuUsers aria-hidden="true" />
+                                                {textoJugadores(j)}
+                                            </span>
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </section>
+                </div>
+            )}
 
             {/* Avisos */}
             <div className="sl-avisos" aria-live="polite">

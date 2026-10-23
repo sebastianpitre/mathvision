@@ -47,6 +47,7 @@ import {
 import {
     crearAyudasSala,
     registrarEventosSala,
+    emojiPermitido,
 } from "./src/salas/salaSockets.js";
 
 import {
@@ -1977,6 +1978,10 @@ io.on(
                                 ) || 0
                             ) + 1
                         );
+
+                        roomManager.sumarVictoria(room, "triqui", [
+                            io.sockets.sockets.get(winnerId)?.userId,
+                        ]);
                     }
 
                     const finalGame =
@@ -2064,7 +2069,7 @@ io.on(
                         socket.id
                     );
 
-                if (!player) {
+                if (!player || !emojiPermitido(socket, emoji)) {
                     return;
                 }
 

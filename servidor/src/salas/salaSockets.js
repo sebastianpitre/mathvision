@@ -13,6 +13,7 @@
      siglo:estado | siglo:votar { segundos } | siglo:tirar
      siglo:elegir { opcion: "unidad" | "decena", numero? (joker 0–6) }
      siglo:volverATirar         cuesta 1 diamante, una vez por partida
+     sala:emoji { emoji }       reacción (en la sala y en SigloGamif)
      siglo:salir
 
    Servidor → navegador
@@ -22,6 +23,7 @@
      sala:juegoIniciado { juego, ruta }
      sala:expulsado { message } el creador te sacó de la sala
      progreso:actualizar        cambió tu oro o tus diamantes
+     sala:emoji { userId, nombre, emoji, en }
      siglo:estado { …partida }  cada cambio de SigloGamif
      siglo:error  { message }
      game:reward  { resultado, recompensa }   premio al terminar
@@ -31,7 +33,19 @@ import { getUserProfile } from "../users/userService.js";
 import { registrarResultadoMultijugador } from "../partidas/partidasService.js";
 import { gastarDiamantes, devolverDiamantes } from "../progreso/progreso.js";
 import { SigloGame } from "../games/siglo/SigloGame.js";
-import { JUEGOS_SALA, motivoNoIniciar } from "./juegos.js";
+import { JUEGOS_SALA, motivoNoIniciar, EMOJIS, PAUSA_EMOJI_MS } from "./juegos.js";
+
+/*
+ * ¿Puede este socket mandar este emoji ahora? (de la lista y
+ * sin llenar la pantalla de emojis). También lo usa el Triqui.
+ */
+export function emojiPermitido(socket, emoji) {
+    if (!EMOJIS.includes(emoji)) return false;
+    const ahora = Date.now();
+    if (ahora - (socket.ultimoEmoji || 0) < PAUSA_EMOJI_MS) return false;
+    socket.ultimoEmoji = ahora;
+    return true;
+}
 
 // Segundos que se espera a alguien que se desconectó (recargó
 // la página, perdió señal) antes de sacarlo de la sala.
@@ -197,6 +211,8 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
             onFin: (resultado, partida) => {
                 room.estado = "sala";
 
+                roomManager.sumarVictoria(room, "siglo", resultado.ganadores);
+
                 const resultados = partida.jugadores
                     .filter((j) => j.motivo !== "abandono")
                     .map((j) => ({
@@ -351,6 +367,19 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
         ayudas.emitirSala(room);
 
         console.log(`🎮 Sala ${room.code}: ${JUEGOS_SALA[room.juego].nombre} con ${room.miembros.size} jugadores`);
+    });
+
+    socket.on("sala:emoji", ({ emoji } = {}) => {
+        const room = miSala();
+        if (!room || !emojiPermitido(socket, emoji)) return;
+
+        const miembro = room.miembros.get(yo());
+        io.to(room.code).emit("sala:emoji", {
+            userId: yo(),
+            nombre: miembro?.nombre || "Jugador",
+            emoji,
+            en: Date.now(),
+        });
     });
 
     /* ---------------- SIGLOGAMIF ---------------- */

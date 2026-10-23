@@ -54,7 +54,7 @@ function dado() {
 }
 
 function textoDado(valor) {
-    return valor === JOKER ? "¡JOKER!" : `un ${valor}`;
+    return valor === JOKER ? "🃏" : String(valor);
 }
 
 function azar(lista) {
@@ -160,7 +160,7 @@ export class SigloGame {
     iniciar() {
         this.fase = "votacion";
         this.finEn = Date.now() + SEGUNDOS_VOTACION * 1000;
-        this.evento("¡Empieza SigloGamif! Voten el tiempo de cada turno.");
+        this.evento("¡A jugar! Voten el tiempo por turno.");
         this.programar(SEGUNDOS_VOTACION * 1000, () => this.cerrarVotacion());
         this.avisar();
     }
@@ -192,15 +192,15 @@ export class SigloGame {
 
         if (conteo.size === 0) {
             this.segundosTurno = TIEMPO_POR_DEFECTO;
-            this.evento(`Nadie votó: cada turno tendrá ${this.segundosTurno} segundos.`);
+            this.evento(`Nadie votó: turnos de ${this.segundosTurno} s.`);
         } else {
             const maximo = Math.max(...conteo.values());
             const ganadores = [...conteo.entries()].filter(([, n]) => n === maximo).map(([v]) => v);
             this.segundosTurno = azar(ganadores);
             this.evento(
                 ganadores.length > 1
-                    ? `Empate en la votación: el azar eligió ${this.segundosTurno} segundos por turno.`
-                    : `Cada turno tendrá ${this.segundosTurno} segundos.`
+                    ? `Empate en la votación: turnos de ${this.segundosTurno} s (al azar).`
+                    : `Turnos de ${this.segundosTurno} s.`
             );
         }
 
@@ -241,8 +241,8 @@ export class SigloGame {
         this.dado = dado();
         this.evento(
             this.dado === JOKER
-                ? `${this.jugador(userId).nombre} sacó ¡JOKER! Elige el número que quiera.`
-                : `${this.jugador(userId).nombre} sacó un ${this.dado}.`,
+                ? `${this.jugador(userId).nombre} sacó 🃏 ¡JOKER!`
+                : `${this.jugador(userId).nombre} sacó ${this.dado}.`,
             this.dado === JOKER ? "joker" : "dado"
         );
         this.avisar();
@@ -324,7 +324,7 @@ export class SigloGame {
         jugador.retiroUsado = true;
         this.dado = dado();
         this.evento(
-            `${jugador.nombre} usó un 💎 y volvió a tirar: sacó ${textoDado(this.dado)} (antes ${textoDado(antes)}).`,
+            `${jugador.nombre} usó 💎: ${textoDado(antes)} → ${textoDado(this.dado)}.`,
             this.dado === JOKER ? "joker" : "dado"
         );
 
@@ -350,12 +350,12 @@ export class SigloGame {
         if (jugador.total > META) {
             jugador.eliminado = true;
             jugador.motivo = "se_paso";
-            this.evento(`${jugador.nombre} puso ${valor}, llegó a ${jugador.total} y quedó eliminado.`, "eliminado");
+            this.evento(`${jugador.nombre} +${valor} → ${jugador.total}: ¡eliminado!`, "eliminado");
         } else if (llenos === ESPACIOS && jugador.total === META) {
-            this.evento(`¡SIGLO! ${jugador.nombre} completó exactamente 100.`, "siglo");
+            this.evento(`¡SIGLO! ${jugador.nombre} llegó a 100.`, "siglo");
             return this.terminar({ tipo: "siglo", ganadores: [jugador.userId] });
         } else {
-            this.evento(`${jugador.nombre} puso ${valor} en el espacio ${this.ronda + 1} (suma ${jugador.total}).`);
+            this.evento(`${jugador.nombre} +${valor} → ${jugador.total}`);
         }
 
         if (this.revisarUltimoEnPie()) return;
@@ -384,9 +384,9 @@ export class SigloGame {
 
         if (this.dado === null) {
             this.dado = dado();
-            this.evento(`Se acabó el tiempo de ${jugador.nombre}: el juego tiró por él y sacó ${textoDado(this.dado)}.`, "tiempo");
+            this.evento(`⏰ ${jugador.nombre}: el juego tiró (${textoDado(this.dado)}).`, "tiempo");
         } else {
-            this.evento(`Se acabó el tiempo de ${jugador.nombre}: el juego eligió por él.`, "tiempo");
+            this.evento(`⏰ ${jugador.nombre}: el juego eligió.`, "tiempo");
         }
 
         const numeros = this.dado === JOKER ? NUMEROS_JOKER : [this.dado];
@@ -417,7 +417,7 @@ export class SigloGame {
         this.ronda += 1;
 
         if (this.ronda < ESPACIOS) {
-            this.evento(`Ronda ${this.ronda + 1}: espacio ${this.ronda + 1}.`, "ronda");
+            this.evento(`Ronda ${this.ronda + 1}`, "ronda");
             return this.empezarTurno(this.siguienteEnRonda());
         }
 
@@ -430,7 +430,7 @@ export class SigloGame {
         const empatados = vivos.filter((j) => j.total === mejor);
 
         if (empatados.length === 1) {
-            this.evento(`${empatados[0].nombre} quedó más cerca de 100 con ${mejor}.`, "ganador");
+            this.evento(`🏆 ${empatados[0].nombre} gana con ${mejor}.`, "ganador");
             return this.terminar({ tipo: "cercano", ganadores: [empatados[0].userId] });
         }
 
@@ -446,7 +446,7 @@ export class SigloGame {
         }
 
         if (vivos.length === 1 && this.jugadores.length > 1) {
-            this.evento(`${vivos[0].nombre} es el último en pie y gana.`, "ganador");
+            this.evento(`🏆 ${vivos[0].nombre}: último en pie.`, "ganador");
             this.terminar({ tipo: "ultimo", ganadores: [vivos[0].userId] });
             return true;
         }
@@ -464,7 +464,7 @@ export class SigloGame {
         for (const j of this.jugadores) j.tiroDesempate = null;
 
         const nombres = empatados.map((j) => j.nombre).join(" y ");
-        this.evento(`¡Empate con ${empatados[0].total}! Desempate entre ${nombres}: gana el dado más alto.`, "desempate");
+        this.evento(`¡Empate con ${empatados[0].total}! Desempate: ${nombres}.`, "desempate");
 
         this.siguienteDesempate();
     }
@@ -481,7 +481,7 @@ export class SigloGame {
         this.finEn = Date.now() + this.segundosTurno * 1000;
         this.programar(this.segundosTurno * 1000, () => {
             const j = this.jugador(this.turno);
-            this.evento(`Se acabó el tiempo de ${j.nombre}: el juego tiró por él.`, "tiempo");
+            this.evento(`⏰ ${j.nombre}: el juego tiró.`, "tiempo");
             this.tirarDesempate(this.turno);
         });
         this.avisar();
@@ -496,7 +496,7 @@ export class SigloGame {
         const jugador = this.jugador(userId);
         jugador.tiroDesempate = dadoNormal(); // en el desempate no hay joker
         this.dado = jugador.tiroDesempate;
-        this.evento(`${jugador.nombre} sacó ${jugador.tiroDesempate} en el desempate.`, "dado");
+        this.evento(`${jugador.nombre} sacó ${jugador.tiroDesempate} (desempate).`, "dado");
 
         this.turno = null;
         this.finEn = null;
@@ -519,11 +519,11 @@ export class SigloGame {
         const ganadores = participantes.filter((j) => j.tiroDesempate === mejor);
 
         if (ganadores.length === 1) {
-            this.evento(`${ganadores[0].nombre} gana el desempate con un ${mejor}.`, "ganador");
+            this.evento(`🏆 ${ganadores[0].nombre} gana el desempate.`, "ganador");
             return this.terminar({ tipo: "desempate", ganadores: [ganadores[0].userId] });
         }
 
-        this.evento("¡Otra vez empate! Se repite el desempate.", "desempate");
+        this.evento("¡Otro empate! Se repite.", "desempate");
         this.empezarDesempate(ganadores);
     }
 
@@ -538,7 +538,7 @@ export class SigloGame {
         jugador.eliminado = true;
         jugador.motivo = "abandono";
         this.votos.delete(jugador.userId);
-        this.evento(`${jugador.nombre} salió de la partida.`, "eliminado");
+        this.evento(`${jugador.nombre} salió.`, "eliminado");
 
         if (this.revisarUltimoEnPie()) return;
 
@@ -579,7 +579,7 @@ export class SigloGame {
         this.finEn = null;
         this.resultado = { tipo, ganadores };
 
-        if (tipo === "nadie") this.evento("Todos se pasaron de 100. ¡Nadie gana esta vez!", "nadie");
+        if (tipo === "nadie") this.evento("Todos se pasaron. ¡Nadie gana!", "nadie");
 
         this.avisar();
 

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { LuArrowLeft, LuClock, LuDices, LuGem, LuRotateCcw, LuSkull, LuTrophy, LuVolume2, LuVolumeX } from "react-icons/lu";
+import { LuArrowLeft, LuClock, LuDices, LuGem, LuPlay, LuRotateCcw, LuSkull, LuTrophy, LuVolume2, LuVolumeX } from "react-icons/lu";
 
 import { useAuth } from "../../context/AuthContext";
 import { socket } from "../../services/socket";
 import Recompensas from "../../components/common/Recompensas";
+import { BurbujaEmoji, SelectorEmojis } from "../../components/common/Emojis";
+import { useEmojisSala } from "../../components/common/useEmojisSala";
 
 import "../../styles/ludo.css";
 import "./siglo.css";
@@ -19,6 +21,9 @@ import "./siglo.css";
      del 0 al 6 y luego unidad o decena.
    · DIAMANTE: una vez por partida, después de tirar, puede
      pagar 1 diamante para volver a tirar.
+   · Al terminar, el creador puede "Jugar otra vez" sin volver
+     a la sala. Junto a cada nombre se ven las partidas que ha
+     ganado en esta sala.
 ========================================================= */
 
 const SONIDOS = {
@@ -80,6 +85,8 @@ export default function Siglo() {
     const miId = String(user?.id ?? "");
 
     const [partida, setPartida] = useState(undefined);
+    const [sala, setSala] = useState(null);
+    const emojis = useEmojisSala();
     const [premio, setPremio] = useState(null);
     const [error, setError] = useState("");
     const [restante, setRestante] = useState(null);
@@ -112,6 +119,8 @@ export default function Siglo() {
         const alEstado = (estado) => {
             if (!estado) return setPartida(null);
             desfase.current = estado.ahora - Date.now();
+            // Empezó otra partida: se borra el premio de la anterior.
+            if (estado.fase === "votacion") setPremio(null);
             setTirando(false);
             setRetirando(false);
             setPartida(estado);
@@ -133,12 +142,14 @@ export default function Siglo() {
 
         // Gastó (o le devolvieron) un diamante.
         const alProgreso = () => refreshUser();
+        const alSala = ({ sala: nueva }) => setSala(nueva);
 
         socket.on("connect", pedir);
         socket.on("siglo:estado", alEstado);
         socket.on("siglo:error", alError);
         socket.on("game:reward", alPremio);
         socket.on("progreso:actualizar", alProgreso);
+        socket.on("sala:estado", alSala);
 
         if (socket.connected) pedir();
         else socket.connect();
@@ -149,6 +160,7 @@ export default function Siglo() {
             socket.off("siglo:error", alError);
             socket.off("game:reward", alPremio);
             socket.off("progreso:actualizar", alProgreso);
+            socket.off("sala:estado", alSala);
             clearTimeout(errorTimer.current);
         };
     }, [refreshUser]);
@@ -199,6 +211,12 @@ export default function Siglo() {
     const turnoDe = partida?.jugadores.find((j) => j.userId === partida.turno) || null;
     const miTurno = Boolean(partida && partida.turno === miId);
     const nombre = (id) => partida?.jugadores.find((j) => j.userId === id)?.nombre || "";
+    const victoriasDe = (id) =>
+        sala?.juego === "siglo" ? sala.miembros.find((m) => String(m.userId) === id)?.victorias || 0 : 0;
+    const soyCreador = sala?.hostUserId === miId;
+    const motivoOtra =
+        sala?.motivoNoIniciar ||
+        (sala?.miembros.some((m) => !m.conectado) ? "Esperando a que todos se conecten." : null);
     const esJoker = partida?.dado === JOKER;
     const misDiamantes = Number(user?.gems) || 0;
 
@@ -226,13 +244,13 @@ export default function Siglo() {
             let tono = "ok";
 
             if (total > partida.meta) {
-                aviso = "Te pasas de 100: quedas eliminado";
+                aviso = "Te pasas: eliminado";
                 tono = "mal";
             } else if (restantes === 0 && total === partida.meta) {
-                aviso = "¡Haces SIGLO y ganas!";
+                aviso = "¡SIGLO! Ganas";
                 tono = "siglo";
             } else if (total + restantes > partida.meta) {
-                aviso = `Te faltan ${restantes} espacio${restantes === 1 ? "" : "s"}: te pasarás`;
+                aviso = "Riesgo: te pasarás";
                 tono = "riesgo";
             }
 
@@ -331,6 +349,7 @@ export default function Siglo() {
                 </div>
 
                 <div className="lg-row" style={{ flexWrap: "nowrap" }}>
+                    <SelectorEmojis />
                     {restante !== null && (
                         <span className={`sg-reloj ${urgente ? "sg-reloj-urgente" : ""}`} aria-live={urgente ? "assertive" : "off"}>
                             <LuClock aria-hidden="true" />
@@ -366,10 +385,17 @@ export default function Siglo() {
                                 ].filter(Boolean).join(" ")}
                                 aria-label={`${j.nombre}: suma ${j.total}${j.eliminado ? ", eliminado" : ""}`}
                             >
+                                <BurbujaEmoji dato={emojis[j.userId]} className="sg-fila-emoji" />
                                 <div className="sg-fila-nombre">
                                     <strong>
                                         {j.nombre}
                                         {j.userId === miId && <span className="sg-tu"> (tú)</span>}
+                                        {victoriasDe(j.userId) > 0 && (
+                                            <span className="sg-victorias" title="Partidas ganadas en esta sala">
+                                                <LuTrophy aria-hidden="true" />
+                                                {victoriasDe(j.userId)}
+                                            </span>
+                                        )}
                                         {j.retiroUsado && (
                                             <span className="sg-uso-diamante" title="Ya volvió a tirar con un diamante">
                                                 <LuGem aria-hidden="true" />
@@ -381,13 +407,13 @@ export default function Siglo() {
                                         {gano ? (
                                             <><LuTrophy aria-hidden="true" /> Ganador</>
                                         ) : j.eliminado ? (
-                                            <><LuSkull aria-hidden="true" /> {j.motivo === "abandono" ? "Salió" : "Se pasó de 100"}</>
+                                            <><LuSkull aria-hidden="true" /> {j.motivo === "abandono" ? "Salió" : "Se pasó"}</>
                                         ) : esTurno ? (
                                             "Su turno…"
                                         ) : empatado ? (
                                             j.tiroDesempate ? `Desempate: ${j.tiroDesempate}` : "En desempate"
                                         ) : partida.fase === "terminada" ? (
-                                            `Terminó con ${j.total}`
+                                            `Final: ${j.total}`
                                         ) : (
                                             "En juego"
                                         )}
@@ -443,8 +469,7 @@ export default function Siglo() {
                     {partida.fase === "votacion" ? (
                         <div className="sg-votacion">
                             <div>
-                                <p className="lb-eyebrow">Antes de empezar</p>
-                                <strong className="sg-accion-titulo">¿Cuánto tiempo por turno?</strong>
+                                <strong className="sg-accion-titulo">¿Tiempo por turno?</strong>
                             </div>
                             <div className="sg-votos" role="group" aria-label="Votar el tiempo de turno">
                                 {partida.opcionesTiempo.map((seg) => {
@@ -476,7 +501,7 @@ export default function Siglo() {
                             <div className="sg-final-premio">
                                 {premio ? (
                                     premio.limite_diario_alcanzado ? (
-                                        <span className="lb-muted">Ya ganaste muchos premios hoy en SigloGamif.</span>
+                                        <span className="lb-muted">Límite de premios de hoy.</span>
                                     ) : (
                                         <Recompensas xp={premio.xp} oro={premio.oro} diamantes={premio.diamantes} grande />
                                     )
@@ -485,9 +510,26 @@ export default function Siglo() {
                                 )}
                                 {premio?.subio_nivel && <strong className="sg-subio">{`🎉 ¡Nivel ${premio.nivel_nuevo}!`}</strong>}
                             </div>
-                            <button type="button" className="lb-btn lb-btn-primary" onClick={() => navigate("/sala")}>
-                                Volver a la sala
-                            </button>
+                            <div className="sg-final-botones">
+                                {soyCreador ? (
+                                    <button
+                                        type="button"
+                                        className="lb-btn lb-btn-primary"
+                                        onClick={() => socket.emit("sala:iniciar")}
+                                        disabled={Boolean(motivoOtra) || sala?.estado !== "sala"}
+                                        title={motivoOtra || "Otra partida con los mismos jugadores"}
+                                    >
+                                        <LuPlay aria-hidden="true" />
+                                        Jugar otra vez
+                                    </button>
+                                ) : (
+                                    <span className="lb-muted">El creador puede iniciar otra.</span>
+                                )}
+                                <button type="button" className="lb-btn lb-btn-ghost" onClick={() => navigate("/sala")}>
+                                    Volver a la sala
+                                </button>
+                            </div>
+                            {soyCreador && motivoOtra && <small className="lb-muted sg-motivo">{motivoOtra}</small>}
                         </div>
                     ) : miTurno && !yo?.eliminado ? (
                         <div className="sg-mi-turno">
@@ -544,7 +586,7 @@ export default function Siglo() {
                                             <span className="sg-opcion-valor">{o.valor}</span>
                                             <span className="sg-opcion-texto">
                                                 <strong>{`Poner ${o.valor}`}</strong>
-                                                <small>{o.aviso || `Tu suma queda en ${o.total}`}</small>
+                                                <small>{o.aviso || `Quedas en ${o.total}`}</small>
                                             </span>
                                         </button>
                                     ))}
@@ -557,13 +599,13 @@ export default function Siglo() {
                             <div>
                                 <strong className="sg-accion-titulo">
                                     {yo?.eliminado
-                                        ? "Quedaste eliminado. Mira cómo termina la partida."
+                                        ? "Quedaste eliminado."
                                         : turnoDe
                                             ? `Turno de ${turnoDe.nombre}`
                                             : "Siguiente turno…"}
                                 </strong>
                                 {yo && !yo.eliminado && (
-                                    <span className="lb-muted">{`Tu suma: ${yo.total} · te faltan ${partida.meta - yo.total} para 100`}</span>
+                                    <span className="lb-muted">{`Tienes ${yo.total} · faltan ${partida.meta - yo.total}`}</span>
                                 )}
                             </div>
                         </div>

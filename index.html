@@ -9,14 +9,14 @@
       /*
        * TELÉFONO Y TABLET EN HORIZONTAL: SE VE COMO EN EL PC, MÁS PEQUEÑO
        * El navegador dibuja el juego con el ancho de un computador
-       * (alto "virtual" de ~660 px) y lo reduce para que quepa en la
+       * (alto "virtual" de ~760 px) y lo reduce para que quepa en la
        * pantalla. Así el diseño es el mismo del PC: letras, íconos y
        * tarjetas se ven proporcionalmente más pequeños.
        * En computador (mouse) no se toca nada.
        */
       (function () {
         var meta = document.getElementById("viewport");
-        var ALTO_VIRTUAL = 660;
+        var ALTO_VIRTUAL = 760;
         var actual = "";
 
         function ajustar() {
@@ -28,7 +28,7 @@
           // calcular el ancho virtual aunque ya se haya aplicado antes.
           if (tactil && ancho > alto && alto > 0) {
             var virtual = Math.round(ALTO_VIRTUAL * (ancho / alto));
-            virtual = Math.max(1240, Math.min(1700, virtual));
+            virtual = Math.max(1240, Math.min(1900, virtual));
             contenido = "width=" + virtual + ", viewport-fit=cover";
           }
 

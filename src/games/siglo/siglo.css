@@ -126,6 +126,7 @@
 }
 
 .sg-fila {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(120px, 190px) minmax(0, 1fr) minmax(90px, 130px);
     align-items: center;
@@ -590,9 +591,9 @@
     }
 }
 
-/* Pantallas bajas (el teléfono en horizontal se dibuja con ~660 px de
-   alto virtual) con muchos jugadores: que quepan las 8 filas */
-@media (max-height: 700px) {
+/* Pantallas bajas (el teléfono en horizontal se dibuja con ~760 px de
+   alto virtual, un PC chico ~768) con muchos jugadores: que quepan las 8 filas */
+@media (max-height: 800px) {
     .sg-tablero-muchos {
         gap: 3px;
         justify-content: flex-start;
@@ -626,4 +627,37 @@
     .sg-tablero-muchos .sg-barra {
         height: 5px;
     }
+}
+
+/* Partidas ganadas en la sala, junto al nombre */
+.sg-victorias {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 6px;
+    color: var(--lb-warning);
+    font-size: 0.85em;
+    font-weight: 900;
+    vertical-align: middle;
+}
+
+/* Emoji que aparece en la fila de quien lo envía */
+.sg-fila-emoji {
+    position: absolute;
+    left: clamp(110px, 14vw, 170px);
+    top: 50%;
+    margin-top: -1rem;
+    z-index: 2;
+}
+
+.sg-final-botones {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.sg-motivo {
+    flex-basis: 100%;
+    text-align: right;
 }

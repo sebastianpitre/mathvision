@@ -453,3 +453,93 @@
 .sl-btn-sacar:hover {
     background: rgba(248, 113, 113, 0.28);
 }
+
+/* ---------- Invitar ocupa toda la columna derecha ---------- */
+.sl-invitar {
+    flex: 1 1 auto;
+}
+
+/* ---------- Partidas ganadas en la sala ---------- */
+.sl-victorias {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: 8px;
+    color: var(--lb-warning);
+    font-weight: 800;
+}
+
+.sl-etiqueta .sl-etiqueta-victorias {
+    color: var(--lb-warning);
+}
+
+/* ---------- Juego elegido + Cambiar ---------- */
+.sl-inicio-fila {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* ---------- Ventana para elegir el juego ---------- */
+.sl-modal-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(3, 6, 12, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.sl-modal {
+    width: min(460px, 100%);
+    max-height: calc(100% - 32px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sl-modal .sl-juego {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.sl-juego-texto {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* ---------- Emojis sobre los personajes ---------- */
+.sl-emojis {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 6%;
+    display: grid;
+    padding: 0 8px;
+    pointer-events: none;
+}
+
+.sl-emoji-puesto {
+    display: flex;
+    justify-content: center;
+    min-height: 48px;
+}
+
+.sl-emojis .em-burbuja {
+    font-size: 2.4rem;
+}
+
+.sl-selector-emojis {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
+}
