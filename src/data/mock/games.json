@@ -13,16 +13,29 @@
     "color": "#9b4dff"
   },
   {
+    "id": "siglo",
+    "name": "SigloGamif",
+    "shortName": "Siglo",
+    "description": "De 2 a 4 jugadores: llena 5 espacios con el dado y llega a 100 sin pasarte.",
+    "icon": "🎲",
+    "image": "/img/Siglo/portada.jpg",
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "status": "available",
+    "route": "/sala",
+    "color": "#c084fc"
+  },
+  {
     "id": "triqui-matematico",
     "name": "Triqui Matemático",
     "shortName": "Triqui",
-    "description": "Invita a un amigo del Mundo y conquista el tablero.",
+    "description": "Crea una sala, invita a un amigo y conquista el tablero.",
     "icon": "⭕❌",
     "image": "/img/Triqui/portada.jpeg",
     "minPlayers": 2,
     "maxPlayers": 2,
     "status": "available",
-    "route": "/world",
+    "route": "/sala",
     "color": "#39bfff"
   },
   {

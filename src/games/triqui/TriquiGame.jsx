@@ -1037,7 +1037,9 @@ function TriquiGame({ mode = "online", playerName } = {}) {
         socket.emit("room:leave");
         resetSelection();
         setGame(null);
-        navigate("/world");
+        // En línea se vuelve a la sala para jugar otra cosa;
+        // en este dispositivo, al inicio.
+        navigate(isLocal ? "/lobby" : "/sala");
     };
 
     leaveRef.current = salirSinConfirmar;
@@ -1316,7 +1318,7 @@ function TriquiGame({ mode = "online", playerName } = {}) {
                 {/* ================= SALIR ================= */}
 
                 <button className="triqui-back" onClick={salir}>
-                    SALIR DE LA SALA
+                    {isLocal ? "SALIR" : "VOLVER A LA SALA"}
                 </button>
 
             </div>
@@ -1596,7 +1598,7 @@ function TriquiGame({ mode = "online", playerName } = {}) {
                                 className="triqui-exit-button"
                                 onClick={salir}
                             >
-                                SALIR DE LA SALA
+                                {isLocal ? "SALIR" : "VOLVER A LA SALA"}
                             </button>
 
                         </div>

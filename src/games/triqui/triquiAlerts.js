@@ -83,7 +83,7 @@ export const alertOpponentLeft = async (message) => {
         title: "Tu rival salió",
         text: clean(message) || "El otro jugador se desconectó.",
         showCancelButton: true,
-        confirmButtonText: "Volver al mundo",
+        confirmButtonText: "Volver a la sala",
         cancelButtonText: "Quedarme",
         confirmButtonColor: "#55a8ff",
         cancelButtonColor: "#2a3446",

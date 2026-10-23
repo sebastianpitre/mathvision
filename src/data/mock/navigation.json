@@ -1,6 +1,32 @@
 [
-  { "id": "home", "label": "Inicio", "icon": "⌂", "route": "/lobby" },
-  { "id": "preguntas", "label": "Preguntas", "icon": "?", "route": "/games/preguntas" },
-  { "id": "world", "label": "Mundo", "icon": "◎", "route": "/world" },
-  { "id": "tienda", "label": "Personajes", "icon": "♙", "route": "/tienda" }
+  {
+    "id": "home",
+    "label": "Inicio",
+    "icon": "⌂",
+    "route": "/lobby"
+  },
+  {
+    "id": "preguntas",
+    "label": "Preguntas",
+    "icon": "?",
+    "route": "/games/preguntas"
+  },
+  {
+    "id": "sala",
+    "label": "Sala",
+    "icon": "✦",
+    "route": "/sala"
+  },
+  {
+    "id": "world",
+    "label": "Mundo",
+    "icon": "◎",
+    "route": "/world"
+  },
+  {
+    "id": "tienda",
+    "label": "Personajes",
+    "icon": "♙",
+    "route": "/tienda"
+  }
 ]

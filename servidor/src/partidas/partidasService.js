@@ -462,36 +462,53 @@ export async function registrarPartidaSimple(userId, { juego, aciertos, total })
 }
 
 /* ---------------------------------------------------------
-   TRIQUI EN LÍNEA
+   JUEGOS MULTIJUGADOR DE LAS SALAS (Triqui, SigloGamif)
    Se llama desde el servidor de sockets cuando termina una
-   ronda. resultados = [{ userId, resultado }]
+   partida. resultados = [{ userId, resultado, siglo? }]
 --------------------------------------------------------- */
 
-const PREMIOS_TRIQUI = {
-    ganada: { xp: 30, oro: 15 },
-    empate: { xp: 15, oro: 5 },
-    perdida: { xp: 10, oro: 0 },
+const PREMIOS_MULTIJUGADOR = {
+    triqui: {
+        ganada: { xp: 30, oro: 15 },
+        empate: { xp: 15, oro: 5 },
+        perdida: { xp: 10, oro: 0 },
+    },
+    siglo: {
+        ganada: { xp: 40, oro: 20 },
+        empate: { xp: 20, oro: 8 },
+        perdida: { xp: 10, oro: 0 },
+    },
 };
 
-const MAX_TRIQUI_DIARIAS = 15;
+// Hacer SIGLO (exactamente 100) da además un diamante.
+const BONO_SIGLO_DIAMANTES = 1;
 
-export async function registrarResultadoTriqui(resultados) {
+const MAX_MULTIJUGADOR_DIARIAS = 15;
+
+export async function registrarResultadoMultijugador(juego, resultados) {
+    const tabla = PREMIOS_MULTIJUGADOR[juego];
+    if (!tabla) throw new Error(`Juego multijugador desconocido: ${juego}`);
+
     const premios = [];
 
-    for (const { userId, resultado } of resultados) {
-        if (!userId || !PREMIOS_TRIQUI[resultado]) continue;
+    for (const { userId, resultado, siglo } of resultados) {
+        if (!userId || !tabla[resultado]) continue;
 
         const premio = await enTransaccion(async (client) => {
-            let { xp, oro } = PREMIOS_TRIQUI[resultado];
+            let { xp, oro } = tabla[resultado];
+            let diamantes = siglo ? BONO_SIGLO_DIAMANTES : 0;
+            let limiteDiario = false;
 
-            const hoy = await recompensasDeHoy(client, userId, { juego: "triqui" });
+            const hoy = await recompensasDeHoy(client, userId, { juego });
 
-            if (hoy >= MAX_TRIQUI_DIARIAS) {
+            if (hoy >= MAX_MULTIJUGADOR_DIARIAS) {
                 xp = 0;
                 oro = 0;
+                diamantes = 0;
+                limiteDiario = true;
             }
 
-            const recompensa = await entregarRecompensa(client, userId, { xp, oro });
+            const recompensa = await entregarRecompensa(client, userId, { xp, oro, diamantes });
 
             await sumarEstadisticas(client, userId, {
                 jugadas: 1,
@@ -501,19 +518,24 @@ export async function registrarResultadoTriqui(resultados) {
 
             await client.query(
                 `
-                INSERT INTO partidas (user_id, juego, estado, resultado, xp_ganada, oro_ganado, terminada_en)
-                VALUES ($1, 'triqui', 'terminada', $2, $3, $4, CURRENT_TIMESTAMP)
+                INSERT INTO partidas (user_id, juego, estado, resultado, xp_ganada, oro_ganado,
+                                      diamantes_ganados, terminada_en)
+                VALUES ($1, $2, 'terminada', $3, $4, $5, $6, CURRENT_TIMESTAMP)
                 `,
-                [userId, resultado, xp, oro]
+                [userId, juego, resultado, xp, oro, diamantes]
             );
 
-            return recompensa;
+            return { ...recompensa, limite_diario_alcanzado: limiteDiario };
         });
 
         premios.push({ userId, resultado, recompensa: premio });
     }
 
     return premios;
+}
+
+export function registrarResultadoTriqui(resultados) {
+    return registrarResultadoMultijugador("triqui", resultados);
 }
 
 export async function perfilActualizado(userId) {

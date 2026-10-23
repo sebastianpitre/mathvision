@@ -16,7 +16,6 @@ import { fileURLToPath } from "node:url";
 import { Server } from "socket.io";
 import { WorldManager } from "./src/world/WorldManager.js";
 import { RoomManager } from "./src/rooms/RoomManager.js";
-import { Player } from "./src/players/Player.js";
 import { TriquiGame } from "./src/games/triqui/TriquiGame.js";
 
 import {
@@ -43,6 +42,11 @@ import {
 import {
     registrarResultadoTriqui,
 } from "./src/partidas/partidasService.js";
+
+import {
+    crearAyudasSala,
+    registrarEventosSala,
+} from "./src/salas/salaSockets.js";
 
 import {
     pool,
@@ -207,6 +211,18 @@ const roomManager =
 
 const worldManager =
     new WorldManager();
+
+/*
+ * Salas multijugador (de 2 a 4): elegir juego, iniciar,
+ * reconexiones e invitaciones. Ver src/salas/.
+ */
+const ayudasSala =
+    crearAyudasSala({
+        io,
+        roomManager,
+        worldManager,
+        WORLD_ROOM,
+    });
 
 const PORT = config.PORT;
 
@@ -470,6 +486,8 @@ function startTriquiGame(room) {
 
     room.round += 1;
 
+    room.estado = "jugando";
+
     const game =
         new TriquiGame(
             room
@@ -584,6 +602,14 @@ io.on(
         protectSocketHandlers(
             socket
         );
+
+        registrarEventosSala(socket, {
+            io,
+            roomManager,
+            ayudas: ayudasSala,
+            startTriquiGame,
+            emitRoomState,
+        });
 
         console.log(
             "🟢 Socket conectado:",
@@ -789,7 +815,7 @@ io.on(
 
         socket.on(
             "world:invite",
-            ({ targetPlayerId }) => {
+            async ({ targetPlayerId }) => {
 
                 const sender =
                     worldManager.getPlayerBySocket(
@@ -982,6 +1008,46 @@ io.on(
 
 
                 /* =================================================
+                   SALA DEL QUE INVITA
+                   Se invita a la sala de quien envía. Si no
+                   tiene una, se le crea y se le lleva a ella.
+                ================================================= */
+
+                let salaEmisor =
+                    roomManager.salaDeUsuario(
+                        sender.id
+                    );
+
+                if (!salaEmisor) {
+
+                    salaEmisor =
+                        roomManager.crearSala(
+                            await ayudasSala.miembroDesde(socket)
+                        );
+
+                    ayudasSala.vincular(socket, salaEmisor);
+                    ayudasSala.emitirSala(salaEmisor);
+
+                    socket.emit("sala:entrar", {
+                        code: salaEmisor.code,
+                    });
+                }
+
+                if (salaEmisor.estado === "jugando") {
+                    socket.emit("world:error", {
+                        message: "Termina la partida antes de invitar a más jugadores.",
+                    });
+                    return;
+                }
+
+                if (salaEmisor.miembros.size >= 4) {
+                    socket.emit("world:error", {
+                        message: "Tu sala ya está llena (4 jugadores).",
+                    });
+                    return;
+                }
+
+                /* =================================================
                    CREAR INVITACIÓN
                 ================================================= */
 
@@ -1079,6 +1145,12 @@ io.on(
                             fromPlayerAvatar:
                                 sender.avatar ||
                                 null,
+
+                            salaCode:
+                                salaEmisor.code,
+
+                            message:
+                                "Te invitó a su sala",
                         }
                     );
                 }
@@ -1109,7 +1181,7 @@ io.on(
 
         socket.on(
             "world:acceptInvitation",
-            ({ fromPlayerId }) => {
+            async ({ fromPlayerId }) => {
 
                 const receiver =
                     worldManager.getPlayerBySocket(
@@ -1218,239 +1290,81 @@ io.on(
 
 
                 /* =================================================
-                   CREAR SALA
+                   ENTRAR A LA SALA DE QUIEN INVITÓ
                 ================================================= */
 
-                const playerOne =
-                    new Player(
-                        sender.socketId,
-                        sender.name
-                    );
-
-
-                const room =
-                    roomManager.createRoom(
-                        playerOne
-                    );
-
-
-                const playerTwo =
-                    new Player(
-                        receiver.socketId,
-                        receiver.name
-                    );
-
-
-                const joinResult =
-                    roomManager.joinRoom(
-                        room.code,
-                        playerTwo
-                    );
-
-
-                if (!joinResult.success) {
-
-                    socket.emit(
-                        "world:error",
-                        {
-                            message:
-                                joinResult.message,
-                        }
-                    );
-
-                    return;
-
-                }
-
-
-                /* =================================================
-                   VINCULAR SOCKETS
-                ================================================= */
-
-                senderSocket.roomCode =
-                    room.code;
-
-                receiverSocket.roomCode =
-                    room.code;
-
-
-                senderSocket.join(
-                    room.code
+                worldManager.removeInvitation(
+                    sender.id,
+                    receiver.id
                 );
 
-                receiverSocket.join(
-                    room.code
-                );
-
-
-                /* =================================================
-                   LIMPIAR INVITACIONES
-                ================================================= */
-
-                /*
-                 * Eliminamos todas las invitaciones
-                 * salientes del emisor.
-                 */
-
-                const cancelledInvitations =
-                    worldManager.removeAllOutgoingInvitations(
+                const restantes =
+                    worldManager.getPendingInvitationCount(
                         sender.id
                     );
 
+                worldManager.updatePlayer(sender.id, {
+                    status: restantes > 0 ? "inviting" : "available",
+                });
 
-                /*
-                 * Los jugadores que tenían una
-                 * invitación pendiente vuelven
-                 * a estar disponibles.
-                 */
+                worldManager.updatePlayer(receiver.id, {
+                    status: "available",
+                });
 
-                for (
-                    const cancelled
-                    of cancelledInvitations
-                ) {
-
-                    if (
-                        String(cancelled.toPlayerId) ===
-                        String(receiver.id)
-                    ) {
-
-                        continue;
-
-                    }
-
-
-                    const cancelledTarget =
-                        worldManager.getPlayer(
-                            cancelled.toPlayerId
-                        );
-
-
-                    if (
-                        cancelledTarget &&
-                        cancelledTarget.online
-                    ) {
-
-                        worldManager.updatePlayer(
-                            cancelledTarget.id,
-                            {
-                                status:
-                                    "available",
-                            }
-                        );
-
-
-                        if (
-                            cancelledTarget.socketId
-                        ) {
-
-                            io.to(
-                                cancelledTarget.socketId
-                            ).emit(
-                                "world:invitationCancelled",
-                                {
-                                    playerName:
-                                        sender.name,
-                                }
-                            );
-
-                        }
-
-                    }
-
-                }
-
-
-                /*
-                 * El emisor y receptor están jugando.
-                 */
-
-                worldManager.updatePlayer(
-                    sender.id,
-                    {
-                        status:
-                            "playing",
-
-                        roomCode:
-                            room.code,
-                    }
-                );
-
-
-                worldManager.updatePlayer(
-                    receiver.id,
-                    {
-                        status:
-                            "playing",
-
-                        roomCode:
-                            room.code,
-                    }
-                );
-
-
-                /* =================================================
-                   CREAR TRIQUI
-                ================================================= */
-
-                const game =
-                    startTriquiGame(
-                        room
+                const salaDestino =
+                    roomManager.salaDeUsuario(
+                        sender.id
                     );
 
+                if (!salaDestino) {
+                    socket.emit("world:error", {
+                        message: `${sender.name} ya no está en una sala.`,
+                    });
+                    ayudasSala.actualizarMundo();
+                    return;
+                }
+
+                const actual =
+                    roomManager.salaDeUsuario(
+                        receiver.id
+                    );
+
+                if (actual && actual.code !== salaDestino.code) {
+                    ayudasSala.salirDeSala(receiver.id, {
+                        socket: receiverSocket,
+                    });
+                }
+
+                const union =
+                    roomManager.unirse(
+                        salaDestino.code,
+                        await ayudasSala.miembroDesde(receiverSocket)
+                    );
+
+                if (!union.success) {
+                    socket.emit("world:error", {
+                        message: union.message,
+                    });
+                    ayudasSala.actualizarMundo();
+                    return;
+                }
+
+                ayudasSala.vincular(receiverSocket, salaDestino);
+                ayudasSala.emitirSala(salaDestino);
+
+                receiverSocket.emit("sala:entrar", {
+                    code: salaDestino.code,
+                });
+
+                senderSocket.emit("world:inviteAccepted", {
+                    playerName: receiver.name,
+                });
 
                 console.log(
-                    `🎮 Mundo → Triqui iniciado ${room.code}: ${sender.name} vs ${receiver.name}`
+                    `🏠 ${receiver.name} entró a la sala ${salaDestino.code} (invitado por ${sender.name})`
                 );
 
-
-                /* =================================================
-                   AVISAR PARTIDA
-                ================================================= */
-
-                io.to(
-                    room.code
-                ).emit(
-                    "game:started",
-                    {
-                        game:
-                            game.toJSON(),
-                    }
-                );
-
-
-                emitRoomState(
-                    room
-                );
-
-
-                io.to(
-                    room.code
-                ).emit(
-                    "world:gameCreated",
-                    {
-                        room:
-                            roomManager.serializeRoom(
-                                room
-                            ),
-                    }
-                );
-
-
-                /* =================================================
-                ACTUALIZAR MUNDO
-                ================================================= */
-
-                io.to(
-                    WORLD_ROOM
-                ).emit(
-                    "world:players",
-                    {
-                        players:
-                            worldManager
-                                .serializePlayers(),
-                    }
-                );
-
+                ayudasSala.actualizarMundo();
             }
         );
 
@@ -1824,194 +1738,6 @@ io.on(
 
 
         /* =================================================
-           CREAR SALA
-        ================================================= */
-
-        socket.on(
-            "room:create",
-            ({ playerName }) => {
-
-                const name =
-                    String(
-                        playerName ||
-                        "Jugador"
-                    ).trim();
-
-                const player =
-                    new Player(
-                        socket.id,
-                        name
-                    );
-
-                const room =
-                    roomManager.createRoom(
-                        player
-                    );
-
-                socket.roomCode =
-                    room.code;
-
-                socket.join(
-                    room.code
-                );
-
-                console.log(
-                    `🏠 Sala creada: ${room.code}`
-                );
-
-                socket.emit(
-                    "room:created",
-                    roomManager.serializeRoom(
-                        room
-                    )
-                );
-
-                emitRoomState(
-                    room
-                );
-            }
-        );
-
-        /* =================================================
-           UNIRSE A SALA
-        ================================================= */
-
-        socket.on(
-            "room:join",
-            ({
-                roomCode,
-                playerName,
-            }) => {
-
-                const name =
-                    String(
-                        playerName ||
-                        "Jugador"
-                    ).trim();
-
-                const player =
-                    new Player(
-                        socket.id,
-                        name
-                    );
-
-                const result =
-                    roomManager.joinRoom(
-                        roomCode,
-                        player
-                    );
-
-                if (!result.success) {
-
-                    socket.emit(
-                        "room:error",
-                        {
-                            message:
-                                result.message,
-                        }
-                    );
-
-                    return;
-                }
-
-                const room =
-                    result.room;
-
-                socket.roomCode =
-                    room.code;
-
-                socket.join(
-                    room.code
-                );
-
-                console.log(
-                    `👤 ${name} entró a ${room.code}`
-                );
-
-                socket.emit(
-                    "room:joined",
-                    roomManager.serializeRoom(
-                        room
-                    )
-                );
-
-                emitRoomState(
-                    room
-                );
-            }
-        );
-
-        /* =================================================
-           INICIAR PARTIDA
-        ================================================= */
-
-        socket.on(
-            "game:start",
-            () => {
-
-                const room =
-                    getRoomFromSocket(
-                        socket
-                    );
-
-                if (!room) {
-
-                    socket.emit(
-                        "game:error",
-                        {
-                            message:
-                                "No estás dentro de una sala.",
-                        }
-                    );
-
-                    return;
-                }
-
-                if (
-                    room.players.size !==
-                    2
-                ) {
-
-                    socket.emit(
-                        "game:error",
-                        {
-                            message:
-                                "Se necesitan 2 jugadores.",
-                        }
-                    );
-
-                    return;
-                }
-
-                // SIEMPRE destruimos cualquier
-                // partida anterior (dentro del helper).
-
-                const game =
-                    startTriquiGame(
-                        room
-                    );
-
-                console.log(
-                    `🎮 Nueva partida ${room.round} en ${room.code}`
-                );
-
-                io.to(
-                    room.code
-                ).emit(
-                    "game:started",
-                    {
-                        game:
-                            game.toJSON(),
-                    }
-                );
-
-                emitRoomState(
-                    room
-                );
-            }
-        );
-
-        /* =================================================
            ESTADO
         ================================================= */
 
@@ -2258,6 +1984,12 @@ io.on(
                         result.winner?.id || null
                     );
 
+                    // La partida terminó: la sala queda lista
+                    // para jugar otra (revancha o elegir otro juego).
+                    room.estado = "sala";
+                    ayudasSala.estadoMundo(room, "available");
+                    ayudasSala.emitirSala(room);
+
                     io.to(
                         room.code
                     ).emit(
@@ -2367,8 +2099,8 @@ io.on(
                 }
 
                 if (
-                    room.players.size !==
-                    2
+                    room.players.size !== 2 ||
+                    room.miembros.size !== 2
                 ) {
 
                     socket.emit(
@@ -2419,6 +2151,9 @@ io.on(
                         room
                     );
 
+                ayudasSala.estadoMundo(room, "playing");
+                ayudasSala.emitirSala(room);
+
                 console.log(
                     `🔄 REVANCHA - ronda ${room.round}`
                 );
@@ -2447,51 +2182,44 @@ io.on(
             "room:leave",
             () => {
 
-                const roomCode =
-                    socket.roomCode;
+                /*
+                 * "Salir" dentro del Triqui: se termina la
+                 * partida para todos, pero el jugador sigue
+                 * en la sala (para elegir otro juego).
+                 */
+                const room =
+                    roomManager.salaDeUsuario(
+                        socket.userId
+                    );
 
-                if (!roomCode) {
+                if (!room) {
+                    socket.emit("room:left");
                     return;
                 }
 
-                const room =
-                    roomManager.leaveRoom(
-                        roomCode,
-                        socket.id
-                    );
+                if (
+                    room.estado === "jugando" &&
+                    room.currentGame?.constructor?.name === "TriquiGame"
+                ) {
+                    const miembro =
+                        room.miembros.get(String(socket.userId));
 
-                socket.leave(
-                    roomCode
-                );
+                    room.currentGame.clearTurnTimer?.();
+                    room.currentGame = null;
+                    room.estado = "sala";
 
-                socket.roomCode =
-                    null;
-
-                /*
-                 * El juego viejo queda
-                 * eliminado definitivamente.
-                 */
-
-                if (room) {
-
-                    io.to(
-                        room.code
-                    ).emit(
+                    socket.to(room.code).emit(
                         "game:playerDisconnected",
                         {
-                            message:
-                                "El otro jugador salió de la sala.",
+                            message: `${miembro?.nombre || "El otro jugador"} salió de la partida.`,
                         }
                     );
 
-                    emitRoomState(
-                        room
-                    );
+                    ayudasSala.estadoMundo(room, "available");
                 }
 
-                socket.emit(
-                    "room:left"
-                );
+                ayudasSala.emitirSala(room);
+                socket.emit("room:left");
             }
         );
 
@@ -2624,104 +2352,10 @@ io.on(
 
 
                 /* =================================================
-                🏠 LIMPIAR SALA NORMAL
+                🏠 SALA: se le espera un rato por si recargó
                 ================================================= */
 
-                const oldRoomCode =
-                    socket.roomCode;
-
-
-                const result =
-                    roomManager.removePlayer(
-                        socket.id
-                    );
-
-
-                if (
-                    result.room
-                ) {
-
-                    /*
-                    * El rival recibe aviso.
-                    */
-
-                    io.to(
-                        result.room.code
-                    ).emit(
-                        "game:playerDisconnected",
-                        {
-                            message:
-                                "El otro jugador se desconectó.",
-                        }
-                    );
-
-
-                    /*
-                    * Liberar al rival en World.
-                    */
-
-                    for (
-                        const player
-                        of worldManager.getPlayers()
-                    ) {
-
-                        if (
-                            player.roomCode ===
-                            result.room.code
-                        ) {
-
-                            worldManager.updatePlayer(
-                                player.id,
-                                {
-                                    status:
-                                        "available",
-
-                                    roomCode:
-                                        null,
-
-                                    invitedBy:
-                                        null,
-
-                                    invitedPlayerId:
-                                        null,
-                                }
-                            );
-
-                        }
-
-                    }
-
-
-                    /*
-                    * Actualizar Mundo.
-                    */
-
-                    io.to(
-                        WORLD_ROOM
-                    ).emit(
-                        "world:players",
-                        {
-                            players:
-                                worldManager
-                                    .serializePlayers(),
-                        }
-                    );
-
-
-                    emitRoomState(
-                        result.room
-                    );
-
-                }
-
-
-                if (oldRoomCode) {
-
-                    console.log(
-                        `🧹 Limpieza de sala: ${oldRoomCode}`
-                    );
-
-                }
+                ayudasSala.desconectado(socket);
 
             }
         );
