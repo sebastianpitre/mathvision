@@ -1,0 +1,870 @@
+/* =========================================================
+   LOBBY · DISEÑO TIPO FREE FIRE
+   Todo en rem (1rem depende del alto de la pantalla).
+   Con 1rem = 1/27.8 del alto, la pantalla mide 27.8rem de
+   alto y entre 55 y 62rem de ancho en un teléfono.
+========================================================= */
+
+.ffl {
+    --borde: max(0.6rem, env(safe-area-inset-left));
+    --borde-der: max(0.6rem, env(safe-area-inset-right));
+    --panel: rgba(10, 14, 24, 0.62);
+    --panel-fuerte: rgba(10, 14, 24, 0.82);
+    --linea: rgba(255, 255, 255, 0.16);
+    --oro: #ffcf3e;
+    --texto: #f5f7fb;
+    --suave: #c7cede;
+
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    color: var(--texto);
+    font-family: var(--fuente-juego);
+    font-weight: 600;
+    background: #0b1020;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.ffl button {
+    font-family: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.ffl-oculto {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* ---------- Fondo y personaje ---------- */
+
+.ffl-fondo {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center 40%;
+}
+
+.ffl-fondo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgba(5, 8, 16, 0.55) 0%, transparent 18%, transparent 70%, rgba(5, 8, 16, 0.7) 100%),
+        linear-gradient(90deg, rgba(5, 8, 16, 0.45) 0%, transparent 25%, transparent 75%, rgba(5, 8, 16, 0.4) 100%);
+}
+
+.ffl-escena {
+    position: absolute;
+    inset: 0;
+}
+
+.ffl-escena canvas {
+    touch-action: none;
+}
+
+/* ---------- Botones de ícono ---------- */
+
+.ffl-icono {
+    width: 2.3rem;
+    height: 2.3rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--linea);
+    border-radius: 0.45rem;
+    background: var(--panel);
+}
+
+.ffl-icono svg {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.ffl-icono:hover,
+.ffl-icono:focus-visible {
+    border-color: var(--oro);
+    outline: none;
+}
+
+.ffl-icono-chico {
+    width: 1.7rem;
+    height: 1.7rem;
+}
+
+.ffl-icono-chico svg {
+    width: 0.95rem;
+    height: 0.95rem;
+}
+
+/* ================= ARRIBA ================= */
+
+.ffl-arriba {
+    position: absolute;
+    top: max(0.5rem, env(safe-area-inset-top));
+    left: var(--borde);
+    right: var(--borde-der);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    pointer-events: none;
+}
+
+.ffl-arriba > * {
+    pointer-events: auto;
+}
+
+.ffl-perfil {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: 12rem;
+    padding: 0.2rem 0.6rem 0.2rem 0.2rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.5rem;
+    background: linear-gradient(90deg, var(--panel-fuerte), var(--panel));
+    text-align: left;
+}
+
+.ffl-avatar {
+    position: relative;
+    flex-shrink: 0;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 0.35rem;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    background: #1b2236;
+}
+
+.ffl-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ffl-nivel {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    min-width: 1.15rem;
+    padding: 0 0.2rem;
+    border-top-right-radius: 0.3rem;
+    background: rgba(0, 0, 0, 0.75);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.1rem;
+    text-align: center;
+}
+
+.ffl-perfil-datos {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    line-height: 1;
+}
+
+.ffl-perfil-datos strong {
+    font-size: 0.95rem;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-shadow: var(--sombra-texto);
+}
+
+.ffl-perfil-datos small {
+    color: var(--suave);
+    font-size: 0.72rem;
+}
+
+.ffl-xp {
+    height: 0.3rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    overflow: hidden;
+}
+
+.ffl-xp span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #ffe066, var(--oro));
+}
+
+.ffl-monedas {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.ffl-moneda {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 1.9rem;
+    padding: 0 0.6rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.45rem;
+    background: var(--panel);
+    font-size: 1rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-shadow: var(--sombra-texto);
+}
+
+.ffl-moneda-oro {
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff2a8, #f5b51b 55%, #b37400);
+    box-shadow: inset 0 0 0 2px rgba(120, 70, 0, 0.35);
+}
+
+.ffl-moneda-diamante {
+    width: 1.05rem;
+    height: 1.05rem;
+    color: #67e8f9;
+}
+
+.ffl-moneda-mas {
+    width: 0.85rem;
+    height: 0.85rem;
+    margin-left: 0.1rem;
+    color: var(--oro);
+}
+
+.ffl-arriba-der {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.ffl-logo {
+    margin-right: 0.4rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: 0.04em;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.ffl-logo span {
+    color: var(--oro);
+}
+
+/* ================= IZQUIERDA: MENÚ ================= */
+
+.ffl-menu {
+    position: absolute;
+    top: 3.8rem;
+    left: var(--borde);
+    width: 10.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.ffl-destacado {
+    position: relative;
+    height: 4.3rem;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid rgba(255, 207, 62, 0.5);
+    border-radius: 0.45rem;
+    background: #111;
+    text-align: left;
+}
+
+.ffl-destacado img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ffl-destacado-tag {
+    position: absolute;
+    top: 0.3rem;
+    right: 0.3rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 0.2rem;
+    background: #ff8a1f;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ffl-menu-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    min-width: 8.2rem;
+    height: 2.2rem;
+    padding: 0 0.9rem 0 0.6rem;
+    border: 1px solid var(--linea);
+    border-left: 3px solid var(--oro);
+    border-radius: 0.3rem;
+    background: linear-gradient(90deg, var(--panel-fuerte), rgba(10, 14, 24, 0.45));
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-shadow: var(--sombra-texto);
+}
+
+.ffl-menu-btn svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    color: var(--oro);
+}
+
+/* Puntito naranja en la esquina, como en Free Fire */
+.ffl-menu-btn::after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 0.35rem;
+    height: 0.35rem;
+    background: #ff8a1f;
+}
+
+.ffl-menu-btn:hover,
+.ffl-menu-btn:focus-visible,
+.ffl-destacado:hover,
+.ffl-destacado:focus-visible {
+    border-color: var(--oro);
+    outline: none;
+}
+
+/* ================= DERECHA: JUGADORES ================= */
+
+.ffl-amigos {
+    position: absolute;
+    top: 3.8rem;
+    right: var(--borde-der);
+    bottom: 8.1rem;
+    width: 8.6rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+    transition: transform 0.25s ease;
+}
+
+.ffl-amigos-caja {
+    width: 100%;
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--linea);
+    border-radius: 0.45rem;
+    background: var(--panel);
+    overflow: hidden;
+}
+
+.ffl-plegado {
+    transform: translateX(calc(100% - 2rem));
+}
+
+.ffl-plegado .ffl-amigos-caja {
+    visibility: hidden;
+}
+
+.ffl-amigos-cabeza {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.25rem 0.3rem 0.25rem 0.5rem;
+    border-bottom: 1px solid var(--linea);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.ffl-amigos-cabeza > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.ffl-punto {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 0.4rem #34d399;
+}
+
+.ffl-girando {
+    animation: ffl-girar 0.8s linear infinite;
+}
+
+@keyframes ffl-girar {
+    to { transform: rotate(360deg); }
+}
+
+.ffl-amigos-lista {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 0.35rem;
+    list-style: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    scrollbar-width: none;
+}
+
+.ffl-amigos-lista::-webkit-scrollbar {
+    display: none;
+}
+
+.ffl-amigo {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.ffl-amigo-perfil {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.ffl-amigo-foto {
+    position: relative;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 0.35rem;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    background: #1b2236;
+}
+
+.ffl-amigo-foto img {
+    width: 100%;
+    height: 100%;
+    border-radius: 0.2rem;
+    object-fit: cover;
+}
+
+.ffl-estado {
+    position: absolute;
+    right: -0.25rem;
+    bottom: -0.25rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    border: 2px solid #0b1020;
+}
+
+.ffl-estado-libre { background: #34d399; }
+.ffl-estado-sala { background: var(--oro); }
+.ffl-estado-jugando { background: #f87171; }
+
+.ffl-amigo-nombre {
+    max-width: 100%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-shadow: var(--sombra-texto);
+}
+
+.ffl-invitar {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(255, 207, 62, 0.55);
+    border-radius: 0.4rem;
+    background: rgba(255, 207, 62, 0.14);
+    color: var(--oro) !important;
+}
+
+.ffl-invitar svg {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.ffl-invitar:disabled {
+    border-color: var(--linea);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--suave) !important;
+    cursor: default;
+}
+
+.ffl-segundos {
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.ffl-vacio {
+    margin: 0;
+    padding: 0.6rem;
+    color: var(--suave);
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.ffl-plegar {
+    position: relative;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 1.6rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--linea);
+    border-radius: 0.35rem;
+    background: var(--panel-fuerte);
+}
+
+.ffl-plegar svg {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.ffl-plegar-num {
+    position: absolute;
+    top: -0.45rem;
+    left: -0.45rem;
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 0.2rem;
+    border-radius: 999px;
+    background: #34d399;
+    color: #06231a;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1rem;
+}
+
+/* ================= ABAJO IZQUIERDA ================= */
+
+.ffl-aviso {
+    position: absolute;
+    left: var(--borde);
+    bottom: 3.75rem;
+    width: min(24rem, calc(100% - 22rem));
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    height: 1.55rem;
+    margin: 0;
+    padding: 0 0.6rem 0 0.25rem;
+    border-radius: 0.3rem;
+    background: rgba(0, 0, 0, 0.45);
+    font-size: 0.8rem;
+    overflow: hidden;
+}
+
+.ffl-aviso-etiqueta {
+    flex-shrink: 0;
+    padding: 0.05rem 0.35rem;
+    border-radius: 0.2rem;
+    background: rgba(255, 207, 62, 0.2);
+    color: var(--oro);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.ffl-aviso-texto {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ffl-barra {
+    position: absolute;
+    left: var(--borde);
+    bottom: max(0.6rem, env(safe-area-inset-bottom));
+    display: flex;
+    align-items: stretch;
+    height: 2.6rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.35rem;
+    background: var(--panel-fuerte);
+    overflow: hidden;
+}
+
+.ffl-barra-logo {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    background: linear-gradient(135deg, #5b3bd6, #9b4dff);
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-style: italic;
+}
+
+.ffl-barra-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0 0.9rem;
+    border: 0;
+    border-right: 1px solid var(--linea);
+    background: transparent;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.ffl-barra-btn:last-child {
+    border-right: 0;
+}
+
+.ffl-barra-btn svg {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.ffl-barra-btn:hover,
+.ffl-barra-btn:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    outline: none;
+}
+
+/* ================= ABAJO DERECHA: INICIAR ================= */
+
+.ffl-inicio {
+    position: absolute;
+    right: var(--borde-der);
+    bottom: max(0.6rem, env(safe-area-inset-bottom));
+    width: 17rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.ffl-juego {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 3.2rem;
+    padding: 0 0.3rem 0 0;
+    overflow: hidden;
+    border: 1px solid rgba(255, 207, 62, 0.55);
+    border-radius: 0.35rem;
+    background: var(--panel-fuerte);
+    text-align: left;
+}
+
+.ffl-juego img {
+    width: 5.2rem;
+    height: 100%;
+    object-fit: cover;
+    -webkit-mask-image: linear-gradient(90deg, #000 60%, transparent);
+    mask-image: linear-gradient(90deg, #000 60%, transparent);
+}
+
+.ffl-juego-texto {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+}
+
+.ffl-juego-texto strong {
+    color: var(--oro);
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ffl-juego-texto small {
+    color: var(--suave);
+    font-size: 0.78rem;
+}
+
+.ffl-juego-cambiar {
+    flex-shrink: 0;
+    width: 2.3rem;
+    height: 2.3rem;
+    display: grid;
+    place-items: center;
+    border-radius: 0.35rem;
+    background: rgba(255, 207, 62, 0.16);
+    color: var(--oro);
+}
+
+.ffl-juego-cambiar svg {
+    width: 1.3rem;
+    height: 1.3rem;
+}
+
+.ffl-iniciar {
+    height: 3.6rem;
+    border: 0;
+    /* Esquina cortada, como en Free Fire */
+    clip-path: polygon(0.9rem 0, 100% 0, 100% calc(100% - 0.9rem), calc(100% - 0.9rem) 100%, 0 100%, 0 0.9rem);
+    background: linear-gradient(180deg, #ffe45c 0%, #ffcc1f 55%, #f2a900 100%);
+    color: #2a1c00 !important;
+    font-size: 1.9rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow: inset 0 -0.25rem 0 rgba(150, 90, 0, 0.35);
+    transition: filter 0.15s, transform 0.1s;
+}
+
+.ffl-iniciar:hover,
+.ffl-iniciar:focus-visible {
+    filter: brightness(1.08);
+    outline: none;
+}
+
+.ffl-iniciar:active {
+    transform: scale(0.98);
+}
+
+/* ================= ELEGIR JUEGO ================= */
+
+.ffl-modal-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgba(3, 6, 12, 0.7);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.ffl-modal {
+    width: min(44rem, 100%);
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.8rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.6rem;
+    background: rgba(12, 16, 28, 0.96);
+}
+
+.ffl-modal-cabeza {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ffl-modal-cabeza h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ffl-modos {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.6rem;
+    overflow-y: auto;
+}
+
+.ffl-modo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 0.78;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid var(--linea);
+    border-radius: 0.5rem;
+    background: #111;
+    text-align: left;
+}
+
+.ffl-modo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ffl-modo-texto {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 1.4rem 0.5rem 0.45rem;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.92), transparent);
+    line-height: 1.05;
+}
+
+.ffl-modo-texto strong {
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.ffl-modo-texto small {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--suave);
+    font-size: 0.75rem;
+}
+
+.ffl-modo-texto small svg {
+    width: 0.8rem;
+    height: 0.8rem;
+}
+
+.ffl-modo:hover,
+.ffl-modo:focus-visible {
+    border-color: rgba(255, 207, 62, 0.6);
+    outline: none;
+}
+
+.ffl-modo-elegido {
+    border-color: var(--oro);
+    box-shadow: 0 0 0 2px rgba(255, 207, 62, 0.35);
+}
+
+.ffl-modo-elegido .ffl-modo-texto strong {
+    color: var(--oro);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ffl-amigos { transition: none; }
+    .ffl-girando { animation: none; }
+}

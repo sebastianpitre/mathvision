@@ -59,8 +59,7 @@ import ProtegerError from "../components/common/ProtegerError";
 
 const STATUS = {
     available: { label: "Disponible", short: "Libre", tone: "online" },
-    invited: { label: "Invitación pendiente", short: "Invitado", tone: "busy" },
-    inviting: { label: "Invitando a alguien", short: "Ocupado", tone: "busy" },
+    sala: { label: "En una sala", short: "En sala", tone: "busy" },
     playing: { label: "En partida", short: "Jugando", tone: "playing" },
 };
 
@@ -594,11 +593,6 @@ export default function World() {
             pushFeed("me", `Entraste al mundo como ${player?.name || "jugador"}`);
         };
 
-        const onInvitation = ({ fromPlayerId, fromPlayerName, fromPlayerAvatar }) => {
-            setInvitation({ fromPlayerId, fromPlayerName, fromPlayerAvatar });
-            pushFeed("received", `${fromPlayerName} te invitó a jugar`);
-        };
-
         const onInviteSent = ({ targetPlayerName }) => {
             pushFeed("sent", `Invitación enviada a ${targetPlayerName}`);
         };
@@ -622,7 +616,7 @@ export default function World() {
         socket.on("connect_error", onConnectError);
         socket.on("world:players", onPlayers);
         socket.on("world:joined", onJoined);
-        socket.on("world:invitation", onInvitation);
+        // Las invitaciones recibidas se muestran en cualquier pantalla (Notificaciones).
         socket.on("world:inviteSent", onInviteSent);
         socket.on("world:invitationRejected", onInvitationRejected);
         socket.on("world:error", onWorldError);
@@ -639,7 +633,6 @@ export default function World() {
             socket.off("connect_error", onConnectError);
             socket.off("world:players", onPlayers);
             socket.off("world:joined", onJoined);
-            socket.off("world:invitation", onInvitation);
             socket.off("world:inviteSent", onInviteSent);
             socket.off("world:invitationRejected", onInvitationRejected);
             socket.off("world:error", onWorldError);
@@ -660,6 +653,9 @@ export default function World() {
         setPendingInvitations((current) => new Set(current).add(playerId));
 
         socket.emit("world:invite", { targetPlayerId: playerId });
+
+        // Se puede volver a invitar a los pocos segundos (el servidor pide una espera corta).
+        setTimeout(() => removePending(playerId), 10000);
     };
 
     const aceptarInvitacion = () => {
@@ -675,11 +671,8 @@ export default function World() {
         setInvitation(null);
     };
 
-    const volver = () => {
-        if (joined) socket.emit("world:leave");
-        setJoined(false);
-        navigate("/lobby");
-    };
+    // Sigue "en línea" al salir del Mundo: lo pueden invitar desde cualquier pantalla.
+    const volver = () => navigate("/lobby");
 
     /* =====================================================
        DATOS
@@ -692,7 +685,7 @@ export default function World() {
     const me = players.find((p) => String(p.id) === String(myPlayerId));
 
     const availablePlayers = otherPlayers.filter(
-        (p) => p.status === "available" && !pendingInvitations.has(p.id)
+        (p) => p.status !== "playing" && !pendingInvitations.has(p.id)
     );
 
     const playingCount = otherPlayers.filter((p) => p.status === "playing").length;
@@ -916,7 +909,7 @@ export default function World() {
 
                                 const status = statusOf(player);
                                 const pending = pendingInvitations.has(player.id);
-                                const canInvite = player.status === "available" && !pending;
+                                const canInvite = player.status !== "playing" && !pending;
                                 const [left, top] = PLAZA_SLOTS[index];
 
                                 return (
@@ -1098,7 +1091,8 @@ export default function World() {
                                 {visiblePlayers.map((player) => {
 
                                     const status = statusOf(player);
-                                    const available = player.status === "available";
+                                    // En una sala también se puede invitar (solo no a quien está jugando).
+                                    const available = player.status !== "playing";
                                     const pending = pendingInvitations.has(player.id);
                                     const name = player.name || "Jugador";
 

@@ -7,36 +7,55 @@
     <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <script>
       /*
-       * TELÉFONO Y TABLET EN HORIZONTAL: SE VE COMO EN EL PC, MÁS PEQUEÑO
-       * El navegador dibuja el juego con el ancho de un computador
-       * (alto "virtual" de ~760 px) y lo reduce para que quepa en la
-       * pantalla. Así el diseño es el mismo del PC: letras, íconos y
-       * tarjetas se ven proporcionalmente más pequeños.
-       * En computador (mouse) no se toca nada.
+       * TAMAÑO DE PANTALLA
+       * ---------------------------------------------------------
+       * Diseño nuevo ("juego", como Free Fire): se usa el ancho real
+       * del dispositivo y TODO se mide según el alto de la pantalla
+       * (ver .escala-juego en globals.css). Así se ve igual con o sin
+       * pantalla completa, en teléfono y en PC (más grande).
+       *
+       * Pantallas que aún no se rediseñan ("virtual"): en teléfono y
+       * tablet en horizontal se dibujan con el ancho de un PC y se
+       * reducen. Cuando se rediseñe una pantalla, se agrega su ruta a
+       * RUTAS_JUEGO y deja de usar este modo.
        */
+      window.RUTAS_JUEGO = ["/lobby"];
+
       (function () {
         var meta = document.getElementById("viewport");
         var ALTO_VIRTUAL = 760;
+        var raiz = document.documentElement;
+        var modo = window.RUTAS_JUEGO.indexOf(location.pathname) >= 0 ? "juego" : "virtual";
         var actual = "";
 
         function ajustar() {
           var tactil = matchMedia("(pointer: coarse)").matches && !matchMedia("(pointer: fine)").matches;
           var ancho = window.innerWidth, alto = window.innerHeight;
           var contenido = "width=device-width, initial-scale=1.0, viewport-fit=cover";
+          var virtual = modo === "virtual" && tactil && ancho > alto && alto > 0;
 
-          // La proporción ancho/alto no cambia con el zoom: sirve para
-          // calcular el ancho virtual aunque ya se haya aplicado antes.
-          if (tactil && ancho > alto && alto > 0) {
-            var virtual = Math.round(ALTO_VIRTUAL * (ancho / alto));
-            virtual = Math.max(1240, Math.min(1900, virtual));
-            contenido = "width=" + virtual + ", viewport-fit=cover";
+          if (virtual) {
+            var w = Math.round(ALTO_VIRTUAL * (ancho / alto));
+            w = Math.max(1240, Math.min(1900, w));
+            contenido = "width=" + w + ", viewport-fit=cover";
           }
+
+          raiz.classList.toggle("escala-juego", modo === "juego");
+          raiz.classList.toggle("pantalla-virtual", virtual);
 
           if (contenido !== actual) {
             actual = contenido;
             meta.setAttribute("content", contenido);
           }
         }
+
+        // La app avisa al cambiar de pantalla.
+        window.ajustarPantalla = function (nuevo) {
+          if (nuevo === modo) return;
+          modo = nuevo;
+          actual = "";
+          ajustar();
+        };
 
         ajustar();
         window.addEventListener("resize", ajustar);

@@ -58,13 +58,22 @@ const ESPERA_RECONEXION_MS = 20_000;
 export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
     const esperas = new Map(); // userId → temporizador de reconexión
 
+    // La lista de conectados se envía a todos, agrupando los
+    // cambios que llegan juntos (alguien entra, sale, inicia…).
+    let mundoPendiente = null;
+    function actualizarMundo() {
+        if (mundoPendiente) return;
+        mundoPendiente = setTimeout(() => {
+            mundoPendiente = null;
+            io.to(WORLD_ROOM).emit("world:players", { players: worldManager.serializePlayers() });
+        }, 150);
+    }
+
     function emitirSala(room) {
         if (!room) return;
         io.to(room.code).emit("sala:estado", { sala: roomManager.serializeRoom(room) });
-    }
-
-    function actualizarMundo() {
-        io.to(WORLD_ROOM).emit("world:players", { players: worldManager.serializePlayers() });
+        // Cambia quién está en sala o jugando: que la lista lo muestre.
+        actualizarMundo();
     }
 
     function estadoMundo(room, status) {

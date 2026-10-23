@@ -1,0 +1,154 @@
+/* Avisos e invitaciones arriba, en cualquier pantalla */
+
+.nt {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + var(--u) * 0.5);
+    left: 50%;
+    z-index: 9000;
+    transform: translateX(-50%);
+    width: min(calc(var(--u) * 24), calc(100vw - var(--u) * 2));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--u) * 0.35);
+    pointer-events: none;
+    font-family: var(--fuente-juego);
+}
+
+.nt > * {
+    pointer-events: auto;
+}
+
+.nt-invitacion {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 0.55);
+    padding: calc(var(--u) * 0.45) calc(var(--u) * 0.55);
+    overflow: hidden;
+    border-radius: calc(var(--u) * 0.6);
+    border: 1px solid rgba(255, 207, 62, 0.55);
+    background: linear-gradient(100deg, rgba(20, 24, 38, 0.97), rgba(36, 30, 14, 0.95));
+    box-shadow: 0 calc(var(--u) * 0.4) calc(var(--u) * 1.2) rgba(0, 0, 0, 0.5);
+    color: #fff;
+    animation: nt-entrar 0.25s ease-out;
+}
+
+.nt-avatar {
+    flex-shrink: 0;
+    width: calc(var(--u) * 2.3);
+    height: calc(var(--u) * 2.3);
+    border-radius: calc(var(--u) * 0.4);
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    background: #1b2236;
+}
+
+.nt-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.nt-texto {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.nt-texto strong {
+    font-size: calc(var(--u) * 1.05);
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nt-texto small {
+    color: #ffd96a;
+    font-size: calc(var(--u) * 0.8);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.nt-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 0.25);
+    height: calc(var(--u) * 2.1);
+    min-width: calc(var(--u) * 2.1);
+    padding: 0 calc(var(--u) * 0.7);
+    border: 0;
+    border-radius: calc(var(--u) * 0.45);
+    font-family: inherit;
+    font-size: calc(var(--u) * 0.95);
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.nt-btn svg {
+    width: calc(var(--u) * 1);
+    height: calc(var(--u) * 1);
+}
+
+.nt-btn-si {
+    background: linear-gradient(180deg, #ffe066, #f5b51b);
+    color: #2b1d00;
+}
+
+.nt-btn-no {
+    padding: 0;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+
+/* Barra que se acorta mientras la invitación sigue vigente */
+.nt-tiempo {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: #ffcf3e;
+    transform-origin: left;
+    animation: nt-tiempo linear forwards;
+}
+
+.nt-aviso {
+    max-width: 100%;
+    margin: 0;
+    padding: calc(var(--u) * 0.4) calc(var(--u) * 0.9);
+    border-radius: 999px;
+    background: rgba(12, 16, 28, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #fff;
+    font-size: calc(var(--u) * 0.9);
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 calc(var(--u) * 0.3) calc(var(--u) * 0.8) rgba(0, 0, 0, 0.4);
+    animation: nt-entrar 0.2s ease-out;
+}
+
+.nt-aviso-ok { border-color: rgba(52, 211, 153, 0.6); }
+.nt-aviso-error { border-color: rgba(248, 113, 113, 0.7); color: #fecaca; }
+
+@keyframes nt-entrar {
+    from { transform: translateY(calc(var(--u) * -0.8)); opacity: 0; }
+    to { transform: none; opacity: 1; }
+}
+
+@keyframes nt-tiempo {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nt-invitacion, .nt-aviso { animation: none; }
+}

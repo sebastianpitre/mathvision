@@ -3,6 +3,8 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-
 
 import { useAuth } from "../context/AuthContext";
 import { socket } from "../services/socket";
+import Notificaciones from "../components/juego/Notificaciones";
+import MenuFlotante from "../components/juego/MenuFlotante";
 
 /*
  * Cada pantalla se descarga solo cuando se abre. Así el
@@ -83,10 +85,28 @@ function EscuchaSala() {
     return null;
 }
 
+/*
+ * Las pantallas ya rediseñadas (RUTAS_JUEGO en index.html)
+ * usan el tamaño "juego"; las demás, el modo anterior.
+ */
+function ModoPantalla() {
+    const { pathname } = useLocation();
+
+    useEffect(() => {
+        const nuevas = window.RUTAS_JUEGO || [];
+        window.ajustarPantalla?.(nuevas.includes(pathname) ? "juego" : "virtual");
+    }, [pathname]);
+
+    return null;
+}
+
 function AppRouter() {
     return (
         <Suspense fallback={<Cargando />}>
+            <ModoPantalla />
             <EscuchaSala />
+            <Notificaciones />
+            <MenuFlotante />
             <Routes>
                 <Route path="/" element={<Login />} />
 
