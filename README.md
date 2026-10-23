@@ -173,7 +173,31 @@ responder ni decide cuánto gana.
 
 ---
 
-## 5. Salas multijugador y SigloGamif
+## 5. Diseño del juego (como Free Fire)
+
+El juego está pensado primero para **teléfono en horizontal**; en el PC se ve igual,
+más grande.
+
+- **Tamaño:** en las pantallas rediseñadas todo se mide en `rem`, y `1rem` depende del
+  **alto** de la pantalla (`.escala-juego` en `src/styles/globals.css`). Por eso se ve
+  igual con o sin pantalla completa y en cualquier teléfono. Las pantallas que aún no
+  se rediseñan usan el modo anterior; al rediseñar una, se agrega su ruta a
+  `RUTAS_JUEGO` en `index.html`.
+- **Lobby:** el personaje ocupa el centro; arriba el perfil, oro y diamantes; a la
+  izquierda el menú; a la derecha los jugadores en línea (se pliega); abajo los atajos,
+  el juego elegido y el botón **INICIAR** (un jugador → entra directo; multijugador →
+  sala con ese juego ya elegido).
+- **Menú flotante:** botón redondo que se arrastra a cualquier borde. Tiene pantalla
+  completa, sonido (silencia todo el juego), Inicio, Mi sala, Tienda, Personajes,
+  Perfil, Panel (admin) y Cerrar sesión.
+- **Invitaciones:** llegan arriba, en cualquier pantalla, por unos segundos. Se puede
+  invitar a la misma persona las veces que quieras (con 10 s entre una y otra). Cada
+  jugador aparece como *Disponible*, *En una sala* o *Jugando*, y la lista se actualiza
+  sola (también hay botón de actualizar).
+
+---
+
+## 6. Salas multijugador y SigloGamif
 
 Todos los juegos de 2 o más jugadores pasan por una **sala** (`/sala`):
 
@@ -212,19 +236,21 @@ jugadores admite) y su inicio en `servidor/src/salas/salaSockets.js`.
 
 ---
 
-## 6. Estructura
+## 7. Estructura
 
 ```
 ├── src/                     juego (React)
 │   ├── pages/Admin/         panel de administración
 │   ├── pages/Preguntas/     elegir nivel
 │   ├── pages/Sala/          sala multijugador
+│   ├── components/juego/    menú flotante y notificaciones (en todas las pantallas)
 │   └── games/               preguntas, Triqui, SigloGamif, Escape Álgebra
 ├── public/                  imágenes, sonidos y modelos 3D
 ├── servidor/
 │   ├── server.js            Express + Socket.IO (Mundo, salas, Triqui)
 │   ├── src/                 rutas y lógica (partidas, niveles, tienda, admin)
-│   ├── src/salas/           salas multijugador (2 a 4) y sus eventos
+│   ├── src/salas/           salas multijugador (2 a 8) y sus eventos
+│   ├── src/world/           jugadores en línea e invitaciones
 │   ├── src/games/siglo/     reglas de SigloGamif
 │   ├── src/database/migraciones/   pasos numerados de la base
 │   ├── scripts/             migrar.js, admin.js, check.js

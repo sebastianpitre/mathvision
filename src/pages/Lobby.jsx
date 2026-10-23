@@ -1,1089 +1,397 @@
-import React, {
-    Suspense,
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
-
+import { Suspense, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import ProtegerError from "../components/common/ProtegerError";
-import LucesPersonaje from "../components/character/LucesPersonaje";
-
-import MainNav from "../components/navigation/MainNav";
-
-/*
- * Iconos Lucide (vienen dentro de react-icons, no hay que
- * instalar nada nuevo). Son de línea, modernos y uniformes.
- */
 import {
-    LuArrowRight,
-    LuBell,
     LuBookOpen,
-    LuShieldCheck,
-    LuCheck,
-    LuPercent,
+    LuChevronLeft,
+    LuChevronRight,
+    LuExpand,
     LuGamepad2,
+    LuGem,
     LuGlobe,
-    LuHand,
-    LuHourglass,
-    LuLock,
-    LuLogIn,
-    LuPalette,
-    LuShoppingBag,
+    LuPlus,
+    LuRefreshCw,
+    LuSettings2,
+    LuShieldCheck,
+    LuShirt,
+    LuShoppingCart,
+    LuShrink,
     LuSmartphone,
-    LuSparkles,
-    LuSwords,
-    LuTrophy,
-    LuUserPlus,
+    LuUserRound,
     LuUsers,
+    LuVolume2,
+    LuVolumeX,
     LuX,
 } from "react-icons/lu";
 
-import "../styles/mathvision.css";
-import "../styles/lobby.css";
+import "@fontsource/rajdhani/600.css";
+import "@fontsource/rajdhani/700.css";
+import "./lobby-juego.css";
 
 import { useAuth } from "../context/AuthContext";
+import { jugadorDesdeUsuario } from "../services/jugador";
+import { useJugadoresEnLinea, ESTADOS } from "../hooks/useJugadoresEnLinea";
+import { useInvitar } from "../hooks/useInvitar";
+import { alAvisar, ultimoAviso } from "../services/avisos";
+import { enPantallaCompleta, entrarPantallaCompleta, salirPantallaCompleta, puedePantallaCompleta, esIOS } from "../services/pantalla";
+import { alCambiarSilencio, cambiarSilencio, estaSilenciado } from "../services/sonido";
+import { avisar } from "../services/avisos";
 
 import games from "../data/mock/games.json";
 import assets from "../data/mock/assets.json";
-import { jugadorDesdeUsuario } from "../services/jugador";
 
 import AssetImage from "../components/common/AssetImage";
+import ProtegerError from "../components/common/ProtegerError";
 import VRMCharacter from "../components/character/VRMCharacter";
-
-import { socket } from "../services/socket";
+import LucesPersonaje from "../components/character/LucesPersonaje";
 
 /* =========================================================
-   UTILIDADES
+   LOBBY (diseño tipo Free Fire)
+   ---------------------------------------------------------
+   El personaje ocupa el centro de la pantalla y todo lo demás
+   va pegado a los bordes:
+     · arriba: perfil, oro y diamantes · logo y botones
+     · izquierda: juego destacado y menú (Tienda, Sala…)
+     · derecha: jugadores en línea para invitar (se pliega)
+     · abajo: atajos · juego elegido y el botón INICIAR
+   Todo se mide en rem, que depende del alto de la pantalla
+   (ver .escala-juego en globals.css).
 ========================================================= */
 
-// "1 jugador", "2 jugadores", "2–4 jugadores"
-const playersLabel = (min, max) => {
+const CLAVE_JUEGO = "ludogamif:juegoElegido";
+const formato = new Intl.NumberFormat("es-CO");
 
-    const low = Number(min) || 0;
-    const high = Number(max) || low;
-
-    if (!low && !high) return null;
-
-    if (!high || low === high) {
-        return `${low} ${low === 1 ? "jugador" : "jugadores"}`;
+function juegoGuardado() {
+    try {
+        const id = localStorage.getItem(CLAVE_JUEGO);
+        return games.find((g) => g.id === id) || games[0];
+    } catch {
+        return games[0];
     }
-
-    return `${low}–${high} jugadores`;
-};
-
-/*
- * Foto del juego tomada del JSON.
- * Si en tu games.json el campo se llama distinto,
- * agrégalo aquí.
- */
-const gameImage = (game) =>
-    game?.image ||
-    game?.cover ||
-    game?.thumbnail ||
-    game?.banner ||
-    game?.img ||
-    game?.photo ||
-    null;
-
-const invitationKey = (invitation) =>
-    String(
-        invitation?.fromPlayerId ||
-        invitation?.fromPlayer?.id ||
-        invitation?.playerId ||
-        invitation?.id ||
-        ""
-    );
-
-const invitationName = (invitation) =>
-    invitation?.fromPlayerName ||
-    invitation?.fromPlayer?.name ||
-    invitation?.name ||
-    "Jugador";
-
-const invitationAvatar = (invitation) =>
-    invitation?.fromPlayerAvatar ||
-    invitation?.fromPlayer?.avatar;
-
-const STATUS = {
-    available: { label: "Disponible", tone: "online" },
-    inviting: { label: "Invitando…", tone: "busy" },
-    invited: { label: "Con invitación", tone: "busy" },
-    playing: { label: "En partida", tone: "playing" },
-};
-
-const statusOf = (player) =>
-    STATUS[player?.status || "available"] || STATUS.playing;
-
-/* =========================================================
-   COMPONENTES PEQUEÑOS
-========================================================= */
-
-function SectionHeader({ id, eyebrow, icon: Icon, title, action }) {
-    return (
-        <header className="lb-section-header">
-            <div>
-                {eyebrow && (
-                    <p className="lb-eyebrow">
-                        {Icon && <Icon aria-hidden="true" />}
-                        <span>{eyebrow}</span>
-                    </p>
-                )}
-                <h2 id={id} className="lb-title">
-                    {title}
-                </h2>
-            </div>
-
-            {action}
-        </header>
-    );
 }
 
-function EmptyState({ icon: Icon, children }) {
+const textoJugadores = (g) =>
+    g.minPlayers === g.maxPlayers
+        ? `${g.minPlayers} ${g.minPlayers === 1 ? "jugador" : "jugadores"}`
+        : `${g.minPlayers} a ${g.maxPlayers} jugadores`;
+
+/* Personaje 3D a pantalla completa (detrás de todo). */
+function Escena({ modelo }) {
     return (
-        <div className="lb-empty">
-            <span className="lb-empty-icon" aria-hidden="true">
-                <Icon />
-            </span>
-            <p>{children}</p>
+        <div className="ffl-escena" aria-hidden="true">
+            <ProtegerError respaldo={null}>
+                {/* Cámara a la altura del pecho: se ve el cuerpo entero, con la cabeza bajo la barra de arriba. */}
+                <Canvas gl={{ alpha: true }} camera={{ position: [0, 0.15, 5.4], fov: 40 }} dpr={[1, 1.75]}>
+                    <LucesPersonaje calida />
+                    <Suspense fallback={null}>
+                        {modelo && (
+                            <VRMCharacter key={modelo} url={modelo} scale={2.02} position={[0, -1.72, 0]} rotation={[0, 0, 0]} />
+                        )}
+                    </Suspense>
+                    <OrbitControls
+                        target={[0, 0.15, 0]}
+                        enableZoom={false}
+                        enablePan={false}
+                        enableDamping
+                        minPolarAngle={Math.PI / 2}
+                        maxPolarAngle={Math.PI / 2}
+                    />
+                </Canvas>
+            </ProtegerError>
         </div>
     );
 }
 
-function ComingSoonTile({ icon: Icon, title }) {
-    return (
-        <li className="lb-soon" aria-disabled="true">
-            <span className="lb-soon-icon" aria-hidden="true">
-                <Icon />
-            </span>
-            <span className="lb-soon-title">{title}</span>
-            <span className="lb-badge">
-                <LuLock aria-hidden="true" />
-                <span>Pronto</span>
-            </span>
-        </li>
-    );
-}
-
-function AccessTile({ icon: Icon, title, onClick }) {
-    return (
-        <li>
-            <button type="button" className="lb-soon lb-soon-link" onClick={onClick}>
-                <span className="lb-soon-icon" aria-hidden="true">
-                    <Icon />
-                </span>
-                <span className="lb-soon-title">{title}</span>
-            </button>
-        </li>
-    );
-}
-
-// Foto del juego (o un respaldo con color si no tiene foto)
-function GamePhoto({ game, className = "" }) {
-
-    const [failed, setFailed] = useState(false);
-    const src = gameImage(game);
-
-    if (!src || failed) {
-        return (
-            <span
-                className={`lb-photo lb-photo-fallback ${className}`}
-                style={{ "--game-color": game?.color || "#5aa9ff" }}
-                aria-hidden="true"
-            >
-                <span>{game?.name}</span>
-            </span>
-        );
-    }
-
-    return (
-        <img
-            className={`lb-photo ${className}`}
-            src={src}
-            alt=""
-            loading="lazy"
-            draggable="false"
-            onError={() => setFailed(true)}
-        />
-    );
-}
-
-/* =========================================================
-   TARJETA "ELIGE TU JUEGO" (collage)
-========================================================= */
-
-function GamesBanner({ games: list, onOpen }) {
-
-    const photos = list.slice(0, 4);
-
-    return (
-        <button
-            type="button"
-            className="lb-banner"
-            onClick={onOpen}
-            aria-haspopup="dialog"
-        >
-            <span className="lb-banner-text">
-                <span className="lb-eyebrow">
-                    <LuGamepad2 aria-hidden="true" />
-                    <span>Juegos</span>
-                </span>
-
-                <span className="lb-banner-title">Elige tu juego</span>
-
-                <span className="lb-banner-sub">
-                    {`${list.length} ${list.length === 1 ? "juego disponible" : "juegos disponibles"}`}
-                </span>
-            </span>
-
-            <span className="lb-collage" aria-hidden="true">
-                {photos.map((game, index) => (
-                    <span
-                        key={game.id ?? index}
-                        className="lb-collage-frame"
-                        style={{ "--i": index }}
-                    >
-                        <GamePhoto game={game} />
-                    </span>
-                ))}
-            </span>
-
-            <span className="lb-banner-cta">
-                <span>Ver juegos</span>
-                <LuArrowRight aria-hidden="true" />
-            </span>
-        </button>
-    );
-}
-
-/* =========================================================
-   MODAL DE JUEGOS
-   Usa <dialog>: el navegador maneja el foco, Escape
-   lo cierra y el fondo queda bloqueado.
-========================================================= */
-
-function GamesModal({ open, onClose, games: list, onPlay, onPlayLocal, playerName }) {
-
-    const dialogRef = useRef(null);
-
+/* Ventana para elegir el juego (como elegir modo en Free Fire). */
+function ElegirJuego({ elegido, onElegir, onCerrar }) {
     useEffect(() => {
-
-        const dialog = dialogRef.current;
-
-        if (!dialog) return;
-
-        if (open && !dialog.open) dialog.showModal();
-        if (!open && dialog.open) dialog.close();
-
-    }, [open]);
+        const tecla = (e) => e.key === "Escape" && onCerrar();
+        document.addEventListener("keydown", tecla);
+        return () => document.removeEventListener("keydown", tecla);
+    }, [onCerrar]);
 
     return (
-        <dialog
-            ref={dialogRef}
-            className="lb-modal"
-            aria-labelledby="lb-modal-title"
-            onClose={onClose}
-            onCancel={(e) => {
-                e.preventDefault();
-                onClose();
-            }}
-            onClick={(e) => {
-                // Clic fuera de la caja cierra el modal
-                if (e.target === dialogRef.current) onClose();
-            }}
-        >
-            <div className="lb-modal-box">
-
-                <header className="lb-modal-header">
-                    <div>
-                        <p className="lb-eyebrow">
-                            <LuGamepad2 aria-hidden="true" />
-                            <span>Juegos</span>
-                        </p>
-                        <h2 id="lb-modal-title" className="lb-title">
-                            Elige tu juego
-                        </h2>
-                    </div>
-
-                    <button
-                        type="button"
-                        className="lb-icon-btn"
-                        onClick={onClose}
-                        aria-label="Cerrar lista de juegos"
-                    >
+        <div className="ffl-modal-fondo" onClick={onCerrar}>
+            <section className="ffl-modal" role="dialog" aria-modal="true" aria-labelledby="ffl-modal-titulo" onClick={(e) => e.stopPropagation()}>
+                <header className="ffl-modal-cabeza">
+                    <h2 id="ffl-modal-titulo">Elige el juego</h2>
+                    <button type="button" className="ffl-icono" onClick={onCerrar} aria-label="Cerrar">
                         <LuX aria-hidden="true" />
                     </button>
                 </header>
-
-                <div className="lb-modal-body">
-
-                    <ul className="lb-game-grid">
-                        {list.map((game) => {
-
-                            const label = playersLabel(game.minPlayers, game.maxPlayers);
-
-                            return (
-                                <li key={game.id}>
-                                    <button
-                                        type="button"
-                                        className="lb-game-card"
-                                        style={{ "--game-color": game.color || "#5aa9ff" }}
-                                        onClick={() => onPlay(game)}
-                                    >
-                                        <span className="lb-game-cover">
-                                            <GamePhoto game={game} />
-                                        </span>
-
-                                        <span className="lb-game-info">
-                                            <span className="lb-game-name">{game.name}</span>
-
-                                            {game.description && (
-                                                <span className="lb-game-desc">
-                                                    {game.description}
-                                                </span>
-                                            )}
-
-                                            <span className="lb-game-footer">
-                                                {label && (
-                                                    <span className="lb-pill">
-                                                        <LuUsers aria-hidden="true" />
-                                                        <span>{label}</span>
-                                                    </span>
-                                                )}
-
-                                                <span className="lb-game-play">
-                                                    <span>Jugar</span>
-                                                    <LuArrowRight aria-hidden="true" />
-                                                </span>
-                                            </span>
-                                        </span>
-                                    </button>
-                                </li>
-                            );
-                        })}
-                    </ul>
-
-                    <button
-                        type="button"
-                        className="lb-local"
-                        onClick={onPlayLocal}
-                    >
-                        <span className="lb-local-icon" aria-hidden="true">
-                            <LuSmartphone />
-                        </span>
-                        <span className="lb-local-body">
-                            <span className="lb-local-title">
-                                Triqui en este dispositivo
-                            </span>
-                            <span className="lb-muted">
-                                {`Juega contra ${playerName} Clone, turnándose en la misma pantalla`}
-                            </span>
-                        </span>
-                        <LuArrowRight aria-hidden="true" className="lb-local-go" />
-                    </button>
-                </div>
-            </div>
-        </dialog>
+                <ul className="ffl-modos">
+                    {games.map((g) => (
+                        <li key={g.id}>
+                            <button
+                                type="button"
+                                className={`ffl-modo ${g.id === elegido.id ? "ffl-modo-elegido" : ""}`}
+                                onClick={() => onElegir(g)}
+                                aria-pressed={g.id === elegido.id}
+                                autoFocus={g.id === elegido.id}
+                            >
+                                <img src={g.image} alt="" loading="lazy" draggable="false" />
+                                <span className="ffl-modo-texto">
+                                    <strong>{g.name}</strong>
+                                    <small>
+                                        <LuUsers aria-hidden="true" />
+                                        {textoJugadores(g)}
+                                    </small>
+                                </span>
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+        </div>
     );
 }
 
-/* =========================================================
-   LOBBY
-========================================================= */
-
 export default function Lobby() {
-
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const jugador = jugadorDesdeUsuario(user);
 
-    const { user, loading } = useAuth();
+    const { jugadores, actualizar, actualizando } = useJugadoresEnLinea();
+    const { invitar, espera } = useInvitar();
 
-    const [onlinePlayers, setOnlinePlayers] = useState([]);
-    const [invitations, setInvitations] = useState([]);
-    const [onlineMessage, setOnlineMessage] = useState("");
-    const [invitationAlert, setInvitationAlert] = useState(null);
-    const [gamesOpen, setGamesOpen] = useState(false);
+    const [juego, setJuego] = useState(juegoGuardado);
+    const [eligiendo, setEligiendo] = useState(false);
+    const [plegado, setPlegado] = useState(false);
+    const [aviso, setAviso] = useState(() => ultimoAviso());
+    const [completa, setCompleta] = useState(() => enPantallaCompleta());
+    const [silencio, setSilencio] = useState(() => estaSilenciado());
 
-    const alertTimerRef = useRef(null);
-    const messageTimerRef = useRef(null);
-
-    const showOnlineMessage = useCallback((text, ms = 3000) => {
-        clearTimeout(messageTimerRef.current);
-        setOnlineMessage(text);
-        messageTimerRef.current = setTimeout(() => setOnlineMessage(""), ms);
-    }, []);
-
-    const hideAlert = useCallback(() => {
-        clearTimeout(alertTimerRef.current);
-        setInvitationAlert(null);
-    }, []);
-
-    const scheduleAlertHide = useCallback((ms = 8000) => {
-        clearTimeout(alertTimerRef.current);
-        alertTimerRef.current = setTimeout(() => setInvitationAlert(null), ms);
-    }, []);
-
-    useEffect(() => () => {
-        clearTimeout(alertTimerRef.current);
-        clearTimeout(messageTimerRef.current);
-    }, []);
-
-    /* =====================================================
-       CONEXIÓN AL MUNDO ONLINE (misma lógica de antes)
-    ===================================================== */
-
+    useEffect(() => alAvisar(setAviso), []);
+    useEffect(() => alCambiarSilencio(setSilencio), []);
     useEffect(() => {
-
-        if (!user) return;
-
-        const handleConnect = () => {
-            socket.emit("world:join");
-        };
-
-        const handlePlayers = (data = {}) => {
-
-            const players = Array.isArray(data)
-                ? data
-                : Array.isArray(data.players)
-                    ? data.players
-                    : [];
-
-            const currentUserId = user?.id || user?.user_id || user?.userId;
-
-            setOnlinePlayers(
-                currentUserId
-                    ? players.filter(
-                        (p) => String(p.id) !== String(currentUserId)
-                    )
-                    : players
-            );
-        };
-
-        const handleInvitation = (invitation) => {
-
-            if (!invitation) return;
-
-            const key = invitationKey(invitation);
-
-            setInvitations((current) =>
-                current.some((item) => invitationKey(item) === key)
-                    ? current
-                    : [...current, invitation]
-            );
-
-            setInvitationAlert(invitation);
-            scheduleAlertHide();
-        };
-
-        const handleInviteSent = () => {
-            showOnlineMessage("Invitación enviada", 2500);
-        };
-
-        const handleInvitationRejected = ({ playerName } = {}) => {
-            showOnlineMessage(
-                playerName
-                    ? `${playerName} rechazó la invitación`
-                    : "La invitación fue rechazada"
-            );
-        };
-
-        socket.on("connect", handleConnect);
-        socket.on("world:players", handlePlayers);
-        socket.on("world:invitation", handleInvitation);
-        socket.on("world:inviteSent", handleInviteSent);
-        socket.on("world:invitationRejected", handleInvitationRejected);
-
-        if (socket.connected) {
-            socket.emit("world:join");
-        } else {
-            socket.connect();
-        }
-
+        const ver = () => setCompleta(enPantallaCompleta());
+        document.addEventListener("fullscreenchange", ver);
+        document.addEventListener("webkitfullscreenchange", ver);
         return () => {
-            socket.off("connect", handleConnect);
-            socket.off("world:players", handlePlayers);
-            socket.off("world:invitation", handleInvitation);
-            socket.off("world:inviteSent", handleInviteSent);
-            socket.off("world:invitationRejected", handleInvitationRejected);
+            document.removeEventListener("fullscreenchange", ver);
+            document.removeEventListener("webkitfullscreenchange", ver);
         };
+    }, []);
 
-    }, [user, navigate, scheduleAlertHide, showOnlineMessage]);
+    if (!jugador) return null;
 
-    /* =====================================================
-       ACCIONES
-    ===================================================== */
-
-    const handleInvite = (player) => {
-
-        if (!player || (player.status || "available") !== "available") {
-            return;
+    const elegir = (g) => {
+        setJuego(g);
+        setEligiendo(false);
+        try {
+            localStorage.setItem(CLAVE_JUEGO, g.id);
+        } catch {
+            // Sin almacenamiento: vale mientras la página esté abierta.
         }
-
-        socket.emit("world:invite", { targetPlayerId: player.id });
     };
 
-    const removeInvitation = (invitation) => {
-        const key = invitationKey(invitation);
-        setInvitations((current) =>
-            current.filter((item) => invitationKey(item) !== key)
+    // INICIAR: si es de un jugador entra directo; si es
+    // multijugador, va a la sala con ese juego ya elegido.
+    const iniciar = () => {
+        if (juego.sala) navigate("/sala", { state: { crear: true, juego: juego.sala } });
+        else navigate(juego.route);
+    };
+
+    const pantallaCompleta = async () => {
+        if (completa) return salirPantallaCompleta();
+        if (puedePantallaCompleta() && (await entrarPantallaCompleta())) return;
+        avisar(
+            esIOS()
+                ? "En iPhone y iPad: Compartir → Agregar a inicio, y ábrelo desde ahí."
+                : "Este navegador no permite pantalla completa.",
+            "info",
+            5000
         );
     };
 
-    const handleAcceptInvitation = (invitation) => {
-
-        const fromPlayerId =
-            invitation?.fromPlayerId ||
-            invitation?.fromPlayer?.id ||
-            invitation?.playerId;
-
-        if (!fromPlayerId) return;
-
-        removeInvitation(invitation);
-        hideAlert();
-
-        socket.emit("world:acceptInvitation", { fromPlayerId });
-    };
-
-    const handleRejectInvitation = (invitation) => {
-
-        const fromPlayerId =
-            invitation?.fromPlayerId ||
-            invitation?.fromPlayer?.id ||
-            invitation?.playerId;
-
-        if (!fromPlayerId) return;
-
-        removeInvitation(invitation);
-        hideAlert();
-
-        socket.emit("world:rejectInvitation", { fromPlayerId });
-    };
-
-    const goToProfile = (id) => navigate(`/profile/${id}`);
-
-    /* =====================================================
-       CARGANDO / SIN SESIÓN
-    ===================================================== */
-
-    if (loading) {
-        return (
-            <div className="mv-app lb">
-                <div className="lb-bg" aria-hidden="true" />
-                <main className="lb-center-state" aria-busy="true">
-                    <span className="lb-spinner" aria-hidden="true" />
-                    <p role="status">Cargando tu perfil…</p>
-                </main>
-            </div>
-        );
-    }
-
-    if (!user) {
-        return (
-            <div className="mv-app lb">
-                <div className="lb-bg" aria-hidden="true" />
-                <main className="lb-center-state">
-                    <h1 className="lb-title">Sesión no encontrada</h1>
-                    <p>Inicia sesión para entrar al mundo MathVision.</p>
-                    <button
-                        type="button"
-                        className="lb-btn lb-btn-primary"
-                        onClick={() => navigate("/")}
-                    >
-                        <LuLogIn aria-hidden="true" />
-                        <span>Iniciar sesión</span>
-                    </button>
-                </main>
-            </div>
-        );
-    }
-
-    /* =====================================================
-       PERFIL
-    ===================================================== */
-
-    const player = jugadorDesdeUsuario(user);
-
-    const connectedCount = onlinePlayers.length + 1;
-
-    /* =====================================================
-       RENDER
-    ===================================================== */
+    const destacado = games.find((g) => g.id === "siglo") || games[0];
+    const disponibles = jugadores.filter((p) => p.status !== "playing").length;
 
     return (
-        <div className="mv-app lb">
+        <div className="ffl">
+            <div className="ffl-fondo" style={{ backgroundImage: `url(${assets.backgrounds.lobby})` }} aria-hidden="true" />
+            <Escena modelo={jugador.characterModel} />
+            <h1 className="ffl-oculto">LudoGamif</h1>
 
-            <div
-                className="lb-bg"
-                aria-hidden="true"
-                style={{ backgroundImage: `url(${assets.backgrounds.lobby})` }}
-            />
-
-            <a className="lb-skip" href="#lb-games-banner">
-                Saltar a los juegos
-            </a>
-
-            <MainNav player={player} />
-
-            {/* ============ ALERTA DE INVITACIÓN ============ */}
-
-            <div className="lb-toast-region" aria-live="polite">
-                {invitationAlert && (
-                    <div
-                        className="lb-toast"
-                        role="dialog"
-                        aria-labelledby="lb-toast-title"
-                        onMouseEnter={() => clearTimeout(alertTimerRef.current)}
-                        onMouseLeave={() => scheduleAlertHide(4000)}
-                        onFocus={() => clearTimeout(alertTimerRef.current)}
-                    >
-                        <span className="lb-avatar lb-avatar-md">
-                            <AssetImage
-                                src={invitationAvatar(invitationAlert)}
-                                type="player"
-                                alt=""
-                            />
+            {/* ================= ARRIBA ================= */}
+            <header className="ffl-arriba">
+                <button type="button" className="ffl-perfil" onClick={() => navigate("/profile")} aria-label={`Tu perfil: ${jugador.displayName}, nivel ${jugador.level}`}>
+                    <span className="ffl-avatar">
+                        <AssetImage src={jugador.avatar} type="player" alt="" />
+                        <span className="ffl-nivel">{jugador.level}</span>
+                    </span>
+                    <span className="ffl-perfil-datos">
+                        <strong>{jugador.displayName}</strong>
+                        <span className="ffl-xp" title={`${jugador.experience.current} / ${jugador.experience.needed} XP`}>
+                            <span style={{ width: `${jugador.experience.percentage}%` }} />
                         </span>
+                        <small>{`Nv. ${jugador.level}`}</small>
+                    </span>
+                </button>
 
-                        <div className="lb-toast-body">
-                            <p className="lb-eyebrow">
-                                <LuBell aria-hidden="true" />
-                                <span>Nueva invitación</span>
-                            </p>
-                            <p id="lb-toast-title" className="lb-toast-title">
-                                {`${invitationName(invitationAlert)} quiere jugar contigo`}
-                            </p>
-
-                            <div className="lb-toast-actions">
-                                <button
-                                    type="button"
-                                    className="lb-btn lb-btn-primary lb-btn-sm"
-                                    onClick={() => handleAcceptInvitation(invitationAlert)}
-                                >
-                                    <LuCheck aria-hidden="true" />
-                                    <span>Aceptar</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    className="lb-btn lb-btn-ghost lb-btn-sm"
-                                    onClick={() => handleRejectInvitation(invitationAlert)}
-                                >
-                                    <span>Rechazar</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <button
-                            type="button"
-                            className="lb-icon-btn"
-                            onClick={hideAlert}
-                            aria-label="Cerrar aviso"
-                        >
-                            <LuX aria-hidden="true" />
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            <h1 className="lb-sr-only">Lobby de MathVision</h1>
-
-            <main className="lb-main">
-
-                {/* ================= IZQUIERDA ================= */}
-
-                <aside className="lb-col lb-col-left" aria-label="Tu perfil">
-
-                    <section className="lb-card lb-profile" aria-labelledby="lb-profile-title">
-
-                        <div className="lb-profile-top">
-                            <span className="lb-avatar lb-avatar-xl">
-                                <AssetImage
-                                    src={player.avatar}
-                                    type="player"
-                                    alt={`Avatar de ${player.displayName}`}
-                                    className="lobby-profile-avatar-img"
-                                />
-                            </span>
-
-                            <div className="lb-profile-id">
-                                <p className="lb-eyebrow">
-                                    <span>Perfil</span>
-                                </p>
-                                <h2 id="lb-profile-title" className="lb-profile-name">
-                                    {player.displayName}
-                                </h2>
-                                <span className="lb-level">
-                                    {`Nivel ${player.level}`}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="lb-xp">
-                            <div className="lb-xp-labels">
-                                <span>Experiencia</span>
-                                <span>{`${player.experience.current} / ${player.experience.needed} XP`}</span>
-                            </div>
-
-                            <div
-                                className="lb-xp-bar"
-                                role="progressbar"
-                                aria-label={`Progreso al nivel ${player.level + 1}`}
-                                aria-valuemin={0}
-                                aria-valuemax={100}
-                                aria-valuenow={player.experience.percentage}
-                                aria-valuetext={`${player.experience.percentage}% para el nivel ${player.level + 1}`}
-                            >
-                                <span style={{ width: `${player.experience.percentage}%` }} />
-                            </div>
-
-                            <p className="lb-muted">
-                                {`${player.experience.percentage}% para el nivel ${player.level + 1}`}
-                            </p>
-                        </div>
-
-                        <dl className="lb-stats">
-                            <div>
-                                <dt>
-                                    <LuTrophy aria-hidden="true" />
-                                    <span>Victorias</span>
-                                </dt>
-                                <dd>{player.statistics.wins}</dd>
-                            </div>
-                            <div>
-                                <dt>
-                                    <LuSwords aria-hidden="true" />
-                                    <span>Partidas</span>
-                                </dt>
-                                <dd>{player.statistics.matches}</dd>
-                            </div>
-                            <div>
-                                <dt>
-                                    <LuPercent aria-hidden="true" />
-                                    <span>Aciertos</span>
-                                </dt>
-                                <dd>{`${player.statistics.accuracy}%`}</dd>
-                            </div>
-                        </dl>
-
-                        <button
-                            type="button"
-                            className="lb-btn lb-btn-secondary lb-btn-block"
-                            onClick={() => navigate("/character")}
-                        >
-                            <LuPalette aria-hidden="true" />
-                            <span>Personalizar</span>
-                            <LuArrowRight aria-hidden="true" className="lb-btn-end" />
-                        </button>
-                    </section>
-
-                    <section className="lb-card" aria-labelledby="lb-soon-title">
-                        <SectionHeader
-                            id="lb-soon-title"
-                            eyebrow="Atajos"
-                            icon={LuSparkles}
-                            title="Para ti"
-                        />
-
-                        <ul className="lb-soon-grid">
-                            <AccessTile
-                                icon={LuBookOpen}
-                                title="Preguntas"
-                                onClick={() => navigate("/games/preguntas")}
-                            />
-                            <AccessTile
-                                icon={LuShoppingBag}
-                                title="Tienda"
-                                onClick={() => navigate("/tienda")}
-                            />
-                            {player.esAdmin ? (
-                                <AccessTile
-                                    icon={LuShieldCheck}
-                                    title="Administrar"
-                                    onClick={() => navigate("/admin")}
-                                />
-                            ) : (
-                                <ComingSoonTile icon={LuSparkles} title="Misiones" />
-                            )}
-                            <ComingSoonTile icon={LuTrophy} title="Ranking" />
-                        </ul>
-                    </section>
-                </aside>
-
-                {/* ================= CENTRO ================= */}
-
-                <div className="lb-col lb-col-center">
-
-                    {/* Personaje sin fondo: se ve el colegio detrás */}
-                    <section className="lb-stage" aria-label="Tu personaje">
-
-                        <div
-                            className="lb-stage-canvas"
-                            role="img"
-                            aria-label={`Personaje 3D de ${player.displayName}. Arrastra para girarlo.`}
-                        >
-                            <ProtegerError respaldo={<p className="sin-3d">Tu personaje 3D no se pudo mostrar en este dispositivo.</p>}>
-                            <Canvas
-                                gl={{ alpha: true }}
-                                camera={{ position: [0, 1.35, 4.5], fov: 42 }}
-                            >
-                                <LucesPersonaje calida />
-
-                                <Suspense fallback={null}>
-                                    {player.characterModel && (
-                                        <VRMCharacter
-                                            key={player.characterModel}
-                                            url={player.characterModel}
-                                            scale={1.9}
-                                            position={[0, -1.7, 0]}
-                                            rotation={[0, 0, 0]}
-                                        />
-                                    )}
-                                </Suspense>
-
-                                <OrbitControls
-                                    enableZoom={false}
-                                    enablePan={false}
-                                    enableRotate
-                                    enableDamping
-                                    minPolarAngle={Math.PI / 2}
-                                    maxPolarAngle={Math.PI / 2}
-                                />
-                            </Canvas>
-</ProtegerError>
-                        </div>
-
-                        <div className="lb-stage-tag">
-                            <span className="lb-stage-tag-icon" aria-hidden="true">
-                                <LuGamepad2 />
-                            </span>
-                            <div>
-                                <p className="lb-stage-name">{player.displayName}</p>
-                                <p className="lb-stage-level">{`Nivel ${player.level}`}</p>
-                            </div>
-                        </div>
-
-                        <p className="lb-stage-hint" aria-hidden="true">
-                            <LuHand />
-                            <span>Arrastra para girar</span>
-                        </p>
-                    </section>
-
-                    <div id="lb-games-banner" className="lb-banner-wrap">
-                        <GamesBanner
-                            games={games}
-                            onOpen={() => setGamesOpen(true)}
-                        />
-                    </div>
+                <div className="ffl-monedas">
+                    <span className="ffl-moneda" title="Oro">
+                        <span className="ffl-moneda-oro" aria-hidden="true" />
+                        {formato.format(jugador.currencies.coins)}
+                        <span className="ffl-oculto"> de oro</span>
+                    </span>
+                    <button type="button" className="ffl-moneda" onClick={() => navigate("/tienda")} title="Diamantes · ir a la tienda">
+                        <LuGem aria-hidden="true" className="ffl-moneda-diamante" />
+                        {formato.format(jugador.currencies.gems)}
+                        <span className="ffl-oculto"> diamantes</span>
+                        <LuPlus aria-hidden="true" className="ffl-moneda-mas" />
+                    </button>
                 </div>
 
-                {/* ================= DERECHA ================= */}
+                <div className="ffl-arriba-der">
+                    <span className="ffl-logo" aria-hidden="true">
+                        LUDO<span>GAMIF</span>
+                    </span>
+                    <button type="button" className="ffl-icono" onClick={pantallaCompleta} aria-label={completa ? "Salir de pantalla completa" : "Pantalla completa"} title="Pantalla completa">
+                        {completa ? <LuShrink aria-hidden="true" /> : <LuExpand aria-hidden="true" />}
+                    </button>
+                    <button type="button" className="ffl-icono" onClick={() => cambiarSilencio()} aria-label={silencio ? "Activar sonido" : "Silenciar"} title="Sonido">
+                        {silencio ? <LuVolumeX aria-hidden="true" /> : <LuVolume2 aria-hidden="true" />}
+                    </button>
+                    {jugador.esAdmin && (
+                        <button type="button" className="ffl-icono" onClick={() => navigate("/admin")} aria-label="Panel de administración" title="Panel">
+                            <LuShieldCheck aria-hidden="true" />
+                        </button>
+                    )}
+                </div>
+            </header>
 
-                <aside className="lb-col lb-col-right" aria-label="Comunidad">
+            {/* ================= IZQUIERDA ================= */}
+            <nav className="ffl-menu" aria-label="Menú">
+                <button type="button" className="ffl-destacado" onClick={() => elegir(destacado)} aria-label={`Nuevo: ${destacado.name}. Elegir este juego`}>
+                    <img src={destacado.image} alt="" draggable="false" />
+                    <span className="ffl-destacado-tag" aria-hidden="true">Nuevo</span>
+                </button>
 
-                    <section className="lb-card lb-status" aria-label="Estado de conexión">
-                        <span className="lb-status-dot" aria-hidden="true" />
-                        <div className="lb-status-body">
-                            <p className="lb-status-title">En línea</p>
-                            <p className="lb-muted">
-                                {`${connectedCount} ${connectedCount === 1 ? "jugador conectado" : "jugadores conectados"}`}
-                            </p>
-                        </div>
-                        <LuGlobe aria-hidden="true" className="lb-status-icon" />
-                    </section>
+                {[
+                    { texto: "Tienda", icono: LuShoppingCart, ruta: "/tienda" },
+                    { texto: "Preguntas", icono: LuBookOpen, ruta: "/games/preguntas" },
+                    { texto: "Sala", icono: LuUsers, ruta: "/sala" },
+                    { texto: "Mundo", icono: LuGlobe, ruta: "/world" },
+                ].map(({ texto, icono: Icono, ruta }) => (
+                    <button key={ruta} type="button" className="ffl-menu-btn" onClick={() => navigate(ruta)}>
+                        <Icono aria-hidden="true" />
+                        <span>{texto}</span>
+                    </button>
+                ))}
+            </nav>
 
-                    {/* INVITACIONES */}
+            {/* ================= DERECHA: JUGADORES ================= */}
+            <aside className={`ffl-amigos ${plegado ? "ffl-plegado" : ""}`} aria-label="Jugadores en línea">
+                <div className="ffl-amigos-caja">
+                    <header className="ffl-amigos-cabeza">
+                        <span>
+                            <i className="ffl-punto" aria-hidden="true" />
+                            {`En línea ${jugadores.length}`}
+                        </span>
+                        <button type="button" className="ffl-icono ffl-icono-chico" onClick={actualizar} aria-label="Actualizar lista" title="Actualizar">
+                            <LuRefreshCw aria-hidden="true" className={actualizando ? "ffl-girando" : ""} />
+                        </button>
+                    </header>
 
-                    <section className="lb-card lb-invitations" aria-labelledby="lb-inv-title">
-                        <SectionHeader
-                            id="lb-inv-title"
-                            eyebrow="Para ti"
-                            icon={LuBell}
-                            title="Invitaciones"
-                            action={
-                                invitations.length > 0 && (
-                                    <span
-                                        className="lb-count lb-count-alert"
-                                        aria-label={`${invitations.length} pendientes`}
-                                    >
-                                        {invitations.length}
-                                    </span>
-                                )
-                            }
-                        />
+                    {jugadores.length === 0 ? (
+                        <p className="ffl-vacio">Nadie más conectado.</p>
+                    ) : (
+                        <ul className="ffl-amigos-lista">
+                            {jugadores.map((p) => {
+                                const estado = ESTADOS[p.status] || ESTADOS.available;
+                                const segundos = espera(p.id);
+                                const jugando = p.status === "playing";
 
-                        {invitations.length === 0 ? (
-                            <EmptyState icon={LuBell}>
-                                No tienes invitaciones por ahora.
-                            </EmptyState>
-                        ) : (
-                            <ul className="lb-list lb-scroll">
-                                {invitations.map((invitation, index) => {
-
-                                    const name = invitationName(invitation);
-
-                                    return (
-                                        <li
-                                            className="lb-row"
-                                            key={invitationKey(invitation) || index}
-                                        >
-                                            <span className="lb-avatar">
-                                                <AssetImage
-                                                    src={invitationAvatar(invitation)}
-                                                    type="player"
-                                                    alt=""
-                                                />
+                                return (
+                                    <li key={p.id} className="ffl-amigo">
+                                        <button type="button" className="ffl-amigo-perfil" onClick={() => navigate(`/profile/${p.id}`)} aria-label={`${p.name}, ${estado.texto}`}>
+                                            <span className="ffl-amigo-foto">
+                                                <AssetImage src={p.avatar} type="player" alt="" />
+                                                <i className={`ffl-estado ffl-estado-${estado.tono}`} aria-hidden="true" />
                                             </span>
-
-                                            <div className="lb-row-body">
-                                                <p className="lb-row-title">{name}</p>
-                                                <p className="lb-muted">
-                                                    {invitation.message || "Te invitó a jugar"}
-                                                </p>
-                                            </div>
-
-                                            <div className="lb-row-actions">
-                                                <button
-                                                    type="button"
-                                                    className="lb-icon-btn lb-icon-btn-success"
-                                                    onClick={() => handleAcceptInvitation(invitation)}
-                                                    aria-label={`Aceptar invitación de ${name}`}
-                                                    title="Aceptar"
-                                                >
-                                                    <LuCheck aria-hidden="true" />
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="lb-icon-btn lb-icon-btn-danger"
-                                                    onClick={() => handleRejectInvitation(invitation)}
-                                                    aria-label={`Rechazar invitación de ${name}`}
-                                                    title="Rechazar"
-                                                >
-                                                    <LuX aria-hidden="true" />
-                                                </button>
-                                            </div>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
-                    </section>
-
-                    {/* JUGADORES ONLINE */}
-
-                    <section className="lb-card lb-players" aria-labelledby="lb-players-title">
-                        <SectionHeader
-                            id="lb-players-title"
-                            eyebrow="Comunidad"
-                            icon={LuUsers}
-                            title="Jugadores en línea"
-                            action={
-                                <span
-                                    className="lb-count"
-                                    aria-label={`${onlinePlayers.length} en línea`}
-                                >
-                                    {onlinePlayers.length}
-                                </span>
-                            }
-                        />
-
-                        {onlinePlayers.length === 0 ? (
-                            <EmptyState icon={LuUsers}>
-                                No hay otros jugadores en línea. ¡Invita a un amigo!
-                            </EmptyState>
-                        ) : (
-                            <ul
-                                className="lb-list lb-scroll"
-                                tabIndex={0}
-                                aria-label="Lista de jugadores en línea"
-                            >
-                                {onlinePlayers.map((onlinePlayer) => {
-
-                                    const status = statusOf(onlinePlayer);
-                                    const isAvailable =
-                                        (onlinePlayer.status || "available") === "available";
-                                    const name = onlinePlayer.name || "Jugador";
-
-                                    return (
-                                        <li className="lb-row" key={onlinePlayer.id}>
-
-                                            <button
-                                                type="button"
-                                                className="lb-row-profile"
-                                                onClick={() => goToProfile(onlinePlayer.id)}
-                                                aria-label={`Ver perfil de ${name}, ${status.label}`}
-                                            >
-                                                <span className="lb-avatar">
-                                                    <AssetImage
-                                                        src={onlinePlayer.avatar}
-                                                        type="player"
-                                                        alt=""
-                                                    />
-                                                    <span
-                                                        className={`lb-presence lb-presence-${status.tone}`}
-                                                        aria-hidden="true"
-                                                    />
-                                                </span>
-
-                                                <span className="lb-row-body">
-                                                    <span className="lb-row-title">{name}</span>
-                                                    <span className={`lb-status-text lb-status-${status.tone}`}>
-                                                        {status.label}
-                                                    </span>
-                                                </span>
-                                            </button>
-
-                                            {isAvailable ? (
-                                                <button
-                                                    type="button"
-                                                    className="lb-btn lb-btn-primary lb-btn-sm"
-                                                    onClick={() => handleInvite(onlinePlayer)}
-                                                    aria-label={`Invitar a ${name} a jugar`}
-                                                >
-                                                    <LuUserPlus aria-hidden="true" />
-                                                    <span>Invitar</span>
-                                                </button>
+                                            <span className="ffl-amigo-nombre">{p.name}</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="ffl-invitar"
+                                            onClick={() => invitar(p)}
+                                            disabled={jugando || segundos !== 0}
+                                            aria-label={jugando ? `${p.name} está jugando` : `Invitar a ${p.name}`}
+                                            title={jugando ? "Jugando" : segundos > 0 ? `Invitar otra vez en ${segundos} s` : "Invitar"}
+                                        >
+                                            {jugando ? (
+                                                <LuGamepad2 aria-hidden="true" />
+                                            ) : segundos > 0 ? (
+                                                <span className="ffl-segundos">{segundos}</span>
                                             ) : (
-                                                <span className="lb-waiting" title={status.label}>
-                                                    <LuHourglass aria-hidden="true" />
-                                                    <span className="lb-sr-only">{status.label}</span>
-                                                </span>
+                                                <LuPlus aria-hidden="true" />
                                             )}
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+                </div>
 
-                        <p className="lb-inline-status" role="status" aria-live="polite">
-                            {onlineMessage}
-                        </p>
-                    </section>
+                <button
+                    type="button"
+                    className="ffl-plegar"
+                    onClick={() => setPlegado((v) => !v)}
+                    aria-label={plegado ? "Mostrar jugadores" : "Ocultar jugadores"}
+                    aria-expanded={!plegado}
+                >
+                    {plegado ? <LuChevronLeft aria-hidden="true" /> : <LuChevronRight aria-hidden="true" />}
+                    {plegado && disponibles > 0 && <span className="ffl-plegar-num">{disponibles}</span>}
+                </button>
+            </aside>
 
-                    <p className="lb-credits">Creado por Sebastián Pitre</p>
-                </aside>
-            </main>
+            {/* ================= ABAJO IZQUIERDA ================= */}
+            <p className="ffl-aviso" aria-live="off">
+                <span className="ffl-aviso-etiqueta">Aviso</span>
+                <span className="ffl-aviso-texto">{aviso?.texto || `¡Hola, ${jugador.displayName}! Elige un juego y toca INICIAR.`}</span>
+            </p>
 
-            {/* ================= MODAL DE JUEGOS ================= */}
+            <nav className="ffl-barra" aria-label="Atajos">
+                <span className="ffl-barra-logo" aria-hidden="true">L</span>
+                <button type="button" className="ffl-barra-btn" onClick={() => navigate("/character")}>
+                    <LuShirt aria-hidden="true" />
+                    <span>Personajes</span>
+                </button>
+                <button type="button" className="ffl-barra-btn" onClick={() => navigate("/profile")}>
+                    <LuUserRound aria-hidden="true" />
+                    <span>Perfil</span>
+                </button>
+                <button
+                    type="button"
+                    className="ffl-barra-btn"
+                    onClick={() => navigate("/triqui-local", { state: { playerName: jugador.displayName } })}
+                >
+                    <LuSmartphone aria-hidden="true" />
+                    <span>Triqui local</span>
+                </button>
+            </nav>
 
-            <GamesModal
-                open={gamesOpen}
-                onClose={() => setGamesOpen(false)}
-                games={games}
-                playerName={player.displayName}
-                onPlay={(game) => {
-                    setGamesOpen(false);
-                    // Los juegos de 2 o más jugadores llevan a la sala
-                    // (si no tienes una, se crea).
-                    navigate(game.route, game.route === "/sala" ? { state: { crear: true } } : undefined);
-                }}
-                onPlayLocal={() => {
-                    setGamesOpen(false);
-                    navigate("/triqui-local", {
-                        state: { playerName: player.displayName },
-                    });
-                }}
-            />
+            {/* ================= ABAJO DERECHA: INICIAR ================= */}
+            <div className="ffl-inicio">
+                <button type="button" className="ffl-juego" onClick={() => setEligiendo(true)} aria-label={`Juego: ${juego.name}. Cambiar juego`}>
+                    <img src={juego.image} alt="" draggable="false" />
+                    <span className="ffl-juego-texto">
+                        <strong>{juego.name}</strong>
+                        <small>{textoJugadores(juego)}</small>
+                    </span>
+                    <span className="ffl-juego-cambiar" aria-hidden="true">
+                        <LuSettings2 />
+                    </span>
+                </button>
+                <button type="button" className="ffl-iniciar" onClick={iniciar}>
+                    Iniciar
+                </button>
+            </div>
+
+            {eligiendo && <ElegirJuego elegido={juego} onElegir={elegir} onCerrar={() => setEligiendo(false)} />}
         </div>
     );
 }

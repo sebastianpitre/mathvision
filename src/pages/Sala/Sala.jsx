@@ -25,6 +25,8 @@ import AssetImage from "../../components/common/AssetImage";
 import ProtegerError from "../../components/common/ProtegerError";
 import { BurbujaEmoji, SelectorEmojis } from "../../components/common/Emojis";
 import { useEmojisSala } from "../../components/common/useEmojisSala";
+import { useJugadoresEnLinea, ESTADOS } from "../../hooks/useJugadoresEnLinea";
+import { useInvitar } from "../../hooks/useInvitar";
 import VRMCharacter from "../../components/character/VRMCharacter";
 import LucesPersonaje from "../../components/character/LucesPersonaje";
 import { useAuth } from "../../context/AuthContext";
@@ -101,9 +103,8 @@ export default function Sala() {
     const [sala, setSala] = useState(undefined); // undefined = cargando, null = sin sala
     const [codigo, setCodigo] = useState("");
     const [aviso, setAviso] = useState({ texto: "", tono: "" });
-    const [conectados, setConectados] = useState([]);
-    const [invitados, setInvitados] = useState(() => new Set());
-    const [invitacion, setInvitacion] = useState(null);
+    const { jugadores: conectados } = useJugadoresEnLinea();
+    const { invitar: enviarInvitacion, espera } = useInvitar();
     const [copiado, setCopiado] = useState(false);
     const [porSacar, setPorSacar] = useState(null); // userId que el creador está por sacar
     const [eligiendoJuego, setEligiendoJuego] = useState(false);
@@ -111,6 +112,8 @@ export default function Sala() {
 
     const avisoTimer = useRef(null);
     const crearAlEntrar = useRef(Boolean(location.state?.crear));
+    // Desde el botón INICIAR del lobby llega el juego que se quiere jugar.
+    const juegoPedido = useRef(location.state?.juego || null);
 
     const avisar = useCallback((texto, tono = "ok", ms = 3500) => {
         clearTimeout(avisoTimer.current);
@@ -123,10 +126,7 @@ export default function Sala() {
     /* ---------------- Conexión ---------------- */
 
     useEffect(() => {
-        const alConectar = () => {
-            socket.emit("sala:estado");
-            socket.emit("world:join");
-        };
+        const alConectar = () => socket.emit("sala:estado");
 
         const alEstado = ({ sala: nueva }) => {
             if (nueva === null && crearAlEntrar.current) {
@@ -135,34 +135,24 @@ export default function Sala() {
                 return;
             }
             crearAlEntrar.current = false;
+
+            // Si soy el creador, se pone el juego que elegí en el lobby.
+            if (nueva && juegoPedido.current && nueva.hostUserId === miId && nueva.estado === "sala") {
+                if (nueva.juego !== juegoPedido.current) socket.emit("sala:elegirJuego", { juego: juegoPedido.current });
+                juegoPedido.current = null;
+            }
+
             setSala(nueva);
         };
 
+        // Las invitaciones y sus avisos se muestran en cualquier
+        // pantalla (Notificaciones); aquí solo lo de la sala.
         const alError = ({ message }) => avisar(message, "error", 4500);
-        const alJugadores = ({ players = [] } = {}) =>
-            setConectados(players.filter((p) => String(p.id) !== miId));
-        const alInvitar = ({ targetPlayerName }) => avisar(`Invitación enviada a ${targetPlayerName}.`);
-        const alRechazo = ({ playerName, targetPlayerId }) => {
-            avisar(`${playerName} rechazó la invitación.`, "error");
-            setInvitados((s) => {
-                const n = new Set(s);
-                n.delete(String(targetPlayerId));
-                return n;
-            });
-        };
-        const alAceptar = ({ playerName }) => avisar(`¡${playerName} entró a la sala!`);
-        const alInvitacion = (inv) => setInvitacion(inv);
         const alExpulsado = ({ message }) => avisar(message, "error", 6000);
 
         socket.on("connect", alConectar);
         socket.on("sala:estado", alEstado);
         socket.on("sala:error", alError);
-        socket.on("world:error", alError);
-        socket.on("world:players", alJugadores);
-        socket.on("world:inviteSent", alInvitar);
-        socket.on("world:invitationRejected", alRechazo);
-        socket.on("world:inviteAccepted", alAceptar);
-        socket.on("world:invitation", alInvitacion);
         socket.on("sala:expulsado", alExpulsado);
 
         if (socket.connected) alConectar();
@@ -172,12 +162,6 @@ export default function Sala() {
             socket.off("connect", alConectar);
             socket.off("sala:estado", alEstado);
             socket.off("sala:error", alError);
-            socket.off("world:error", alError);
-            socket.off("world:players", alJugadores);
-            socket.off("world:inviteSent", alInvitar);
-            socket.off("world:invitationRejected", alRechazo);
-            socket.off("world:inviteAccepted", alAceptar);
-            socket.off("world:invitation", alInvitacion);
             socket.off("sala:expulsado", alExpulsado);
             clearTimeout(avisoTimer.current);
         };
@@ -213,16 +197,7 @@ export default function Sala() {
 
     const invitar = (jugador) => {
         if (llena) return avisar("La sala ya está llena.", "error");
-        setInvitados((s) => new Set(s).add(String(jugador.id)));
-        socket.emit("world:invite", { targetPlayerId: jugador.id });
-    };
-
-    const responderInvitacion = (aceptar) => {
-        if (!invitacion) return;
-        socket.emit(aceptar ? "world:acceptInvitation" : "world:rejectInvitation", {
-            fromPlayerId: invitacion.fromPlayerId,
-        });
-        setInvitacion(null);
+        enviarInvitacion(jugador);
     };
 
     const elegirJuego = (juego) => {
@@ -513,8 +488,8 @@ export default function Sala() {
                         ) : (
                             <ul className="sl-lista">
                                 {invitables.map((p) => {
-                                    const disponible = (p.status || "available") === "available";
-                                    const yaInvitado = invitados.has(String(p.id));
+                                    const jugando = p.status === "playing";
+                                    const segundos = espera(p.id);
 
                                     return (
                                         <li key={p.id} className="sl-jugador">
@@ -523,15 +498,16 @@ export default function Sala() {
                                             </span>
                                             <span className="sl-jugador-datos">
                                                 <strong>{p.name}</strong>
-                                                <small>{disponible ? "Disponible" : p.status === "playing" ? "En partida" : "Ocupado"}</small>
+                                                <small>{(ESTADOS[p.status] || ESTADOS.available).texto}</small>
                                             </span>
                                             <button
                                                 type="button"
                                                 className="lb-btn lb-btn-primary lb-btn-sm"
-                                                disabled={!disponible || yaInvitado || llena || sala.estado !== "sala"}
+                                                disabled={jugando || segundos !== 0 || llena || sala.estado !== "sala"}
                                                 onClick={() => invitar(p)}
+                                                title={segundos > 0 ? `Puedes invitar otra vez en ${segundos} s` : undefined}
                                             >
-                                                {yaInvitado ? "Invitado" : "Invitar"}
+                                                {segundos > 0 ? `${segundos} s` : segundos < 0 ? "…" : "Invitar"}
                                             </button>
                                         </li>
                                     );
@@ -594,21 +570,6 @@ export default function Sala() {
             <div className="sl-avisos" aria-live="polite">
                 {aviso.texto && <p className={aviso.tono === "error" ? "lg-alert" : "lg-ok"}>{aviso.texto}</p>}
 
-                {invitacion && (
-                    <div className="lb-card sl-invitacion" role="dialog" aria-labelledby="sl-inv-titulo">
-                        <p id="sl-inv-titulo"><strong>{invitacion.fromPlayerName}</strong> te invitó a su sala</p>
-                        <div className="lg-row">
-                            <button type="button" className="lb-btn lb-btn-primary lb-btn-sm" onClick={() => responderInvitacion(true)}>
-                                <LuCheck aria-hidden="true" />
-                                Ir a su sala
-                            </button>
-                            <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => responderInvitacion(false)}>
-                                <LuX aria-hidden="true" />
-                                No, gracias
-                            </button>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

@@ -47,6 +47,15 @@ export class WorldManager {
 
         this.INVITE_WINDOW_MS = 30 * 1000;
 
+
+        /*
+         * Estado real de cada jugador (lo pone server.js según
+         * su sala): "available" | "sala" | "playing".
+         * Invitar ya no cambia el estado de nadie.
+         */
+
+        this.estadoDe = null;
+
     }
 
 
@@ -719,25 +728,9 @@ export class WorldManager {
                         );
 
 
-                    let status =
-                        player.status;
-
-
-                    /*
-                     * Si tiene invitaciones salientes
-                     * pero sigue disponible para enviar más,
-                     * mostramos "inviting".
-                     */
-
-                    if (
-                        outgoing.length > 0 &&
-                        status === "available"
-                    ) {
-
-                        status =
-                            "inviting";
-
-                    }
+                    const status =
+                        this.estadoDe?.(player.id) ||
+                        (player.status === "playing" ? "playing" : "available");
 
 
                     return {

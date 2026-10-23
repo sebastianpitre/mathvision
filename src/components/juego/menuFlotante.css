@@ -1,0 +1,126 @@
+/* Menú flotante (como el botón de iPhone) */
+
+.mf-boton {
+    position: fixed;
+    z-index: 8500;
+    width: calc(var(--u) * 3);
+    height: calc(var(--u) * 3);
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: calc(var(--u) * 0.85);
+    background: rgba(20, 22, 30, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 calc(var(--u) * 0.2) calc(var(--u) * 0.6) rgba(0, 0, 0, 0.35);
+    opacity: 0.72;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: opacity 0.2s, top 0.25s ease, left 0.25s ease, right 0.25s ease;
+}
+
+.mf-boton:hover,
+.mf-boton:focus-visible,
+.mf-arrastrando,
+.mf-boton-abierto {
+    opacity: 1;
+}
+
+.mf-arrastrando {
+    cursor: grabbing;
+}
+
+.mf-anillo {
+    width: 66%;
+    height: 66%;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.mf-anillo span {
+    width: 72%;
+    height: 72%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.mf-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 8400;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.35);
+    animation: mf-aparecer 0.15s ease-out;
+}
+
+.mf-panel {
+    width: calc(var(--u) * 19);
+    max-width: calc(100vw - var(--u) * 2);
+    padding: calc(var(--u) * 0.8);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: calc(var(--u) * 0.45);
+    border-radius: calc(var(--u) * 1.4);
+    background: rgba(24, 26, 34, 0.86);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 calc(var(--u) * 0.6) calc(var(--u) * 2) rgba(0, 0, 0, 0.5);
+    animation: mf-crecer 0.18s ease-out;
+}
+
+.mf-opcion {
+    aspect-ratio: 1.15;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 0.3);
+    padding: calc(var(--u) * 0.3);
+    border: 0;
+    border-radius: calc(var(--u) * 0.8);
+    background: transparent;
+    color: #fff;
+    font-family: var(--fuente-juego);
+    font-size: calc(var(--u) * 0.82);
+    font-weight: 600;
+    line-height: 1.05;
+    text-align: center;
+    cursor: pointer;
+}
+
+.mf-opcion svg {
+    width: calc(var(--u) * 1.6);
+    height: calc(var(--u) * 1.6);
+}
+
+.mf-opcion:hover,
+.mf-opcion:focus-visible {
+    background: rgba(255, 255, 255, 0.12);
+    outline: none;
+}
+
+.mf-destacada svg {
+    color: #ffcf3e;
+}
+
+.mf-apagada svg {
+    color: #f87171;
+}
+
+@keyframes mf-aparecer {
+    from { opacity: 0; }
+}
+
+@keyframes mf-crecer {
+    from { transform: scale(0.85); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mf-fondo, .mf-panel { animation: none; }
+}
