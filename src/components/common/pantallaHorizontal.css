@@ -54,6 +54,12 @@
     cursor: pointer;
 }
 
+.ph-boton-secundario {
+    background: transparent;
+    color: #f4f6fb;
+    border: 2px solid rgba(244, 246, 251, 0.35);
+}
+
 .ph-boton:active {
     transform: scale(0.97);
 }
