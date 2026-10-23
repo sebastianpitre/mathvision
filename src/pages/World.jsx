@@ -30,7 +30,6 @@ import {
     LuRefreshCw,
     LuSearch,
     LuSend,
-    LuShuffle,
     LuSmartphone,
     LuSwords,
     LuUserMinus,
@@ -427,11 +426,11 @@ function InvitationDialog({ invitation, onAccept, onReject }) {
                     </p>
 
                     <h2 id="wd-inv-title" className="wd-dialog-title">
-                        {`${invitation.fromPlayerName || "Un jugador"} te reta`}
+                        {`${invitation.fromPlayerName || "Un jugador"} te invita`}
                     </h2>
 
                     <p id="wd-inv-desc" className="wd-muted">
-                        Quiere jugar una partida de Triqui Matemático contigo.
+                        Te invitó a su sala para jugar juntos.
                     </p>
 
                     <div className="wd-dialog-actions">
@@ -450,7 +449,7 @@ function InvitationDialog({ invitation, onAccept, onReject }) {
                             data-autofocus
                         >
                             <LuSwords aria-hidden="true" />
-                            <span>¡Aceptar reto!</span>
+                            <span>Ir a su sala</span>
                         </button>
                     </div>
                 </div>
@@ -616,9 +615,7 @@ export default function World() {
             pushFeed("error", message);
         };
 
-        const onGameCreated = () => {
-            navigate("/games/triqui");
-        };
+        
 
         socket.on("connect", onConnect);
         socket.on("disconnect", onDisconnect);
@@ -629,7 +626,6 @@ export default function World() {
         socket.on("world:inviteSent", onInviteSent);
         socket.on("world:invitationRejected", onInvitationRejected);
         socket.on("world:error", onWorldError);
-        socket.on("world:gameCreated", onGameCreated);
 
         if (socket.connected) {
             entrarAlMundo();
@@ -647,7 +643,6 @@ export default function World() {
             socket.off("world:inviteSent", onInviteSent);
             socket.off("world:invitationRejected", onInvitationRejected);
             socket.off("world:error", onWorldError);
-            socket.off("world:gameCreated", onGameCreated);
         };
 
     }, [navigate, entrarAlMundo, pushFeed, removePending]);
@@ -702,18 +697,6 @@ export default function World() {
 
     const playingCount = otherPlayers.filter((p) => p.status === "playing").length;
 
-    const partidaRapida = () => {
-
-        if (availablePlayers.length === 0) {
-            pushFeed("error", "No hay jugadores disponibles ahora mismo");
-            return;
-        }
-
-        const rival = availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
-
-        pushFeed("sent", `Partida rápida: buscando a ${rival.name}`);
-        invitar(rival.id);
-    };
 
     const visiblePlayers = otherPlayers
         .filter((p) => filter === "all" || p.status === filter)
@@ -1006,7 +989,7 @@ export default function World() {
                                 <span>Partida rápida</span>
                             </p>
                             <h2 id="wd-quick-title" className="wd-quick-title">
-                                ¿Listo para un reto?
+                                ¿Jugamos en grupo?
                             </h2>
                             <p className="wd-quick-sub">
                                 {availablePlayers.length > 0
@@ -1040,11 +1023,10 @@ export default function World() {
                             <button
                                 type="button"
                                 className="wd-btn wd-btn-primary wd-btn-lg"
-                                onClick={partidaRapida}
-                                disabled={availablePlayers.length === 0}
+                                onClick={() => navigate("/sala", { state: { crear: true } })}
                             >
-                                <LuShuffle aria-hidden="true" />
-                                <span>Buscar rival</span>
+                                <LuUsers aria-hidden="true" />
+                                <span>Ir a mi sala</span>
                             </button>
                         </div>
                     </section>

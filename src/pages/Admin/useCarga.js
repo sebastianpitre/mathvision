@@ -48,6 +48,7 @@ export const NOMBRE_JUEGO = {
     preguntas: "Preguntas",
     triqui: "Triqui",
     "escape-algebra": "Escape Álgebra",
+    siglo: "SigloGamif",
 };
 
 export const NOMBRE_RESULTADO = {

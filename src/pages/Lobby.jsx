@@ -489,16 +489,11 @@ export default function Lobby() {
             );
         };
 
-        const handleGameCreated = () => {
-            navigate("/games/triqui");
-        };
-
         socket.on("connect", handleConnect);
         socket.on("world:players", handlePlayers);
         socket.on("world:invitation", handleInvitation);
         socket.on("world:inviteSent", handleInviteSent);
         socket.on("world:invitationRejected", handleInvitationRejected);
-        socket.on("world:gameCreated", handleGameCreated);
 
         if (socket.connected) {
             socket.emit("world:join");
@@ -512,7 +507,6 @@ export default function Lobby() {
             socket.off("world:invitation", handleInvitation);
             socket.off("world:inviteSent", handleInviteSent);
             socket.off("world:invitationRejected", handleInvitationRejected);
-            socket.off("world:gameCreated", handleGameCreated);
         };
 
     }, [user, navigate, scheduleAlertHide, showOnlineMessage]);
@@ -1079,7 +1073,9 @@ export default function Lobby() {
                 playerName={player.displayName}
                 onPlay={(game) => {
                     setGamesOpen(false);
-                    navigate(game.route);
+                    // Los juegos de 2 o más jugadores llevan a la sala
+                    // (si no tienes una, se crea).
+                    navigate(game.route, game.route === "/sala" ? { state: { crear: true } } : undefined);
                 }}
                 onPlayLocal={() => {
                     setGamesOpen(false);

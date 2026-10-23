@@ -1251,6 +1251,7 @@
 ========================================================= */
 
 .wd-dialog {
+    margin: auto;
     width: min(440px, calc(100vw - 32px));
     padding: 0;
     border: 1px solid var(--wd-border-strong);

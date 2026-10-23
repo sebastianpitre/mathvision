@@ -1,0 +1,460 @@
+/* =========================================================
+   SIGLOGAMIF
+   Pantalla fija: encabezado, tablero de jugadores (izq.),
+   jugadas (der., con scroll interno) y la zona de acción
+   abajo. Nunca hace scroll como página.
+========================================================= */
+
+.sg {
+    background:
+        radial-gradient(circle at 20% 0%, rgba(155, 77, 255, 0.22), transparent 45%),
+        radial-gradient(circle at 100% 100%, rgba(90, 169, 255, 0.18), transparent 50%),
+        #070b14;
+}
+
+.sg-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px clamp(12px, 2vw, 24px);
+    border-bottom: 1px solid var(--lb-border);
+    background: rgba(8, 12, 22, 0.8);
+}
+
+.sg-titulo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
+}
+
+.sg-titulo strong {
+    font-size: 1.4rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.sg-titulo strong span {
+    color: #c084fc;
+}
+
+.sg-titulo small {
+    color: var(--lb-text-muted);
+    font-weight: 800;
+}
+
+.sg-reloj {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 76px;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--lb-accent-soft);
+    color: var(--lb-accent);
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+}
+
+.sg-reloj-urgente {
+    background: var(--lb-danger-soft);
+    color: var(--lb-danger);
+    animation: sg-latido 0.8s ease-in-out infinite;
+}
+
+@keyframes sg-latido {
+    50% { transform: scale(1.08); }
+}
+
+.sg-main {
+    flex: 1;
+    min-height: 0;
+    width: min(1400px, 100%);
+    margin: 0 auto;
+    padding: var(--lb-gap);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "tablero actividad"
+        "accion accion";
+    gap: var(--lb-gap);
+    overflow: hidden;
+}
+
+/* ---------- Tablero ---------- */
+
+.sg-tablero {
+    grid-area: tablero;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    padding: 3px;
+}
+
+.sg-fila {
+    display: grid;
+    grid-template-columns: minmax(120px, 190px) minmax(0, 1fr) minmax(90px, 130px);
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: var(--lb-radius-lg);
+    border: 2px solid var(--lb-border);
+    background: var(--lb-surface);
+    transition: border-color 0.2s, opacity 0.2s, transform 0.2s;
+}
+
+.sg-fila-yo {
+    background: linear-gradient(90deg, rgba(90, 169, 255, 0.14), var(--lb-surface) 40%);
+}
+
+.sg-fila-turno {
+    border-color: var(--lb-accent);
+    box-shadow: 0 0 0 4px var(--lb-accent-soft);
+}
+
+.sg-fila-eliminado {
+    opacity: 0.45;
+    filter: grayscale(0.6);
+}
+
+.sg-fila-gano {
+    border-color: var(--lb-warning);
+    box-shadow: 0 0 0 4px var(--lb-warning-soft);
+}
+
+.sg-fila-nombre {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.sg-fila-nombre strong {
+    font-size: var(--lb-fs-md);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sg-fila-nombre small {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--lb-text-muted);
+    font-weight: 700;
+}
+
+.sg-tu {
+    color: var(--lb-text-muted);
+    font-weight: 700;
+}
+
+.sg-espacios {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.sg-espacio {
+    aspect-ratio: 1.25;
+    max-height: 64px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    border: 2px dashed rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.03);
+    font-size: clamp(1rem, 2.2vw, 1.5rem);
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+}
+
+.sg-espacio-lleno {
+    border-style: solid;
+    border-color: rgba(192, 132, 252, 0.55);
+    background: rgba(192, 132, 252, 0.14);
+}
+
+.sg-espacio-actual {
+    border-color: var(--lb-accent);
+    background: var(--lb-accent-soft);
+}
+
+.sg-total {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.sg-total strong {
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    font-weight: 900;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.sg-total-mal {
+    color: var(--lb-danger);
+}
+
+.sg-total-siglo {
+    color: var(--lb-warning);
+}
+
+.sg-barra {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--lb-surface-3);
+    overflow: hidden;
+}
+
+.sg-barra span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--lb-accent), #c084fc);
+    transition: width 0.4s ease;
+}
+
+/* ---------- Jugadas ---------- */
+
+.sg-actividad {
+    grid-area: actividad;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+}
+
+.sg-eventos {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sg-evento {
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--lb-surface-2);
+    font-size: var(--lb-fs-sm);
+    line-height: 1.35;
+}
+
+.sg-evento-eliminado { color: #fecaca; background: var(--lb-danger-soft); }
+.sg-evento-siglo,
+.sg-evento-ganador { color: #fde68a; background: var(--lb-warning-soft); font-weight: 800; }
+.sg-evento-desempate,
+.sg-evento-ronda { color: #bfdbfe; background: var(--lb-accent-soft); }
+
+/* ---------- Acción ---------- */
+
+.sg-accion {
+    grid-area: accion;
+    min-height: 120px;
+}
+
+.sg-accion-titulo {
+    display: block;
+    font-size: var(--lb-fs-lg);
+    font-weight: 900;
+}
+
+.sg-siglo {
+    color: var(--lb-warning);
+    font-size: 2rem;
+    letter-spacing: 0.1em;
+}
+
+.sg-mi-turno,
+.sg-espera,
+.sg-votacion,
+.sg-final {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.sg-votacion,
+.sg-final {
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.sg-mi-turno-texto {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.sg-btn-tirar {
+    min-height: 56px;
+    padding: 0 28px;
+    font-size: var(--lb-fs-md);
+}
+
+/* Dado */
+.sg-dado {
+    flex-shrink: 0;
+    width: 84px;
+    height: 84px;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 4px;
+    border-radius: 18px;
+    background: linear-gradient(145deg, #ffffff, #dfe6f3);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), inset 0 -4px 0 rgba(0, 0, 0, 0.12);
+}
+
+.sg-dado span {
+    border-radius: 50%;
+}
+
+.sg-dado .sg-punto {
+    background: #1b2236;
+}
+
+/* Opciones: unidad o decena */
+.sg-opciones {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.sg-opcion {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 76px;
+    padding: 10px 16px;
+    border-radius: 16px;
+    border: 2px solid var(--lb-border-strong);
+    background: var(--lb-surface-2);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.12s, border-color 0.12s;
+}
+
+.sg-opcion:hover {
+    transform: translateY(-2px);
+}
+
+.sg-opcion-valor {
+    min-width: 64px;
+    font-size: 2.2rem;
+    font-weight: 900;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.sg-opcion-texto {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.sg-opcion-texto small {
+    color: var(--lb-text-muted);
+    font-weight: 700;
+}
+
+.sg-opcion-ok { border-color: rgba(52, 211, 153, 0.55); }
+.sg-opcion-ok .sg-opcion-valor { color: var(--lb-success); }
+.sg-opcion-riesgo { border-color: rgba(251, 191, 36, 0.55); }
+.sg-opcion-riesgo .sg-opcion-valor,
+.sg-opcion-riesgo small { color: var(--lb-warning); }
+.sg-opcion-mal { border-color: rgba(248, 113, 113, 0.55); }
+.sg-opcion-mal .sg-opcion-valor,
+.sg-opcion-mal small { color: var(--lb-danger); }
+.sg-opcion-siglo { border-color: var(--lb-warning); background: var(--lb-warning-soft); }
+.sg-opcion-siglo .sg-opcion-valor,
+.sg-opcion-siglo small { color: var(--lb-warning); }
+
+/* Votación */
+.sg-votos {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(96px, 1fr));
+    gap: 10px;
+    flex: 1;
+    max-width: 720px;
+}
+
+.sg-voto {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-height: 70px;
+    padding: 8px;
+    border-radius: 14px;
+    border: 2px solid var(--lb-border-strong);
+    background: var(--lb-surface-2);
+    cursor: pointer;
+}
+
+.sg-voto strong {
+    font-size: 1.4rem;
+    font-weight: 900;
+}
+
+.sg-voto small {
+    color: var(--lb-text-muted);
+    font-size: 0.8rem;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    white-space: nowrap;
+}
+
+.sg-voto-mio {
+    border-color: var(--lb-accent);
+    background: var(--lb-accent-soft);
+}
+
+.sg-final-premio {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sg-subio {
+    color: var(--lb-success);
+}
+
+.sg-error {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    z-index: 60;
+}
+
+/* Vertical angosto (tablet en vertical, PC chico) */
+@media (max-width: 760px) {
+    .sg-main {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) auto;
+        grid-template-areas: "tablero" "accion";
+    }
+
+    .sg-actividad {
+        display: none;
+    }
+}

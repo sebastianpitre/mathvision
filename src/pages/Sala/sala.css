@@ -1,0 +1,401 @@
+/* =========================================================
+   SALA MULTIJUGADOR
+   Misma estructura del lobby: tres columnas que miden el
+   alto de la pantalla. Ningún bloque empuja a los demás:
+   las listas hacen scroll por dentro.
+========================================================= */
+
+.sl-main {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-height: 0;
+    width: min(1560px, 100%);
+    margin: 0 auto;
+    padding: var(--lb-gap);
+    display: grid;
+    grid-template-columns: minmax(250px, 300px) minmax(0, 1fr) minmax(270px, 330px);
+    gap: var(--lb-gap);
+    overflow: hidden;
+}
+
+.sl-col {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--lb-gap);
+    overflow: hidden;
+}
+
+.sl-col > .lb-card {
+    min-height: 0;
+}
+
+.sl-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+/* ---------- Código de la sala ---------- */
+
+.sl-codigo {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sl-codigo-fila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.sl-codigo-valor {
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    font-variant-numeric: tabular-nums;
+    color: var(--lb-accent);
+}
+
+/* ---------- Listas (jugadores, invitar) ---------- */
+
+.sl-lista-card {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sl-lista {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+}
+
+.sl-jugador {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 12px;
+    background: var(--lb-surface-2);
+    border: 1px solid var(--lb-border);
+}
+
+.sl-jugador .lb-avatar {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.sl-jugador-datos {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.sl-jugador-datos strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sl-jugador-datos small {
+    color: var(--lb-text-muted);
+    font-size: var(--lb-fs-sm);
+}
+
+.sl-tu {
+    color: var(--lb-text-muted);
+    font-weight: 700;
+}
+
+.sl-creador {
+    color: var(--lb-warning);
+    display: inline-flex;
+}
+
+.sl-desconectado {
+    opacity: 0.55;
+}
+
+.sl-icono-off {
+    color: var(--lb-danger);
+}
+
+.sl-vacio {
+    padding: 10px 2px;
+}
+
+/* ---------- Escenario con los personajes ---------- */
+
+.sl-centro {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--lb-gap);
+}
+
+.sl-escenario {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+}
+
+.sl-escenario > canvas,
+.sl-escenario > div {
+    position: absolute !important;
+    inset: 0;
+}
+
+.sl-puestos {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 6px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: end;
+    gap: 8px;
+    padding: 0 8px;
+    pointer-events: none;
+}
+
+.sl-puesto {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.sl-etiqueta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(7, 11, 20, 0.78);
+    border: 1px solid var(--lb-border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.sl-etiqueta strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sl-etiqueta small {
+    color: var(--lb-text-muted);
+    white-space: nowrap;
+}
+
+.sl-etiqueta svg {
+    color: var(--lb-warning);
+    flex-shrink: 0;
+}
+
+/* Puesto libre: silueta punteada a lo alto del escenario */
+.sl-puesto-vacio {
+    position: relative;
+    align-self: end;
+}
+
+.sl-espera {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: min(100%, 150px);
+    height: min(46vh, 300px);
+    border: 2px dashed rgba(255, 255, 255, 0.25);
+    border-radius: 80px 80px 16px 16px;
+    background: rgba(7, 11, 20, 0.35);
+    color: var(--lb-text-muted);
+    font-size: var(--lb-fs-sm);
+    font-weight: 800;
+    text-align: center;
+    padding: 10px;
+}
+
+.sl-espera svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* ---------- Iniciar ---------- */
+
+.sl-inicio {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.sl-inicio-juego {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sl-inicio-nombre {
+    font-size: var(--lb-fs-lg);
+    font-weight: 900;
+}
+
+.sl-btn-iniciar {
+    min-width: 200px;
+    min-height: 54px;
+    font-size: var(--lb-fs-md);
+}
+
+.sl-espera-creador {
+    color: var(--lb-text-muted);
+    font-weight: 800;
+    text-align: right;
+}
+
+/* ---------- Juegos ---------- */
+
+.sl-juegos-card {
+    flex: 0 1 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sl-juegos {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sl-juego {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 14px;
+    border: 2px solid var(--lb-border);
+    background: var(--lb-surface-2);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.sl-juego small {
+    color: var(--lb-text-muted);
+    font-size: var(--lb-fs-sm);
+    line-height: 1.35;
+}
+
+.sl-juego:not(:disabled):hover {
+    border-color: var(--lb-accent);
+}
+
+.sl-juego-elegido {
+    border-color: var(--lb-accent);
+    background: var(--lb-accent-soft);
+}
+
+.lg .sl-juego:disabled {
+    opacity: 1;
+    cursor: default;
+}
+
+.lg .sl-juego:disabled:not(.sl-juego-elegido) {
+    opacity: 0.6;
+}
+
+/* ---------- Sin sala ---------- */
+
+.sl-vacia {
+    justify-content: center;
+    align-items: center;
+}
+
+.sl-vacia-caja {
+    width: min(460px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.sl-unirse {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.sl-codigo-input {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-weight: 900;
+}
+
+/* ---------- Avisos ---------- */
+
+.sl-avisos {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 50;
+    width: min(380px, calc(100vw - 32px));
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sl-invitacion {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ---------- Pantallas angostas (vertical) ---------- */
+
+@media (max-width: 900px) and (orientation: portrait) {
+    .sl-main {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(320px, 1fr) auto;
+        overflow-y: auto;
+    }
+
+    .sl-centro {
+        order: -1;
+        min-height: 420px;
+    }
+}
+
+.sl-cargando-3d {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(7, 11, 20, 0.78);
+    color: var(--lb-text-muted, #c1c9da);
+    font: 800 0.8rem "Nunito", system-ui, sans-serif;
+    white-space: nowrap;
+}

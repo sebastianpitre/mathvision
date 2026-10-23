@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import { socket } from "../services/socket";
 
 /*
  * Cada pantalla se descarga solo cuando se abre. Así el
@@ -18,6 +19,8 @@ const JuegoPreguntas = lazy(() => import("../games/MathMillonario/MathMillonario
 const EscapeAlgebra = lazy(() => import("../games/EscapeAlgebra/EscapeAlgebra"));
 const TriquiGame = lazy(() => import("../games/triqui/TriquiGame"));
 const Admin = lazy(() => import("../pages/Admin/Admin"));
+const Sala = lazy(() => import("../pages/Sala/Sala"));
+const Siglo = lazy(() => import("../games/siglo/Siglo"));
 
 function Cargando() {
     return (
@@ -50,9 +53,40 @@ function SoloAdmin({ children }) {
     return children;
 }
 
+/*
+ * Esté donde esté el jugador, el servidor puede llevarlo:
+ *   sala:entrar        → aceptó una invitación (o invitó sin tener sala)
+ *   sala:juegoIniciado → el creador de su sala inició un juego
+ */
+function EscuchaSala() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        const alEntrar = () => {
+            if (location.pathname !== "/sala") navigate("/sala");
+        };
+
+        const alIniciar = ({ ruta }) => {
+            if (ruta && location.pathname !== ruta) navigate(ruta);
+        };
+
+        socket.on("sala:entrar", alEntrar);
+        socket.on("sala:juegoIniciado", alIniciar);
+
+        return () => {
+            socket.off("sala:entrar", alEntrar);
+            socket.off("sala:juegoIniciado", alIniciar);
+        };
+    }, [navigate, location.pathname]);
+
+    return null;
+}
+
 function AppRouter() {
     return (
         <Suspense fallback={<Cargando />}>
+            <EscuchaSala />
             <Routes>
                 <Route path="/" element={<Login />} />
 
@@ -67,6 +101,8 @@ function AppRouter() {
                 <Route path="/games/preguntas/:nivelId" element={<Privada><JuegoPreguntas /></Privada>} />
                 <Route path="/games/escape-algebra" element={<Privada><EscapeAlgebra /></Privada>} />
                 <Route path="/games/triqui" element={<Privada><TriquiGame /></Privada>} />
+                <Route path="/games/siglo" element={<Privada><Siglo /></Privada>} />
+                <Route path="/sala" element={<Privada><Sala /></Privada>} />
                 <Route path="/triqui-local" element={<TriquiGame mode="local" />} />
 
                 <Route path="/admin" element={<SoloAdmin><Admin /></SoloAdmin>} />
@@ -75,7 +111,7 @@ function AppRouter() {
                 <Route path="/games/math-millonario" element={<Navigate to="/games/preguntas" replace />} />
                 <Route path="/dashboard" element={<Navigate to="/lobby" replace />} />
                 <Route path="/games" element={<Navigate to="/lobby" replace />} />
-                <Route path="/games/rooms" element={<Navigate to="/world" replace />} />
+                <Route path="/games/rooms" element={<Navigate to="/sala" replace />} />
 
                 <Route path="*" element={<Navigate to="/lobby" replace />} />
             </Routes>

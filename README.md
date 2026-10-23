@@ -1,7 +1,8 @@
 # LudoGamif
 
-Juegos educativos en línea: **juego de preguntas por grado y asignatura**, Triqui
-matemático en línea, Escape Álgebra y un mundo 3D con personajes. Los jugadores
+Juegos educativos en línea: **juego de preguntas por grado y asignatura**,
+**salas multijugador** (Triqui matemático y SigloGamif, de 2 a 4 jugadores),
+Escape Álgebra y un mundo 3D con personajes. Los jugadores
 ganan **XP, oro y diamantes**, suben de nivel y desbloquean personajes en la tienda.
 El administrador crea niveles nuevos desde el panel adjuntando un JSON.
 
@@ -164,6 +165,7 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
 | **Premios por día** | Cuántas partidas de ese nivel dan premio a cada jugador al día (0 = sin límite). Evita repetir un nivel fácil sin parar. |
 | **Subir de nivel** | Nivel 1→2: 100 XP; cada nivel pide 50 XP más que el anterior. Al subir gana +25 de oro y +1 diamante. |
 | **Triqui en línea** | Ganar: 30 XP y 15 de oro · empate: 15 XP y 5 de oro · perder: 10 XP (hasta 15 partidas premiadas al día). |
+| **SigloGamif** | Ganar: 40 XP y 20 de oro (+1 diamante si hace ¡SIGLO! con exactamente 100) · perder: 10 XP (hasta 15 partidas premiadas al día). |
 | **Escape Álgebra** | 5 XP y 2 de oro por acierto, con tope de 50 XP y 20 de oro (5 partidas premiadas al día). |
 
 Todo se calcula en el servidor: el navegador nunca conoce la respuesta correcta antes de
@@ -171,17 +173,47 @@ responder ni decide cuánto gana.
 
 ---
 
-## 5. Estructura
+## 5. Salas multijugador y SigloGamif
+
+Todos los juegos de 2 o más jugadores pasan por una **sala** (`/sala`):
+
+- Se crea desde el lobby (*Elige tu juego*), desde el Mundo (*Ir a mi sala*) o al
+  invitar a alguien (si no tienes sala, se te crea una).
+- Se entra por **invitación** o con el **código** de 5 letras. Máximo 4 jugadores.
+- Se ven los **personajes 3D** de todos los que están.
+- El **creador** elige el juego e inicia. *Iniciar* solo se activa si la cantidad de
+  jugadores sirve (Triqui: 2 · SigloGamif: 2 a 4). Si el creador se va, el siguiente
+  pasa a serlo.
+- Al terminar la partida todos vuelven a la sala. Si alguien recarga la página, tiene
+  20 segundos para volver sin perder su lugar.
+
+**SigloGamif:** cada jugador tiene 5 espacios. Al empezar se vota el tiempo de turno
+(15, 20, 30 o 45 s). Por turnos se tira el dado y se elige poner el número como unidad
+(4) o decena (40) en el espacio de la ronda. Quien pasa de 100 queda eliminado al
+instante; quien completa los 5 espacios con exactamente 100 hace **¡SIGLO!** y gana
+enseguida; si solo queda uno en pie, gana. Si nadie llega a 100, gana el más cercano
+sin pasarse, y si hay empate se desempata con un tiro de dado. Si se acaba el tiempo
+del turno, el juego tira y elige la opción más prudente.
+
+Para agregar otro juego a las salas: `servidor/src/salas/juegos.js` (cuántos
+jugadores admite) y su inicio en `servidor/src/salas/salaSockets.js`.
+
+---
+
+## 6. Estructura
 
 ```
 ├── src/                     juego (React)
 │   ├── pages/Admin/         panel de administración
 │   ├── pages/Preguntas/     elegir nivel
-│   └── games/               juego de preguntas, Triqui, Escape Álgebra
+│   ├── pages/Sala/          sala multijugador
+│   └── games/               preguntas, Triqui, SigloGamif, Escape Álgebra
 ├── public/                  imágenes, sonidos y modelos 3D
 ├── servidor/
 │   ├── server.js            Express + Socket.IO (Mundo, salas, Triqui)
 │   ├── src/                 rutas y lógica (partidas, niveles, tienda, admin)
+│   ├── src/salas/           salas multijugador (2 a 4) y sus eventos
+│   ├── src/games/siglo/     reglas de SigloGamif
 │   ├── src/database/migraciones/   pasos numerados de la base
 │   ├── scripts/             migrar.js, admin.js, check.js
 │   └── datos/niveles/       niveles que se cargan al instalar
