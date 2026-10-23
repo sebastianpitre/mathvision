@@ -8,15 +8,20 @@
      sala:salir                 sale de la sala
      sala:elegirJuego { juego } solo el creador
      sala:iniciar               solo el creador, si alcanzan los jugadores
+     sala:expulsar { userId }   solo el creador, antes de iniciar
 
      siglo:estado | siglo:votar { segundos } | siglo:tirar
-     siglo:elegir { opcion: "unidad" | "decena" } | siglo:salir
+     siglo:elegir { opcion: "unidad" | "decena", numero? (joker 0–6) }
+     siglo:volverATirar         cuesta 1 diamante, una vez por partida
+     siglo:salir
 
    Servidor → navegador
      sala:estado { sala }       cada cambio de la sala (o sala: null)
      sala:error  { message }
      sala:entrar { code }       te llevan a una sala (invitación aceptada)
      sala:juegoIniciado { juego, ruta }
+     sala:expulsado { message } el creador te sacó de la sala
+     progreso:actualizar        cambió tu oro o tus diamantes
      siglo:estado { …partida }  cada cambio de SigloGamif
      siglo:error  { message }
      game:reward  { resultado, recompensa }   premio al terminar
@@ -24,6 +29,7 @@
 
 import { getUserProfile } from "../users/userService.js";
 import { registrarResultadoMultijugador } from "../partidas/partidasService.js";
+import { gastarDiamantes, devolverDiamantes } from "../progreso/progreso.js";
 import { SigloGame } from "../games/siglo/SigloGame.js";
 import { JUEGOS_SALA, motivoNoIniciar } from "./juegos.js";
 
@@ -277,6 +283,30 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
         socket.emit("sala:estado", { sala: null });
     });
 
+    socket.on("sala:expulsar", ({ userId } = {}) => {
+        const room = miSala();
+        const id = String(userId ?? "");
+
+        if (!room) return error("No estás en una sala.");
+        if (room.hostUserId !== yo()) return error("Solo el creador puede sacar jugadores.");
+        if (room.estado !== "sala") return error("Espera a que termine la partida para sacar a alguien.");
+        if (id === yo()) return error("No te puedes sacar a ti mismo. Usa «Salir de la sala».");
+
+        const miembro = room.miembros.get(id);
+        if (!miembro) return error("Ese jugador ya no está en la sala.");
+
+        const s = ayudas.socketDe(miembro);
+        const creador = room.miembros.get(yo())?.nombre || "El creador";
+
+        room.bloqueados.add(id);
+        ayudas.salirDeSala(id, { motivo: "fue sacado de la sala" });
+
+        s?.emit("sala:expulsado", { message: `${creador} te sacó de la sala.` });
+        s?.emit("sala:estado", { sala: null });
+
+        console.log(`🚪 Sala ${room.code}: ${socket.username} sacó a ${miembro.nombre}`);
+    });
+
     socket.on("sala:elegirJuego", ({ juego }) => {
         const room = miSala();
         if (!room) return error("No estás en una sala.");
@@ -345,6 +375,41 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
 
     socket.on("siglo:votar", accionSiglo((p, { segundos }) => p.votar(yo(), segundos)));
     socket.on("siglo:tirar", accionSiglo((p) => p.tirar(yo())));
-    socket.on("siglo:elegir", accionSiglo((p, { opcion }) => p.elegir(yo(), opcion)));
+    socket.on("siglo:elegir", accionSiglo((p, { opcion, numero }) => p.elegir(yo(), opcion, numero)));
+
+    socket.on("siglo:volverATirar", async () => {
+        const fallo = (message) => socket.emit("siglo:error", { message });
+        const partida = partidaSiglo();
+        if (!partida) return fallo("No hay una partida de SigloGamif activa.");
+
+        // Se aparta el turno mientras se cobra, para que no se
+        // juegue dos veces ni se acabe el tiempo a medias.
+        const reserva = partida.reservarRetiro(yo());
+        if (!reserva.success) return fallo(reserva.message);
+
+        let quedan;
+        try {
+            quedan = await gastarDiamantes(yo(), 1);
+        } catch (e) {
+            partida.cancelarRetiro(yo());
+            console.error("❌ Cobrar diamante:", e.message);
+            return fallo("No se pudo usar el diamante. Intenta de nuevo.");
+        }
+
+        if (quedan === null) {
+            partida.cancelarRetiro(yo());
+            return fallo("No tienes diamantes para volver a tirar.");
+        }
+
+        const resultado = partida.confirmarRetiro(yo());
+
+        if (!resultado.success) {
+            await devolverDiamantes(yo(), 1).catch((e) => console.error("❌ Devolver diamante:", e.message));
+            socket.emit("progreso:actualizar");
+            return fallo(`${resultado.message} Te devolvimos el diamante.`);
+        }
+
+        socket.emit("progreso:actualizar", { diamantes: quedan });
+    });
     socket.on("siglo:salir", accionSiglo((p) => p.abandonar(yo())));
 }

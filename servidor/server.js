@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 import { Server } from "socket.io";
 import { WorldManager } from "./src/world/WorldManager.js";
 import { RoomManager } from "./src/rooms/RoomManager.js";
+import { MAX_JUGADORES_SALA } from "./src/salas/juegos.js";
 import { TriquiGame } from "./src/games/triqui/TriquiGame.js";
 
 import {
@@ -1040,11 +1041,23 @@ io.on(
                     return;
                 }
 
-                if (salaEmisor.miembros.size >= 4) {
+                if (salaEmisor.miembros.size >= MAX_JUGADORES_SALA) {
                     socket.emit("world:error", {
-                        message: "Tu sala ya está llena (4 jugadores).",
+                        message: `Tu sala ya está llena (${MAX_JUGADORES_SALA} jugadores).`,
                     });
                     return;
+                }
+
+                // Alguien que el creador sacó solo vuelve si el
+                // mismo creador lo invita otra vez.
+                if (salaEmisor.bloqueados.has(String(target.id))) {
+                    if (salaEmisor.hostUserId !== String(sender.id)) {
+                        socket.emit("world:error", {
+                            message: `El creador sacó a ${target.name} de la sala.`,
+                        });
+                        return;
+                    }
+                    salaEmisor.bloqueados.delete(String(target.id));
                 }
 
                 /* =================================================

@@ -1,7 +1,7 @@
 /* =========================================================
    SIGLOGAMIF
    ---------------------------------------------------------
-   De 2 a 4 jugadores. Cada uno tiene 5 espacios.
+   De 2 a 8 jugadores. Cada uno tiene 5 espacios.
 
    1. Votación: al empezar, todos votan el tiempo de turno
       (15, 20, 30 o 45 s). Gana el más votado; si hay empate,
@@ -13,6 +13,13 @@
       · Si llena los 5 espacios con EXACTAMENTE 100 → ¡SIGLO!
         y gana enseguida.
       · Si solo queda un jugador en pie → gana.
+      · JOKER: de vez en cuando (1 de cada 20 tiros) el dado
+        sale joker y el jugador elige el número que quiera del
+        0 al 6, y luego unidad o decena.
+      · DIAMANTE: una vez por partida, después de tirar, el
+        jugador puede pagar 1 diamante para volver a tirar.
+        El cobro lo hace salaSockets.js (base de datos); aquí
+        solo se reserva, se confirma o se cancela.
    3. Al final, gana quien quede más cerca de 100 sin
       pasarse. Si hay empate, desempate: cada empatado tira el
       dado una vez y gana el número más alto (se repite si
@@ -31,8 +38,23 @@ const ESPACIOS = 5;
 const META = 100;
 const PAUSA_MOSTRAR_DADO_MS = 900;
 
-function dado() {
+export const JOKER = "joker";
+export const NUMEROS_JOKER = [0, 1, 2, 3, 4, 5, 6];
+const PROBABILIDAD_JOKER = 1 / 20;
+// Tiempo mínimo que le queda al jugador después de volver a tirar.
+const SEGUNDOS_TRAS_RETIRO = 10;
+
+function dadoNormal() {
     return 1 + Math.floor(Math.random() * 6);
+}
+
+// En los turnos normales el dado puede salir joker.
+function dado() {
+    return Math.random() < PROBABILIDAD_JOKER ? JOKER : dadoNormal();
+}
+
+function textoDado(valor) {
+    return valor === JOKER ? "¡JOKER!" : `un ${valor}`;
 }
 
 function azar(lista) {
@@ -58,6 +80,8 @@ export class SigloGame {
             eliminado: false,
             motivo: null, // "se_paso" | "abandono"
             tiroDesempate: null,
+            retiroUsado: false, // ya usó su diamante para volver a tirar
+            retiroPendiente: false, // se está cobrando el diamante
         }));
 
         // El orden de turno se sortea al empezar.
@@ -215,22 +239,104 @@ export class SigloGame {
         if (this.dado !== null) return { success: false, message: "Ya tiraste el dado. Elige dónde ponerlo." };
 
         this.dado = dado();
-        this.evento(`${this.jugador(userId).nombre} sacó un ${this.dado}.`, "dado");
+        this.evento(
+            this.dado === JOKER
+                ? `${this.jugador(userId).nombre} sacó ¡JOKER! Elige el número que quiera.`
+                : `${this.jugador(userId).nombre} sacó un ${this.dado}.`,
+            this.dado === JOKER ? "joker" : "dado"
+        );
         this.avisar();
 
         return { success: true, dado: this.dado };
     }
 
-    /* opcion: "unidad" (el número tal cual) o "decena" (número × 10) */
-    elegir(userId, opcion) {
+    /*
+     * opcion: "unidad" (el número tal cual) o "decena" (número × 10)
+     * numero: solo con joker, el número elegido (0 a 6)
+     */
+    elegir(userId, opcion, numero) {
         if (this.fase !== "jugando") return { success: false, message: "Ahora no se puede elegir." };
         if (this.turno !== String(userId)) return { success: false, message: "No es tu turno." };
         if (this.dado === null) return { success: false, message: "Primero tira el dado." };
         if (opcion !== "unidad" && opcion !== "decena") return { success: false, message: "Opción no válida." };
 
-        this.colocar(this.jugador(userId), opcion === "decena" ? this.dado * 10 : this.dado);
+        const jugador = this.jugador(userId);
+        if (jugador.retiroPendiente) return { success: false, message: "Espera, se está volviendo a tirar." };
+
+        let base = this.dado;
+
+        if (this.dado === JOKER) {
+            base = Number(numero);
+            if (!NUMEROS_JOKER.includes(base)) return { success: false, message: "Con el joker elige un número del 0 al 6." };
+        }
+
+        this.colocar(jugador, opcion === "decena" ? base * 10 : base);
 
         return { success: true };
+    }
+
+    /* ---------------------------------------------------------
+       VOLVER A TIRAR CON UN DIAMANTE (una vez por partida)
+       1. reservarRetiro: valida y aparta el turno mientras se
+          cobra el diamante (nadie puede elegir ni se acaba el
+          tiempo en ese momento).
+       2. confirmarRetiro: ya se cobró → tira de nuevo.
+          cancelarRetiro: no se pudo cobrar → todo sigue igual.
+    --------------------------------------------------------- */
+
+    puedeVolverATirar(userId) {
+        const jugador = this.jugador(userId);
+
+        if (this.fase !== "jugando") return { success: false, message: "Ahora no se puede volver a tirar." };
+        if (!jugador || this.turno !== jugador.userId) return { success: false, message: "No es tu turno." };
+        if (this.dado === null) return { success: false, message: "Primero tira el dado." };
+        if (jugador.retiroUsado) return { success: false, message: "Ya volviste a tirar en esta partida." };
+        if (jugador.retiroPendiente) return { success: false, message: "Ya se está volviendo a tirar." };
+
+        return { success: true };
+    }
+
+    reservarRetiro(userId) {
+        const permiso = this.puedeVolverATirar(userId);
+        if (!permiso.success) return permiso;
+
+        this.jugador(userId).retiroPendiente = true;
+        return { success: true };
+    }
+
+    cancelarRetiro(userId) {
+        const jugador = this.jugador(userId);
+        if (jugador) jugador.retiroPendiente = false;
+    }
+
+    confirmarRetiro(userId) {
+        const jugador = this.jugador(userId);
+        if (!jugador?.retiroPendiente) return { success: false, message: "No hay nada que volver a tirar." };
+
+        jugador.retiroPendiente = false;
+
+        // Mientras se cobraba pudo terminar la partida o salir del turno.
+        if (this.fase !== "jugando" || this.turno !== jugador.userId || this.dado === null) {
+            return { success: false, message: "Tu turno terminó antes de volver a tirar." };
+        }
+
+        const antes = this.dado;
+        jugador.retiroUsado = true;
+        this.dado = dado();
+        this.evento(
+            `${jugador.nombre} usó un 💎 y volvió a tirar: sacó ${textoDado(this.dado)} (antes ${textoDado(antes)}).`,
+            this.dado === JOKER ? "joker" : "dado"
+        );
+
+        // Que le quede tiempo para pensar la nueva jugada.
+        const minimo = Date.now() + SEGUNDOS_TRAS_RETIRO * 1000;
+        if (!this.finEn || this.finEn < minimo) {
+            this.finEn = minimo;
+            this.programar(SEGUNDOS_TRAS_RETIRO * 1000, () => this.tiempoAgotado());
+        }
+
+        this.avisar();
+        return { success: true, dado: this.dado };
     }
 
     colocar(jugador, valor) {
@@ -271,14 +377,20 @@ export class SigloGame {
 
         const jugador = this.jugador(this.turno);
 
+        // Se está cobrando su diamante: se espera un momento.
+        if (jugador.retiroPendiente) {
+            return this.programar(1000, () => this.tiempoAgotado());
+        }
+
         if (this.dado === null) {
             this.dado = dado();
-            this.evento(`Se acabó el tiempo de ${jugador.nombre}: el juego tiró por él y sacó ${this.dado}.`, "tiempo");
+            this.evento(`Se acabó el tiempo de ${jugador.nombre}: el juego tiró por él y sacó ${textoDado(this.dado)}.`, "tiempo");
         } else {
             this.evento(`Se acabó el tiempo de ${jugador.nombre}: el juego eligió por él.`, "tiempo");
         }
 
-        this.colocar(jugador, this.opcionPrudente(jugador, this.dado));
+        const numeros = this.dado === JOKER ? NUMEROS_JOKER : [this.dado];
+        this.colocar(jugador, this.opcionPrudente(jugador, numeros));
     }
 
     /*
@@ -286,14 +398,14 @@ export class SigloGame {
      * (contando que cada espacio que falta suma mínimo 1) y que
      * lo deje más cerca del ritmo ideal (20 por espacio).
      */
-    opcionPrudente(jugador, numero) {
+    opcionPrudente(jugador, numeros) {
         const restantes = ESPACIOS - (this.ronda + 1);
-        const opciones = [numero, numero * 10];
+        const opciones = [...new Set(numeros.flatMap((n) => [n, n * 10]))];
 
         const viables = opciones.filter((v) => jugador.total + v + restantes <= META);
         const candidatas = viables.length ? viables : opciones.filter((v) => jugador.total + v <= META);
 
-        if (!candidatas.length) return numero; // Las dos lo pasan: pone la menor.
+        if (!candidatas.length) return Math.min(...opciones); // Todas lo pasan: pone la menor.
 
         const ideal = 20 * (this.ronda + 1);
         return candidatas.sort((a, b) => Math.abs(jugador.total + a - ideal) - Math.abs(jugador.total + b - ideal))[0];
@@ -382,7 +494,7 @@ export class SigloGame {
         clearTimeout(this.timer);
 
         const jugador = this.jugador(userId);
-        jugador.tiroDesempate = dado();
+        jugador.tiroDesempate = dadoNormal(); // en el desempate no hay joker
         this.dado = jugador.tiroDesempate;
         this.evento(`${jugador.nombre} sacó ${jugador.tiroDesempate} en el desempate.`, "dado");
 
@@ -499,6 +611,7 @@ export class SigloGame {
             dado: this.dado,
             segundosTurno: this.segundosTurno,
             opcionesTiempo: OPCIONES_TIEMPO,
+            numerosJoker: NUMEROS_JOKER,
             votos: conteoVotos,
             empatados: this.empatados,
             jugadores: this.orden.map((i) => {
@@ -511,6 +624,7 @@ export class SigloGame {
                     eliminado: j.eliminado,
                     motivo: j.motivo,
                     tiroDesempate: j.tiroDesempate,
+                    retiroUsado: j.retiroUsado,
                 };
             }),
             eventos: this.eventos,

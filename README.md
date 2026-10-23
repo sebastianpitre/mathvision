@@ -1,7 +1,7 @@
 # LudoGamif
 
 Juegos educativos en línea: **juego de preguntas por grado y asignatura**,
-**salas multijugador** (Triqui matemático y SigloGamif, de 2 a 4 jugadores),
+**salas multijugador** (Triqui matemático y SigloGamif, de 2 a 8 jugadores),
 Escape Álgebra y un mundo 3D con personajes. Los jugadores
 ganan **XP, oro y diamantes**, suben de nivel y desbloquean personajes en la tienda.
 El administrador crea niveles nuevos desde el panel adjuntando un JSON.
@@ -179,11 +179,13 @@ Todos los juegos de 2 o más jugadores pasan por una **sala** (`/sala`):
 
 - Se crea desde el lobby (*Elige tu juego*), desde el Mundo (*Ir a mi sala*) o al
   invitar a alguien (si no tienes sala, se te crea una).
-- Se entra por **invitación** o con el **código** de 5 letras. Máximo 4 jugadores.
+- Se entra por **invitación** o con el **código** de 5 letras. Máximo 8 jugadores.
 - Se ven los **personajes 3D** de todos los que están.
 - El **creador** elige el juego e inicia. *Iniciar* solo se activa si la cantidad de
-  jugadores sirve (Triqui: 2 · SigloGamif: 2 a 4). Si el creador se va, el siguiente
+  jugadores sirve (Triqui: 2 · SigloGamif: 2 a 8). Si el creador se va, el siguiente
   pasa a serlo.
+- El creador puede **sacar** a alguien antes de iniciar. Esa persona ya no puede volver
+  con el código; solo si el creador la vuelve a invitar.
 - Al terminar la partida todos vuelven a la sala. Si alguien recarga la página, tiene
   20 segundos para volver sin perder su lugar.
 
@@ -194,6 +196,12 @@ instante; quien completa los 5 espacios con exactamente 100 hace **¡SIGLO!** y 
 enseguida; si solo queda uno en pie, gana. Si nadie llega a 100, gana el más cercano
 sin pasarse, y si hay empate se desempata con un tiro de dado. Si se acaba el tiempo
 del turno, el juego tira y elige la opción más prudente.
+
+- **Joker:** muy de vez en cuando (1 de cada 20 tiros) el dado sale joker y el jugador
+  elige el número que quiera del 0 al 6, y luego unidad o decena.
+- **Volver a tirar:** una vez por partida, después de tirar, el jugador puede pagar
+  **1 diamante** para volver a tirar. Si su turno se acaba mientras se cobra, se le
+  devuelve el diamante.
 
 Para agregar otro juego a las salas: `servidor/src/salas/juegos.js` (cuántos
 jugadores admite) y su inicio en `servidor/src/salas/salaSockets.js`.

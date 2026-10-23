@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
@@ -12,6 +12,7 @@ import {
     LuPlay,
     LuPlus,
     LuUserPlus,
+    LuUserX,
     LuUsers,
     LuWifiOff,
     LuX,
@@ -37,22 +38,32 @@ import "./sala.css";
      de jugadores sirve para ese juego.
    · Cualquiera puede invitar a jugadores conectados o
      compartir el código de la sala.
+   · El creador puede sacar a alguien antes de iniciar.
 ========================================================= */
 
-const PUESTOS = 4;
+const PUESTOS_MINIMOS = 4;
+const MAX_POR_DEFECTO = 8;
 const MODELO_POR_DEFECTO = "/models/characters/Adan2.vrm";
 
-/* Los 4 puestos del escenario, repartidos a lo ancho de la vista. */
-function Escenario({ miembros }) {
+/*
+ * Cuántos puestos se muestran: mínimo 4, y siempre uno libre
+ * ("Esperando jugador") mientras la sala no esté llena.
+ */
+function cantidadPuestos(miembros, maximo) {
+    return Math.min(maximo, Math.max(PUESTOS_MINIMOS, miembros + 1));
+}
+
+/* Los puestos del escenario, repartidos a lo ancho de la vista. */
+function Escenario({ miembros, puestos }) {
     const { viewport } = useThree();
     const ancho = viewport.width;
-    const escala = Math.min(1.45, ancho / PUESTOS / 0.62);
+    const escala = Math.min(1.45, ancho / puestos / 0.62);
 
     return (
         <>
             <LucesPersonaje calida />
             {miembros.map((m, i) => {
-                const x = -ancho / 2 + (ancho * (i + 0.5)) / PUESTOS;
+                const x = -ancho / 2 + (ancho * (i + 0.5)) / puestos;
                 // Un modelo 3D solo se puede mostrar una vez: si dos
                 // jugadores usan el mismo personaje, cada uno carga su copia.
                 const url = `${m.modelo || MODELO_POR_DEFECTO}#jugador-${m.userId}`;
@@ -62,7 +73,7 @@ function Escenario({ miembros }) {
                         <Suspense
                             fallback={
                                 <Html center position={[x, 0, 0]} style={{ pointerEvents: "none" }}>
-                                    <span className="sl-cargando-3d">Cargando personaje…</span>
+                                    <span className="sl-cargando-3d">Cargando…</span>
                                 </Html>
                             }
                         >
@@ -87,6 +98,7 @@ export default function Sala() {
     const [invitados, setInvitados] = useState(() => new Set());
     const [invitacion, setInvitacion] = useState(null);
     const [copiado, setCopiado] = useState(false);
+    const [porSacar, setPorSacar] = useState(null); // userId que el creador está por sacar
 
     const avisoTimer = useRef(null);
     const crearAlEntrar = useRef(Boolean(location.state?.crear));
@@ -131,6 +143,7 @@ export default function Sala() {
         };
         const alAceptar = ({ playerName }) => avisar(`¡${playerName} entró a la sala!`);
         const alInvitacion = (inv) => setInvitacion(inv);
+        const alExpulsado = ({ message }) => avisar(message, "error", 6000);
 
         socket.on("connect", alConectar);
         socket.on("sala:estado", alEstado);
@@ -141,6 +154,7 @@ export default function Sala() {
         socket.on("world:invitationRejected", alRechazo);
         socket.on("world:inviteAccepted", alAceptar);
         socket.on("world:invitation", alInvitacion);
+        socket.on("sala:expulsado", alExpulsado);
 
         if (socket.connected) alConectar();
         else socket.connect();
@@ -155,6 +169,7 @@ export default function Sala() {
             socket.off("world:invitationRejected", alRechazo);
             socket.off("world:inviteAccepted", alAceptar);
             socket.off("world:invitation", alInvitacion);
+            socket.off("sala:expulsado", alExpulsado);
             clearTimeout(avisoTimer.current);
         };
     }, [avisar, miId]);
@@ -166,14 +181,14 @@ export default function Sala() {
     const juegoActual = sala?.juegos?.find((j) => j.id === sala.juego) || null;
     const enSala = new Set(miembros.map((m) => String(m.userId)));
     const invitables = conectados.filter((p) => !enSala.has(String(p.id)));
-    const llena = miembros.length >= (sala?.maxJugadores || PUESTOS);
+    const maximo = sala?.maxJugadores || MAX_POR_DEFECTO;
+    const llena = miembros.length >= maximo;
 
     const textoJugadores = (j) => (j.min === j.max ? `${j.min} jugadores` : `${j.min} a ${j.max} jugadores`);
 
-    const puestos = useMemo(
-        () => Array.from({ length: PUESTOS }, (_, i) => miembros[i] || null),
-        [miembros]
-    );
+    const totalPuestos = cantidadPuestos(miembros.length, maximo);
+    const puestos = Array.from({ length: totalPuestos }, (_, i) => miembros[i] || null);
+    const puedeSacar = soyCreador && sala?.estado === "sala";
 
     /* ---------------- Acciones ---------------- */
 
@@ -199,6 +214,11 @@ export default function Sala() {
             fromPlayerId: invitacion.fromPlayerId,
         });
         setInvitacion(null);
+    };
+
+    const sacar = (userId) => {
+        socket.emit("sala:expulsar", { userId });
+        setPorSacar(null);
     };
 
     const salir = () => {
@@ -239,7 +259,7 @@ export default function Sala() {
                         </p>
                         <h1 className="lg-h1">Juega con tus amigos</h1>
                         <p className="lb-muted">
-                            Crea una sala, invita de 1 a 3 amigos y elige el juego. También puedes entrar con el
+                            Crea una sala, invita de 1 a 7 amigos y elige el juego. También puedes entrar con el
                             código que te compartan.
                         </p>
 
@@ -336,6 +356,28 @@ export default function Sala() {
                                         </span>
                                     )}
                                     {!m.conectado && <LuWifiOff aria-hidden="true" className="sl-icono-off" />}
+                                    {puedeSacar && String(m.userId) !== miId && (
+                                        porSacar === m.userId ? (
+                                            <span className="sl-sacar-confirmar">
+                                                <button type="button" className="lb-btn lb-btn-sm sl-btn-sacar" onClick={() => sacar(m.userId)}>
+                                                    Sacar
+                                                </button>
+                                                <button type="button" className="lb-icon-btn sl-sacar-no" onClick={() => setPorSacar(null)} aria-label="No sacar">
+                                                    <LuX aria-hidden="true" />
+                                                </button>
+                                            </span>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                className="lb-icon-btn sl-sacar"
+                                                onClick={() => setPorSacar(m.userId)}
+                                                aria-label={`Sacar a ${m.nombre} de la sala`}
+                                                title="Sacar de la sala"
+                                            >
+                                                <LuUserX aria-hidden="true" />
+                                            </button>
+                                        )
+                                    )}
                                 </li>
                             ))}
                         </ul>
@@ -347,11 +389,14 @@ export default function Sala() {
                     <div className="sl-escenario" role="img" aria-label={`Personajes de la sala: ${miembros.map((m) => m.nombre).join(", ")}`}>
                         <ProtegerError respaldo={<p className="sin-3d">Los personajes 3D no se pudieron mostrar en este dispositivo.</p>}>
                             <Canvas gl={{ alpha: true }} camera={{ position: [0, 1.15, 6.2], fov: 32 }}>
-                                <Escenario miembros={miembros} />
+                                <Escenario miembros={miembros} puestos={totalPuestos} />
                             </Canvas>
                         </ProtegerError>
 
-                        <ol className="sl-puestos">
+                        <ol
+                            className={`sl-puestos ${totalPuestos > 5 ? "sl-puestos-muchos" : ""}`}
+                            style={{ gridTemplateColumns: `repeat(${totalPuestos}, minmax(0, 1fr))` }}
+                        >
                             {puestos.map((m, i) => (
                                 <li key={m?.userId ?? `vacio-${i}`} className={m ? "sl-puesto" : "sl-puesto sl-puesto-vacio"}>
                                     {m ? (
