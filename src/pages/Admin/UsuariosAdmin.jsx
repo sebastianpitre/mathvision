@@ -1,5 +1,5 @@
 import { Fragment, useState } from "react";
-import { LuGift, LuLock, LuLockOpen, LuPencil, LuSave, LuSearch, LuShieldCheck, LuX } from "react-icons/lu";
+import { LuCheck, LuFlag, LuGift, LuLock, LuLockOpen, LuMic, LuMicOff, LuPencil, LuSave, LuSearch, LuShieldCheck, LuX } from "react-icons/lu";
 
 import { api } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
@@ -15,9 +15,46 @@ export default function UsuariosAdmin() {
     const { user } = useAuth();
     const [buscar, setBuscar] = useState("");
     const [consulta, setConsulta] = useState("");
-    const { datos, cargando, error, recargar } = useCarga(`/admin/usuarios?buscar=${encodeURIComponent(consulta)}`);
+    const [porReportes, setPorReportes] = useState(false);
+    const { datos, cargando, error, recargar } = useCarga(
+        `/admin/usuarios?buscar=${encodeURIComponent(consulta)}${porReportes ? "&orden=reportes" : ""}`
+    );
     const [aviso, setAviso] = useState({ texto: "", tono: "" });
     const [editando, setEditando] = useState(null); // { id, nivel, oro, diamantes }
+    const [viendoReportes, setViendoReportes] = useState(null); // { id, lista }
+
+    async function cambiarVoz(u) {
+        const bloquear = !u.voz_bloqueada;
+        try {
+            await api(`/admin/usuarios/${u.id}/voz`, { metodo: "PUT", body: { bloqueada: bloquear } });
+            setAviso({ texto: `"${u.username}" ${bloquear ? "ya no puede hablar" : "puede volver a hablar"}.`, tono: "ok" });
+            recargar();
+        } catch (e) {
+            setAviso({ texto: e.message, tono: "error" });
+        }
+    }
+
+    async function verReportes(u) {
+        if (viendoReportes?.id === u.id) return setViendoReportes(null);
+        try {
+            const r = await api(`/admin/usuarios/${u.id}/reportes`);
+            setViendoReportes({ id: u.id, lista: r.reportes });
+            setEditando(null);
+        } catch (e) {
+            setAviso({ texto: e.message, tono: "error" });
+        }
+    }
+
+    async function marcarRevisados(u) {
+        try {
+            await api(`/admin/usuarios/${u.id}/reportes/revisar`, { metodo: "POST" });
+            setAviso({ texto: `Reportes de "${u.username}" revisados. Si tenía la voz quitada por reportes, ya puede hablar.`, tono: "ok" });
+            setViendoReportes(null);
+            recargar();
+        } catch (e) {
+            setAviso({ texto: e.message, tono: "error" });
+        }
+    }
 
     async function guardarProgreso(u) {
         try {
@@ -103,6 +140,10 @@ export default function UsuariosAdmin() {
                     <LuSearch aria-hidden="true" />
                     Buscar
                 </button>
+                <label className="lg-row" style={{ alignItems: "center", gap: 6, cursor: "pointer" }}>
+                    <input type="checkbox" checked={porReportes} onChange={(e) => setPorReportes(e.target.checked)} />
+                    <span>Más reportados primero</span>
+                </label>
             </form>
 
             {aviso.texto && <p className={aviso.tono === "error" ? "lg-alert" : "lg-ok"} role="status">{aviso.texto}</p>}
@@ -125,6 +166,7 @@ export default function UsuariosAdmin() {
                                 <th scope="col" className="lg-num">Diamantes</th>
                                 <th scope="col" className="lg-num">Partidas</th>
                                 <th scope="col" className="lg-num">Aciertos</th>
+                                <th scope="col" className="lg-num" title="Reportes sin revisar / total">Reportes</th>
                                 <th scope="col">Último ingreso</th>
                                 <th scope="col"><span className="lb-sr-only">Acciones</span></th>
                             </tr>
@@ -141,6 +183,9 @@ export default function UsuariosAdmin() {
                                         {u.bloqueado && (
                                             <span className="lg-tag lg-tag-off" style={{ marginLeft: 6 }}>Bloqueado</span>
                                         )}
+                                        {u.voz_bloqueada && (
+                                            <span className="lg-tag lg-tag-off" style={{ marginLeft: 6 }}>Sin voz</span>
+                                        )}
                                         <div className="lb-muted">{u.email}</div>
                                     </td>
                                     <td className="lg-num">{u.level}</td>
@@ -150,6 +195,23 @@ export default function UsuariosAdmin() {
                                     <td className="lg-num">{formato(u.games_played)}</td>
                                     <td className="lg-num">
                                         {u.questions_answered ? `${Math.round((100 * u.correct_answers) / u.questions_answered)}%` : "—"}
+                                    </td>
+                                    <td className="lg-num">
+                                        {Number(u.reportes_total) > 0 ? (
+                                            <button
+                                                type="button"
+                                                className={`lg-tag ${Number(u.reportes_pendientes) > 0 ? "lg-tag-off" : ""}`}
+                                                style={{ cursor: "pointer", border: 0 }}
+                                                onClick={() => verReportes(u)}
+                                                title="Ver motivos"
+                                                aria-label={`Ver reportes de ${u.username}`}
+                                            >
+                                                <LuFlag aria-hidden="true" style={{ verticalAlign: "-2px", marginRight: 4 }} />
+                                                {`${u.reportes_pendientes} / ${u.reportes_total}`}
+                                            </button>
+                                        ) : (
+                                            "—"
+                                        )}
                                     </td>
                                     <td>{fecha(u.last_login)}</td>
                                     <td>
@@ -173,6 +235,16 @@ export default function UsuariosAdmin() {
                                             >
                                                 {u.bloqueado ? <LuLockOpen aria-hidden="true" /> : <LuLock aria-hidden="true" />}
                                             </button>
+                                            <button
+                                                type="button"
+                                                className="lb-icon-btn"
+                                                title={u.voz_bloqueada ? "Devolverle la voz" : "Quitarle la voz"}
+                                                aria-label={`${u.voz_bloqueada ? "Devolver la voz a" : "Quitar la voz a"} ${u.username}`}
+                                                onClick={() => cambiarVoz(u)}
+                                                style={u.voz_bloqueada ? { color: "#dc2626" } : undefined}
+                                            >
+                                                {u.voz_bloqueada ? <LuMicOff aria-hidden="true" /> : <LuMic aria-hidden="true" />}
+                                            </button>
                                             <button type="button" className="lb-icon-btn" title="Regalar oro o diamantes" aria-label={`Regalar a ${u.username}`} onClick={() => regalar(u)}>
                                                 <LuGift aria-hidden="true" />
                                             </button>
@@ -189,9 +261,39 @@ export default function UsuariosAdmin() {
                                         </div>
                                     </td>
                                 </tr>
+                                {viendoReportes?.id === u.id && (
+                                    <tr>
+                                        <td colSpan={10}>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                                                    {viendoReportes.lista.map((rep) => (
+                                                        <li key={rep.id} style={rep.revisado ? { opacity: 0.55 } : undefined}>
+                                                            <strong>{rep.motivo_texto}</strong>
+                                                            {` · por ${rep.reportante} · en ${rep.contexto} · ${fecha(rep.creado_en)}`}
+                                                            {rep.revisado && " · revisado"}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                                <div className="lg-row">
+                                                    {Number(u.reportes_pendientes) > 0 && (
+                                                        <button type="button" className="lb-btn lb-btn-primary lb-btn-sm" onClick={() => marcarRevisados(u)}>
+                                                            <LuCheck aria-hidden="true" />
+                                                            Marcar como revisados
+                                                        </button>
+                                                    )}
+                                                    <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => setViendoReportes(null)}>
+                                                        <LuX aria-hidden="true" />
+                                                        Cerrar
+                                                    </button>
+                                                    <span className="lb-muted">Los reportes sin revisar cuentan para quitar la voz automáticamente.</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
                                 {editando?.id === u.id && (
                                     <tr>
-                                        <td colSpan={9}>
+                                        <td colSpan={10}>
                                             <form
                                                 className="lg-row"
                                                 style={{ alignItems: "flex-end" }}

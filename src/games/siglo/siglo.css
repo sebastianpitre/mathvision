@@ -347,6 +347,8 @@
     font-size: 1.15rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    min-width: 0;
 }
 
 .sg-reloj svg {
@@ -744,4 +746,35 @@
 
 .sg-accion {
     position: relative;
+}
+
+/* Voz: silenciar/reportar en cada carta y botón de hablar */
+.sg-acciones {
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.sg-acciones .vz-accion {
+    width: 1.3rem;
+    height: 1.3rem;
+}
+
+.sg-acciones .vz-accion svg {
+    width: 0.75rem;
+    height: 0.75rem;
+}
+
+.sg-hablar {
+    width: 2.3rem;
+    height: 2.3rem;
+    border-width: 1px;
+}
+
+.sg-controles {
+    gap: 0.25rem;
+}
+
+.sg-hablar svg {
+    width: 1.2rem;
+    height: 1.2rem;
 }

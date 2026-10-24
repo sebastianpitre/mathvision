@@ -430,3 +430,34 @@
 .sl-unirse input:focus {
     border-color: var(--oro);
 }
+
+/* ---------- Voz y compartir ---------- */
+
+.sl-hablar {
+    position: absolute;
+    top: 0.3rem;
+    left: 0.3rem;
+    z-index: 4;
+}
+
+.sl-compartir {
+    height: 2.1rem;
+    min-height: 0;
+    padding: 0 0.7rem;
+    background: linear-gradient(180deg, #34d399, #059669);
+    font-size: 0.85rem;
+}
+
+.sl-compartir svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.sl-jugador .vz-acciones {
+    gap: 0.15rem;
+}
+
+.sl-jugador .vz-accion {
+    width: 1.45rem;
+    height: 1.45rem;
+}

@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { socket } from "../services/socket";
 import Notificaciones from "../components/juego/Notificaciones";
 import MenuFlotante from "../components/juego/MenuFlotante";
+import VozGlobal from "../components/juego/VozGlobal";
 
 /*
  * Cada pantalla se descarga solo cuando se abre. Así el
@@ -108,6 +109,7 @@ function AppRouter() {
             <EscuchaSala />
             <Notificaciones />
             <MenuFlotante />
+            <VozGlobal />
             <Suspense fallback={<Cargando />}>
             <Routes>
                 <Route path="/" element={<Login />} />
@@ -126,6 +128,7 @@ function AppRouter() {
                 <Route path="/games/triqui" element={<Privada><TriquiGame /></Privada>} />
                 <Route path="/games/siglo" element={<Privada><Siglo /></Privada>} />
                 <Route path="/sala" element={<Privada><Sala /></Privada>} />
+                <Route path="/sala/:codigo" element={<Privada><Sala /></Privada>} />
                 <Route path="/ranking" element={<Privada><Ranking /></Privada>} />
                 <Route path="/triqui-local" element={<TriquiGame mode="local" />} />
 

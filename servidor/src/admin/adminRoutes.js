@@ -20,6 +20,11 @@
    PUT    /usuarios/:id/bloqueo        { bloqueado }
    GET    /premios                     premios de Triqui y SigloGamif
    PUT    /premios                     guardar premios
+   PUT    /usuarios/:id/voz            { bloqueada }  quitar o devolver la voz
+   GET    /usuarios/:id/reportes       sus reportes con el motivo
+   POST   /usuarios/:id/reportes/revisar   marcar revisados (ya no cuentan)
+   GET    /voz                         reglas de la voz
+   PUT    /voz                         guardar reglas
 ========================================================= */
 
 import express from "express";
@@ -34,6 +39,7 @@ import { calcularNivel, entregarRecompensa, xpParaSubir, NIVEL_MAXIMO } from "..
 import { ARCHIVOS_DIR, URL_ARCHIVOS, TIPOS_ARCHIVO } from "../config/archivos.js";
 import { obtenerPremios, guardarPremios } from "../config/premios.js";
 import { olvidarBloqueo } from "../auth/bloqueo.js";
+import { obtenerConfigVoz, guardarConfigVoz, olvidarPermisoVoz, MOTIVOS_REPORTE } from "../voz/voz.js";
 import {
     listarNivelesAdmin,
     obtenerNivel,
@@ -347,17 +353,22 @@ router.get(
     "/usuarios",
     ruta(async (req, res) => {
         const buscar = String(req.query.buscar || "").trim().slice(0, 60);
+        // "reportes": primero los más reportados.
+        const orden = req.query.orden === "reportes" ? "reportes_pendientes DESC, u.created_at DESC" : "u.created_at DESC";
 
         const { rows } = await pool.query(
             `
             SELECT u.id, u.username, u.email, u.rol, u.created_at, u.last_login,
-                   u.bloqueado, p.display_name, p.level, p.xp, p.coins, p.gems, p.avatar,
+                   u.bloqueado, u.voz_bloqueada, p.display_name, p.level, p.xp, p.coins, p.gems, p.avatar,
+                   (SELECT COUNT(DISTINCT r.reportante_id)::int FROM reportes r
+                     WHERE r.reportado_id = u.id AND r.revisado = FALSE) AS reportes_pendientes,
+                   (SELECT COUNT(*)::int FROM reportes r WHERE r.reportado_id = u.id) AS reportes_total,
                    s.games_played, s.correct_answers, s.questions_answered
             FROM users u
             JOIN player_profiles p ON p.user_id = u.id
             LEFT JOIN player_stats s ON s.user_id = u.id
             WHERE $1 = '' OR u.username ILIKE '%' || $1 || '%' OR u.email ILIKE '%' || $1 || '%'
-            ORDER BY u.created_at DESC
+            ORDER BY ${orden}
             LIMIT 200
             `,
             [buscar]
@@ -615,6 +626,73 @@ router.put(
     "/premios",
     ruta(async (req, res) => {
         res.json({ success: true, premios: await guardarPremios(req.body?.premios || {}) });
+    })
+);
+
+/* =========================================================
+   VOZ Y REPORTES
+========================================================= */
+
+router.put(
+    "/usuarios/:id/voz",
+    ruta(async (req, res) => {
+        const id = idValido(req.params.id);
+        const bloqueada = req.body?.bloqueada === true;
+        const { rowCount } = await pool.query("UPDATE users SET voz_bloqueada = $2 WHERE id = $1", [id, bloqueada]);
+        if (rowCount === 0) throw errorConEstado("Usuario no encontrado.", 404);
+        olvidarPermisoVoz(id);
+        res.json({ success: true, bloqueada });
+    })
+);
+
+router.get(
+    "/usuarios/:id/reportes",
+    ruta(async (req, res) => {
+        const id = idValido(req.params.id);
+        const { rows } = await pool.query(
+            `
+            SELECT r.id, r.motivo, r.contexto, r.revisado, r.creado_en,
+                   COALESCE(p.display_name, u.username) AS reportante
+            FROM reportes r
+            JOIN users u ON u.id = r.reportante_id
+            LEFT JOIN player_profiles p ON p.user_id = u.id
+            WHERE r.reportado_id = $1
+            ORDER BY r.creado_en DESC
+            LIMIT 200
+            `,
+            [id]
+        );
+        res.json({
+            success: true,
+            reportes: rows.map((r) => ({ ...r, motivo_texto: MOTIVOS_REPORTE[r.motivo] || r.motivo })),
+        });
+    })
+);
+
+router.post(
+    "/usuarios/:id/reportes/revisar",
+    ruta(async (req, res) => {
+        const id = idValido(req.params.id);
+        const { rowCount } = await pool.query(
+            "UPDATE reportes SET revisado = TRUE WHERE reportado_id = $1 AND revisado = FALSE",
+            [id]
+        );
+        olvidarPermisoVoz(id);
+        res.json({ success: true, revisados: rowCount });
+    })
+);
+
+router.get(
+    "/voz",
+    ruta(async (req, res) => {
+        res.json({ success: true, voz: await obtenerConfigVoz() });
+    })
+);
+
+router.put(
+    "/voz",
+    ruta(async (req, res) => {
+        res.json({ success: true, voz: await guardarConfigVoz(req.body?.voz || {}) });
     })
 );
 

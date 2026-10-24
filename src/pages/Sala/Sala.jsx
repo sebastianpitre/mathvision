@@ -1,8 +1,8 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
-import { LuCheck, LuCopy, LuCrown, LuDoorOpen, LuLogIn, LuPlus, LuSettings2, LuTrophy, LuUserPlus, LuUserX, LuWifiOff, LuX } from "react-icons/lu";
+import { LuCheck, LuCopy, LuCrown, LuDoorOpen, LuLogIn, LuPlus, LuSettings2, LuShare2, LuTrophy, LuUserPlus, LuUserX, LuWifiOff, LuX } from "react-icons/lu";
 
 import PantallaFF from "../../components/juego/PantallaFF";
 import ElegirJuego, { textoJugadores } from "../../components/juego/ElegirJuego";
@@ -12,6 +12,9 @@ import ProtegerError from "../../components/common/ProtegerError";
 import VRMCharacter from "../../components/character/VRMCharacter";
 import LucesPersonaje from "../../components/character/LucesPersonaje";
 import { BurbujaEmoji, SelectorEmojis } from "../../components/common/Emojis";
+import BotonHablar, { HablandoMarca } from "../../components/juego/BotonHablar";
+import { AccionesJugador } from "../../components/juego/Reportar";
+import { useVoz } from "../../hooks/useVoz";
 import { useEmojisSala } from "../../components/common/useEmojisSala";
 import { useAuth } from "../../context/AuthContext";
 import { socket } from "../../services/socket";
@@ -83,6 +86,8 @@ export default function Sala() {
     const location = useLocation();
     const { user } = useAuth();
     const miId = String(user?.id ?? "");
+    const { codigo: codigoLink } = useParams();
+    const { hablando } = useVoz();
 
     const [sala, setSala] = useState(undefined); // undefined = cargando, null = sin sala
     const [codigo, setCodigo] = useState("");
@@ -94,6 +99,8 @@ export default function Sala() {
     const crearAlEntrar = useRef(Boolean(location.state?.crear));
     // Desde el botón INICIAR del lobby llega el juego que se quiere jugar.
     const juegoPedido = useRef(location.state?.juego || null);
+    // Llegó por un enlace compartido (/sala/ABCDE): entra a esa sala de una vez.
+    const unirseAlEntrar = useRef(codigoLink ? codigoLink.toUpperCase() : null);
 
     /* ---------------- Conexión ---------------- */
 
@@ -101,6 +108,16 @@ export default function Sala() {
         const alConectar = () => socket.emit("sala:estado");
 
         const alEstado = ({ sala: nueva }) => {
+            if (unirseAlEntrar.current) {
+                const destino = unirseAlEntrar.current;
+                unirseAlEntrar.current = null;
+                navigate("/sala", { replace: true });
+                if (nueva?.code !== destino) {
+                    socket.emit("sala:unirse", { codigo: destino });
+                    if (nueva === null) return; // espera a que responda la unión
+                }
+            }
+
             if (nueva === null && crearAlEntrar.current) {
                 crearAlEntrar.current = false;
                 socket.emit("sala:crear");
@@ -117,7 +134,10 @@ export default function Sala() {
         };
 
         // Las invitaciones y sus avisos se muestran en cualquier pantalla.
-        const alError = ({ message }) => avisar(message, "error", 4500);
+        const alError = ({ message }) => {
+            avisar(message, "error", 4500);
+            setSala((s) => (s === undefined ? null : s)); // si el enlace falló, que no quede cargando
+        };
         const alExpulsado = ({ message }) => avisar(message, "error", 6000);
 
         socket.on("connect", alConectar);
@@ -134,7 +154,7 @@ export default function Sala() {
             socket.off("sala:error", alError);
             socket.off("sala:expulsado", alExpulsado);
         };
-    }, [miId]);
+    }, [miId, navigate]);
 
     const cerrarJuegos = useCallback(() => setEligiendoJuego(false), []);
 
@@ -208,6 +228,28 @@ export default function Sala() {
         }
     };
 
+    const enlace = `${window.location.origin}/sala/${sala.code}`;
+    const compartir = async () => {
+        const texto = `¡Juega conmigo en LudoGamif! Entra a mi sala: ${enlace}`;
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: "LudoGamif", text: "¡Juega conmigo en LudoGamif! Entra a mi sala:", url: enlace });
+                return;
+            } catch (e) {
+                if (e?.name === "AbortError") return;
+            }
+        }
+        window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
+    };
+    const copiarEnlace = async () => {
+        try {
+            await navigator.clipboard.writeText(enlace);
+            avisar("Enlace copiado. Pégalo donde quieras.", "ok", 2500);
+        } catch {
+            avisar(enlace, "info", 8000);
+        }
+    };
+
     const salir = () => {
         socket.emit("sala:salir");
         navigate("/lobby");
@@ -219,11 +261,20 @@ export default function Sala() {
     };
 
     const codigoArriba = (
+        <>
+        <button type="button" className="ffp-btn sl-compartir" onClick={compartir} onContextMenu={(e) => { e.preventDefault(); copiarEnlace(); }} title="Compartir por WhatsApp u otra app">
+            <LuShare2 aria-hidden="true" />
+            Compartir
+        </button>
+        <button type="button" className="ffl-icono ffl-icono-chico sl-copiar-enlace" onClick={copiarEnlace} aria-label="Copiar enlace de la sala" title="Copiar enlace">
+            <LuCopy aria-hidden="true" />
+        </button>
         <button type="button" className="sl-codigo" onClick={copiarCodigo} aria-label={`Código ${sala.code.split("").join(" ")}. Copiar`} title="Copiar código">
             <small>Código</small>
             <strong>{sala.code}</strong>
             {copiado ? <LuCheck aria-hidden="true" /> : <LuCopy aria-hidden="true" />}
         </button>
+        </>
     );
 
     return (
@@ -245,6 +296,7 @@ export default function Sala() {
                                     {m.esCreador && <LuCrown aria-label="Creador" className="sl-corona" />}
                                     {m.nombre}
                                     {String(m.userId) === miId && <span className="sl-tu"> (tú)</span>}
+                                    <HablandoMarca activo={hablando?.userId === String(m.userId)} />
                                 </strong>
                                 <small>
                                     {m.conectado ? `Nv. ${m.nivel}` : "Reconectando…"}
@@ -257,6 +309,7 @@ export default function Sala() {
                                 </small>
                             </span>
                             {!m.conectado && <LuWifiOff aria-hidden="true" className="sl-off" />}
+                            {String(m.userId) !== miId && porSacar !== m.userId && <AccionesJugador userId={m.userId} nombre={m.nombre} contexto="sala" />}
                             {puedeSacar && String(m.userId) !== miId &&
                                 (porSacar === m.userId ? (
                                     <span className="sl-sacar-confirmar">
@@ -298,6 +351,7 @@ export default function Sala() {
                     </div>
 
                     <SelectorEmojis className="sl-selector-emojis" />
+                    <BotonHablar className="sl-hablar" />
 
                     <ol className={`sl-puestos ${totalPuestos > 5 ? "sl-puestos-muchos" : ""}`} style={{ gridTemplateColumns: `repeat(${totalPuestos}, minmax(0, 1fr))` }}>
                         {puestos.map((m, i) => (
@@ -306,6 +360,7 @@ export default function Sala() {
                                     <span className="sl-etiqueta">
                                         {m.esCreador && <LuCrown aria-hidden="true" />}
                                         <strong>{m.nombre}</strong>
+                                        <HablandoMarca activo={hablando?.userId === String(m.userId)} />
                                         {m.victorias > 0 && <small>{`🏆${m.victorias}`}</small>}
                                     </span>
                                 ) : (

@@ -153,7 +153,7 @@ export class RoomManager {
         room.round = 0;
 
         for (const miembro of room.miembros.values()) {
-            room.players.set(miembro.socketId, new Player(miembro.socketId, miembro.nombre));
+            room.players.set(miembro.socketId, new Player(miembro.socketId, miembro.nombre, miembro.userId));
             room.score.set(miembro.socketId, 0);
         }
     }
