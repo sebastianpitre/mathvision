@@ -126,9 +126,15 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   foto; cambiar nombre, archivos, precio en oro y/o diamantes, nivel mínimo, mostrar u
   ocultar en la tienda, y borrarlos (quien lo usaba vuelve al personaje inicial).
 - **Jugadores:** buscar, cambiar nivel, oro y diamantes, **bloquear** la cuenta (no puede
-  entrar ni jugar), dar o quitar el rol de admin y regalar oro o diamantes.
+  entrar ni jugar), **quitar o devolver la voz**, dar o quitar el rol de admin y regalar
+  oro o diamantes. La columna **Reportes** muestra "sin revisar / total"; al tocarla se
+  ven los motivos y quién reportó, y se pueden **marcar como revisados**. La casilla
+  "Más reportados primero" ordena la lista.
 - **Premios:** XP y oro de Triqui y SigloGamif según gane, empate o pierda, partidas
   premiadas al día y los diamantes extra por ¡SIGLO!.
+- **Voz y reportes:** activar o apagar la voz para todos, segundos máximos por turno
+  (5 por defecto), espera para volver a hablar (3) y cuántos reportes sin revisar de
+  jugadores distintos quitan la voz (3).
 
 ### Formato del JSON de preguntas
 
@@ -228,6 +234,16 @@ Todos los juegos de 2 o más jugadores pasan por una **sala** (`/sala`):
   en su fila del tablero; en el Triqui, como siempre.
 - La sala lleva la cuenta de las **partidas ganadas** de cada uno (por juego).
 - Al terminar SigloGamif, el creador puede **Jugar otra vez** sin volver a la sala.
+- **Compartir:** el botón verde de la sala comparte por WhatsApp (o la app que elija el
+  teléfono) el enlace `https://ludogamif.ocloudev.lat/sala/CÓDIGO`. Quien lo abre entra
+  directo a la sala; si no ha iniciado sesión, entra después de hacerlo.
+- **Voz (walkie-talkie):** en la sala, SigloGamif y el Triqui en línea hay un botón de
+  micrófono: se **mantiene presionado** para hablar. Habla una persona a la vez, máximo
+  5 s por turno y luego se espera 3 s (se cambia en el panel). El servidor hace cumplir
+  estas reglas. Junto a cada jugador hay botones para **silenciarlo** (solo para ti, se
+  recuerda en ese navegador) y para **reportarlo** eligiendo el motivo. Un jugador con
+  varios reportes sin revisar se queda sin voz hasta que el admin los revise. El
+  micrófono necesita HTTPS (el sitio ya lo tiene).
 - Al terminar la partida todos vuelven a la sala. Si alguien recarga la página, tiene
   20 segundos para volver sin perder su lugar.
 

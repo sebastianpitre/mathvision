@@ -9,6 +9,9 @@ import Recompensas from "../../components/common/Recompensas";
 import AssetImage from "../../components/common/AssetImage";
 import { BurbujaEmoji, SelectorEmojis } from "../../components/common/Emojis";
 import { useEmojisSala } from "../../components/common/useEmojisSala";
+import BotonHablar, { HablandoMarca } from "../../components/juego/BotonHablar";
+import { AccionesJugador } from "../../components/juego/Reportar";
+import { useVoz } from "../../hooks/useVoz";
 
 import "./siglo.css";
 
@@ -83,6 +86,7 @@ export default function Siglo() {
     const navigate = useNavigate();
     const { user, refreshUser } = useAuth();
     const miId = String(user?.id ?? "");
+    const { hablando } = useVoz();
 
     const [partida, setPartida] = useState(undefined);
     const [sala, setSala] = useState(null);
@@ -360,6 +364,7 @@ export default function Siglo() {
                                         <strong>
                                             {j.nombre}
                                             {j.userId === miId && <span className="sg-tu"> (tú)</span>}
+                                            <HablandoMarca activo={hablando?.userId === j.userId} />
                                         </strong>
                                         <small>
                                             {gano ? (
@@ -387,6 +392,7 @@ export default function Siglo() {
                                             )}
                                         </small>
                                     </div>
+                                    {j.userId !== miId && <AccionesJugador userId={j.userId} nombre={j.nombre} contexto="siglo" className="sg-acciones" />}
                                     <div className={`sg-total ${tonoTotal}`}>
                                         <small>Total</small>
                                         <strong>{j.total}</strong>
@@ -434,6 +440,7 @@ export default function Siglo() {
                             {restante !== null ? `${restante} s` : "--"}
                         </span>
                         <SelectorEmojis />
+                        <BotonHablar className="sg-hablar" />
                         <button type="button" className="ffl-icono" onClick={alternarSonido} aria-label={sonido ? "Silenciar" : "Activar sonido"}>
                             {sonido ? <LuVolume2 aria-hidden="true" /> : <LuVolumeX aria-hidden="true" />}
                         </button>

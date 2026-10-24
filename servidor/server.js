@@ -20,6 +20,8 @@ import { MAX_JUGADORES_SALA } from "./src/salas/juegos.js";
 import { registrarInvitaciones } from "./src/world/invitaciones.js";
 import { estaBloqueado, MENSAJE_BLOQUEADO } from "./src/auth/bloqueo.js";
 import rankingRoutes from "./src/ranking/rankingRoutes.js";
+import reportesRoutes from "./src/voz/reportesRoutes.js";
+import { crearVoz } from "./src/voz/vozSockets.js";
 import { ARCHIVOS_DIR, URL_ARCHIVOS } from "./src/config/archivos.js";
 import { TriquiGame } from "./src/games/triqui/TriquiGame.js";
 
@@ -121,6 +123,7 @@ app.use("/api/niveles", nivelesRouter);
 app.use("/api/partidas", partidasRouter);
 app.use("/api/tienda", tiendaRoutes);
 app.use("/api/ranking", rankingRoutes);
+app.use("/api/reportes", reportesRoutes);
 
 /*
  * Modelos 3D y fotos subidos desde el panel. Cada archivo
@@ -251,6 +254,10 @@ const ayudasSala =
         worldManager,
         WORLD_ROOM,
     });
+
+/* Voz en la sala (walkie-talkie). Ver src/voz/. */
+const voz = crearVoz({ io, roomManager });
+ayudasSala.alSalirDeVoz = voz.cortar;
 
 const PORT = config.PORT;
 
@@ -841,6 +848,8 @@ io.on(
            INVITACIONES (invitar, aceptar, rechazar, cancelar)
            Ver src/world/invitaciones.js
         ================================================= */
+
+        voz.registrar(socket);
 
         registrarInvitaciones(socket, {
             io,

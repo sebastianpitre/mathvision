@@ -129,6 +129,7 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
         if (!room) return;
 
         const miembro = room.miembros.get(String(userId));
+        ayudas.alSalirDeVoz?.(room, userId);
         clearTimeout(esperas.get(String(userId)));
         esperas.delete(String(userId));
 
@@ -162,6 +163,7 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
         if (!miembro || miembro.socketId !== socket.id) return; // ya está en otra conexión
 
         miembro.conectado = false;
+        ayudas.alSalirDeVoz?.(room, miembro.userId);
 
         cortarTriqui(room, `${miembro.nombre} se desconectó.`);
         emitirSala(room);
@@ -240,7 +242,7 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
         juego.iniciar();
     }
 
-    return {
+    const ayudas = {
         esperas,
         emitirSala,
         actualizarMundo,
@@ -253,7 +255,11 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
         entregarPremios,
         iniciarSiglo,
         socketDe,
+        // Lo pone server.js: corta la voz de quien sale de la sala.
+        alSalirDeVoz: null,
     };
+
+    return ayudas;
 }
 
 /* =========================================================

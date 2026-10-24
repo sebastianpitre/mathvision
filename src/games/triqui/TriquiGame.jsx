@@ -30,6 +30,9 @@ import {
 } from "./GameAudio";
 
 import { LuArrowLeft } from "react-icons/lu";
+import BotonHablar, { HablandoMarca } from "../../components/juego/BotonHablar";
+import { AccionesJugador } from "../../components/juego/Reportar";
+import { useVoz } from "../../hooks/useVoz";
 import { EMOJIS } from "../../data/emojis";
 
 import "./triqui.css";
@@ -97,6 +100,7 @@ const readSoundPreference = () => {
 ========================================================= */
 
 function TriquiGame({ mode = "online", playerName } = {}) {
+    const { hablando } = useVoz();
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -1139,6 +1143,7 @@ function TriquiGame({ mode = "online", playerName } = {}) {
                             TRIQUI<span>MATH</span>
                         </span>
                         <span className="triqui-round">{`R${game.round}`}</span>
+                        {!isLocal && <BotonHablar className="tq-hablar" />}
                         {soundButton}
                     </div>
 
@@ -1167,11 +1172,16 @@ function TriquiGame({ mode = "online", playerName } = {}) {
                                         {isMe && !isLocal && (
                                             <span className="triqui-you">TÚ</span>
                                         )}
+                                        {!isLocal && <HablandoMarca activo={hablando?.userId === String(player.userId)} />}
                                     </strong>
 
                                     <span>{`Jugador ${player.symbol ?? ""}`}</span>
 
                                 </div>
+
+                                {!isLocal && !isMe && player.userId && (
+                                    <AccionesJugador userId={String(player.userId)} nombre={player.name} contexto="triqui" className="tq-acciones" />
+                                )}
 
                                 <div className="triqui-score">
                                     <small>GANADAS</small>

@@ -868,3 +868,24 @@
         animation: none;
     }
 }
+
+/* Voz en Triqui en línea */
+.tq-hablar {
+    width: 2.6rem;
+    height: 2.6rem;
+}
+
+.tq-hablar svg {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.tq-acciones {
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.tq-acciones .vz-accion {
+    width: 1.4rem;
+    height: 1.4rem;
+}
