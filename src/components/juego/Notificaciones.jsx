@@ -7,6 +7,7 @@ import { alAvisar, avisar } from "../../services/avisos";
 import AssetImage from "../common/AssetImage";
 
 import "./notificaciones.css";
+import { sonar } from "../../services/sonidos";
 
 /* =========================================================
    NOTIFICACIONES EN CUALQUIER PANTALLA
@@ -37,6 +38,7 @@ export default function Notificaciones() {
         };
 
         const alInvitacion = (inv) => {
+            sonar("invitacion");
             if (!inv?.fromPlayerId) return;
             const id = String(inv.fromPlayerId);
             const hasta = Math.min(inv.expiraEn || Infinity, Date.now() + SEGUNDOS_INVITACION * 1000);

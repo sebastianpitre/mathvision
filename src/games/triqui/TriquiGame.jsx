@@ -24,10 +24,8 @@ import {
 } from "./triquiAlerts";
 
 // ⚠️ Ajusta la ruta a donde tengas tu archivo de sonidos
-import {
-    playSound,
-    createBackgroundMusic,
-} from "./GameAudio";
+import { sonar } from "../../services/sonidos";
+import { useSonido } from "../../hooks/useSonido";
 
 import { LuArrowLeft } from "react-icons/lu";
 import BotonHablar, { HablandoMarca } from "../../components/juego/BotonHablar";
@@ -59,36 +57,21 @@ const MAX_DIGITS = 6;
 
 /* =========================================================
    SONIDOS DEL JUEGO
-   Evento del juego  ->  nombre en tu archivo de sonidos.
-   Cambia aquí qué sonido suena en cada momento.
-   "myTurn" y "tick" no existen aún en tu archivo: si los
-   agregas (sounds.turn / sounds.tick) empiezan a sonar;
-   si no, simplemente no suenan (playSound devuelve null).
+   Evento del juego -> momento del panel (Panel → Sonidos).
 ========================================================= */
 
 const GAME_SOUNDS = {
-    correct: "correct",
-    wrong: "incorrect",
-    timeout: "incorrect",
-    win: "victory",
-    lose: "gameOver",
-    draw: "gameOver",
-    emoji: "lifeline",
-    leave: "gameOver",
-    disconnected: "gameOver",
-    myTurn: "turn",
-    tick: "tick",
-};
-
-const MUSIC_VOLUME = 0.2;
-const SOUND_STORAGE_KEY = "triqui-sound";
-
-const readSoundPreference = () => {
-    try {
-        return localStorage.getItem(SOUND_STORAGE_KEY) !== "off";
-    } catch {
-        return true;
-    }
+    correct: "correcto",
+    wrong: "incorrecto",
+    timeout: "incorrecto",
+    win: "ganar",
+    lose: "perder",
+    draw: "empate",
+    emoji: "emoji",
+    leave: "perder",
+    disconnected: "perder",
+    myTurn: "turno",
+    tick: "tiempo",
 };
 
 /* =========================================================
@@ -152,74 +135,13 @@ function TriquiGame({ mode = "online", playerName } = {}) {
        SONIDO
     ===================================================== */
 
-    const [soundOn, setSoundOn] = useState(readSoundPreference);
-    const soundOnRef = useRef(soundOn);
-    const musicRef = useRef(null);
+    // Mismo ajuste de sonido de todo el juego (la música la pone MusicaGlobal).
+    const [soundOn, toggleSound] = useSonido();
 
     const sfx = useCallback((event, volume = 0.8) => {
-
-        if (!soundOnRef.current) return;
-
-        const name = GAME_SOUNDS[event];
-
-        if (name) {
-            playSound(name, volume);
-        }
+        const momento = GAME_SOUNDS[event];
+        if (momento) sonar(momento, Math.min(1, volume / 0.8));
     }, []);
-
-    // Música de fondo: el navegador no deja reproducir audio
-    // hasta que el usuario toca la pantalla, así que arranca
-    // en la primera interacción.
-    useEffect(() => {
-
-        const music = createBackgroundMusic();
-        music.volume = MUSIC_VOLUME;
-        musicRef.current = music;
-
-        const start = () => {
-            if (soundOnRef.current && music.paused) {
-                music.play().catch(() => { });
-            }
-        };
-
-        window.addEventListener("pointerdown", start);
-        window.addEventListener("keydown", start);
-
-        start();
-
-        return () => {
-            window.removeEventListener("pointerdown", start);
-            window.removeEventListener("keydown", start);
-
-            music.pause();
-            music.currentTime = 0;
-            musicRef.current = null;
-        };
-    }, []);
-
-    const toggleSound = () => {
-
-        const next = !soundOnRef.current;
-
-        soundOnRef.current = next;
-        setSoundOn(next);
-
-        try {
-            localStorage.setItem(SOUND_STORAGE_KEY, next ? "on" : "off");
-        } catch {
-            /* sin almacenamiento: no pasa nada */
-        }
-
-        const music = musicRef.current;
-
-        if (!music) return;
-
-        if (next) {
-            music.play().catch(() => { });
-        } else {
-            music.pause();
-        }
-    };
 
     /* =====================================================
        TIMERS CONTROLADOS

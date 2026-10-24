@@ -132,6 +132,15 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   "Más reportados primero" ordena la lista.
 - **Premios:** XP y oro de Triqui y SigloGamif según gane, empate o pierda, partidas
   premiadas al día y los diamantes extra por ¡SIGLO!.
+- **Sonidos:** la biblioteca de música y efectos. Se suben archivos mp3, ogg, wav o m4a
+  (hasta 10 MB) y se pueden escuchar, renombrar y borrar (si no se están usando). Si subes
+  un archivo idéntico a uno que ya está, no se guarda otra vez: se reutiliza. Arriba se
+  elige qué sonido y con qué volumen suena en cada momento: música del lobby y de cada
+  juego (si un juego no tiene la suya, sigue la del lobby), clic de los botones, iniciar
+  partida, invitación, emoji, ganar, perder, empate, tu turno, se acaba el tiempo, dado,
+  respuestas, comodín, etc. Los sonidos que trae el juego quedan "de fábrica" y no se
+  borran. En el menú flotante cada jugador puede apagar todo el sonido o solo la música, y
+  la música baja sola mientras alguien habla por el walkie-talkie.
 - **Voz y reportes:** activar o apagar la voz para todos, segundos máximos por turno
   (5 por defecto), espera para volver a hablar (3) y cuántos reportes sin revisar de
   jugadores distintos quitan la voz (3).

@@ -9,6 +9,8 @@ import Recompensas from "../../components/common/Recompensas";
 import AssetImage from "../../components/common/AssetImage";
 import { BurbujaEmoji, SelectorEmojis } from "../../components/common/Emojis";
 import { useEmojisSala } from "../../components/common/useEmojisSala";
+import { sonar as sonarMomento } from "../../services/sonidos";
+import { useSonido } from "../../hooks/useSonido";
 import BotonHablar, { HablandoMarca } from "../../components/juego/BotonHablar";
 import { AccionesJugador } from "../../components/juego/Reportar";
 import { useVoz } from "../../hooks/useVoz";
@@ -29,13 +31,16 @@ import "./siglo.css";
      ganado en esta sala.
 ========================================================= */
 
+// Evento → momento del panel (Panel → Sonidos).
 const SONIDOS = {
-    dado: "/sounds/click.mp3",
-    poner: "/sounds/correct.mp3",
-    eliminado: "/sounds/incorrect.mp3",
-    turno: "/sounds/warning.mp3",
-    ganar: "/sounds/victory.mp3",
-    perder: "/sounds/game-over.mp3",
+    dado: "dado",
+    poner: "poner",
+    eliminado: "eliminado",
+    turno: "turno",
+    joker: "joker",
+    ganar: "ganar",
+    perder: "perder",
+    tiempo: "tiempo",
 };
 
 const JOKER = "joker";
@@ -94,23 +99,17 @@ export default function Siglo() {
     const [premio, setPremio] = useState(null);
     const [error, setError] = useState("");
     const [restante, setRestante] = useState(null);
-    const [sonido, setSonido] = useState(true);
+    const [sonido, alternarSonido] = useSonido();
     const [tirando, setTirando] = useState(false);
     // Número elegido con el joker, atado al tiro en que se eligió.
     const [eleccionJoker, setEleccionJoker] = useState({ tiro: "", numero: null });
     const [retirando, setRetirando] = useState(false);
 
     const desfase = useRef(0);
-    const sonidoRef = useRef(true);
     const errorTimer = useRef(null);
     const anterior = useRef(null);
 
-    const sonar = useCallback((nombre) => {
-        if (!sonidoRef.current) return;
-        const audio = new Audio(SONIDOS[nombre]);
-        audio.volume = 0.6;
-        audio.play().catch(() => {});
-    }, []);
+    const sonar = useCallback((nombre) => sonarMomento(SONIDOS[nombre]), []);
 
     /* ---------------- Conexión ---------------- */
 
@@ -182,7 +181,7 @@ export default function Siglo() {
 
         if (ultimo && ultimo.en !== ultimoAntes?.en) {
             if (ultimo.tipo === "dado") sonar("dado");
-            else if (ultimo.tipo === "joker") sonar("ganar");
+            else if (ultimo.tipo === "joker") sonar("joker");
             else if (ultimo.tipo === "eliminado") sonar("eliminado");
             else if (ultimo.tipo === "info") sonar("poner");
         }
@@ -214,6 +213,12 @@ export default function Siglo() {
     const yo = useMemo(() => partida?.jugadores.find((j) => j.userId === miId) || null, [partida, miId]);
     const turnoDe = partida?.jugadores.find((j) => j.userId === partida.turno) || null;
     const miTurno = Boolean(partida && partida.turno === miId);
+
+    // Aviso cuando a mi turno le quedan 5 segundos.
+    const avisoTiempo = miTurno && restante === 5;
+    useEffect(() => {
+        if (avisoTiempo) sonar("tiempo");
+    }, [avisoTiempo, sonar]);
     const nombre = (id) => partida?.jugadores.find((j) => j.userId === id)?.nombre || "";
     const victoriasDe = (id) =>
         sala?.juego === "siglo" ? sala.miembros.find((m) => String(m.userId) === id)?.victorias || 0 : 0;
@@ -295,10 +300,6 @@ export default function Siglo() {
         navigate("/sala");
     };
 
-    const alternarSonido = () => {
-        sonidoRef.current = !sonidoRef.current;
-        setSonido(sonidoRef.current);
-    };
 
     /* =====================================================
        PANTALLAS

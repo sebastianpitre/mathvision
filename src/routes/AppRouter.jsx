@@ -6,6 +6,8 @@ import { socket } from "../services/socket";
 import Notificaciones from "../components/juego/Notificaciones";
 import MenuFlotante from "../components/juego/MenuFlotante";
 import VozGlobal from "../components/juego/VozGlobal";
+import MusicaGlobal from "../components/juego/MusicaGlobal";
+import { sonar } from "../services/sonidos";
 
 /*
  * Cada pantalla se descarga solo cuando se abre. Así el
@@ -71,6 +73,7 @@ function EscuchaSala() {
         };
 
         const alIniciar = ({ ruta }) => {
+            sonar("iniciar");
             if (ruta && location.pathname !== ruta) navigate(ruta);
         };
 
@@ -110,6 +113,7 @@ function AppRouter() {
             <Notificaciones />
             <MenuFlotante />
             <VozGlobal />
+            <MusicaGlobal />
             <Suspense fallback={<Cargando />}>
             <Routes>
                 <Route path="/" element={<Login />} />

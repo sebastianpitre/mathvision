@@ -14,6 +14,10 @@ export const ARCHIVOS_DIR =
 
 export const URL_ARCHIVOS = "/archivos";
 
+// Donde está el juego ya compilado (para leer los sonidos que trae).
+export const FRONTEND_DIR =
+    process.env.FRONTEND_DIR || path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../dist");
+
 export const TIPOS_ARCHIVO = {
     modelo: {
         carpeta: "modelos",
@@ -32,5 +36,18 @@ export const TIPOS_ARCHIVO = {
             (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) ||
             (b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP"),
         texto: "una imagen .png, .jpg o .webp",
+    },
+    sonido: {
+        carpeta: "sonidos",
+        extensiones: [".mp3", ".ogg", ".wav", ".m4a"],
+        maxBytes: 10 * 1024 * 1024,
+        firma: (b) =>
+            b.length > 12 &&
+            (b.toString("ascii", 0, 3) === "ID3" || // mp3 con etiquetas
+                (b[0] === 0xff && (b[1] & 0xe0) === 0xe0) || // mp3 sin etiquetas
+                b.toString("ascii", 0, 4) === "OggS" ||
+                (b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WAVE") ||
+                b.toString("ascii", 4, 8) === "ftyp"), // m4a
+        texto: "un sonido .mp3, .ogg, .wav o .m4a",
     },
 };

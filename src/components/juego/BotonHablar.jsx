@@ -114,6 +114,7 @@ export default function BotonHablar({ className = "" }) {
     return (
         <button
             type="button"
+            data-sin-clic
             className={`vz-boton vz-${estado} ${presionado ? "vz-presionado" : ""} ${className}`}
             onPointerDown={empezar}
             onPointerUp={terminar}

@@ -4,6 +4,7 @@ import {
     LuExpand,
     LuHouse,
     LuLogOut,
+    LuMusic,
     LuShieldCheck,
     LuShirt,
     LuShoppingCart,
@@ -26,6 +27,7 @@ import {
 } from "../../services/pantalla";
 import { alCambiarSilencio, cambiarSilencio, estaSilenciado } from "../../services/sonido";
 import { avisar } from "../../services/avisos";
+import { alCambiarSonidos, cambiarMusica, hayMusicaApagada } from "../../services/sonidos";
 
 import "./menuFlotante.css";
 
@@ -74,7 +76,10 @@ export default function MenuFlotante() {
     const inicio = useRef(null);
     const boton = useRef(null);
 
+    const [sinMusica, setSinMusica] = useState(() => hayMusicaApagada());
+
     useEffect(() => alCambiarSilencio(setSilencio), []);
+    useEffect(() => alCambiarSonidos(() => setSinMusica(hayMusicaApagada())), []);
 
     useEffect(() => {
         const actualizar = () => setCompleta(enPantallaCompleta());
@@ -181,6 +186,13 @@ export default function MenuFlotante() {
             icono: silencio ? LuVolumeX : LuVolume2,
             accion: () => cambiarSilencio(),
             apagada: silencio,
+        },
+        {
+            id: "musica",
+            texto: sinMusica ? "Música apagada" : "Música",
+            icono: LuMusic,
+            accion: () => cambiarMusica(),
+            apagada: sinMusica || silencio,
         },
         { id: "inicio", texto: "Inicio", icono: LuHouse, accion: () => ir("/lobby") },
         { id: "sala", texto: "Mi sala", icono: LuUsers, accion: () => ir("/sala") },

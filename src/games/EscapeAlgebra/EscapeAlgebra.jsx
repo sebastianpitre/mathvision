@@ -107,15 +107,7 @@ export default function EscapeAlgebra() {
 
                 stopWarningSound();
 
-                const audio = new Audio(
-                    "/sounds/warning.mp3"
-                );
-
-                audio.volume = 0.7;
-
-                warningAudioRef.current = audio;
-
-                audio.play().catch(() => {});
+                warningAudioRef.current = playSound("warning", 0.7);
 
             }
 

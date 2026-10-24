@@ -7,12 +7,18 @@ import { getToken } from "../../services/api.js";
  * alAvanzar(porcentaje) se llama mientras sube (los modelos
  * pesan varios MB).
  */
-export function subirArchivo(archivo, tipo, alAvanzar = () => {}) {
+export async function subirArchivo(archivo, tipo, alAvanzar = () => {}) {
+    const datos = await subirBinario(`/admin/archivos?tipo=${tipo}&nombre=${encodeURIComponent(archivo.name)}`, archivo, alAvanzar);
+    if (!datos?.ruta) throw new Error("El servidor no devolvió la ruta del archivo.");
+    return datos.ruta;
+}
+
+/* Envía un archivo tal cual (binario) y devuelve la respuesta del servidor. */
+export function subirBinario(ruta, archivo, alAvanzar = () => {}) {
     return new Promise((resolver, rechazar) => {
         const xhr = new XMLHttpRequest();
-        const url = `${API_URL}/admin/archivos?tipo=${tipo}&nombre=${encodeURIComponent(archivo.name)}`;
 
-        xhr.open("POST", url);
+        xhr.open("POST", `${API_URL}${ruta}`);
         xhr.setRequestHeader("Content-Type", "application/octet-stream");
         const token = getToken();
         if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
@@ -28,7 +34,7 @@ export function subirArchivo(archivo, tipo, alAvanzar = () => {}) {
             } catch {
                 // nginx puede responder HTML (por ejemplo 413).
             }
-            if (xhr.status >= 200 && xhr.status < 300 && datos?.ruta) return resolver(datos.ruta);
+            if (xhr.status >= 200 && xhr.status < 300 && datos) return resolver(datos);
             if (xhr.status === 413) return rechazar(new Error("El archivo es muy grande para el servidor (revisa client_max_body_size en nginx)."));
             rechazar(new Error(datos?.message || `No se pudo subir el archivo (error ${xhr.status}).`));
         };
