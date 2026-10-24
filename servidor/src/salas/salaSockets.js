@@ -15,7 +15,7 @@
      siglo:volverATirar         cuesta 1 diamante, una vez por partida
      sala:emoji { emoji }       reacción (en la sala y en SigloGamif)
      siglo:poderAgarrar         el primero que toca el poder 🔄
-     siglo:poderUsar { objetivo, opcion, numero }  ponerle un número a otro
+     siglo:poderUsar { objetivo, numero }  ponerle un número (0 a 29) a otro
      siglo:salir
 
    Servidor → navegador
@@ -425,7 +425,7 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
     socket.on("siglo:tirar", accionSiglo((p) => p.tirar(yo())));
     socket.on("siglo:elegir", accionSiglo((p, { opcion, numero }) => p.elegir(yo(), opcion, numero)));
     socket.on("siglo:poderAgarrar", accionSiglo((p) => p.agarrarPoder(yo())));
-    socket.on("siglo:poderUsar", accionSiglo((p, { objetivo, opcion, numero }) => p.usarPoder(yo(), objetivo, opcion, numero)));
+    socket.on("siglo:poderUsar", accionSiglo((p, { objetivo, numero }) => p.usarPoder(yo(), objetivo, numero)));
 
     socket.on("siglo:volverATirar", async () => {
         const fallo = (message) => socket.emit("siglo:error", { message });

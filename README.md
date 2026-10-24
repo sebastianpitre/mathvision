@@ -132,7 +132,7 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   "Más reportados primero" ordena la lista.
 - **Premios y reglas:** XP y oro de Triqui y SigloGamif según gane, empate o pierda, partidas
   premiadas al día y los diamantes extra por ¡SIGLO!. Abajo, el poder 🔄 de SigloGamif
-  (activarlo, cuántas veces sale por partida y cuántos segundos dura).
+  (activarlo y cuántos segundos dura).
 - **Sonidos:** la biblioteca de música y efectos. Se suben archivos mp3, ogg, wav o m4a
   (hasta 10 MB) y se pueden escuchar, renombrar y borrar (si no se están usando). Si subes
   un archivo idéntico a uno que ya está, no se guarda otra vez: se reutiliza. Arriba se
@@ -267,12 +267,13 @@ del turno, el juego tira y elige la opción más prudente.
 
 - **Joker:** muy de vez en cuando (1 de cada 20 tiros) el dado sale joker y el jugador
   elige el número que quiera del 0 al 6, y luego unidad o decena.
-- **Poder 🔄:** al azar entre la ronda 2 y la 4 aparece un 🔄 flotando para todos. El
-  primero que lo toca elige a otro jugador en juego, un número del 0 al 6 y si va como
-  unidad o decena: ese número se pone en el **siguiente espacio vacío** del otro, que
-  pierde ese turno (y si se pasa de 100, queda eliminado). Tiene 10 s para usarlo o lo
-  pierde. En el panel (**Premios y reglas**) se activa o apaga, cuántas veces sale por
-  partida (1 por defecto) y cuántos segundos dura.
+- **Poder 🔄:** muy rara vez (más o menos en 1 de cada 4 partidas; puede no salir o salir
+  hasta 3 veces), entre la ronda 2 y la 4, aparece un 🔄 flotando para todos. El primero
+  que lo toca elige a otro jugador en juego, la decena (**0, 1 o 2**) y luego el número de
+  esa decena (0–9, 10–19 o 20–29): ese
+  número se pone en el **siguiente espacio vacío** del otro, que pierde ese turno (y si se
+  pasa de 100, queda eliminado). Tiene 10 s para usarlo o lo pierde. En el panel
+  (**Premios y reglas**) solo se activa o apaga y se cambian sus segundos.
 - **Volver a tirar:** una vez por partida, después de tirar, el jugador puede pagar
   **1 diamante** para volver a tirar. Si su turno se acaba mientras se cobra, se le
   devuelve el diamante.

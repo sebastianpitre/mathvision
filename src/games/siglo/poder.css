@@ -187,18 +187,41 @@
 
 .pd-numeros {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0.3rem;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 0.25rem;
 }
 
 .pd-numero {
-    height: 2.5rem;
+    height: 2.1rem;
     border: 2px solid rgba(192, 132, 252, 0.55);
     border-radius: 0.4rem;
     background: rgba(192, 132, 252, 0.12);
-    font-size: 1.3rem;
+    font-size: 1.05rem;
     font-weight: 800;
+    font-variant-numeric: tabular-nums;
     cursor: pointer;
+}
+
+.pd-decenas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.35rem;
+}
+
+.pd-decena {
+    height: auto;
+    padding: 0.2rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.5rem;
+    line-height: 1.1;
+}
+
+.pd-decena small {
+    color: #d8b4fe;
+    font-size: 0.72rem;
+    font-weight: 600;
 }
 
 .pd-elegido {
