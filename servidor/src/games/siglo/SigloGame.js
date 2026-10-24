@@ -75,6 +75,7 @@ export class SigloGame {
         this.jugadores = jugadores.map((j) => ({
             userId: String(j.userId),
             nombre: j.nombre,
+            avatar: j.avatar || null,
             espacios: Array(ESPACIOS).fill(null),
             total: 0,
             eliminado: false,
@@ -619,6 +620,7 @@ export class SigloGame {
                 return {
                     userId: j.userId,
                     nombre: j.nombre,
+                    avatar: j.avatar,
                     espacios: j.espacios,
                     total: j.total,
                     eliminado: j.eliminado,

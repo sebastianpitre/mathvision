@@ -68,6 +68,10 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en el .env}
       CORS_ORIGINS: ${CORS_ORIGINS:-*}
       TRUST_PROXY: ${TRUST_PROXY:-true}
+    volumes:
+      # Modelos 3D y fotos que subes desde el panel: sobreviven
+      # a las actualizaciones (como la base de datos).
+      - ludogamif_archivos:/app/archivos
 
   # ---------- Nginx propio (apagado) ----------
   # En el servidor ya hay un nginx del sistema en 80/443 que
@@ -81,3 +85,5 @@ services:
 volumes:
   ludogamif_db:
     name: ludogamif_db
+  ludogamif_archivos:
+    name: ludogamif_archivos

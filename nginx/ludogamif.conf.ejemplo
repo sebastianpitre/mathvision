@@ -37,8 +37,9 @@ server {
     ssl_certificate     /etc/ssl/cloudflare/ocloudev.crt;
     ssl_certificate_key /etc/ssl/cloudflare/ocloudev.key;
 
-    # Archivos JSON de preguntas que sube el administrador.
-    client_max_body_size 5m;
+    # Lo que sube el administrador: JSON de preguntas, fotos y
+    # modelos 3D de personajes (hasta 60 MB).
+    client_max_body_size 64m;
 
     # ---------- Tiempo real (Socket.IO / WebSockets) ----------
     location /socket.io/ {

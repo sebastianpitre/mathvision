@@ -53,13 +53,17 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOST=0.0.0.0 \
     TZ=UTC \
-    FRONTEND_DIR=/app/dist
+    FRONTEND_DIR=/app/dist \
+    ARCHIVOS_DIR=/app/archivos
 
 WORKDIR /app/servidor
 
 COPY --from=servidor --chown=ludogamif:ludogamif /app/servidor/node_modules ./node_modules
 COPY --chown=ludogamif:ludogamif servidor/ ./
 COPY --from=frontend --chown=ludogamif:ludogamif /app/dist /app/dist
+
+# Modelos y fotos subidos desde el panel (en un volumen de Docker).
+RUN mkdir -p /app/archivos && chown ludogamif:ludogamif /app/archivos
 
 USER ludogamif
 

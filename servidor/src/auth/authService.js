@@ -1,3 +1,4 @@
+import { MENSAJE_BLOQUEADO } from "./bloqueo.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -249,7 +250,8 @@ export async function loginUser(
                 id,
                 username,
                 email,
-                password_hash
+                password_hash,
+                bloqueado
             FROM users
             WHERE username = $1
                OR email = $1
@@ -289,6 +291,12 @@ export async function loginUser(
             "Usuario o contraseña incorrectos."
         );
 
+    }
+
+
+    // Cuenta bloqueada desde el panel.
+    if (user.bloqueado) {
+        throw new Error(MENSAJE_BLOQUEADO);
     }
 
 

@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { LuChartColumn, LuLayers, LuShieldCheck, LuShoppingBag, LuUsers } from "react-icons/lu";
+import { LuChartColumn, LuGift, LuLayers, LuShieldCheck, LuShirt, LuUsers } from "react-icons/lu";
 
 import MainNav from "../../components/navigation/MainNav";
 import Resumen from "./Resumen";
 import NivelesAdmin from "./NivelesAdmin";
 import TiendaAdmin from "./TiendaAdmin";
 import UsuariosAdmin from "./UsuariosAdmin";
+import PremiosAdmin from "./PremiosAdmin";
 
 import "../../styles/ludo.css";
 
@@ -18,8 +19,9 @@ import "../../styles/ludo.css";
 const PESTANAS = [
     { id: "resumen", label: "Resumen", icon: LuChartColumn, Componente: Resumen },
     { id: "niveles", label: "Niveles y preguntas", icon: LuLayers, Componente: NivelesAdmin },
-    { id: "tienda", label: "Tienda", icon: LuShoppingBag, Componente: TiendaAdmin },
+    { id: "tienda", label: "Personajes", icon: LuShirt, Componente: TiendaAdmin },
     { id: "usuarios", label: "Jugadores", icon: LuUsers, Componente: UsuariosAdmin },
+    { id: "premios", label: "Premios", icon: LuGift, Componente: PremiosAdmin },
 ];
 
 function pestanaInicial() {
@@ -52,8 +54,7 @@ export default function Admin() {
                         </p>
                         <h1 className="lg-h1">Panel de LudoGamif</h1>
                         <p className="lg-lead">
-                            Crea niveles con tus propias preguntas, define cuánto gana cada jugador y mira
-                            cuánto se está jugando.
+                            Niveles y preguntas, personajes, jugadores y premios: todo el juego se administra aquí.
                         </p>
                     </div>
                 </header>

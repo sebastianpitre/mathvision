@@ -9,18 +9,31 @@
    PUT    /niveles/:id                 editar  { nivel, preguntas? }
    DELETE /niveles/:id                 borrar
    GET    /personajes                  tienda
-   PUT    /personajes/:id              precios y disponibilidad
+   POST   /personajes                  crear personaje (con su modelo)
+   PUT    /personajes/:id              nombre, archivos, precios y disponibilidad
+   DELETE /personajes/:id              borrar (quien lo usaba vuelve al inicial)
+   POST   /archivos?tipo=modelo|foto&nombre=x.vrm   subir un archivo (binario)
    GET    /usuarios?buscar=            jugadores
    PUT    /usuarios/:id/rol            { rol: "admin" | "jugador" }
    POST   /usuarios/:id/regalo         { oro, diamantes }
+   PUT    /usuarios/:id/progreso       { nivel, oro, diamantes }
+   PUT    /usuarios/:id/bloqueo        { bloqueado }
+   GET    /premios                     premios de Triqui y SigloGamif
+   PUT    /premios                     guardar premios
 ========================================================= */
 
 import express from "express";
+import crypto from "node:crypto";
+import { mkdir, writeFile, unlink } from "node:fs/promises";
+import path from "node:path";
 
 import { pool, enTransaccion } from "../database/db.js";
 import { requireAdmin } from "../auth/authMiddleware.js";
 import { ruta, errorConEstado } from "../http/ruta.js";
-import { calcularNivel, entregarRecompensa } from "../progreso/progreso.js";
+import { calcularNivel, entregarRecompensa, xpParaSubir, NIVEL_MAXIMO } from "../progreso/progreso.js";
+import { ARCHIVOS_DIR, URL_ARCHIVOS, TIPOS_ARCHIVO } from "../config/archivos.js";
+import { obtenerPremios, guardarPremios } from "../config/premios.js";
+import { olvidarBloqueo } from "../auth/bloqueo.js";
 import {
     listarNivelesAdmin,
     obtenerNivel,
@@ -302,7 +315,9 @@ router.put(
                 precio_diamantes = $4,
                 nivel_minimo = $5,
                 activo = $6,
-                orden = $7
+                orden = $7,
+                model_path = COALESCE($8, model_path),
+                thumbnail_path = COALESCE($9, thumbnail_path)
             WHERE id = $1
             `,
             [
@@ -313,6 +328,8 @@ router.put(
                 numero(datos.nivel_minimo ?? 1, 1, 100),
                 datos.activo !== false,
                 numero(datos.orden ?? 0, -1000, 1000),
+                datos.model_path ? rutaArchivo(datos.model_path, "modelo") : null,
+                datos.thumbnail_path ? rutaArchivo(datos.thumbnail_path, "foto") : null,
             ]
         );
 
@@ -334,7 +351,7 @@ router.get(
         const { rows } = await pool.query(
             `
             SELECT u.id, u.username, u.email, u.rol, u.created_at, u.last_login,
-                   p.display_name, p.level, p.xp, p.coins, p.gems,
+                   u.bloqueado, p.display_name, p.level, p.xp, p.coins, p.gems, p.avatar,
                    s.games_played, s.correct_answers, s.questions_answered
             FROM users u
             JOIN player_profiles p ON p.user_id = u.id
@@ -379,6 +396,225 @@ router.post(
         await enTransaccion((client) => entregarRecompensa(client, id, { oro, diamantes }));
 
         res.json({ success: true });
+    })
+);
+
+
+/* =========================================================
+   ARCHIVOS: modelos 3D y fotos de personajes
+   El navegador envía el archivo tal cual (binario). Se
+   revisa la extensión, el tamaño y que de verdad sea un
+   modelo o una imagen (por sus primeros bytes).
+========================================================= */
+
+// Solo se aceptan rutas de archivos del juego o subidos aquí.
+function rutaArchivo(valor, tipo) {
+    const ruta = String(valor || "").trim();
+    const config = TIPOS_ARCHIVO[tipo];
+    const permitida =
+        /^\/(archivos|models|img)\/[\w\-./]+$/.test(ruta) &&
+        !ruta.includes("..") &&
+        config.extensiones.includes(path.extname(ruta).toLowerCase());
+
+    if (!permitida) throw errorConEstado(`Ruta de archivo no válida: ${ruta}`);
+    return ruta;
+}
+
+function slug(texto) {
+    return String(texto || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 40);
+}
+
+router.post(
+    "/archivos",
+    express.raw({ type: "application/octet-stream", limit: "61mb" }),
+    ruta(async (req, res) => {
+        const config = TIPOS_ARCHIVO[req.query.tipo];
+        if (!config) throw errorConEstado("Tipo de archivo no válido.");
+
+        const nombre = String(req.query.nombre || "");
+        const extension = path.extname(nombre).toLowerCase();
+        const datos = req.body;
+
+        if (!config.extensiones.includes(extension)) throw errorConEstado(`El archivo debe ser ${config.texto}.`);
+        if (!Buffer.isBuffer(datos) || datos.length === 0) throw errorConEstado("El archivo llegó vacío.");
+        if (datos.length > config.maxBytes) {
+            throw errorConEstado(`El archivo pesa demasiado (máximo ${Math.round(config.maxBytes / 1048576)} MB).`);
+        }
+        if (!config.firma(datos)) throw errorConEstado(`Ese archivo no parece ${config.texto}.`);
+
+        const final = `${slug(path.basename(nombre, extension)) || req.query.tipo}-${crypto.randomBytes(4).toString("hex")}${extension}`;
+        const carpeta = path.join(ARCHIVOS_DIR, config.carpeta);
+
+        await mkdir(carpeta, { recursive: true });
+        await writeFile(path.join(carpeta, final), datos);
+
+        res.json({ success: true, ruta: `${URL_ARCHIVOS}/${config.carpeta}/${final}`, bytes: datos.length });
+    })
+);
+
+/* ---------------- Crear y borrar personajes ---------------- */
+
+router.post(
+    "/personajes",
+    ruta(async (req, res) => {
+        const datos = req.body || {};
+        const nombre = String(datos.name || "").trim().slice(0, 100);
+        if (!nombre) throw errorConEstado("El nombre es obligatorio.");
+        if (!datos.model_path) throw errorConEstado("Sube el modelo 3D del personaje (.vrm).");
+
+        const modelo = rutaArchivo(datos.model_path, "modelo");
+        const foto = datos.thumbnail_path ? rutaArchivo(datos.thumbnail_path, "foto") : null;
+        const numero = (v, min, max) => Math.min(max, Math.max(min, Math.round(Number(v) || 0)));
+
+        // El id sale del nombre; si ya existe se le agrega un número.
+        const base = slug(nombre) || "personaje";
+        let id = base;
+        for (let n = 2; ; n += 1) {
+            const { rowCount } = await pool.query("SELECT 1 FROM characters WHERE id = $1", [id]);
+            if (rowCount === 0) break;
+            id = `${base}-${n}`;
+        }
+
+        await pool.query(
+            `
+            INSERT INTO characters (id, name, model_path, thumbnail_path, is_default,
+                                    precio_oro, precio_diamantes, nivel_minimo, activo, orden)
+            VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $9)
+            `,
+            [
+                id,
+                nombre,
+                modelo,
+                foto,
+                numero(datos.precio_oro, 0, 1000000),
+                numero(datos.precio_diamantes, 0, 100000),
+                Math.max(1, numero(datos.nivel_minimo ?? 1, 1, 100)),
+                datos.activo !== false,
+                numero(datos.orden, -1000, 1000),
+            ]
+        );
+
+        res.status(201).json({ success: true, id });
+    })
+);
+
+router.delete(
+    "/personajes/:id",
+    ruta(async (req, res) => {
+        const id = String(req.params.id);
+
+        const borrado = await enTransaccion(async (client) => {
+            const { rows } = await client.query("SELECT * FROM characters WHERE id = $1 FOR UPDATE", [id]);
+            const personaje = rows[0];
+            if (!personaje) throw errorConEstado("Personaje no encontrado.", 404);
+            if (personaje.is_default) throw errorConEstado("El personaje inicial no se puede borrar.");
+
+            // Quien lo estaba usando vuelve al personaje inicial.
+            await client.query(
+                `
+                UPDATE player_profiles
+                SET character_id = COALESCE((SELECT id FROM characters WHERE is_default LIMIT 1), 'default')
+                WHERE character_id = $1
+                `,
+                [id]
+            );
+            await client.query("DELETE FROM personajes_jugador WHERE character_id = $1", [id]);
+            await client.query("DELETE FROM characters WHERE id = $1", [id]);
+            return personaje;
+        });
+
+        // Si sus archivos se subieron desde el panel, se borran también.
+        for (const ruta of [borrado.model_path, borrado.thumbnail_path]) {
+            if (ruta?.startsWith(`${URL_ARCHIVOS}/`) && !ruta.includes("..")) {
+                await unlink(path.join(ARCHIVOS_DIR, ruta.slice(URL_ARCHIVOS.length + 1))).catch(() => {});
+            }
+        }
+
+        res.json({ success: true });
+    })
+);
+
+/* ---------------- Progreso y bloqueo de cuentas ---------------- */
+
+// XP total con la que se empieza un nivel.
+function xpInicioDeNivel(nivel) {
+    let xp = 0;
+    for (let n = 1; n < nivel; n += 1) xp += xpParaSubir(n);
+    return xp;
+}
+
+router.put(
+    "/usuarios/:id/progreso",
+    ruta(async (req, res) => {
+        const id = idValido(req.params.id);
+        const datos = req.body || {};
+        const nivel = Math.round(Number(datos.nivel));
+        const oro = Math.round(Number(datos.oro));
+        const diamantes = Math.round(Number(datos.diamantes));
+
+        if (!Number.isInteger(nivel) || nivel < 1 || nivel > NIVEL_MAXIMO) {
+            throw errorConEstado(`El nivel debe estar entre 1 y ${NIVEL_MAXIMO}.`);
+        }
+        if (!Number.isInteger(oro) || oro < 0 || oro > 10000000) throw errorConEstado("Oro no válido.");
+        if (!Number.isInteger(diamantes) || diamantes < 0 || diamantes > 1000000) throw errorConEstado("Diamantes no válidos.");
+
+        const { rows } = await pool.query("SELECT level, xp FROM player_profiles WHERE user_id = $1", [id]);
+        if (!rows[0]) throw errorConEstado("Jugador no encontrado.", 404);
+
+        // Si cambia el nivel, su XP queda al comienzo de ese nivel.
+        const xp = nivel === rows[0].level ? rows[0].xp : xpInicioDeNivel(nivel);
+
+        await pool.query(
+            `
+            UPDATE player_profiles
+            SET level = $2, xp = $3, coins = $4, gems = $5, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = $1
+            `,
+            [id, nivel, xp, oro, diamantes]
+        );
+
+        res.json({ success: true, nivel, xp, oro, diamantes });
+    })
+);
+
+router.put(
+    "/usuarios/:id/bloqueo",
+    ruta(async (req, res) => {
+        const id = idValido(req.params.id);
+        const bloqueado = req.body?.bloqueado === true;
+
+        if (id === req.user.userId && bloqueado) throw errorConEstado("No puedes bloquear tu propia cuenta.");
+
+        const { rowCount } = await pool.query(
+            "UPDATE users SET bloqueado = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1",
+            [id, bloqueado]
+        );
+        if (rowCount === 0) throw errorConEstado("Usuario no encontrado.", 404);
+
+        olvidarBloqueo(id);
+        res.json({ success: true, bloqueado });
+    })
+);
+
+/* ---------------- Premios de los juegos multijugador ---------------- */
+
+router.get(
+    "/premios",
+    ruta(async (req, res) => {
+        res.json({ success: true, premios: await obtenerPremios() });
+    })
+);
+
+router.put(
+    "/premios",
+    ruta(async (req, res) => {
+        res.json({ success: true, premios: await guardarPremios(req.body?.premios || {}) });
     })
 );
 

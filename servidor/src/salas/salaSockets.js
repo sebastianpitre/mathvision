@@ -212,7 +212,7 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
     function iniciarSiglo(room) {
         const jugadores = [...room.miembros.values()]
             .sort((a, b) => a.entroEn - b.entroEn)
-            .map((m) => ({ userId: m.userId, nombre: m.nombre }));
+            .map((m) => ({ userId: m.userId, nombre: m.nombre, avatar: m.avatar }));
 
         const juego = new SigloGame({
             jugadores,

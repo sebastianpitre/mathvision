@@ -122,8 +122,13 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   asignatura, mejores jugadores y últimas partidas.
 - **Niveles y preguntas:** crear, editar, ocultar o borrar niveles. Cada nivel tiene
   grado, asignatura, dificultad, preguntas por partida, tiempo, vidas y su premio.
-- **Tienda:** precio de cada personaje en oro y/o diamantes y nivel mínimo.
-- **Jugadores:** buscar, ver progreso, dar o quitar el rol de admin, regalar oro o diamantes.
+- **Personajes:** crear personajes nuevos subiendo su modelo `.vrm`/`.glb` (hasta 60 MB) y su
+  foto; cambiar nombre, archivos, precio en oro y/o diamantes, nivel mínimo, mostrar u
+  ocultar en la tienda, y borrarlos (quien lo usaba vuelve al personaje inicial).
+- **Jugadores:** buscar, cambiar nivel, oro y diamantes, **bloquear** la cuenta (no puede
+  entrar ni jugar), dar o quitar el rol de admin y regalar oro o diamantes.
+- **Premios:** XP y oro de Triqui y SigloGamif según gane, empate o pierda, partidas
+  premiadas al día y los diamantes extra por ¡SIGLO!.
 
 ### Formato del JSON de preguntas
 
@@ -197,6 +202,8 @@ más grande.
   partes del juego, y los controles (salir, reloj, sonido, emojis) van dentro de ellas.
   La lista de emojis se abre centrada para que nunca quede por fuera de la pantalla.
 - El **Mundo** se quitó: los jugadores en línea y las invitaciones están en el lobby.
+- **Ranking** (`/ranking`): los 50 mejores por nivel, victorias o aciertos, y tu puesto.
+  Al tocar a alguien se ve su personaje en 3D al lado (para ver su skin) y su perfil.
 - **Invitaciones:** llegan arriba, en cualquier pantalla, por unos segundos. Se puede
   invitar a la misma persona las veces que quieras (con 10 s entre una y otra). Cada
   jugador aparece como *Disponible*, *En una sala* o *Jugando*, y la lista se actualiza
@@ -280,14 +287,9 @@ Van en `servidor/src/database/migraciones/` como pasos numerados (`004_algo.sql`
 
 ### Agregar un personaje a la tienda
 
-1. Copia el modelo a `public/models/characters/nombre.vrm` y su foto a
-   `public/models/characters/img/nombre.png`.
-2. Crea una migración, por ejemplo `004_personaje_nombre.sql`:
+Desde el panel: **Personajes → Nuevo personaje**, sube el modelo `.vrm` y la foto, pon el
+precio y listo. Los archivos subidos se guardan en el volumen de Docker
+`ludogamif_archivos` (se sirven en `/archivos/…`) y sobreviven a las actualizaciones.
 
-   ```sql
-   INSERT INTO characters (id, name, model_path, thumbnail_path, precio_oro, nivel_minimo, orden)
-   VALUES ('nombre', 'Nombre', '/models/characters/nombre.vrm', '/models/characters/img/nombre.png', 600, 4, 8)
-   ON CONFLICT (id) DO NOTHING;
-   ```
-
-3. Pull Request a `master` y `sudo ./ludogamif.sh actualizar`. El precio luego se ajusta desde el panel.
+Para subir modelos grandes, el bloque nginx de ludogamif necesita
+`client_max_body_size 64m;` (ver `nginx/ludogamif.conf.ejemplo`).

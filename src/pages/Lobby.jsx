@@ -18,6 +18,7 @@ import {
     LuShrink,
     LuSmartphone,
     LuUserRound,
+    LuTrophy,
     LuUsers,
     LuVolume2,
     LuVolumeX,
@@ -269,6 +270,7 @@ export default function Lobby() {
                     { texto: "Tienda", icono: LuShoppingCart, ruta: "/tienda" },
                     { texto: "Preguntas", icono: LuBookOpen, ruta: "/games/preguntas" },
                     { texto: "Sala", icono: LuUsers, ruta: "/sala" },
+                    { texto: "Ranking", icono: LuTrophy, ruta: "/ranking" },
                 ].map(({ texto, icono: Icono, ruta }) => (
                     <button key={ruta} type="button" className="ffl-menu-btn" onClick={() => navigate(ruta)}>
                         <Icono aria-hidden="true" />

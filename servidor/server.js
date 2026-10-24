@@ -18,6 +18,9 @@ import { WorldManager } from "./src/world/WorldManager.js";
 import { RoomManager } from "./src/rooms/RoomManager.js";
 import { MAX_JUGADORES_SALA } from "./src/salas/juegos.js";
 import { registrarInvitaciones } from "./src/world/invitaciones.js";
+import { estaBloqueado, MENSAJE_BLOQUEADO } from "./src/auth/bloqueo.js";
+import rankingRoutes from "./src/ranking/rankingRoutes.js";
+import { ARCHIVOS_DIR, URL_ARCHIVOS } from "./src/config/archivos.js";
 import { TriquiGame } from "./src/games/triqui/TriquiGame.js";
 
 import {
@@ -117,6 +120,19 @@ app.use("/api/users", userRoutes);
 app.use("/api/niveles", nivelesRouter);
 app.use("/api/partidas", partidasRouter);
 app.use("/api/tienda", tiendaRoutes);
+app.use("/api/ranking", rankingRoutes);
+
+/*
+ * Modelos 3D y fotos subidos desde el panel. Cada archivo
+ * tiene un nombre único, así que se pueden guardar en caché.
+ */
+app.use(
+    URL_ARCHIVOS,
+    express.static(ARCHIVOS_DIR, {
+        maxAge: "30d",
+        fallthrough: false,
+    })
+);
 
 const httpServer =
     http.createServer(app);
@@ -184,12 +200,14 @@ io.use(
                 decoded.username;
 
 
-            console.log(
-                `🔐 Socket autenticado: ${socket.userId} (${socket.username})`
-            );
-
-
-            next();
+            // Cuenta bloqueada desde el panel: no entra a las salas.
+            estaBloqueado(socket.userId)
+                .then((bloqueado) => {
+                    if (bloqueado) return next(new Error(MENSAJE_BLOQUEADO));
+                    console.log(`🔐 Socket autenticado: ${socket.userId} (${socket.username})`);
+                    next();
+                })
+                .catch(next);
 
         } catch (error) {
 
