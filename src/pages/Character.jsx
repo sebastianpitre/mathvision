@@ -1,75 +1,69 @@
-import { Suspense, useCallback, useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Html } from "@react-three/drei";
-import ProtegerError from "../components/common/ProtegerError";
-import LucesPersonaje from "../components/character/LucesPersonaje";
-import { LuCheck, LuCoins, LuGem, LuLock } from "react-icons/lu";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { LuCheck, LuGem, LuLock, LuSearch } from "react-icons/lu";
 
-import "../styles/mathvision.css";
-
-import assets from "../data/mock/assets.json";
-
-import MainNav from "../components/navigation/MainNav";
-import VRMCharacter from "../components/character/VRMCharacter";
-
+import PantallaFF, { Pestanas } from "../components/juego/PantallaFF";
+import Personaje3D from "../components/juego/Personaje3D";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../services/api";
 
-/* =========================================================
-   PERSONAJES Y TIENDA
-   ---------------------------------------------------------
-   · Los personajes que ya tienes se usan con un clic.
-   · Los demás se desbloquean con oro o diamantes (y algunos
-     piden un nivel mínimo). El precio lo pone el
-     administrador desde el panel.
-========================================================= */
+import "./personajes.css";
 
-function CharacterLoading() {
-    return (
-        <Html center style={{ pointerEvents: "none" }}>
-            <div style={{ textAlign: "center", padding: 20, color: "white", whiteSpace: "nowrap" }}>
-                <div style={{ fontSize: 36, marginBottom: 10 }}>🧍</div>
-                <strong>CARGANDO PERSONAJE...</strong>
-            </div>
-        </Html>
-    );
-}
+/* =========================================================
+   PERSONAJES Y TIENDA (como el inventario de Free Fire)
+   ---------------------------------------------------------
+   Izquierda: pestañas (Todos, Míos, Tienda). En medio: las
+   tarjetas de los personajes. Derecha: el personaje elegido
+   en 3D con su nombre y el botón para usarlo o comprarlo.
+   El precio y el nivel mínimo los pone el administrador.
+========================================================= */
 
 const formato = (n) => (Number(n) || 0).toLocaleString("es-CO");
 
+// Color de la tarjeta según lo que cuesta (como la rareza).
+function rareza(p) {
+    if (p.precio_diamantes > 0) return { fondo: "radial-gradient(circle at 50% 35%, #5b2a8c, #1e0b33 75%)", color: "#c084fc" };
+    if (p.precio_oro >= 1000) return { fondo: "radial-gradient(circle at 50% 35%, #8a1c3a, #2a0712 75%)", color: "#fb7185" };
+    if (p.precio_oro > 0) return { fondo: "radial-gradient(circle at 50% 35%, #6b4c12, #2a1c08 75%)", color: "#ffcf3e" };
+    return { fondo: "radial-gradient(circle at 50% 35%, #1f4f6b, #0a1c28 75%)", color: "#5aa9ff" };
+}
+
+function OroIcono() {
+    return <span className="ffl-moneda-oro pj-oro" aria-hidden="true" />;
+}
+
 export default function Character() {
     const { user, actualizarUsuario } = useAuth();
+    const { pathname } = useLocation();
+    const esTienda = pathname === "/tienda";
 
-    const [characters, setCharacters] = useState([]);
-    const [selected, setSelected] = useState(null);
-    const [loadingCharacters, setLoadingCharacters] = useState(true);
+    const [personajes, setPersonajes] = useState([]);
+    const [elegido, setElegido] = useState(null);
+    const [cargando, setCargando] = useState(true);
+    const [pestana, setPestana] = useState(esTienda ? "tienda" : "todos");
+    const [busqueda, setBusqueda] = useState("");
+    const [trabajando, setTrabajando] = useState(false);
+    const [aviso, setAviso] = useState({ texto: "", tono: "" });
 
-    const [working, setWorking] = useState(false);
-    const [message, setMessage] = useState({ text: "", tone: "" });
-
-    const avisar = (text, tone = "") => setMessage({ text, tone });
-
-    /* ---------- Cargar personajes ---------- */
+    const avisar = (texto, tono = "") => setAviso({ texto, tono });
 
     const cargar = useCallback(async () => {
-        setLoadingCharacters(true);
-
+        setCargando(true);
         try {
             const data = await api("/tienda");
             const lista = Array.isArray(data.personajes) ? data.personajes : [];
-            setCharacters(lista);
-
-            setSelected((actual) =>
-                lista.find((c) => c.id === actual?.id) ||
-                lista.find((c) => c.id === user?.character_id) ||
-                lista.find((c) => c.is_default) ||
-                lista[0] ||
-                null
+            setPersonajes(lista);
+            setElegido(
+                (actual) =>
+                    lista.find((c) => c.id === actual?.id) ||
+                    lista.find((c) => c.id === user?.character_id) ||
+                    lista[0] ||
+                    null
             );
         } catch (error) {
             avisar(error.message, "error");
         } finally {
-            setLoadingCharacters(false);
+            setCargando(false);
         }
         // Solo al entrar a la pantalla.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -79,254 +73,168 @@ export default function Character() {
         cargar();
     }, [cargar]);
 
+    const filtrados = useMemo(() => {
+        const texto = busqueda.trim().toLowerCase();
+        return personajes.filter((p) => {
+            if (pestana === "mios" && !p.comprado) return false;
+            if (pestana === "tienda" && p.comprado) return false;
+            return !texto || p.name.toLowerCase().includes(texto);
+        });
+    }, [personajes, pestana, busqueda]);
+
     if (!user) return null;
 
-    /* ---------- Usar un personaje que ya tengo ---------- */
+    const nivel = Number(user.level) || 1;
+    const oro = Number(user.coins) || 0;
+    const diamantes = Number(user.gems) || 0;
+    const enUso = elegido?.id === user.character_id;
+    const porNivel = elegido && !elegido.comprado && nivel < elegido.nivel_minimo;
 
     async function usar() {
-        if (!selected) return;
-
-        setWorking(true);
+        setTrabajando(true);
         avisar("");
-
         try {
-            const data = await api("/users/character", {
-                metodo: "PUT",
-                body: { characterId: selected.id },
-            });
-
+            const data = await api("/users/character", { metodo: "PUT", body: { characterId: elegido.id } });
             actualizarUsuario(data.user);
-            avisar(`¡Ahora juegas con ${selected.name}!`, "ok");
+            avisar(`¡Ahora juegas con ${elegido.name}!`, "ok");
         } catch (error) {
             avisar(error.message, "error");
         } finally {
-            setWorking(false);
+            setTrabajando(false);
         }
     }
-
-    /* ---------- Comprar ---------- */
 
     async function comprar(moneda) {
-        if (!selected) return;
-
-        setWorking(true);
+        setTrabajando(true);
         avisar("");
-
         try {
-            const data = await api("/tienda/comprar", {
-                metodo: "POST",
-                body: { personaje_id: selected.id, moneda },
-            });
-
+            const data = await api("/tienda/comprar", { metodo: "POST", body: { personaje_id: elegido.id, moneda } });
             actualizarUsuario(data.perfil);
-            setCharacters(data.personajes);
-            setSelected(data.personajes.find((c) => c.id === selected.id) || selected);
-            avisar(`¡Desbloqueaste a ${selected.name}! Ya puedes usarlo.`, "ok");
+            setPersonajes(data.personajes);
+            setElegido(data.personajes.find((c) => c.id === elegido.id) || elegido);
+            avisar(`¡Desbloqueaste a ${elegido.name}!`, "ok");
         } catch (error) {
             avisar(error.message, "error");
         } finally {
-            setWorking(false);
+            setTrabajando(false);
         }
     }
 
-    const level = Number(user.level) || 1;
-    const coins = Number(user.coins) || 0;
-    const gems = Number(user.gems) || 0;
-    const displayName = user.display_name || user.username || "Jugador";
-
-    const enUso = selected?.id === user.character_id;
-    const bloqueadoPorNivel = selected && !selected.comprado && level < selected.nivel_minimo;
+    const cuentas = {
+        todos: personajes.length,
+        mios: personajes.filter((p) => p.comprado).length,
+        tienda: personajes.filter((p) => !p.comprado).length,
+    };
 
     return (
-        <div className="mv-app character-page-app">
-            <div className="lobby-background" style={{ backgroundImage: `url(${assets.backgrounds.lobby})` }} />
+        <PantallaFF titulo={esTienda ? "Tienda" : "Personajes"} className="pj">
+            <Pestanas
+                etiqueta="Filtrar personajes"
+                activa={pestana}
+                alCambiar={setPestana}
+                items={[
+                    { id: "todos", texto: "Todos", cuenta: cuentas.todos },
+                    { id: "mios", texto: "Míos", cuenta: cuentas.mios },
+                    { id: "tienda", texto: "Tienda", cuenta: cuentas.tienda },
+                ]}
+            />
 
-            <MainNav />
+            <section className="pj-lista ffp-panel" aria-label="Personajes">
+                <label className="pj-buscar">
+                    <input
+                        type="search"
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        placeholder="Buscar personaje"
+                        aria-label="Buscar personaje"
+                    />
+                    <LuSearch aria-hidden="true" />
+                </label>
 
-            <main className="character-main">
-                <div className="character-title-row">
-                    <div>
-                        <span className="eyebrow">AVATAR Y TIENDA</span>
-                        <h1>MIS PERSONAJES</h1>
-                        <p>
-                            Gana oro y diamantes jugando y desbloquea nuevos personajes.
-                        </p>
-                    </div>
+                {cargando ? (
+                    <p className="pj-vacio">Cargando…</p>
+                ) : filtrados.length === 0 ? (
+                    <p className="pj-vacio">{pestana === "mios" ? "Aún no tienes personajes." : "No hay personajes aquí."}</p>
+                ) : (
+                    <ul className="ffp-tarjetas pj-tarjetas">
+                        {filtrados.map((p) => {
+                            const r = rareza(p);
+                            const usandolo = p.id === user.character_id;
+                            return (
+                                <li key={p.id}>
+                                    <button
+                                        type="button"
+                                        className={`ffp-tarjeta ${elegido?.id === p.id ? "ffp-tarjeta-elegida" : ""} ${p.comprado ? "" : "ffp-tarjeta-bloqueada"}`}
+                                        style={{ background: r.fondo, "--color-rareza": r.color }}
+                                        onClick={() => {
+                                            setElegido(p);
+                                            avisar("");
+                                        }}
+                                        aria-pressed={elegido?.id === p.id}
+                                        aria-label={`${p.name}${usandolo ? ", en uso" : p.comprado ? "" : ", bloqueado"}`}
+                                    >
+                                        {p.thumbnail_path ? <img src={p.thumbnail_path} alt="" loading="lazy" draggable="false" /> : <span className="pj-sin-foto">🧍</span>}
+                                        <span className="ffp-tarjeta-marca" aria-hidden="true">★</span>
+                                        {usandolo ? (
+                                            <span className="ffp-tarjeta-estado ffp-tarjeta-estado-uso" aria-hidden="true"><LuCheck /></span>
+                                        ) : !p.comprado ? (
+                                            <span className="ffp-tarjeta-estado" aria-hidden="true"><LuLock /></span>
+                                        ) : null}
+                                        {!p.comprado && (p.precio_oro > 0 || p.precio_diamantes > 0) && (
+                                            <span className="ffp-tarjeta-precio" aria-hidden="true">
+                                                {p.precio_diamantes > 0 ? <><LuGem className="pj-gema" />{formato(p.precio_diamantes)}</> : <><OroIcono />{formato(p.precio_oro)}</>}
+                                            </span>
+                                        )}
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+            </section>
 
-                    <div className="shop-wallet" aria-label="Tu saldo">
-                        <span className="shop-coin"><LuCoins aria-hidden="true" />{formato(coins)}</span>
-                        <span className="shop-gem"><LuGem aria-hidden="true" />{formato(gems)}</span>
-                        <span className="shop-level">{`Nivel ${level}`}</span>
-                    </div>
-                </div>
+            <section className="ffp-escenario pj-escenario" aria-label="Personaje elegido">
+                <span className="ffp-plataforma" aria-hidden="true" />
+                <Personaje3D modelo={elegido?.model_path} />
 
-                <div className="character-editor">
-                    {/* PREVISUALIZACIÓN */}
-                    <section className="character-preview">
-                        <div className="character-name">
-                            <span>👑</span>
-                            <div>
-                                <strong>{displayName}</strong>
-                                <small>NIVEL {level}</small>
-                            </div>
+                {elegido && (
+                    <div className="pj-detalle">
+                        <div className="pj-detalle-texto">
+                            <small>{enUso ? "En uso" : elegido.comprado ? "Tuyo" : porNivel ? `Nivel ${elegido.nivel_minimo}` : "En la tienda"}</small>
+                            <strong>{elegido.name}</strong>
+                            {aviso.texto && <p className={`ffp-aviso ffp-aviso-${aviso.tono}`} role="status">{aviso.texto}</p>}
                         </div>
 
-                        <ProtegerError respaldo={<p className="sin-3d">Tu personaje 3D no se pudo mostrar en este dispositivo.</p>}>
-
-                        <Canvas className="character-canvas" camera={{ position: [0, 1.2, 4.5], fov: 40 }}>
-                            <LucesPersonaje />
-
-                            <Suspense fallback={<CharacterLoading />}>
-                                {selected && (
-                                    <VRMCharacter
-                                        key={selected.model_path}
-                                        url={selected.model_path}
-                                        scale={1.5}
-                                        position={[0, -1.3, 0]}
-                                        rotation={[0, 0, 0]}
-                                    />
-                                )}
-                            </Suspense>
-
-                            <OrbitControls
-                                enableZoom={false}
-                                enablePan={false}
-                                enableRotate
-                                enableDamping
-                                minPolarAngle={Math.PI / 2}
-                                maxPolarAngle={Math.PI / 2}
-                            />
-                        </Canvas>
-</ProtegerError>
-
-                        <div className="character-preview-info">
-                            <span>{enUso ? "PERSONAJE ACTUAL" : selected?.comprado ? "DESBLOQUEADO" : "EN LA TIENDA"}</span>
-                            <strong>{selected?.name || "SIN PERSONAJE"}</strong>
-                            <small>Personaje 3D</small>
-                        </div>
-                    </section>
-
-                    {/* PANEL */}
-                    <section className="customization-panel">
-                        <div className="character-panel-heading">
-                            <div>
-                                <span className="eyebrow">PERSONAJES</span>
-                                <h2>ELIGE O DESBLOQUEA</h2>
-                            </div>
-                        </div>
-
-                        <div className="custom-section">
-                            {loadingCharacters ? (
-                                <div style={{ padding: "20px 0" }}>CARGANDO PERSONAJES...</div>
-                            ) : characters.length === 0 ? (
-                                <div style={{ padding: "20px 0" }}>NO HAY PERSONAJES DISPONIBLES</div>
+                        <div className="pj-detalle-botones">
+                            {elegido.comprado ? (
+                                <button type="button" className="ffp-btn" onClick={usar} disabled={trabajando || enUso}>
+                                    {enUso ? <><LuCheck aria-hidden="true" />En uso</> : "Usar"}
+                                </button>
+                            ) : porNivel ? (
+                                <button type="button" className="ffp-btn" disabled>
+                                    <LuLock aria-hidden="true" />
+                                    {`Nivel ${elegido.nivel_minimo}`}
+                                </button>
                             ) : (
-                                <div className="color-options shop-grid">
-                                    {characters.map((c) => (
-                                        <button
-                                            key={c.id}
-                                            type="button"
-                                            title={c.name}
-                                            aria-label={`${c.name}${c.comprado ? "" : " (bloqueado)"}`}
-                                            aria-pressed={selected?.id === c.id}
-                                            className={`color-option shop-item ${selected?.id === c.id ? "selected" : ""} ${c.comprado ? "" : "is-locked"}`}
-                                            onClick={() => {
-                                                setSelected(c);
-                                                avisar("");
-                                            }}
-                                        >
-                                            {c.thumbnail_path ? (
-                                                <img src={c.thumbnail_path} alt="" loading="lazy" />
-                                            ) : (
-                                                <span className="shop-noimg" aria-hidden="true">🧍</span>
-                                            )}
-
-                                            {c.id === user.character_id && (
-                                                <span className="shop-badge shop-badge-on" aria-hidden="true"><LuCheck /></span>
-                                            )}
-
-                                            {!c.comprado && (
-                                                <span className="shop-badge" aria-hidden="true"><LuLock /></span>
-                                            )}
+                                <>
+                                    {elegido.precio_oro > 0 && (
+                                        <button type="button" className="ffp-btn" onClick={() => comprar("oro")} disabled={trabajando || oro < elegido.precio_oro} title={oro < elegido.precio_oro ? `Te faltan ${formato(elegido.precio_oro - oro)} de oro` : undefined}>
+                                            <OroIcono />
+                                            {formato(elegido.precio_oro)}
                                         </button>
-                                    ))}
-                                </div>
+                                    )}
+                                    {elegido.precio_diamantes > 0 && (
+                                        <button type="button" className="ffp-btn ffp-btn-diamante" onClick={() => comprar("diamantes")} disabled={trabajando || diamantes < elegido.precio_diamantes} title={diamantes < elegido.precio_diamantes ? `Te faltan ${formato(elegido.precio_diamantes - diamantes)} diamantes` : undefined}>
+                                            <LuGem aria-hidden="true" />
+                                            {formato(elegido.precio_diamantes)}
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </div>
-
-                        {selected && (
-                            <div className="shop-detail">
-                                <strong className="shop-detail-name">{selected.name}</strong>
-
-                                {selected.comprado ? (
-                                    <>
-                                        <small>
-                                            {enUso ? "Es tu personaje actual." : "Ya es tuyo. Pulsa para usarlo en el juego."}
-                                        </small>
-                                        <button
-                                            type="button"
-                                            className="mv-btn mv-btn-primary"
-                                            onClick={usar}
-                                            disabled={working || enUso}
-                                        >
-                                            {enUso ? "✔ EN USO" : working ? "GUARDANDO..." : "USAR ESTE PERSONAJE"}
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <small>
-                                            {bloqueadoPorNivel
-                                                ? `Se desbloquea en el nivel ${selected.nivel_minimo}. ¡Sigue jugando!`
-                                                : selected.nivel_minimo > 1
-                                                    ? `Disponible desde el nivel ${selected.nivel_minimo}.`
-                                                    : "Desbloquéalo con tu oro o tus diamantes."}
-                                        </small>
-
-                                        <div className="shop-buy">
-                                            {selected.precio_oro > 0 && (
-                                                <button
-                                                    type="button"
-                                                    className="mv-btn mv-btn-primary shop-buy-oro"
-                                                    onClick={() => comprar("oro")}
-                                                    disabled={working || bloqueadoPorNivel || coins < selected.precio_oro}
-                                                >
-                                                    <LuCoins aria-hidden="true" />
-                                                    {`${formato(selected.precio_oro)} de oro`}
-                                                </button>
-                                            )}
-                                            {selected.precio_diamantes > 0 && (
-                                                <button
-                                                    type="button"
-                                                    className="mv-btn mv-btn-primary shop-buy-gem"
-                                                    onClick={() => comprar("diamantes")}
-                                                    disabled={working || bloqueadoPorNivel || gems < selected.precio_diamantes}
-                                                >
-                                                    <LuGem aria-hidden="true" />
-                                                    {`${formato(selected.precio_diamantes)} diamantes`}
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        {!bloqueadoPorNivel &&
-                                            (selected.precio_oro === 0 || coins < selected.precio_oro) &&
-                                            (selected.precio_diamantes === 0 || gems < selected.precio_diamantes) && (
-                                                <small>Aún no te alcanza. Gana más jugando al juego de preguntas.</small>
-                                            )}
-                                    </>
-                                )}
-                            </div>
-                        )}
-
-                        <p
-                            className={`shop-message ${message.tone ? `shop-message-${message.tone}` : ""}`}
-                            role="status"
-                            aria-live="polite"
-                        >
-                            {message.text}
-                        </p>
-                    </section>
-                </div>
-            </main>
-        </div>
+                    </div>
+                )}
+            </section>
+        </PantallaFF>
     );
 }

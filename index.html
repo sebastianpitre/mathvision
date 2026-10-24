@@ -19,13 +19,20 @@
        * reducen. Cuando se rediseñe una pantalla, se agrega su ruta a
        * RUTAS_JUEGO y deja de usar este modo.
        */
-      window.RUTAS_JUEGO = ["/lobby"];
+      // Pantallas con el diseño nuevo (la ruta exacta o lo que empiece por "ruta/").
+      window.RUTAS_JUEGO = [
+        "/lobby", "/character", "/tienda", "/profile", "/sala",
+        "/games/preguntas", "/games/siglo", "/games/triqui", "/games/escape-algebra", "/triqui-local"
+      ];
+      window.esRutaJuego = function (ruta) {
+        return window.RUTAS_JUEGO.some(function (r) { return ruta === r || ruta.indexOf(r + "/") === 0; });
+      };
 
       (function () {
         var meta = document.getElementById("viewport");
         var ALTO_VIRTUAL = 760;
         var raiz = document.documentElement;
-        var modo = window.RUTAS_JUEGO.indexOf(location.pathname) >= 0 ? "juego" : "virtual";
+        var modo = window.esRutaJuego(location.pathname) ? "juego" : "virtual";
         var actual = "";
 
         function ajustar() {

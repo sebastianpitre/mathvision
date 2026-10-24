@@ -9,7 +9,6 @@ import {
     LuExpand,
     LuGamepad2,
     LuGem,
-    LuGlobe,
     LuPlus,
     LuRefreshCw,
     LuSettings2,
@@ -25,9 +24,6 @@ import {
     LuX,
 } from "react-icons/lu";
 
-import "@fontsource/rajdhani/600.css";
-import "@fontsource/rajdhani/700.css";
-import "./lobby-juego.css";
 
 import { useAuth } from "../context/AuthContext";
 import { jugadorDesdeUsuario } from "../services/jugador";
@@ -273,7 +269,6 @@ export default function Lobby() {
                     { texto: "Tienda", icono: LuShoppingCart, ruta: "/tienda" },
                     { texto: "Preguntas", icono: LuBookOpen, ruta: "/games/preguntas" },
                     { texto: "Sala", icono: LuUsers, ruta: "/sala" },
-                    { texto: "Mundo", icono: LuGlobe, ruta: "/world" },
                 ].map(({ texto, icono: Icono, ruta }) => (
                     <button key={ruta} type="button" className="ffl-menu-btn" onClick={() => navigate(ruta)}>
                         <Icono aria-hidden="true" />

@@ -1,11 +1,15 @@
 /* =========================================================
-   LOBBY · DISEÑO TIPO FREE FIRE
+   DISEÑO TIPO FREE FIRE (lobby y pantallas nuevas)
+   .ffl = lobby · .ffp = las demás pantallas (inventario,
+   perfil, sala, juegos). Comparten colores, botones, barra
+   del jugador, lista de jugadores y la ventana de juegos.
    Todo en rem (1rem depende del alto de la pantalla).
    Con 1rem = 1/27.8 del alto, la pantalla mide 27.8rem de
    alto y entre 55 y 62rem de ancho en un teléfono.
 ========================================================= */
 
-.ffl {
+.ffl,
+.ffp {
     --borde: max(0.6rem, env(safe-area-inset-left));
     --borde-der: max(0.6rem, env(safe-area-inset-right));
     --panel: rgba(10, 14, 24, 0.62);
@@ -26,7 +30,8 @@
     -webkit-user-select: none;
 }
 
-.ffl button {
+.ffl button,
+.ffp button {
     font-family: inherit;
     color: inherit;
     cursor: pointer;
@@ -766,7 +771,8 @@
 }
 
 .ffl-modal {
-    width: min(44rem, 100%);
+    width: fit-content;
+    max-width: 100%;
     max-height: 100%;
     display: flex;
     flex-direction: column;
@@ -867,4 +873,378 @@
 @media (prefers-reduced-motion: reduce) {
     .ffl-amigos { transition: none; }
     .ffl-girando { animation: none; }
+}
+
+/* =========================================================
+   PANTALLAS (.ffp): inventario, perfil, sala, preguntas
+   Arriba la barra del jugador y, a la derecha, el título con
+   la ✕ para volver. Debajo, el contenido (sin scroll de
+   página: las listas hacen scroll por dentro).
+========================================================= */
+
+.ffp-fondo::after {
+    background:
+        linear-gradient(180deg, rgba(10, 6, 24, 0.82), rgba(10, 6, 24, 0.62) 35%, rgba(10, 6, 24, 0.85)),
+        radial-gradient(circle at 70% 60%, rgba(120, 60, 200, 0.25), transparent 60%);
+}
+
+.ffp-arriba {
+    position: absolute;
+    top: max(0.5rem, env(safe-area-inset-top));
+    left: var(--borde);
+    right: var(--borde-der);
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.ffp-titulo {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.ffp-titulo h1 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-shadow: var(--sombra-texto);
+}
+
+.ffp-cerrar {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--linea);
+    border-radius: 0.3rem;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.ffp-cerrar svg {
+    width: 1.6rem;
+    height: 1.6rem;
+}
+
+.ffp-cerrar:hover,
+.ffp-cerrar:focus-visible {
+    border-color: var(--oro);
+    outline: none;
+}
+
+.ffp-cuerpo {
+    position: absolute;
+    top: 3.6rem;
+    left: var(--borde);
+    right: var(--borde-der);
+    bottom: max(0.6rem, env(safe-area-inset-bottom));
+    display: flex;
+    gap: 0.6rem;
+    min-height: 0;
+}
+
+/* ---------- Pestañas verticales ---------- */
+
+.ffp-pestanas {
+    flex-shrink: 0;
+    width: 9.6rem;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.ffp-pestanas::-webkit-scrollbar {
+    display: none;
+}
+
+.ffp-pestana {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    min-height: 2.6rem;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.2rem;
+    background: rgba(8, 10, 20, 0.72);
+    font-size: 1.02rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    line-height: 1.05;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.ffp-pestana:hover,
+.ffp-pestana:focus-visible {
+    border-color: rgba(255, 207, 62, 0.6);
+    outline: none;
+}
+
+.ffp-pestana-activa {
+    border-color: var(--oro);
+    /* Esquina cortada, como en Free Fire */
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 0.6rem), calc(100% - 0.6rem) 100%, 0 100%);
+    background: linear-gradient(180deg, #ffd84a, #f5b400);
+    color: #241800 !important;
+    text-shadow: none;
+}
+
+.ffp-pestana-cuenta {
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    opacity: 0.8;
+}
+
+/* ---------- Paneles, botones y tarjetas ---------- */
+
+.ffp-panel {
+    min-height: 0;
+    border: 1px solid var(--linea);
+    border-radius: 0.35rem;
+    background: var(--panel);
+}
+
+.ffp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 2.5rem;
+    padding: 0 1.1rem;
+    border: 0;
+    clip-path: polygon(0.5rem 0, 100% 0, 100% calc(100% - 0.5rem), calc(100% - 0.5rem) 100%, 0 100%, 0 0.5rem);
+    background: linear-gradient(180deg, #ffe45c, #ffcc1f 55%, #f2a900);
+    color: #2a1c00 !important;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.ffp-btn svg {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.ffp-btn:hover:not(:disabled),
+.ffp-btn:focus-visible {
+    filter: brightness(1.08);
+    outline: none;
+}
+
+.ffp-btn:disabled {
+    filter: grayscale(0.85) brightness(0.7);
+    cursor: default;
+}
+
+.ffp-btn-2 {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--texto) !important;
+    border: 1px solid var(--linea);
+    clip-path: none;
+    border-radius: 0.3rem;
+}
+
+.ffp-btn-diamante {
+    background: linear-gradient(180deg, #8ff3ff, #31c6e8 55%, #1592b8);
+    color: #032632 !important;
+}
+
+.ffp-tarjetas {
+    margin: 0;
+    padding: 0.3rem;
+    list-style: none;
+    display: grid;
+    gap: 0.4rem;
+    align-content: start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+.ffp-tarjeta {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 0.82;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid transparent;
+    border-radius: 0.2rem;
+    background: radial-gradient(circle at 50% 35%, #6b4c12, #2a1c08 75%);
+}
+
+.ffp-tarjeta::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 0.3rem;
+    background: var(--color-rareza, var(--oro));
+}
+
+.ffp-tarjeta img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ffp-tarjeta-elegida {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px var(--oro);
+}
+
+.ffp-tarjeta-bloqueada img {
+    filter: grayscale(0.7) brightness(0.65);
+}
+
+.ffp-tarjeta-marca {
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    color: var(--oro);
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.ffp-tarjeta-estado {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    width: 1.4rem;
+    height: 1.4rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.ffp-tarjeta-estado svg {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+.ffp-tarjeta-estado-uso {
+    background: #22c55e;
+    color: #04210f;
+}
+
+.ffp-tarjeta-precio {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.3rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0.6rem 0.2rem 0.15rem;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.85), transparent);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+/* ---------- Personaje 3D sobre una plataforma ---------- */
+
+.ffp-escenario {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+}
+
+.ffp-3d {
+    position: absolute;
+    inset: 0;
+}
+
+.ffp-3d canvas {
+    touch-action: none;
+}
+
+.ffp-plataforma {
+    position: absolute;
+    left: 50%;
+    bottom: 3%;
+    width: min(26rem, 90%);
+    height: 3.2rem;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(200, 190, 255, 0.35), rgba(80, 60, 140, 0.25) 45%, transparent 70%);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+}
+
+.ffp-cargando {
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.6);
+    color: var(--suave);
+    font-family: var(--fuente-juego);
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ffp-aviso {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.ffp-aviso-ok { color: #6ee7b7; }
+.ffp-aviso-error { color: #fca5a5; }
+
+/* En la ventana de juegos: no alcanzan los jugadores */
+.ffl-modo-texto small.ffl-modo-no {
+    color: #fca5a5;
+}
+
+/* Premios (XP, oro, diamantes) dentro de las pantallas nuevas */
+.ffp .lg-rewards {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.ffp .lg-reward {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.ffp .lg-reward svg {
+    width: 0.9rem;
+    height: 0.9rem;
+}
+
+.ffp .lg-reward-lg {
+    padding: 0.35rem 0.8rem;
+    font-size: 1.15rem;
+}
+
+.ffp .lg-reward-xp { background: rgba(90, 169, 255, 0.18); color: #93c5fd; }
+.ffp .lg-reward-oro { background: rgba(255, 207, 62, 0.18); color: #fde68a; }
+.ffp .lg-reward-gem { background: rgba(103, 232, 249, 0.18); color: #a5f3fc; }
+
+.ffp .lb-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
 }

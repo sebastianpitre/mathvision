@@ -9,7 +9,6 @@ import Recompensas from "../../components/common/Recompensas";
 import { BurbujaEmoji, SelectorEmojis } from "../../components/common/Emojis";
 import { useEmojisSala } from "../../components/common/useEmojisSala";
 
-import "../../styles/ludo.css";
 import "./siglo.css";
 
 /* =========================================================
@@ -302,24 +301,19 @@ export default function Siglo() {
 
     if (partida === undefined) {
         return (
-            <div className="lg sg">
-                <main className="lg-main" style={{ alignItems: "center", justifyContent: "center" }}>
-                    <span className="lg-spinner" role="status" aria-label="Cargando partida" />
-                </main>
+            <div className="ffp sg">
+                <p className="sg-centrado" role="status">Cargando partida…</p>
             </div>
         );
     }
 
     if (partida === null) {
         return (
-            <div className="lg sg">
-                <main className="lg-main" style={{ alignItems: "center", justifyContent: "center" }}>
-                    <div className="lb-card" style={{ textAlign: "center", maxWidth: 420 }}>
-                        <h1 className="lb-title">No hay una partida de SigloGamif</h1>
-                        <p className="lb-muted" style={{ margin: "8px 0 16px" }}>Vuelve a la sala para empezar una.</p>
-                        <button type="button" className="lb-btn lb-btn-primary" onClick={() => navigate("/sala")}>Ir a la sala</button>
-                    </div>
-                </main>
+            <div className="ffp sg">
+                <div className="sg-centrado ffp-panel">
+                    <h1>No hay partida de SigloGamif</h1>
+                    <button type="button" className="ffp-btn" onClick={() => navigate("/sala")}>Ir a la sala</button>
+                </div>
             </div>
         );
     }
@@ -327,41 +321,7 @@ export default function Siglo() {
     const urgente = restante !== null && restante <= 5;
 
     return (
-        <div className="lg sg">
-            {/* ================= ENCABEZADO ================= */}
-            <header className="sg-header">
-                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={salir}>
-                    <LuArrowLeft aria-hidden="true" />
-                    {partida.fase === "terminada" ? "Volver a la sala" : "Salir"}
-                </button>
-
-                <div className="sg-titulo">
-                    <strong>SIGLO<span>GAMIF</span></strong>
-                    <small>
-                        {partida.fase === "votacion"
-                            ? "Votación del tiempo"
-                            : partida.fase === "desempate"
-                                ? "Desempate"
-                                : partida.fase === "terminada"
-                                    ? "Partida terminada"
-                                    : `Espacio ${Math.min(partida.ronda + 1, partida.espacios)} de ${partida.espacios}`}
-                    </small>
-                </div>
-
-                <div className="lg-row" style={{ flexWrap: "nowrap" }}>
-                    <SelectorEmojis />
-                    {restante !== null && (
-                        <span className={`sg-reloj ${urgente ? "sg-reloj-urgente" : ""}`} aria-live={urgente ? "assertive" : "off"}>
-                            <LuClock aria-hidden="true" />
-                            {`${restante} s`}
-                        </span>
-                    )}
-                    <button type="button" className="lb-icon-btn" onClick={alternarSonido} aria-label={sonido ? "Silenciar" : "Activar sonido"}>
-                        {sonido ? <LuVolume2 aria-hidden="true" /> : <LuVolumeX aria-hidden="true" />}
-                    </button>
-                </div>
-            </header>
-
+        <div className="ffp sg">
             <main className="sg-main">
                 {/* ================= TABLERO ================= */}
                 <section
@@ -399,7 +359,7 @@ export default function Siglo() {
                                         {j.retiroUsado && (
                                             <span className="sg-uso-diamante" title="Ya volvió a tirar con un diamante">
                                                 <LuGem aria-hidden="true" />
-                                                <span className="lb-sr-only">usó su diamante</span>
+                                                <span className="ffl-oculto">usó su diamante</span>
                                             </span>
                                         )}
                                     </strong>
@@ -455,17 +415,42 @@ export default function Siglo() {
                 </section>
 
                 {/* ================= ACTIVIDAD ================= */}
-                <aside className="lb-card sg-actividad" aria-label="Lo que ha pasado">
-                    <h2 className="lg-card-title">Jugadas</h2>
+                <aside className="sg-lado" aria-label="Partida">
+                    {/* Controles del juego (sin encabezado) */}
+                    <div className="sg-controles">
+                        <button type="button" className="ffl-icono" onClick={salir} aria-label={partida.fase === "terminada" ? "Volver a la sala" : "Salir de la partida"} title="Salir">
+                            <LuArrowLeft aria-hidden="true" />
+                        </button>
+                        <span className={`sg-reloj ${urgente ? "sg-reloj-urgente" : ""}`} aria-live={urgente ? "assertive" : "off"}>
+                            <LuClock aria-hidden="true" />
+                            {restante !== null ? `${restante} s` : "--"}
+                        </span>
+                        <SelectorEmojis />
+                        <button type="button" className="ffl-icono" onClick={alternarSonido} aria-label={sonido ? "Silenciar" : "Activar sonido"}>
+                            {sonido ? <LuVolume2 aria-hidden="true" /> : <LuVolumeX aria-hidden="true" />}
+                        </button>
+                    </div>
+                    <p className="sg-fase">
+                        <strong>SIGLO<span>GAMIF</span></strong>
+                        {partida.fase === "votacion"
+                            ? "Votación"
+                            : partida.fase === "desempate"
+                                ? "Desempate"
+                                : partida.fase === "terminada"
+                                    ? "Terminada"
+                                    : `Espacio ${Math.min(partida.ronda + 1, partida.espacios)}/${partida.espacios}`}
+                    </p>
+                    <div className="sg-actividad ffp-panel">
                     <ol className="sg-eventos">
                         {[...partida.eventos].reverse().map((e) => (
                             <li key={e.en + e.texto} className={`sg-evento sg-evento-${e.tipo}`}>{e.texto}</li>
                         ))}
                     </ol>
+                    </div>
                 </aside>
 
                 {/* ================= ACCIÓN ================= */}
-                <section className="lb-card sg-accion" aria-live="polite">
+                <section className="ffp-panel sg-accion" aria-live="polite">
                     {partida.fase === "votacion" ? (
                         <div className="sg-votacion">
                             <div>
@@ -490,7 +475,7 @@ export default function Siglo() {
                                 <strong className={`sg-accion-titulo ${partida.resultado?.tipo === "siglo" ? "sg-siglo" : ""}`}>
                                     {TITULO_RESULTADO[partida.resultado?.tipo] || "Partida terminada"}
                                 </strong>
-                                <span className="lb-muted">
+                                <span className="sg-suave">
                                     {partida.resultado?.ganadores.length
                                         ? partida.resultado.ganadores.includes(miId)
                                             ? "¡Ganaste!"
@@ -501,12 +486,12 @@ export default function Siglo() {
                             <div className="sg-final-premio">
                                 {premio ? (
                                     premio.limite_diario_alcanzado ? (
-                                        <span className="lb-muted">Límite de premios de hoy.</span>
+                                        <span className="sg-suave">Límite de premios de hoy.</span>
                                     ) : (
                                         <Recompensas xp={premio.xp} oro={premio.oro} diamantes={premio.diamantes} grande />
                                     )
                                 ) : (
-                                    yo && yo.motivo !== "abandono" && <span className="lb-muted">Guardando premio…</span>
+                                    yo && yo.motivo !== "abandono" && <span className="sg-suave">Guardando premio…</span>
                                 )}
                                 {premio?.subio_nivel && <strong className="sg-subio">{`🎉 ¡Nivel ${premio.nivel_nuevo}!`}</strong>}
                             </div>
@@ -514,7 +499,7 @@ export default function Siglo() {
                                 {soyCreador ? (
                                     <button
                                         type="button"
-                                        className="lb-btn lb-btn-primary"
+                                        className="ffp-btn"
                                         onClick={() => socket.emit("sala:iniciar")}
                                         disabled={Boolean(motivoOtra) || sala?.estado !== "sala"}
                                         title={motivoOtra || "Otra partida con los mismos jugadores"}
@@ -523,13 +508,13 @@ export default function Siglo() {
                                         Jugar otra vez
                                     </button>
                                 ) : (
-                                    <span className="lb-muted">El creador puede iniciar otra.</span>
+                                    <span className="sg-suave">El creador puede iniciar otra.</span>
                                 )}
-                                <button type="button" className="lb-btn lb-btn-ghost" onClick={() => navigate("/sala")}>
+                                <button type="button" className="ffp-btn ffp-btn-2" onClick={() => navigate("/sala")}>
                                     Volver a la sala
                                 </button>
                             </div>
-                            {soyCreador && motivoOtra && <small className="lb-muted sg-motivo">{motivoOtra}</small>}
+                            {soyCreador && motivoOtra && <small className="sg-suave sg-motivo">{motivoOtra}</small>}
                         </div>
                     ) : miTurno && !yo?.eliminado ? (
                         <div className="sg-mi-turno">
@@ -538,7 +523,7 @@ export default function Siglo() {
                                 {puedeVolverATirar && (
                                     <button
                                         type="button"
-                                        className="lb-btn lb-btn-secondary lb-btn-sm sg-btn-retiro"
+                                        className="ffp-btn ffp-btn-2 sg-btn-retiro"
                                         onClick={volverATirar}
                                         disabled={retirando}
                                         title={misDiamantes < 1 ? "Necesitas 1 diamante" : "Solo una vez por partida"}
@@ -547,7 +532,7 @@ export default function Siglo() {
                                         Volver a tirar
                                         <span className="sg-costo">
                                             1 <LuGem aria-hidden="true" />
-                                            <span className="lb-sr-only">diamante</span>
+                                            <span className="ffl-oculto">diamante</span>
                                         </span>
                                     </button>
                                 )}
@@ -558,7 +543,7 @@ export default function Siglo() {
                                     <strong className="sg-accion-titulo">
                                         {partida.fase === "desempate" ? "¡Tira para desempatar!" : "¡Es tu turno!"}
                                     </strong>
-                                    <button type="button" className="lb-btn lb-btn-primary sg-btn-tirar" onClick={tirar} disabled={tirando}>
+                                    <button type="button" className="ffp-btn sg-btn-tirar" onClick={tirar} disabled={tirando}>
                                         <LuDices aria-hidden="true" />
                                         Tirar dado
                                     </button>
@@ -605,7 +590,7 @@ export default function Siglo() {
                                             : "Siguiente turno…"}
                                 </strong>
                                 {yo && !yo.eliminado && (
-                                    <span className="lb-muted">{`Tienes ${yo.total} · faltan ${partida.meta - yo.total}`}</span>
+                                    <span className="sg-suave">{`Tienes ${yo.total} · faltan ${partida.meta - yo.total}`}</span>
                                 )}
                             </div>
                         </div>
@@ -613,7 +598,7 @@ export default function Siglo() {
                 </section>
             </main>
 
-            {error && <p className="lg-alert sg-error" role="alert">{error}</p>}
+            {error && <p className="sg-error" role="alert">{error}</p>}
         </div>
     );
 }

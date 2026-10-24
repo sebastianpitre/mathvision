@@ -21,6 +21,7 @@ import { api } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import Recompensas from "../../components/common/Recompensas";
 import "../../styles/ludo.css";
+import "./escape.css";
 
 import questions from "./data/questions";
 
@@ -1348,7 +1349,7 @@ export default function EscapeAlgebra() {
                             }}
                             onClick={() =>
                                 navigate(
-                                    "/dashboard"
+                                    "/lobby"
                                 )
                             }
                             className="
@@ -1438,9 +1439,9 @@ export default function EscapeAlgebra() {
     return (
 
         <div className="
+            ffp
+            ea
             flex
-            h-screen
-            max-h-screen
             flex-col
             overflow-hidden
             bg-slate-950
@@ -1448,268 +1449,28 @@ export default function EscapeAlgebra() {
         ">
 
 
-            {/* =================================================
-                HEADER
-            ================================================= */}
-
-            <header className="
-                flex
-                h-14
-                shrink-0
-                items-center
-                border-b
-                border-slate-800
-                bg-slate-950/95
-                backdrop-blur-xl
-            ">
-
-                <div className="
-                    mx-auto
-                    flex
-                    w-full
-                    items-center
-                    justify-between
-                    gap-3
-                    px-4
-                    lg:px-6
-                ">
-
-
-                    {/* SALIR */}
-
-                    <button
-                        onClick={() =>
-                            navigate(
-                                "/dashboard"
-                            )
-                        }
-                        className="
-                            flex
-                            items-center
-                            gap-2
-                            text-sm
-                            text-slate-400
-                            transition
-                            hover:text-white
-                        "
-                    >
-
-                        <FaArrowLeft />
-
-                        <span className="
-                            hidden
-                            sm:block
-                        ">
-                            Salir
-                        </span>
-
-                    </button>
-
-
-                    {/* TITULO */}
-
-                    <div className="
-                        text-center
-                        leading-none
-                    ">
-
-                        <p className="
-                            text-[8px]
-                            uppercase
-                            tracking-[0.3em]
-                            text-cyan-400
-                        ">
-
-                            MathVision
-
-                        </p>
-
-                        <h1 className="
-                            mt-1
-                            text-sm
-                            font-black
-                            sm:text-base
-                        ">
-
-                            ESCAPE ALGEBRA
-
-                        </h1>
-
-                    </div>
-
-
-                    {/* STATS */}
-
-                    <div className="
-                        flex
-                        items-center
-                        gap-2
-                        text-xs
-                        sm:gap-4
-                        sm:text-sm
-                    ">
-
-
-                        {/* TIMER */}
-
-                        <GameTimer
-                            time={time}
-                            maxTime={MAX_TIME}
-                        />
-
-
-                        {/* VIDAS */}
-
-                        <div className="
-                            flex
-                            items-center
-                            gap-1.5
-                            text-red-400
-                        ">
-
-                            <FaHeart />
-
-                            {lives}
-
-                        </div>
-
-
-                        {/* COMBO */}
-
-                        {combo > 0 && (
-
-                            <motion.div
-                                initial={{
-                                    scale: 0.5,
-                                    opacity: 0
-                                }}
-                                animate={{
-                                    scale: 1,
-                                    opacity: 1
-                                }}
-                                className="
-                                    hidden
-                                    items-center
-                                    gap-1
-                                    text-orange-400
-                                    md:flex
-                                "
-                            >
-
-                                🔥 x{combo}
-
-                            </motion.div>
-
-                        )}
-
-
-                        {/* SCORE */}
-
-                        <div className="
-                            flex
-                            items-center
-                            gap-1.5
-                            text-yellow-400
-                        ">
-
-                            <FaBolt />
-
-                            {score}
-
-                        </div>
-
-                    </div>
-
+            {/* Sin encabezado: una barra delgada con lo del juego (salir, progreso, tiempo, vidas, puntos). */}
+            <div className="ea-hud">
+                <button type="button" className="ffl-icono" onClick={() => navigate("/lobby")} aria-label="Salir" title="Salir">
+                    <FaArrowLeft aria-hidden="true" />
+                </button>
+                <div className="ea-progreso" aria-label={`Desafío ${currentQuestion + 1} de ${gameQuestions.length}`}>
+                    <span style={{ width: `${((currentQuestion + 1) / gameQuestions.length) * 100}%` }} />
                 </div>
-
-            </header>
-
-
-            {/* =================================================
-                PROGRESO
-            ================================================= */}
-
-            <div className="
-                h-11
-                shrink-0
-                border-b
-                border-slate-900
-                bg-slate-950
-                px-4
-                pt-2
-            ">
-
-                <div className="
-                    mx-auto
-                    max-w-3xl
-                ">
-
-                    <div className="
-                        mb-1
-                        flex
-                        justify-between
-                        text-[9px]
-                        font-bold
-                    ">
-
-                        <span className="
-                            text-slate-500
-                        ">
-
-                            DESAFÍO{" "}
-                            {currentQuestion + 1}
-
-                        </span>
-
-                        <span className="
-                            text-cyan-400
-                        ">
-
-                            {gameQuestions.length} NIVELES
-
-                        </span>
-
-                    </div>
-
-
-                    <div className="
-                        h-1.5
-                        overflow-hidden
-                        rounded-full
-                        bg-slate-800
-                    ">
-
-                        <motion.div
-                            animate={{
-                                width:
-                                    `${
-                                        (
-                                            (
-                                                currentQuestion + 1
-                                            ) /
-                                            gameQuestions.length
-                                        ) * 100
-                                    }%`
-                            }}
-                            transition={{
-                                duration: 0.4
-                            }}
-                            className="
-                                h-full
-                                rounded-full
-                                bg-gradient-to-r
-                                from-cyan-500
-                                via-blue-500
-                                to-purple-500
-                            "
-                        />
-
-                    </div>
-
-                </div>
-
+                <span className="ea-chip">{`${currentQuestion + 1}/${gameQuestions.length}`}</span>
+                <span className="ea-chip ea-tiempo">
+                    <GameTimer time={time} maxTime={MAX_TIME} />
+                </span>
+                <span className="ea-chip ea-vidas" aria-label={`${lives} vidas`}>
+                    <FaHeart aria-hidden="true" />
+                    {lives}
+                </span>
+                {combo > 0 && <span className="ea-chip ea-combo">{`🔥 x${combo}`}</span>}
+                <span className="ea-chip ea-puntos" aria-label={`${score} puntos`}>
+                    <FaBolt aria-hidden="true" />
+                    {score}
+                </span>
             </div>
-
 
             {/* =================================================
                 GAME AREA

@@ -29,6 +29,7 @@ import {
     createBackgroundMusic,
 } from "./GameAudio";
 
+import { LuArrowLeft } from "react-icons/lu";
 import { EMOJIS } from "../../data/emojis";
 
 import "./triqui.css";
@@ -1068,7 +1069,7 @@ function TriquiGame({ mode = "online", playerName } = {}) {
     const soundButton = (
         <button
             type="button"
-            className="triqui-sound-toggle"
+            className="ffl-icono triqui-sound-toggle"
             onClick={toggleSound}
             aria-label={soundOn ? "Silenciar" : "Activar sonido"}
         >
@@ -1083,12 +1084,12 @@ function TriquiGame({ mode = "online", playerName } = {}) {
     if (!game) {
 
         return (
-            <div className="triqui-page notranslate" translate="no" onContextMenu={bloquearMenu}>
+            <div className="ffp tq notranslate" translate="no" onContextMenu={bloquearMenu}>
 
                 <div className="triqui-loading">
 
                     <div className="triqui-loading-logo">
-                        MATHVISION
+                        LUDOGAMIF
                     </div>
 
                     <h1>TRIQUI MATEMÁTICO</h1>
@@ -1122,32 +1123,24 @@ function TriquiGame({ mode = "online", playerName } = {}) {
     ===================================================== */
 
     return (
-        <div className="triqui-page notranslate" translate="no" onContextMenu={bloquearMenu}>
+        <div className="ffp tq notranslate" translate="no" onContextMenu={bloquearMenu}>
 
-            <div className="triqui-container">
+            {/* Sin encabezado: solo las partes del juego. */}
+            <div className="tq-main">
 
-                {/* ================= HEADER ================= */}
+                {/* ================= IZQUIERDA: JUGADORES Y TURNO ================= */}
+                <aside className="tq-lado">
 
-                <header className="triqui-header">
-
-                    <div>
-                        <span className="triqui-brand">MATHVISION</span>
-                        <h1>TRIQUI MATEMÁTICO</h1>
-                    </div>
-
-                    <div className="triqui-header-actions">
-
+                    <div className="tq-controles">
+                        <button type="button" className="ffl-icono" onClick={salir} aria-label={isLocal ? "Salir" : "Volver a la sala"} title={isLocal ? "Salir" : "Volver a la sala"}>
+                            <LuArrowLeft aria-hidden="true" />
+                        </button>
+                        <span className="tq-titulo">
+                            TRIQUI<span>MATH</span>
+                        </span>
+                        <span className="triqui-round">{`R${game.round}`}</span>
                         {soundButton}
-
-                        <div className="triqui-round">
-                            {`RONDA ${game.round}`}
-                        </div>
-
                     </div>
-
-                </header>
-
-                {/* ================= JUGADORES ================= */}
 
                 <section className="triqui-players">
 
@@ -1191,8 +1184,6 @@ function TriquiGame({ mode = "online", playerName } = {}) {
 
                 </section>
 
-                {/* ================= TURNO ================= */}
-
                 <div className={`triqui-turn ${isMyTurn ? "my-turn" : "opponent-turn"}`}>
 
                     {isPlaying ? (
@@ -1230,8 +1221,10 @@ function TriquiGame({ mode = "online", playerName } = {}) {
 
                 </div>
 
-                {/* ================= TABLERO ================= */}
+                </aside>
 
+                {/* ================= CENTRO: TABLERO ================= */}
+                <div className="tq-centro">
                 <div className="triqui-board">
 
                     {(game.board || []).map((cell, index) => {
@@ -1260,7 +1253,19 @@ function TriquiGame({ mode = "online", playerName } = {}) {
 
                 </div>
 
-                {/* ================= EMOJIS ================= */}
+                </div>
+
+                {/* ================= DERECHA ================= */}
+                <aside className="tq-lado tq-lado-der">
+                {isPlaying && selectedCell === null && (
+                    <div className="triqui-instruction">
+                        {isLocal
+                            ? `🎯 ${currentPlayerName}, selecciona una casilla para tu ficha.`
+                            : isMyTurn
+                                ? "🎯 Selecciona la casilla donde quieres colocar tu ficha."
+                                : "⏳ Espera a que termine el turno de tu rival."}
+                    </div>
+                )}
 
                 <div className="triqui-emoji-area">
 
@@ -1288,7 +1293,11 @@ function TriquiGame({ mode = "online", playerName } = {}) {
 
                 </div>
 
-                {/* ================= EMOJI FLOTANTE ================= */}
+                    <button type="button" className="ffp-btn ffp-btn-2 triqui-back" onClick={salir}>
+                        {isLocal ? "SALIR" : "VOLVER A LA SALA"}
+                    </button>
+                </aside>
+            </div>
 
                 {floatingEmoji && (
                     <div
@@ -1301,26 +1310,6 @@ function TriquiGame({ mode = "online", playerName } = {}) {
                         </span>
                     </div>
                 )}
-
-                {/* ================= INSTRUCCIÓN ================= */}
-
-                {isPlaying && selectedCell === null && (
-                    <div className="triqui-instruction">
-                        {isLocal
-                            ? `🎯 ${currentPlayerName}, selecciona una casilla para tu ficha.`
-                            : isMyTurn
-                                ? "🎯 Selecciona la casilla donde quieres colocar tu ficha."
-                                : "⏳ Espera a que termine el turno de tu rival."}
-                    </div>
-                )}
-
-                {/* ================= SALIR ================= */}
-
-                <button className="triqui-back" onClick={salir}>
-                    {isLocal ? "SALIR" : "VOLVER A LA SALA"}
-                </button>
-
-            </div>
 
             {/* =====================================================
                MODAL PREGUNTA + TECLADO LATERAL
