@@ -1,11 +1,9 @@
 /* =========================================================
    REGLAS DE SIGLOGAMIF QUE SE CAMBIAN DESDE EL PANEL
    ---------------------------------------------------------
-   Poder 🔄: de vez en cuando aparece flotando para todos. El
-   primero que lo toca elige a otro jugador y le pone el número
-   que quiera (0 a 6, como unidad o decena) en su siguiente
-   espacio: ese jugador pierde ese turno o hasta puede pasarse
-   de 100.
+   Poder 🔄: muy rara vez aparece flotando para todos (cuándo
+   sale lo decide el azar, ver SigloGame.js). Aquí solo se
+   activa o apaga y se ponen sus tiempos.
 
    Se guarda en config_juego ("reglas_siglo"). Se lee al
    arrancar y queda en memoria (la partida la necesita al
@@ -18,7 +16,6 @@ const CLAVE = "reglas_siglo";
 
 export const REGLAS_SIGLO_POR_DEFECTO = {
     poder_activo: true,
-    poder_por_partida: 1, // cuántas veces sale en una partida (al azar)
     poder_segundos_visible: 8, // cuánto flota esperando que alguien lo toque
     poder_segundos_elegir: 10, // cuánto tiene quien lo agarró para usarlo
 };
@@ -34,7 +31,6 @@ function normalizar(v = {}) {
     const d = REGLAS_SIGLO_POR_DEFECTO;
     return {
         poder_activo: typeof v.poder_activo === "boolean" ? v.poder_activo : d.poder_activo,
-        poder_por_partida: entero(v.poder_por_partida, 0, 5, d.poder_por_partida),
         poder_segundos_visible: entero(v.poder_segundos_visible, 3, 30, d.poder_segundos_visible),
         poder_segundos_elegir: entero(v.poder_segundos_elegir, 5, 30, d.poder_segundos_elegir),
     };

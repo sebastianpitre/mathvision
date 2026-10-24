@@ -63,9 +63,10 @@ function ReglasSiglo() {
         <form className="lb-card" onSubmit={guardar} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <h3 className="lg-card-title">Poder 🔄 de SigloGamif</h3>
             <p className="lb-muted" style={{ margin: 0 }}>
-                Aparece flotando al azar entre la ronda 2 y la 4. El primero que lo toca elige a otro jugador y le pone
-                un número del 0 al 6 (unidad o decena) en su siguiente espacio: ese jugador pierde ese turno, y si se
-                pasa de 100 queda eliminado.
+                Sale al azar y muy rara vez, como el joker (más o menos en 1 de cada 4 partidas; puede no salir o salir
+                hasta 3 veces), entre la ronda 2 y la 4. El primero que lo toca elige a otro jugador y le pone el número
+                que quiera del 0 al 29 en su siguiente espacio: ese jugador pierde ese turno, y si se pasa de 100 queda
+                eliminado. Aquí solo se activa y se cambian sus tiempos.
             </p>
             {aviso.texto && <p className={aviso.tono === "error" ? "lg-alert" : "lg-ok"} role="status">{aviso.texto}</p>}
             <label className="lg-row" style={{ alignItems: "center", gap: 8, cursor: "pointer" }}>
@@ -73,10 +74,6 @@ function ReglasSiglo() {
                 <strong>Poder activado</strong>
             </label>
             <div className="lg-row" style={{ alignItems: "flex-end" }}>
-                <label className="lg-field">
-                    <span>Veces por partida (0 a 5)</span>
-                    {numero("poder_por_partida", 0, 5)}
-                </label>
                 <label className="lg-field">
                     <span>Segundos flotando (3 a 30)</span>
                     {numero("poder_segundos_visible", 3, 30)}

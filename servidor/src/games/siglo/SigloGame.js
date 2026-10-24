@@ -25,12 +25,13 @@
       dado una vez y gana el número más alto (se repite si
       vuelven a empatar).
 
-   PODER 🔄 (se configura en el panel): de vez en cuando, entre
-   la ronda 2 y la 4, aparece flotando para todos. El primero
-   que lo toca elige a otro jugador vivo y le pone un número
-   del 0 al 6 (unidad o decena) en su siguiente espacio vacío.
-   Ese jugador pierde ese turno, y si se pasa de 100 queda
-   eliminado.
+   PODER 🔄: muy de vez en cuando (más o menos en 1 de cada 4
+   partidas; puede no salir o salir hasta 3 veces), entre la
+   ronda 2 y la 4, aparece flotando para todos. El primero que
+   lo toca elige a otro jugador vivo y le pone el número que
+   quiera del 0 al 29 en su siguiente espacio vacío. Ese
+   jugador pierde ese turno, y si se pasa de 100 queda
+   eliminado. En el panel solo se cambian sus tiempos.
 
    Si se acaba el tiempo del turno, el servidor tira el dado
    por el jugador y elige la opción más prudente. Todo lo
@@ -50,6 +51,13 @@ export const NUMEROS_JOKER = [0, 1, 2, 3, 4, 5, 6];
 const PROBABILIDAD_JOKER = 1 / 20;
 // Tiempo mínimo que le queda al jugador después de volver a tirar.
 const SEGUNDOS_TRAS_RETIRO = 10;
+
+// Poder 🔄: número máximo que se puede poner, cuántas veces como
+// máximo sale y en qué parte de las partidas sale (en promedio).
+export const MAX_NUMERO_PODER = 29;
+const MAX_PODERES = 3;
+const PARTIDAS_CON_PODER = 0.25;
+const RONDAS_CON_PODER = 3; // de la ronda 2 a la 4
 
 function dadoNormal() {
     return 1 + Math.floor(Math.random() * 6);
@@ -94,7 +102,12 @@ export class SigloGame {
         }));
 
         // Poder 🔄
-        this.reglasPoder = reglas || { poder_activo: false, poder_por_partida: 0 };
+        this.reglasPoder = reglas || { poder_activo: false };
+        // Probabilidad en cada turno para que, en total, salga en
+        // más o menos 1 de cada 4 partidas (sea cual sea el número
+        // de jugadores).
+        const turnosPosibles = RONDAS_CON_PODER * this.jugadores.length;
+        this.probabilidadPoder = 1 - Math.pow(1 - PARTIDAS_CON_PODER, 1 / turnosPosibles);
         this.poder = null; // { id, estado: "flotando" | "eligiendo", hasta, duenio }
         this.poderesSalidos = 0;
         this.timerPoder = null;
@@ -561,19 +574,13 @@ export class SigloGame {
     }
 
     /* Al empezar cada turno, entre la ronda 2 y la 4, puede salir
-       el poder. La probabilidad sube a medida que quedan menos
-       turnos, así sale las veces que dice el panel. */
+       el poder, al azar y muy rara vez (como el joker). */
     intentarPoder() {
-        const r = this.reglasPoder;
-        if (!r?.poder_activo || this.poder || this.fase !== "jugando") return;
-        if (this.ronda < 1 || this.ronda > ESPACIOS - 2) return;
+        if (!this.reglasPoder?.poder_activo || this.poder || this.fase !== "jugando") return;
+        if (this.ronda < 1 || this.ronda > RONDAS_CON_PODER) return;
+        if (this.poderesSalidos >= MAX_PODERES || this.vivos().length < 2) return;
 
-        const faltan = r.poder_por_partida - this.poderesSalidos;
-        if (faltan <= 0 || this.vivos().length < 2) return;
-
-        const pendientesRonda = this.vivos().filter((j) => j.espacios[this.ronda] === null).length;
-        const turnosQuedan = pendientesRonda + this.vivos().length * (ESPACIOS - 2 - this.ronda);
-        if (Math.random() < faltan / Math.max(1, turnosQuedan)) this.soltarPoder();
+        if (Math.random() < this.probabilidadPoder) this.soltarPoder();
     }
 
     soltarPoder() {
@@ -622,24 +629,24 @@ export class SigloGame {
         return { success: true };
     }
 
-    /* opcion: "unidad" | "decena", numero: 0 a 6 */
-    usarPoder(userId, objetivoId, opcion, numero) {
+    /* numero: el que quiera, de 0 a MAX_NUMERO_PODER */
+    usarPoder(userId, objetivoId, numero) {
         const duenio = this.jugador(userId);
         const objetivo = this.jugador(objetivoId);
-        const base = Number(numero);
+        const valor = Number(numero);
 
         if (this.fase !== "jugando" || this.poder?.estado !== "eligiendo") return { success: false, message: "Ya no tienes el poder." };
         if (this.poder.duenio !== String(userId)) return { success: false, message: "El poder lo tiene otro jugador." };
         if (!objetivo || objetivo.eliminado) return { success: false, message: "Elige a un jugador que siga en juego." };
         if (objetivo.userId === duenio.userId) return { success: false, message: "El poder se usa con otro jugador." };
-        if (opcion !== "unidad" && opcion !== "decena") return { success: false, message: "Elige unidad o decena." };
-        if (!NUMEROS_JOKER.includes(base)) return { success: false, message: "Elige un número del 0 al 6." };
+        if (!Number.isInteger(valor) || valor < 0 || valor > MAX_NUMERO_PODER) {
+            return { success: false, message: `Elige un número del 0 al ${MAX_NUMERO_PODER}.` };
+        }
         if (objetivo.retiroPendiente) return { success: false, message: "Espera un momento: está volviendo a tirar." };
 
         const k = this.siguienteEspacio(objetivo);
         if (k === -1) return { success: false, message: `${objetivo.nombre} ya llenó sus espacios.` };
 
-        const valor = opcion === "decena" ? base * 10 : base;
         const enSuTurno = this.turno === objetivo.userId && k === this.ronda;
 
         this.quitarPoder();
@@ -766,6 +773,7 @@ export class SigloGame {
             segundosTurno: this.segundosTurno,
             opcionesTiempo: OPCIONES_TIEMPO,
             numerosJoker: NUMEROS_JOKER,
+            maxNumeroPoder: MAX_NUMERO_PODER,
             votos: conteoVotos,
             empatados: this.empatados,
             poder: this.poder ? { id: this.poder.id, estado: this.poder.estado, hasta: this.poder.hasta, duenio: this.poder.duenio } : null,

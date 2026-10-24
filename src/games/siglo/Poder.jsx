@@ -10,10 +10,10 @@ import "./poder.css";
    PODER 🔄 DE SIGLOGAMIF
    1. Aparece flotando para todos: el primero que lo toca se
       lo queda.
-   2. Quien lo tiene elige a otro jugador, un número del 0 al
-      6 y si va como unidad o decena. Ese número se pone en el
-      siguiente espacio vacío del otro (pierde ese turno, o
-      hasta se pasa de 100).
+   2. Quien lo tiene elige a otro jugador, la decena (0, 1 o 2)
+      y luego el número de esa decena (0–9, 10–19 o 20–29). Ese número se pone en el siguiente
+      espacio vacío del otro (pierde ese turno, o hasta se pasa
+      de 100).
 ========================================================= */
 
 function useSegundos(hasta, desfase) {
@@ -77,6 +77,7 @@ function siguienteEspacio(j, ronda) {
 function VentanaPoder({ partida, miId, segundos }) {
     const objetivos = partida.jugadores.filter((j) => j.userId !== miId && !j.eliminado && siguienteEspacio(j, partida.ronda) !== -1);
     const [objetivo, setObjetivo] = useState(objetivos.length === 1 ? objetivos[0].userId : null);
+    const [decena, setDecena] = useState(null);
     const [numero, setNumero] = useState(null);
     const [enviando, setEnviando] = useState(false);
 
@@ -88,9 +89,12 @@ function VentanaPoder({ partida, miId, segundos }) {
     }, []);
 
     const elegido = objetivos.find((j) => j.userId === objetivo);
-    const usar = (opcion) => {
+    const maximo = partida.maxNumeroPoder ?? 29;
+    const total = elegido && numero !== null ? elegido.total + numero : null;
+    const sePasa = total !== null && total > partida.meta;
+    const usar = () => {
         setEnviando(true);
-        socket.emit("siglo:poderUsar", { objetivo, opcion, numero });
+        socket.emit("siglo:poderUsar", { objetivo, numero });
     };
 
     return (
@@ -126,50 +130,63 @@ function VentanaPoder({ partida, miId, segundos }) {
                     })}
                 </div>
 
-                <p className="pd-paso">2. ¿Qué número?</p>
-                <div className="pd-numeros" role="radiogroup" aria-label="Número del 0 al 6">
-                    {(partida.numerosJoker || [0, 1, 2, 3, 4, 5, 6]).map((n) => (
+                <p className="pd-paso">2. Elige la decena</p>
+                <div className="pd-decenas" role="radiogroup" aria-label="Decena">
+                    {Array.from({ length: Math.floor(maximo / 10) + 1 }, (_, d) => (
                         <button
-                            key={n}
+                            key={d}
                             type="button"
                             role="radio"
-                            aria-checked={numero === n}
-                            className={`pd-numero ${numero === n ? "pd-elegido" : ""}`}
-                            onClick={() => setNumero(n)}
+                            aria-checked={decena === d}
+                            className={`pd-numero pd-decena ${decena === d ? "pd-elegido" : ""}`}
+                            onClick={() => {
+                                setDecena(d);
+                                setNumero(null);
+                            }}
                         >
-                            {n}
+                            {d}
+                            <small>{`${d * 10} a ${Math.min(maximo, d * 10 + 9)}`}</small>
                         </button>
                     ))}
                 </div>
 
-                <p className="pd-paso">3. ¿Unidad o decena?</p>
-                <div className="pd-opciones">
-                    {[
-                        { opcion: "unidad", valor: numero },
-                        { opcion: "decena", valor: numero === null ? null : numero * 10 },
-                    ].map(({ opcion, valor }) => {
-                        const total = elegido && valor !== null ? elegido.total + valor : null;
-                        const sePasa = total !== null && total > partida.meta;
-                        return (
-                            <button
-                                key={opcion}
-                                type="button"
-                                className={`pd-opcion ${sePasa ? "pd-opcion-pasa" : ""}`}
-                                disabled={!elegido || numero === null || enviando}
-                                onClick={() => usar(opcion)}
-                            >
-                                <strong>{valor === null ? (opcion === "unidad" ? "N" : "N0") : valor}</strong>
-                                <small>
-                                    {total === null
-                                        ? opcion === "unidad" ? "Unidad" : "Decena"
-                                        : sePasa
-                                            ? `¡Queda en ${total} y se pasa!`
-                                            : `${elegido.nombre} queda en ${total}`}
-                                </small>
-                            </button>
-                        );
-                    })}
-                </div>
+                {decena !== null && (
+                    <>
+                        <p className="pd-paso">3. Elige el número</p>
+                        <div className="pd-numeros" role="radiogroup" aria-label={`Número del ${decena * 10} al ${Math.min(maximo, decena * 10 + 9)}`}>
+                            {Array.from({ length: Math.min(maximo, decena * 10 + 9) - decena * 10 + 1 }, (_, u) => decena * 10 + u).map((n) => (
+                                <button
+                                    key={n}
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={numero === n}
+                                    className={`pd-numero ${numero === n ? "pd-elegido" : ""}`}
+                                    onClick={() => setNumero(n)}
+                                >
+                                    {n}
+                                </button>
+                            ))}
+                        </div>
+                    </>
+                )}
+
+                <button
+                    type="button"
+                    className={`pd-opcion ${sePasa ? "pd-opcion-pasa" : ""}`}
+                    disabled={!elegido || numero === null || enviando}
+                    onClick={usar}
+                >
+                    <strong>{numero === null ? "?" : `Poner ${numero}`}</strong>
+                    <small>
+                        {!elegido
+                            ? "Elige a quién"
+                            : total === null
+                                ? "Elige el número"
+                                : sePasa
+                                    ? `${elegido.nombre} queda en ${total} y ¡se pasa de ${partida.meta}!`
+                                    : `${elegido.nombre} queda en ${total}`}
+                    </small>
+                </button>
             </section>
         </div>
     );
