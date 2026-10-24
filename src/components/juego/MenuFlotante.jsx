@@ -8,6 +8,7 @@ import {
     LuShirt,
     LuShoppingCart,
     LuShrink,
+    LuTrophy,
     LuUserRound,
     LuUsers,
     LuVolume2,
@@ -186,6 +187,7 @@ export default function MenuFlotante() {
         { id: "tienda", texto: "Tienda", icono: LuShoppingCart, accion: () => ir("/tienda") },
         { id: "personajes", texto: "Personajes", icono: LuShirt, accion: () => ir("/character") },
         { id: "perfil", texto: "Perfil", icono: LuUserRound, accion: () => ir("/profile") },
+        { id: "ranking", texto: "Ranking", icono: LuTrophy, accion: () => ir("/ranking") },
         esAdmin && { id: "panel", texto: "Panel", icono: LuShieldCheck, accion: () => ir("/admin") },
         {
             id: "salir",

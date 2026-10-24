@@ -22,6 +22,7 @@ const TriquiGame = lazy(() => import("../games/triqui/TriquiGame"));
 const Admin = lazy(() => import("../pages/Admin/Admin"));
 const Sala = lazy(() => import("../pages/Sala/Sala"));
 const Siglo = lazy(() => import("../games/siglo/Siglo"));
+const Ranking = lazy(() => import("../pages/Ranking/Ranking"));
 
 function Cargando() {
     return (
@@ -125,6 +126,7 @@ function AppRouter() {
                 <Route path="/games/triqui" element={<Privada><TriquiGame /></Privada>} />
                 <Route path="/games/siglo" element={<Privada><Siglo /></Privada>} />
                 <Route path="/sala" element={<Privada><Sala /></Privada>} />
+                <Route path="/ranking" element={<Privada><Ranking /></Privada>} />
                 <Route path="/triqui-local" element={<TriquiGame mode="local" />} />
 
                 <Route path="/admin" element={<SoloAdmin><Admin /></SoloAdmin>} />

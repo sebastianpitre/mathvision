@@ -31,3 +31,6 @@ dist-ssr
 servidor/.env
 respaldos/
 .detras-de-nginx
+
+# Archivos subidos desde el panel (modelos y fotos)
+servidor/archivos/

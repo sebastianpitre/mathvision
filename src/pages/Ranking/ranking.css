@@ -1,0 +1,196 @@
+/* Ranking de los mejores (estilo Free Fire) */
+
+.rk-tabla {
+    flex: 0 0 25rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.rk-lista {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 0.35rem;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.rk-mia {
+    flex: 0 0 auto;
+    border-top: 1px solid var(--oro);
+    background: rgba(255, 207, 62, 0.08);
+}
+
+.rk-fila {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid transparent;
+    border-radius: 0.3rem;
+    background: rgba(255, 255, 255, 0.05);
+    text-align: left;
+}
+
+.rk-fila:hover,
+.rk-fila:focus-visible {
+    border-color: rgba(255, 207, 62, 0.5);
+    outline: none;
+}
+
+.rk-fila-elegida {
+    border-color: var(--oro);
+    background: rgba(255, 207, 62, 0.14);
+}
+
+.rk-fila-yo .rk-nombre strong {
+    color: #93c5fd;
+}
+
+.rk-posicion {
+    flex-shrink: 0;
+    width: 1.8rem;
+    display: grid;
+    place-items: center;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--suave);
+}
+
+.rk-posicion svg {
+    width: 1.3rem;
+    height: 1.3rem;
+}
+
+.rk-puesto-1 .rk-posicion { color: #fde047; }
+.rk-puesto-2 .rk-posicion { color: #e2e8f0; }
+.rk-puesto-3 .rk-posicion { color: #fdba74; }
+
+.rk-puesto-1 { background: linear-gradient(90deg, rgba(253, 224, 71, 0.18), rgba(255, 255, 255, 0.05) 60%); }
+
+.rk-foto {
+    flex-shrink: 0;
+    width: 2.2rem;
+    height: 2.2rem;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 0.3rem;
+    background: #1b2236;
+}
+
+.rk-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rk-nombre {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.rk-nombre strong {
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rk-nombre small {
+    color: var(--suave);
+    font-size: 0.72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rk-tu {
+    color: var(--suave);
+    font-weight: 600;
+}
+
+.rk-valor {
+    flex-shrink: 0;
+    color: var(--oro);
+    font-size: 1.05rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.rk-vacio {
+    margin: auto;
+    color: var(--suave);
+}
+
+.rk-escenario {
+    min-width: 12rem;
+}
+
+.rk-detalle {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.6rem;
+    pointer-events: none;
+}
+
+.rk-detalle > * {
+    pointer-events: auto;
+}
+
+.rk-detalle-texto {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+    text-shadow: var(--sombra-texto);
+}
+
+.rk-detalle-texto small {
+    color: var(--oro);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.rk-detalle-texto strong {
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rk-datos {
+    display: flex;
+    gap: 0.7rem;
+    margin-top: 0.2rem;
+    font-size: 0.9rem;
+}
+
+.rk-datos span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.rk-datos svg {
+    width: 0.9rem;
+    height: 0.9rem;
+    color: var(--oro);
+}

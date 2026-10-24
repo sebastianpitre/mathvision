@@ -1,13 +1,14 @@
-import { useState } from "react";
-import { LuGift, LuSearch, LuShieldCheck } from "react-icons/lu";
+import { Fragment, useState } from "react";
+import { LuGift, LuLock, LuLockOpen, LuPencil, LuSave, LuSearch, LuShieldCheck, LuX } from "react-icons/lu";
 
 import { api } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { useCarga, formato, fecha } from "./useCarga";
 
 /* =========================================================
-   JUGADORES: buscar, ver su progreso, dar o quitar el rol
-   de administrador y regalar oro o diamantes.
+   JUGADORES: buscar, ver su progreso, cambiar su nivel, oro
+   y diamantes, bloquear la cuenta, dar o quitar el rol de
+   administrador y regalar oro o diamantes.
 ========================================================= */
 
 export default function UsuariosAdmin() {
@@ -16,6 +17,37 @@ export default function UsuariosAdmin() {
     const [consulta, setConsulta] = useState("");
     const { datos, cargando, error, recargar } = useCarga(`/admin/usuarios?buscar=${encodeURIComponent(consulta)}`);
     const [aviso, setAviso] = useState({ texto: "", tono: "" });
+    const [editando, setEditando] = useState(null); // { id, nivel, oro, diamantes }
+
+    async function guardarProgreso(u) {
+        try {
+            await api(`/admin/usuarios/${u.id}/progreso`, {
+                metodo: "PUT",
+                body: { nivel: Number(editando.nivel), oro: Number(editando.oro), diamantes: Number(editando.diamantes) },
+            });
+            setAviso({ texto: `Progreso de "${u.username}" actualizado.`, tono: "ok" });
+            setEditando(null);
+            recargar();
+        } catch (e) {
+            setAviso({ texto: e.message, tono: "error" });
+        }
+    }
+
+    async function cambiarBloqueo(u) {
+        const bloquear = !u.bloqueado;
+        const pregunta = bloquear
+            ? `¿Bloquear a "${u.username}"? No podrá entrar ni jugar hasta que lo desbloquees.`
+            : `¿Desbloquear a "${u.username}"?`;
+        if (!window.confirm(pregunta)) return;
+
+        try {
+            await api(`/admin/usuarios/${u.id}/bloqueo`, { metodo: "PUT", body: { bloqueado: bloquear } });
+            setAviso({ texto: `"${u.username}" ${bloquear ? "quedó bloqueado" : "ya puede jugar"}.`, tono: "ok" });
+            recargar();
+        } catch (e) {
+            setAviso({ texto: e.message, tono: "error" });
+        }
+    }
 
     async function cambiarRol(u) {
         const nuevo = u.rol === "admin" ? "jugador" : "admin";
@@ -99,11 +131,15 @@ export default function UsuariosAdmin() {
                         </thead>
                         <tbody>
                             {datos.usuarios.map((u) => (
-                                <tr key={u.id}>
+                                <Fragment key={u.id}>
+                                <tr style={u.bloqueado ? { opacity: 0.6 } : undefined}>
                                     <td style={{ minWidth: 190 }}>
                                         <strong>{u.display_name || u.username}</strong>
                                         {u.rol === "admin" && (
                                             <span className="lg-tag lg-tag-on" style={{ marginLeft: 6 }}>Admin</span>
+                                        )}
+                                        {u.bloqueado && (
+                                            <span className="lg-tag lg-tag-off" style={{ marginLeft: 6 }}>Bloqueado</span>
                                         )}
                                         <div className="lb-muted">{u.email}</div>
                                     </td>
@@ -118,6 +154,25 @@ export default function UsuariosAdmin() {
                                     <td>{fecha(u.last_login)}</td>
                                     <td>
                                         <div className="lg-row" style={{ flexWrap: "nowrap" }}>
+                                            <button
+                                                type="button"
+                                                className="lb-icon-btn"
+                                                title="Cambiar nivel, oro y diamantes"
+                                                aria-label={`Editar progreso de ${u.username}`}
+                                                onClick={() => setEditando({ id: u.id, nivel: u.level, oro: u.coins, diamantes: u.gems })}
+                                            >
+                                                <LuPencil aria-hidden="true" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="lb-icon-btn"
+                                                title={u.bloqueado ? "Desbloquear cuenta" : "Bloquear cuenta"}
+                                                aria-label={`${u.bloqueado ? "Desbloquear" : "Bloquear"} a ${u.username}`}
+                                                onClick={() => cambiarBloqueo(u)}
+                                                disabled={u.id === user?.id}
+                                            >
+                                                {u.bloqueado ? <LuLockOpen aria-hidden="true" /> : <LuLock aria-hidden="true" />}
+                                            </button>
                                             <button type="button" className="lb-icon-btn" title="Regalar oro o diamantes" aria-label={`Regalar a ${u.username}`} onClick={() => regalar(u)}>
                                                 <LuGift aria-hidden="true" />
                                             </button>
@@ -134,6 +189,43 @@ export default function UsuariosAdmin() {
                                         </div>
                                     </td>
                                 </tr>
+                                {editando?.id === u.id && (
+                                    <tr>
+                                        <td colSpan={9}>
+                                            <form
+                                                className="lg-row"
+                                                style={{ alignItems: "flex-end" }}
+                                                onSubmit={(e) => {
+                                                    e.preventDefault();
+                                                    guardarProgreso(u);
+                                                }}
+                                            >
+                                                <label className="lg-field">
+                                                    <span>Nivel (1 a 100)</span>
+                                                    <input className="lg-input" style={{ width: 100 }} type="number" min={1} max={100} value={editando.nivel} onChange={(e) => setEditando({ ...editando, nivel: e.target.value })} />
+                                                </label>
+                                                <label className="lg-field">
+                                                    <span>Oro</span>
+                                                    <input className="lg-input" style={{ width: 120 }} type="number" min={0} value={editando.oro} onChange={(e) => setEditando({ ...editando, oro: e.target.value })} />
+                                                </label>
+                                                <label className="lg-field">
+                                                    <span>Diamantes</span>
+                                                    <input className="lg-input" style={{ width: 110 }} type="number" min={0} value={editando.diamantes} onChange={(e) => setEditando({ ...editando, diamantes: e.target.value })} />
+                                                </label>
+                                                <button type="submit" className="lb-btn lb-btn-primary lb-btn-sm">
+                                                    <LuSave aria-hidden="true" />
+                                                    Guardar
+                                                </button>
+                                                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => setEditando(null)}>
+                                                    <LuX aria-hidden="true" />
+                                                    Cancelar
+                                                </button>
+                                                <span className="lb-muted">Si cambias el nivel, su XP queda al comienzo de ese nivel.</span>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                )}
+                                </Fragment>
                             ))}
                         </tbody>
                     </table>

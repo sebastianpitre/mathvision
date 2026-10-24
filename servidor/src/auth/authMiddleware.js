@@ -1,4 +1,5 @@
 import { pool } from "../database/db.js";
+import { estaBloqueado, MENSAJE_BLOQUEADO } from "./bloqueo.js";
 import {
     verifyToken
 } from "./authService.js";
@@ -58,7 +59,15 @@ export function requireAuth(
             decoded;
 
 
-        next();
+        // Cuenta bloqueada desde el panel: no puede usar la API.
+        estaBloqueado(decoded.userId)
+            .then((bloqueado) => {
+                if (bloqueado) {
+                    return res.status(403).json({ success: false, bloqueado: true, message: MENSAJE_BLOQUEADO });
+                }
+                next();
+            })
+            .catch(next);
 
     } catch {
 

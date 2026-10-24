@@ -6,6 +6,7 @@ import { LuArrowLeft, LuClock, LuDices, LuGem, LuPlay, LuRotateCcw, LuSkull, LuT
 import { useAuth } from "../../context/AuthContext";
 import { socket } from "../../services/socket";
 import Recompensas from "../../components/common/Recompensas";
+import AssetImage from "../../components/common/AssetImage";
 import { BurbujaEmoji, SelectorEmojis } from "../../components/common/Emojis";
 import { useEmojisSala } from "../../components/common/useEmojisSala";
 
@@ -323,62 +324,74 @@ export default function Siglo() {
     return (
         <div className="ffp sg">
             <main className="sg-main">
-                {/* ================= TABLERO ================= */}
+                {/* ================= TABLERO =================
+                    Tarjetas en dos columnas: foto, nombre, el total
+                    bien grande y los 5 espacios con números claros. */}
                 <section
                     className={`sg-tablero ${partida.jugadores.length > 4 ? "sg-tablero-muchos" : ""}`}
+                    style={{ gridTemplateRows: `repeat(${Math.max(2, Math.ceil(partida.jugadores.length / 2))}, minmax(0, 1fr))` }}
                     aria-label="Tablero de jugadores"
                 >
                     {partida.jugadores.map((j) => {
                         const esTurno = j.userId === partida.turno;
                         const gano = partida.resultado?.ganadores.includes(j.userId);
                         const empatado = partida.fase === "desempate" && partida.empatados.includes(j.userId);
+                        const tonoTotal = j.total > partida.meta ? "sg-total-mal" : j.total === partida.meta ? "sg-total-siglo" : "";
 
                         return (
                             <article
                                 key={j.userId}
                                 className={[
-                                    "sg-fila",
-                                    j.userId === miId && "sg-fila-yo",
-                                    esTurno && "sg-fila-turno",
-                                    j.eliminado && "sg-fila-eliminado",
-                                    gano && "sg-fila-gano",
+                                    "sg-carta",
+                                    j.userId === miId && "sg-carta-yo",
+                                    esTurno && "sg-carta-turno",
+                                    j.eliminado && "sg-carta-eliminado",
+                                    gano && "sg-carta-gano",
                                 ].filter(Boolean).join(" ")}
-                                aria-label={`${j.nombre}: suma ${j.total}${j.eliminado ? ", eliminado" : ""}`}
+                                aria-label={`${j.nombre}: total ${j.total}${j.eliminado ? ", eliminado" : ""}`}
                             >
-                                <BurbujaEmoji dato={emojis[j.userId]} className="sg-fila-emoji" />
-                                <div className="sg-fila-nombre">
-                                    <strong>
-                                        {j.nombre}
-                                        {j.userId === miId && <span className="sg-tu"> (tú)</span>}
-                                        {victoriasDe(j.userId) > 0 && (
-                                            <span className="sg-victorias" title="Partidas ganadas en esta sala">
-                                                <LuTrophy aria-hidden="true" />
-                                                {victoriasDe(j.userId)}
-                                            </span>
-                                        )}
-                                        {j.retiroUsado && (
-                                            <span className="sg-uso-diamante" title="Ya volvió a tirar con un diamante">
-                                                <LuGem aria-hidden="true" />
-                                                <span className="ffl-oculto">usó su diamante</span>
-                                            </span>
-                                        )}
-                                    </strong>
-                                    <small>
-                                        {gano ? (
-                                            <><LuTrophy aria-hidden="true" /> Ganador</>
-                                        ) : j.eliminado ? (
-                                            <><LuSkull aria-hidden="true" /> {j.motivo === "abandono" ? "Salió" : "Se pasó"}</>
-                                        ) : esTurno ? (
-                                            "Su turno…"
-                                        ) : empatado ? (
-                                            j.tiroDesempate ? `Desempate: ${j.tiroDesempate}` : "En desempate"
-                                        ) : partida.fase === "terminada" ? (
-                                            `Final: ${j.total}`
-                                        ) : (
-                                            "En juego"
-                                        )}
-                                    </small>
-                                </div>
+                                <BurbujaEmoji dato={emojis[j.userId]} className="sg-carta-emoji" />
+
+                                <header className="sg-carta-cabeza">
+                                    <span className="sg-foto">
+                                        <AssetImage src={j.avatar} type="player" alt="" />
+                                    </span>
+                                    <div className="sg-carta-nombre">
+                                        <strong>
+                                            {j.nombre}
+                                            {j.userId === miId && <span className="sg-tu"> (tú)</span>}
+                                        </strong>
+                                        <small>
+                                            {gano ? (
+                                                <><LuTrophy aria-hidden="true" /> Ganador</>
+                                            ) : j.eliminado ? (
+                                                <><LuSkull aria-hidden="true" /> {j.motivo === "abandono" ? "Salió" : "Se pasó"}</>
+                                            ) : esTurno ? (
+                                                "Su turno…"
+                                            ) : empatado ? (
+                                                j.tiroDesempate ? `Desempate: ${j.tiroDesempate}` : "En desempate"
+                                            ) : (
+                                                `Faltan ${Math.max(0, partida.meta - j.total)}`
+                                            )}
+                                            {victoriasDe(j.userId) > 0 && (
+                                                <span className="sg-victorias" title="Partidas ganadas en esta sala">
+                                                    <LuTrophy aria-hidden="true" />
+                                                    {victoriasDe(j.userId)}
+                                                </span>
+                                            )}
+                                            {j.retiroUsado && (
+                                                <span className="sg-uso-diamante" title="Ya volvió a tirar con un diamante">
+                                                    <LuGem aria-hidden="true" />
+                                                    <span className="ffl-oculto">usó su diamante</span>
+                                                </span>
+                                            )}
+                                        </small>
+                                    </div>
+                                    <div className={`sg-total ${tonoTotal}`}>
+                                        <small>Total</small>
+                                        <strong>{j.total}</strong>
+                                    </div>
+                                </header>
 
                                 <ol className="sg-espacios">
                                     {j.espacios.map((v, i) => (
@@ -401,13 +414,8 @@ export default function Siglo() {
                                     ))}
                                 </ol>
 
-                                <div className="sg-total">
-                                    <strong className={j.total > partida.meta ? "sg-total-mal" : j.total === partida.meta ? "sg-total-siglo" : ""}>
-                                        {j.total}
-                                    </strong>
-                                    <div className="sg-barra" aria-hidden="true">
-                                        <span style={{ width: `${Math.min(100, j.total)}%` }} />
-                                    </div>
+                                <div className="sg-barra" aria-hidden="true">
+                                    <span style={{ width: `${Math.min(100, j.total)}%` }} />
                                 </div>
                             </article>
                         );

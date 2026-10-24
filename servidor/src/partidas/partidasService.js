@@ -14,6 +14,7 @@ import {
     sumarEstadisticas,
 } from "../progreso/progreso.js";
 import { getUserProfile } from "../users/userService.js";
+import { obtenerPremios } from "../config/premios.js";
 
 export class ErrorJuego extends Error {
     constructor(mensaje, status = 400) {
@@ -467,26 +468,11 @@ export async function registrarPartidaSimple(userId, { juego, aciertos, total })
    partida. resultados = [{ userId, resultado, siglo? }]
 --------------------------------------------------------- */
 
-const PREMIOS_MULTIJUGADOR = {
-    triqui: {
-        ganada: { xp: 30, oro: 15 },
-        empate: { xp: 15, oro: 5 },
-        perdida: { xp: 10, oro: 0 },
-    },
-    siglo: {
-        ganada: { xp: 40, oro: 20 },
-        empate: { xp: 20, oro: 8 },
-        perdida: { xp: 10, oro: 0 },
-    },
-};
-
-// Hacer SIGLO (exactamente 100) da además un diamante.
-const BONO_SIGLO_DIAMANTES = 1;
-
-const MAX_MULTIJUGADOR_DIARIAS = 15;
+// Los premios (y el máximo de partidas premiadas al día) los
+// configura el administrador: ver src/config/premios.js.
 
 export async function registrarResultadoMultijugador(juego, resultados) {
-    const tabla = PREMIOS_MULTIJUGADOR[juego];
+    const tabla = (await obtenerPremios())[juego];
     if (!tabla) throw new Error(`Juego multijugador desconocido: ${juego}`);
 
     const premios = [];
@@ -496,12 +482,12 @@ export async function registrarResultadoMultijugador(juego, resultados) {
 
         const premio = await enTransaccion(async (client) => {
             let { xp, oro } = tabla[resultado];
-            let diamantes = siglo ? BONO_SIGLO_DIAMANTES : 0;
+            let diamantes = siglo ? tabla.bono_siglo_diamantes || 0 : 0;
             let limiteDiario = false;
 
             const hoy = await recompensasDeHoy(client, userId, { juego });
 
-            if (hoy >= MAX_MULTIJUGADOR_DIARIAS) {
+            if (tabla.max_diarias > 0 && hoy >= tabla.max_diarias) {
                 xp = 0;
                 oro = 0;
                 diamantes = 0;

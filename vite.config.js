@@ -15,6 +15,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': SERVIDOR_LOCAL,
+      '/archivos': SERVIDOR_LOCAL,
       '/socket.io': { target: SERVIDOR_LOCAL, ws: true },
     },
   },
