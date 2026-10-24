@@ -22,6 +22,7 @@
    PUT    /premios                     guardar premios
    PUT    /usuarios/:id/voz            { bloqueada }  quitar o devolver la voz
    GET    /usuarios/:id/reportes       sus reportes con el motivo
+   /sonidos/…                          biblioteca de sonidos (ver sonidos/sonidosAdmin.js)
    POST   /usuarios/:id/reportes/revisar   marcar revisados (ya no cuentan)
    GET    /voz                         reglas de la voz
    PUT    /voz                         guardar reglas
@@ -39,6 +40,7 @@ import { calcularNivel, entregarRecompensa, xpParaSubir, NIVEL_MAXIMO } from "..
 import { ARCHIVOS_DIR, URL_ARCHIVOS, TIPOS_ARCHIVO } from "../config/archivos.js";
 import { obtenerPremios, guardarPremios } from "../config/premios.js";
 import { olvidarBloqueo } from "../auth/bloqueo.js";
+import sonidosAdmin from "../sonidos/sonidosAdmin.js";
 import { obtenerConfigVoz, guardarConfigVoz, olvidarPermisoVoz, MOTIVOS_REPORTE } from "../voz/voz.js";
 import {
     listarNivelesAdmin,
@@ -59,6 +61,7 @@ const router = express.Router();
 // Los JSON de preguntas pueden ser grandes.
 router.use(express.json({ limit: "3mb" }));
 router.use(requireAdmin);
+router.use("/sonidos", sonidosAdmin);
 
 function idValido(valor) {
     const id = Number(valor);

@@ -14,7 +14,18 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
 import Recompensas from "../../components/common/Recompensas";
-import { playSound, createBackgroundMusic } from "./components/GameAudio";
+import { sonar as sonarMomento } from "../../services/sonidos";
+import { useSonido } from "../../hooks/useSonido";
+
+// Evento → momento del panel (Panel → Sonidos).
+const SONIDOS = {
+    correct: "correcto",
+    incorrect: "incorrecto",
+    victory: "ganar",
+    gameOver: "perder",
+    lifeline: "comodin",
+    retire: "retirarse",
+};
 
 import "./juegoPreguntas.css";
 
@@ -54,47 +65,14 @@ export default function JuegoPreguntas() {
     const [segundos, setSegundos] = useState(0);
     const [final, setFinal] = useState(null);
 
-    const [sonido, setSonido] = useState(true);
-    const musicaRef = useRef(null);
-    const sonidoRef = useRef(true);
+    const [sonido, alternarSonido] = useSonido();
     const iniciadaRef = useRef(false);
     const siguienteRef = useRef(null);
 
-    const sonar = useCallback((nombre, volumen = 0.7) => {
-        if (sonidoRef.current) playSound(nombre, volumen);
-    }, []);
+    // La música la pone MusicaGlobal según la pantalla.
+    const sonar = useCallback((nombre, volumen = 0.7) => sonarMomento(SONIDOS[nombre], Math.min(1, volumen / 0.7)), []);
 
-    /* ---------------- Música ---------------- */
-
-    useEffect(() => {
-        const musica = createBackgroundMusic();
-        musica.volume = 0.35;
-        musicaRef.current = musica;
-
-        const arrancar = () => {
-            if (sonidoRef.current) musica.play().catch(() => {});
-        };
-
-        arrancar();
-        window.addEventListener("pointerdown", arrancar, { once: true });
-        window.addEventListener("keydown", arrancar, { once: true });
-
-        return () => {
-            musica.pause();
-            window.removeEventListener("pointerdown", arrancar);
-            window.removeEventListener("keydown", arrancar);
-            clearTimeout(siguienteRef.current);
-        };
-    }, []);
-
-    const alternarSonido = () => {
-        const nuevo = !sonidoRef.current;
-        sonidoRef.current = nuevo;
-        setSonido(nuevo);
-
-        if (nuevo && estado === "jugando") musicaRef.current?.play().catch(() => {});
-        else musicaRef.current?.pause();
-    };
+    useEffect(() => () => clearTimeout(siguienteRef.current), []);
 
     /* ---------------- Empezar partida ---------------- */
 
@@ -118,10 +96,7 @@ export default function JuegoPreguntas() {
             setSegundos(datos.nivel.segundos_por_pregunta);
             setEstado("jugando");
 
-            if (musicaRef.current && sonidoRef.current) {
-                musicaRef.current.currentTime = 0;
-                musicaRef.current.play().catch(() => {});
-            }
+            sonarMomento("iniciar");
         } catch (e) {
             setError(e.message);
             setEstado("error");
@@ -139,7 +114,6 @@ export default function JuegoPreguntas() {
 
     const terminar = useCallback(
         (datosFinal, perfil) => {
-            musicaRef.current?.pause();
             actualizarUsuario(perfil);
             setFinal(datosFinal);
             setEstado("final");

@@ -11,7 +11,6 @@ import http from "http";
 import cors from "cors";
 import path from "node:path";
 import { existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 
 import { Server } from "socket.io";
 import { WorldManager } from "./src/world/WorldManager.js";
@@ -22,7 +21,8 @@ import { estaBloqueado, MENSAJE_BLOQUEADO } from "./src/auth/bloqueo.js";
 import rankingRoutes from "./src/ranking/rankingRoutes.js";
 import reportesRoutes from "./src/voz/reportesRoutes.js";
 import { crearVoz } from "./src/voz/vozSockets.js";
-import { ARCHIVOS_DIR, URL_ARCHIVOS } from "./src/config/archivos.js";
+import { ARCHIVOS_DIR, URL_ARCHIVOS, FRONTEND_DIR } from "./src/config/archivos.js";
+import sonidosRoutes from "./src/sonidos/sonidosRoutes.js";
 import { TriquiGame } from "./src/games/triqui/TriquiGame.js";
 
 import {
@@ -124,6 +124,7 @@ app.use("/api/partidas", partidasRouter);
 app.use("/api/tienda", tiendaRoutes);
 app.use("/api/ranking", rankingRoutes);
 app.use("/api/reportes", reportesRoutes);
+app.use("/api/sonidos", sonidosRoutes);
 
 /*
  * Modelos 3D y fotos subidos desde el panel. Cada archivo
@@ -370,12 +371,6 @@ app.use((error, req, res, next) => {
    de inmediato.
 ========================================================= */
 
-const FRONTEND_DIR =
-    process.env.FRONTEND_DIR ||
-    path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../dist"
-    );
 
 if (existsSync(path.join(FRONTEND_DIR, "index.html"))) {
 
