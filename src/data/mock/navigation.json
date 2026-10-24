@@ -18,12 +18,6 @@
     "route": "/sala"
   },
   {
-    "id": "world",
-    "label": "Mundo",
-    "icon": "◎",
-    "route": "/world"
-  },
-  {
     "id": "tienda",
     "label": "Personajes",
     "icon": "♙",

@@ -1,2426 +1,870 @@
 /* =========================================================
-   PAGE
+   TRIQUI MATEMÁTICO (diseño juego, en rem, sin encabezado)
+   Izquierda: jugadores y turno · centro: tablero grande ·
+   derecha: instrucción, emojis y salir.
+   Ventanas: pregunta con teclado, resultado. Todo cabe en
+   la pantalla del teléfono (27.8rem de alto).
 ========================================================= */
 
-.triqui-page {
-    width: 100vw;
-    height: 100dvh;
-
-    min-height: 100dvh;
-
+.tq {
+    --x: #55a8ff;
+    --o: #ff5d68;
     background:
-        radial-gradient(
-            circle at 50% -20%,
-            rgba(66, 150, 255, 0.18),
-            transparent 45%
-        ),
-        radial-gradient(
-            circle at 0% 100%,
-            rgba(66, 211, 146, 0.08),
-            transparent 35%
-        ),
-        #070b12;
-
-    overflow: hidden;
-
-    position: relative;
+        radial-gradient(circle at 15% 10%, rgba(85, 168, 255, 0.18), transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(255, 93, 104, 0.15), transparent 45%),
+        #070b18;
 }
 
-/* =========================================================
-   CONTAINER
-========================================================= */
+.tq-main {
+    position: absolute;
+    top: max(0.6rem, env(safe-area-inset-top));
+    left: var(--borde);
+    right: var(--borde-der);
+    bottom: max(0.6rem, env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: 15rem minmax(0, 1fr) 13rem;
+    gap: 0.8rem;
+}
 
-.triqui-container {
-    width: min(
-        1100px,
-        100%
-    );
-
-    height: 100%;
-
-    margin: 0 auto;
-
-    padding:
-        clamp(8px, 1.2vh, 16px)
-        clamp(10px, 2vw, 25px);
-
+.tq-lado {
+    min-height: 0;
     display: flex;
-
     flex-direction: column;
-
-    align-items: center;
-
-    gap:
-        clamp(5px, 1vh, 10px);
-
-    overflow: hidden;
+    gap: 0.5rem;
 }
 
-/* =========================================================
-   HEADER
-========================================================= */
-
-.triqui-header {
-    width: 100%;
-
+.tq-controles {
     flex-shrink: 0;
-
     display: flex;
-
     align-items: center;
-
-    justify-content: space-between;
-
-    min-height:
-        clamp(48px, 7vh, 70px);
-
-    padding:
-        8px 14px;
-
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.08);
-
-    border-radius: 14px;
-
-    background:
-        rgba(0, 0, 0, 0.467);
-
-    backdrop-filter:
-        blur(10px);
+    gap: 0.4rem;
 }
 
-.triqui-brand {
-    display: block;
-
-    font-size:
-        clamp(7px, 0.8vw, 10px);
-
-    font-weight: 900;
-
-    letter-spacing: 4px;
-
-    color:
-        rgba(255, 255, 255, 0.42);
+.tq-titulo {
+    flex: 1;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
 }
 
-.triqui-header h1 {
-    margin: 2px 0 0;
-
-    font-size:
-        clamp(15px, 2vw, 24px);
-
-    font-weight: 950;
-
-    letter-spacing:
-        clamp(1px, 0.3vw, 4px);
+.tq-titulo span {
+    color: var(--x);
 }
 
 .triqui-round {
-    padding:
-        7px 10px;
-
-    border-radius: 8px;
-
-    background:
-        rgba(66, 150, 255, 0.1);
-
-    border:
-        1px solid
-        rgba(66, 150, 255, 0.18);
-
-    font-size: 9px;
-
-    font-weight: 900;
-
-    letter-spacing: 1px;
-
-    color: #72b7ff;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.3rem;
+    background: var(--panel);
+    color: var(--oro);
+    font-size: 0.9rem;
+    font-weight: 700;
 }
 
-/* =========================================================
-   PLAYERS
-========================================================= */
+.triqui-sound-toggle {
+    font-size: 1.1rem;
+}
+
+/* ---------- Jugadores ---------- */
 
 .triqui-players {
-    width: 100%;
-
-    flex-shrink: 0;
-
-    display: grid;
-
-    grid-template-columns:
-        1fr 1fr;
-
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 }
 
 .triqui-player {
-    min-width: 0;
-
-    min-height:
-        clamp(48px, 7vh, 65px);
-
-    padding:
-        7px 10px;
-
     display: flex;
-
     align-items: center;
-
-    gap: 9px;
-
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.08);
-
-    border-radius: 12px;
-
-    background:
-        rgba(0, 0, 0, 0.467);
-
-    transition:
-        border .2s,
-        background .2s,
-        transform .2s;
+    gap: 0.5rem;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.4rem;
+    background: rgba(12, 16, 30, 0.8);
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .triqui-player.active {
-    border-color:
-        rgba(66, 211, 146, 0.65);
-
-    background:
-        rgba(66, 211, 146, 0.16);
-
-    box-shadow:
-        0 0 25px
-        rgba(66, 211, 146, 0.08);
+    border-color: var(--oro);
+    box-shadow: 0 0 0 1px var(--oro), 0 0 0.8rem rgba(255, 207, 62, 0.25);
 }
 
 .triqui-player.me {
-    border-color:
-        rgba(85, 168, 255, 0.4);
+    background: linear-gradient(90deg, rgba(85, 168, 255, 0.16), rgba(12, 16, 30, 0.8) 60%);
 }
 
 .triqui-symbol {
-    width:
-        clamp(35px, 5vh, 48px);
-
-    height:
-        clamp(35px, 5vh, 48px);
-
     flex-shrink: 0;
-
-    border-radius: 50%;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size:
-        clamp(18px, 3vh, 25px);
-
-    font-weight: 950;
+    width: 2.6rem;
+    height: 2.6rem;
+    display: grid;
+    place-items: center;
+    border-radius: 0.45rem;
+    font-size: 1.6rem;
+    font-weight: 700;
 }
 
 .symbol-x {
-    background:
-        rgba(85, 168, 255, 0.14);
-
-    border:
-        2px solid #55a8ff;
-
-    color: #55a8ff;
-
-    text-shadow:
-        0 0 15px
-        rgba(85, 168, 255, 0.5);
+    background: rgba(85, 168, 255, 0.14);
+    border: 2px solid var(--x, #55a8ff);
+    color: var(--x, #55a8ff);
+    text-shadow: 0 0 0.8rem rgba(85, 168, 255, 0.5);
 }
 
 .symbol-o {
-    background:
-        rgba(255, 93, 104, 0.14);
-
-    border:
-        2px solid #ff5d68;
-
-    color: #ff5d68;
-
-    text-shadow:
-        0 0 15px
-        rgba(255, 93, 104, 0.5);
+    background: rgba(255, 93, 104, 0.14);
+    border: 2px solid var(--o, #ff5d68);
+    color: var(--o, #ff5d68);
+    text-shadow: 0 0 0.8rem rgba(255, 93, 104, 0.5);
 }
 
 .triqui-player-info {
-    min-width: 0;
-
     flex: 1;
-
+    min-width: 0;
     display: flex;
-
     flex-direction: column;
-
-    gap: 3px;
+    line-height: 1.1;
 }
 
 .triqui-player-info strong {
     display: flex;
-
     align-items: center;
-
-    gap: 7px;
-
+    gap: 0.3rem;
+    font-size: 1rem;
     overflow: hidden;
-
-    white-space: nowrap;
-
     text-overflow: ellipsis;
-
-    font-size:
-        clamp(11px, 1.5vw, 15px);
+    white-space: nowrap;
 }
 
 .triqui-player-info span {
-    font-size: 8px;
-
-    color:
-        rgba(255, 255, 255, 0.32);
-
-    letter-spacing: 1px;
+    color: var(--suave);
+    font-size: 0.75rem;
 }
 
 .triqui-you {
-    padding:
-        2px 5px;
-
-    border-radius: 4px;
-
-    background:
-        rgba(85, 168, 255, 0.15);
-
-    color: #72b7ff;
-
-    font-size: 7px;
-
-    letter-spacing: 1px;
+    padding: 0 0.3rem;
+    border-radius: 0.2rem;
+    background: var(--x);
+    color: #04121f !important;
+    font-size: 0.65rem !important;
+    font-weight: 700;
 }
 
 .triqui-score {
     flex-shrink: 0;
-
     display: flex;
-
+    flex-direction: column;
     align-items: center;
-
-    gap: 4px;
+    line-height: 1;
 }
 
 .triqui-score small {
-    font-size: 6px;
-
-    color:
-        rgba(255, 255, 255, 0.3);
-
-    letter-spacing: 1px;
+    color: var(--suave);
+    font-size: 0.6rem;
 }
 
 .triqui-score strong {
-    font-size:
-        clamp(16px, 2.5vh, 23px);
+    font-size: 1.5rem;
+    color: var(--oro);
 }
 
-/* =========================================================
-   TURN
-========================================================= */
+/* ---------- Turno ---------- */
 
 .triqui-turn {
-    width: 100%;
-
-    flex-shrink: 0;
-
-    min-height:
-        clamp(38px, 5vh, 48px);
-
+    flex: 1;
+    min-height: 0;
     display: flex;
-
+    flex-direction: column;
     align-items: center;
-
     justify-content: center;
-
-    gap: 8px;
-
-    border-radius: 10px;
-
-    font-size: 10px;
-
-    letter-spacing: 1px;
-}
-
-.triqui-turn strong {
-    font-size:
-        clamp(10px, 1.4vw, 14px);
-
-    font-weight: 950;
-}
-
-.triqui-turn small {
-    color:
-        rgba(255, 255, 255, 0.35);
-
-    font-size: 8px;
+    gap: 0.25rem;
+    padding: 0.6rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.4rem;
+    background: var(--panel);
+    text-align: center;
 }
 
 .triqui-turn.my-turn {
-    background:
-        rgba(66, 211, 146, 0.08);
-
-    border:
-        1px solid
-        rgba(66, 211, 146, 0.2);
+    border-color: rgba(52, 211, 153, 0.6);
+    background: linear-gradient(180deg, rgba(52, 211, 153, 0.14), var(--panel));
 }
 
-.triqui-turn.opponent-turn {
-    background:
-        rgba(0, 0, 0, 0.467);
-
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.07);
+.triqui-turn > span {
+    font-size: 1.4rem;
 }
 
-/* =========================================================
-   MY PLAYER
-========================================================= */
+.triqui-turn strong {
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
 
-.triqui-my-player {
-    width: 100%;
+.triqui-turn small {
+    color: var(--suave);
+    font-size: 0.8rem;
+}
 
-    flex-shrink: 0;
+.triqui-timer {
+    margin-top: 0.2rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
 
-    min-height:
-        clamp(38px, 5vh, 48px);
+.triqui-timer.danger {
+    background: rgba(248, 113, 113, 0.2);
+    color: #f87171;
+    animation: tq-latido 0.8s ease-in-out infinite;
+}
 
-    padding:
-        5px 10px;
+@keyframes tq-latido {
+    50% { transform: scale(1.07); }
+}
 
+/* ---------- Tablero ---------- */
+
+.tq-centro {
+    min-width: 0;
+    min-height: 0;
     display: flex;
-
     align-items: center;
-
-    gap: 9px;
-
-    border-radius: 9px;
-
-    background:
-        rgba(85, 168, 255, 0.06);
-
-    border:
-        1px solid
-        rgba(85, 168, 255, 0.14);
-}
-
-.triqui-my-symbol {
-    width: 31px;
-
-    height: 31px;
-
-    display: flex;
-
-    align-items: center;
-
     justify-content: center;
-
-    border-radius: 50%;
-
-    font-weight: 950;
-
-    font-size: 16px;
 }
-
-.triqui-my-player > div:nth-child(2) {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 2px;
-
-    flex: 1;
-}
-
-.triqui-my-player span {
-    font-size: 6px;
-
-    color:
-        rgba(255, 255, 255, 0.3);
-
-    letter-spacing: 1.5px;
-}
-
-.triqui-my-player strong {
-    font-size: 11px;
-}
-
-.triqui-score-mini {
-    flex: none;
-
-    font-size: 14px;
-
-    font-weight: 900;
-}
-
-/* =========================================================
-   BOARD
-========================================================= */
 
 .triqui-board {
-    width:
-        min(
-            55vh,
-            78vw,
-            560px
-        );
-
+    height: 100%;
+    max-width: 100%;
     aspect-ratio: 1;
-
-    flex-shrink: 1;
-
-    min-height: 0;
-
     display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap:
-        clamp(6px, 1vh, 10px);
-
-    margin:
-        auto 0;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.8rem;
+    background: rgba(10, 14, 28, 0.85);
+    box-shadow: 0 0.6rem 2rem rgba(0, 0, 0, 0.5);
 }
 
 .triqui-cell {
     position: relative;
-
     min-width: 0;
-
-    min-height: 120px;
-
-    border: none;
-
-    border-radius:
-        clamp(10px, 1.5vh, 16px);
-
-    background:
-        rgba(255, 255, 255, 0.045);
-
-    border:
-        4px solid
-        rgba(255, 255, 255, 0.914);
-
-    color: white;
-
-    font-size:
-        clamp(
-            38px,
-            9vh,
-            80px
-        );
-
-    font-weight: 950;
-
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.55rem;
+    background: rgba(255, 255, 255, 0.04);
     cursor: default;
-
-    transition:
-        transform .15s,
-        background .15s,
-        border .15s;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
 }
 
 .triqui-cell.available {
     cursor: pointer;
-
-    border-color:
-        rgba(66, 211, 146, 0.25);
+    border-color: rgba(52, 211, 153, 0.35);
 }
 
 .triqui-cell.available:hover {
-    transform:
-        scale(0.96);
-
-    background:
-        rgba(66, 211, 146, 0.1);
-
-    border-color:
-        rgba(66, 211, 146, 0.65);
+    background: rgba(52, 211, 153, 0.12);
+    border-color: rgba(52, 211, 153, 0.7);
 }
 
 .triqui-cell.selected {
-    transform:
-        scale(0.94);
-
-    border:
-        2px solid #ffc857;
-
-    background:
-        rgba(255, 200, 87, 0.12);
-
-    box-shadow:
-        0 0 25px
-        rgba(255, 200, 87, 0.16);
+    border-color: var(--oro);
+    background: rgba(255, 207, 62, 0.16);
 }
 
-.triqui-cell.cell-x {
-    color: #55a8ff;
-
-    background:
-        rgba(85, 168, 255, 0.08);
-
-    border-color:
-        rgba(85, 168, 255, 0.25);
+.triqui-cell-mark {
+    font-size: 4.5rem;
+    font-weight: 700;
+    line-height: 1;
 }
 
-.triqui-cell.cell-o {
-    color: #ff5d68;
+.cell-x .triqui-cell-mark {
+    color: var(--x);
+    text-shadow: 0 0 1rem rgba(85, 168, 255, 0.6);
+}
 
-    background:
-        rgba(255, 93, 104, 0.08);
-
-    border-color:
-        rgba(255, 93, 104, 0.25);
+.cell-o .triqui-cell-mark {
+    color: var(--o);
+    text-shadow: 0 0 1rem rgba(255, 93, 104, 0.6);
 }
 
 .triqui-cell.winning {
-    animation:
-        winnerCell .8s
-        ease-in-out
-        infinite alternate;
+    border-color: var(--oro);
+    background: rgba(255, 207, 62, 0.2);
+    animation: tq-gana 0.9s ease-in-out infinite alternate;
 }
 
-@keyframes winnerCell {
-    from {
-        transform: scale(1);
-    }
-
-    to {
-        transform: scale(.95);
-    }
+@keyframes tq-gana {
+    to { box-shadow: 0 0 1.2rem rgba(255, 207, 62, 0.6); }
 }
 
 .winning-crown {
     position: absolute;
-
-    top: 3px;
-
-    right: 5px;
-
-    font-size:
-        clamp(13px, 2.5vh, 22px);
+    top: 0.2rem;
+    right: 0.3rem;
+    font-size: 1.2rem;
 }
 
-/* =========================================================
-   INSTRUCTION
-========================================================= */
+/* ---------- Derecha ---------- */
+
+.tq-lado-der {
+    justify-content: flex-end;
+}
 
 .triqui-instruction {
-    flex-shrink: 0;
-
-    min-height: 24px;
-
+    flex: 1;
+    min-height: 0;
     display: flex;
-
     align-items: center;
-
-    justify-content: center;
-
-    text-align: center;
-
-    font-size:
-        clamp(10px, 1.5vw, 13px);
-
-    color:
-        rgba(228, 188, 25, 0.996);
+    padding: 0.7rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.4rem;
+    background: var(--panel);
+    font-size: 0.95rem;
+    line-height: 1.3;
 }
 
-/* =========================================================
-   EMOJIS
-========================================================= */
-
 .triqui-emoji-area {
-    position: absolute;
-
-    right:
-        clamp(10px, 2vw, 25px);
-
-    bottom:
-        clamp(10px, 2vh, 20px);
-
-    z-index: 30;
+    position: relative;
+    flex-shrink: 0;
 }
 
 .triqui-emoji-button {
-    width: 48px;
-
-    height: 48px;
-
-    border-radius: 50%;
-
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.13);
-
-    background:
-        rgba(15, 23, 35, 0.92);
-
-    color: white;
-
-    cursor: pointer;
-
+    width: 100%;
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
-    flex-direction: column;
-
-    gap: 1px;
-
-    font-size: 20px;
-
-    box-shadow:
-        0 10px 30px
-        rgba(0, 0, 0, .3);
+    gap: 0.4rem;
+    height: 2.6rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.4rem;
+    background: var(--panel);
+    font-size: 1.3rem;
 }
 
 .triqui-emoji-button span {
-    font-size: 5px;
-
-    letter-spacing: 1px;
-
-    color:
-        rgba(255, 255, 255, 0.35);
+    font-size: 0.95rem;
+    font-weight: 700;
 }
 
+/* La lista se abre centrada: nunca queda por fuera de la pantalla */
 .triqui-emoji-panel {
-    position: absolute;
-
-    right: 0;
-
-    bottom: 56px;
-
-    width:
-        min(
-            270px,
-            80vw
-        );
-
-    padding: 9px;
-
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 9100;
+    transform: translate(-50%, -50%);
+    width: 18rem;
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    padding: 0.6rem;
     display: grid;
-
-    grid-template-columns:
-        repeat(6, 1fr);
-
-    gap: 5px;
-
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.1);
-
-    border-radius: 14px;
-
-    background:
-        rgba(12, 18, 28, 0.97);
-
-    box-shadow:
-        0 20px 50px
-        rgba(0, 0, 0, .5);
-
-    backdrop-filter:
-        blur(15px);
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.2rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.9rem;
+    background: rgba(12, 17, 30, 0.97);
+    box-shadow: 0 0.8rem 2.4rem rgba(0, 0, 0, 0.6);
 }
 
 .triqui-emoji-panel button {
-    width: 34px;
-
-    height: 34px;
-
-    border: none;
-
-    border-radius: 8px;
-
-    background:
-        rgba(255, 255, 255, 0.05);
-
-    font-size: 19px;
-
-    cursor: pointer;
-
-    transition:
-        transform .12s,
-        background .12s;
+    aspect-ratio: 1;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    font-size: 1.6rem;
+    line-height: 1;
 }
 
-.triqui-emoji-panel button:hover {
-    transform:
-        scale(1.15);
-
-    background:
-        rgba(255, 255, 255, 0.12);
+.triqui-emoji-panel button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
 }
-
-/* =========================================================
-   FLOATING EMOJI
-========================================================= */
-
-.triqui-floating-emoji {
-    position: fixed;
-
-    left: 50%;
-
-    top: 48%;
-
-    z-index: 100;
-
-    transform:
-        translate(-50%, -50%);
-
-    pointer-events: none;
-
-    text-align: center;
-
-    animation:
-        floatingEmoji 2.2s
-        ease-out
-        forwards;
-}
-
-.triqui-floating-emoji div {
-    font-size:
-        clamp(60px, 10vh, 100px);
-
-    filter:
-        drop-shadow(
-            0 10px 20px
-            rgba(0, 0, 0, .5)
-        );
-}
-
-.triqui-floating-emoji span {
-    display: block;
-
-    margin-top: -5px;
-
-    font-size: 9px;
-
-    font-weight: 900;
-
-    letter-spacing: 2px;
-}
-
-@keyframes floatingEmoji {
-
-    0% {
-        opacity: 0;
-        transform:
-            translate(-50%, -35%)
-            scale(.4);
-    }
-
-    15% {
-        opacity: 1;
-        transform:
-            translate(-50%, -50%)
-            scale(1.15);
-    }
-
-    70% {
-        opacity: 1;
-        transform:
-            translate(-50%, -65%)
-            scale(1);
-    }
-
-    100% {
-        opacity: 0;
-        transform:
-            translate(-50%, -85%)
-            scale(.8);
-    }
-}
-
-/* =========================================================
-   TURN NOTICE
-========================================================= */
-
-.triqui-turn-notice {
-    position: fixed;
-
-    left: 50%;
-
-    top: 14%;
-
-    z-index: 200;
-
-    transform:
-        translateX(-50%);
-
-    max-width:
-        calc(100vw - 30px);
-
-    padding:
-        12px 20px;
-
-    border-radius: 12px;
-
-    background:
-        rgba(15, 23, 35, 0.96);
-
-    border:
-        1px solid
-        rgba(255, 200, 87, 0.4);
-
-    box-shadow:
-        0 15px 40px
-        rgba(0, 0, 0, .4);
-
-    text-align: center;
-
-    font-size: 11px;
-
-    font-weight: 900;
-
-    animation:
-        noticeAppear .25s
-        ease;
-}
-
-@keyframes noticeAppear {
-
-    from {
-        opacity: 0;
-        transform:
-            translateX(-50%)
-            translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform:
-            translateX(-50%)
-            translateY(0);
-    }
-}
-
-/* =========================================================
-   ERROR
-========================================================= */
-
-.triqui-error {
-    flex-shrink: 0;
-
-    padding:
-        7px 12px;
-
-    border-radius: 8px;
-
-    background:
-        rgba(255, 93, 104, 0.1);
-
-    border:
-        1px solid
-        rgba(255, 93, 104, 0.2);
-
-    color: #ff8990;
-
-    font-size: 9px;
-
-    text-align: center;
-}
-
-/* =========================================================
-   BACK
-========================================================= */
 
 .triqui-back {
     flex-shrink: 0;
-
-    height: 32px;
-
-    padding:
-        0 15px;
-
-    border: none;
-
-    border-radius: 7px;
-
-    background:
-        rgba(255, 255, 255, 0.05);
-
-    color:
-        rgba(255, 255, 255, 0.4);
-
-    font-size: 7px;
-
-    font-weight: 900;
-
-    letter-spacing: 1px;
-
-    cursor: pointer;
+    min-height: 2.6rem;
+    font-size: 0.9rem;
 }
 
-/* =========================================================
-   QUESTION MODAL
-========================================================= */
-
-.triqui-modal-overlay {
+/* Emoji que aparece arriba, en el centro */
+.triqui-floating-emoji {
     position: fixed;
-
-    inset: 0;
-
-    z-index: 1000;
-
+    top: 12%;
+    left: 50%;
+    z-index: 80;
     display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    padding: 15px;
-
-    background:
-        rgba(2, 5, 10, 0.84);
-
-    backdrop-filter:
-        blur(12px);
-}
-
-
-
-@keyframes modalAppear {
-
-    from {
-        opacity: 0;
-        transform:
-            translateY(15px)
-            scale(.97);
-    }
-
-    to {
-        opacity: 1;
-        transform:
-            translateY(0)
-            scale(1);
-    }
-}
-
-.triqui-modal-header {
-    min-height: 58px;
-
-    padding:
-        9px 13px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    border-bottom:
-        1px solid
-        rgba(255, 255, 255, 0.07);
-}
-
-.triqui-modal-header > div {
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-}
-
-.triqui-modal-header span {
-    font-size: 7px;
-
-    color:
-        rgba(255, 255, 255, 0.35);
-
-    letter-spacing: 2px;
-}
-
-.triqui-modal-header strong {
-    width: 34px;
-
-    height: 34px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    border-radius: 50%;
-
-    font-size: 15px;
-}
-
-.triqui-modal-close {
-    width: 35px;
-
-    height: 35px;
-
-    border: none;
-
-    border-radius: 8px;
-
-    background:
-        rgba(255, 255, 255, 0.06);
-
-    color: white;
-
-    font-size: 22px;
-
-    cursor: pointer;
-}
-
-.triqui-modal-content {
-    padding:
-        clamp(20px, 4vh, 35px)
-        20px;
-
-    text-align: center;
-}
-
-.triqui-modal-icon {
-    font-size:
-        clamp(35px, 6vh, 50px);
-
-    margin-bottom: 6px;
-}
-
-.triqui-modal-content h2 {
-    margin:
-        0 0 5px;
-
-    font-size:
-        clamp(16px, 2.5vw, 23px);
-
-    font-weight: 950;
-}
-
-.triqui-modal-content p {
-    margin:
-        0 0 14px;
-
-    color:
-        rgba(255, 255, 255, 0.35);
-
-    font-size: 9px;
-}
-
-.triqui-selected-cell {
-    display: inline-block;
-
-    padding:
-        5px 9px;
-
-    border-radius: 6px;
-
-    background:
-        rgba(255, 200, 87, 0.08);
-
-    border:
-        1px solid
-        rgba(255, 200, 87, 0.18);
-
-    color: #ffc857;
-
-    font-size: 7px;
-
-    font-weight: 900;
-
-    letter-spacing: 1px;
-
-    margin-bottom: 12px;
-}
-
-.triqui-question-operation {
-    font-size:
-        clamp(35px, 7vw, 60px);
-
-    font-weight: 950;
-
-    letter-spacing: 1px;
-
-    margin-bottom: 17px;
-}
-
-.triqui-answer {
-    display: flex;
-
-    gap: 7px;
-
-    max-width: 390px;
-
-    margin: 0 auto;
-}
-
-.triqui-answer input {
-    flex: 1;
-
-    min-width: 0;
-
-    height: 46px;
-
-    padding:
-        0 13px;
-
-    border-radius: 9px;
-
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.1);
-
-    background:
-        rgba(255, 255, 255, 0.05);
-
-    color: white;
-
-    font-size: 18px;
-
-    font-weight: 800;
-
-    outline: none;
-
-    text-align: center;
-}
-
-.triqui-answer input:focus {
-    border-color:
-        rgba(85, 168, 255, 0.6);
-}
-
-.triqui-answer button {
-    height: 46px;
-
-    padding:
-        0 15px;
-
-    border: none;
-
-    border-radius: 9px;
-
-    background:
-        #55a8ff;
-
-    color: #07111c;
-
-    font-size: 8px;
-
-    font-weight: 950;
-
-    cursor: pointer;
-}
-
-.triqui-answer-correct,
-.triqui-answer-wrong {
-    margin-top: 10px;
-
-    padding: 8px;
-
-    border-radius: 8px;
-
-    font-size: 9px;
-
-    font-weight: 800;
-}
-
-.triqui-answer-correct {
-    color: #42d392;
-
-    background:
-        rgba(66, 211, 146, .08);
-}
-
-.triqui-answer-wrong {
-    color: #ff5d68;
-
-    background:
-        rgba(255, 93, 104, .08);
-}
-
-.triqui-modal-footer {
-    padding:
-        10px 13px;
-
-    border-top:
-        1px solid
-        rgba(255, 255, 255, 0.07);
-
-    display: flex;
-
-    justify-content: center;
-}
-
-.triqui-cancel-button {
-    height: 34px;
-
-    padding:
-        0 16px;
-
-    border: none;
-
-    border-radius: 7px;
-
-    background:
-        rgba(255, 255, 255, 0.06);
-
-    color:
-        rgba(255, 255, 255, 0.5);
-
-    font-size: 7px;
-
-    font-weight: 900;
-
-    letter-spacing: 1px;
-
-    cursor: pointer;
-}
-
-/* =========================================================
-   RESULT MODAL
-========================================================= */
-
-.triqui-result-overlay {
-    position: fixed;
-
-    inset: 0;
-
-    z-index: 2000;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    padding: 15px;
-
-    background:
-        rgba(2, 5, 10, .9);
-
-    backdrop-filter:
-        blur(15px);
-}
-
-.triqui-result-modal {
-    width:
-        min(
-            700px,
-            95vw
-        );
-
-    max-height:
-        94vh;
-
-    overflow: auto;
-
-    padding:
-        clamp(20px, 4vh, 35px);
-
-    border-radius: 24px;
-
-    background:
-        #101722;
-
-    border:
-        1px solid
-        rgba(255, 255, 255, .1);
-
-    box-shadow:
-        0 40px 120px
-        rgba(0, 0, 0, .7);
-
-    text-align: center;
-
-    animation:
-        resultAppear .3s
-        ease-out;
-}
-
-@keyframes resultAppear {
-
-    from {
-        opacity: 0;
-
-        transform:
-            scale(.9)
-            translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-
-        transform:
-            scale(1)
-            translateY(0);
-    }
-}
-
-.triqui-result-crown {
-    font-size:
-        clamp(45px, 8vh, 75px);
-
-    animation:
-        crownBounce 1s
-        ease infinite
-        alternate;
-}
-
-@keyframes crownBounce {
-
-    from {
-        transform:
-            translateY(0)
-            rotate(-3deg);
-    }
-
-    to {
-        transform:
-            translateY(-8px)
-            rotate(3deg);
-    }
-}
-
-.triqui-result-label {
-    margin-top: 2px;
-
-    color:
-        rgba(255, 255, 255, .35);
-
-    font-size: 8px;
-
-    font-weight: 900;
-
-    letter-spacing: 3px;
-}
-
-.triqui-result-modal h2 {
-    margin:
-        5px 0 18px;
-
-    font-size:
-        clamp(24px, 5vw, 42px);
-
-    font-weight: 950;
-}
-
-.triqui-versus {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap:
-        clamp(12px, 4vw, 35px);
-}
-
-.result-player {
-    position: relative;
-
-    width:
-        clamp(120px, 22vw, 180px);
-
-    padding:
-        13px 10px;
-
-    border-radius: 16px;
-
-    display: flex;
-
     flex-direction: column;
-
     align-items: center;
-
-    gap: 5px;
-
-    border:
-        1px solid
-        rgba(255, 255, 255, .08);
-
-    background:
-        rgba(255, 255, 255, .035);
+    gap: 0.2rem;
+    transform: translateX(-50%);
+    pointer-events: none;
+    animation: tq-emoji 2.2s ease-out forwards;
 }
 
-.result-player.winner {
-    border-color:
-        rgba(66, 150, 255, .7);
-
-    background:
-        rgba(66, 150, 255, .1);
-
-    box-shadow:
-        0 0 35px
-        rgba(66, 150, 255, .12);
+.triqui-floating-emoji div {
+    font-size: 4rem;
+    line-height: 1;
+    filter: drop-shadow(0 0.3rem 0.6rem rgba(0, 0, 0, 0.5));
 }
 
-.result-player.loser {
-    border-color:
-        rgba(255, 93, 104, .5);
-
-    background:
-        rgba(255, 93, 104, .07);
+.triqui-floating-emoji span {
+    padding: 0.1rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.7);
+    font-size: 0.8rem;
+    font-weight: 700;
 }
 
-.result-crown {
-    position: absolute;
+.triqui-floating-emoji.mine span { color: var(--x); }
+.triqui-floating-emoji.theirs span { color: var(--o); }
 
-    top: -27px;
-
-    font-size: 27px;
+@keyframes tq-emoji {
+    0% { transform: translate(-50%, 1rem) scale(0.3); opacity: 0; }
+    15% { transform: translate(-50%, 0) scale(1.15); opacity: 1; }
+    25% { transform: translate(-50%, 0) scale(1); }
+    80% { opacity: 1; }
+    100% { transform: translate(-50%, -1rem); opacity: 0; }
 }
 
-.result-symbol {
-    width:
-        clamp(48px, 7vh, 62px);
-
-    height:
-        clamp(48px, 7vh, 62px);
-
-    border-radius: 50%;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 25px;
-
-    font-weight: 950;
-}
-
-.loser-symbol {
-    border:
-        2px solid #ff5d68;
-
-    color: #ff5d68;
-
-    background:
-        rgba(255, 93, 104, .1);
-}
-
-.result-player strong {
-    max-width: 100%;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-    white-space: nowrap;
-
-    font-size:
-        clamp(11px, 1.5vw, 15px);
-}
-
-.result-player span {
-    font-size: 7px;
-
-    letter-spacing: 1.5px;
-
-    color:
-        rgba(255, 255, 255, .35);
-}
-
-.result-player.winner span {
-    color: #72b7ff;
-}
-
-.result-player.loser span {
-    color: #ff8990;
-}
-
-.result-player b {
-    font-size: 14px;
-
-    margin-top: 3px;
-}
-
-.result-vs {
-    font-size:
-        clamp(13px, 2vw, 18px);
-
-    font-weight: 950;
-
-    color:
-        rgba(255, 255, 255, .3);
-}
-
-/* =========================================================
-   FINAL SCORE
-========================================================= */
-
-.triqui-final-score {
-    max-width: 400px;
-
-    margin:
-        20px auto;
-
-    padding:
-        10px 15px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 25px;
-
-    border-radius: 12px;
-
-    background:
-        rgba(255, 255, 255, .035);
-
-    border:
-        1px solid
-        rgba(255, 255, 255, .07);
-}
-
-.triqui-final-score div:not(.final-score-separator) {
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-}
-
-.triqui-final-score span {
-    max-width: 100px;
-
-    overflow: hidden;
-
-    white-space: nowrap;
-
-    text-overflow: ellipsis;
-
-    font-size: 9px;
-
-    color:
-        rgba(255, 255, 255, .45);
-}
-
-.triqui-final-score strong {
-    font-size: 24px;
-}
-
-.final-score-separator {
-    color:
-        rgba(255, 255, 255, .2);
-
-    font-weight: 900;
-}
-
-/* =========================================================
-   RESULT BUTTONS
-========================================================= */
-
-.triqui-result-actions {
-    display: flex;
-
-    justify-content: center;
-
-    gap: 8px;
-
-    flex-wrap: wrap;
-}
-
-.triqui-rematch-button,
-.triqui-exit-button {
-    height: 44px;
-
-    padding:
-        0 18px;
-
-    border: none;
-
-    border-radius: 9px;
-
-    font-size: 8px;
-
-    font-weight: 950;
-
-    letter-spacing: 1px;
-
-    cursor: pointer;
-}
-
-.triqui-rematch-button {
-    background:
-        #55a8ff;
-
-    color:
-        #07111c;
-}
-
-.triqui-exit-button {
-    background:
-        rgba(255, 255, 255, .07);
-
-    color:
-        rgba(255, 255, 255, .55);
-}
-
-/* =========================================================
-   LOADING
-========================================================= */
+/* ---------- Cargando ---------- */
 
 .triqui-loading {
-    width: 100%;
-
-    height: 100%;
-
+    position: absolute;
+    inset: 0;
     display: flex;
-
     flex-direction: column;
-
     align-items: center;
-
     justify-content: center;
-
+    gap: 0.4rem;
     text-align: center;
 }
 
 .triqui-loading-logo {
-    font-size: 10px;
-
-    letter-spacing: 5px;
-
-    font-weight: 900;
-
-    color:
-        rgba(255, 255, 255, .3);
+    color: var(--oro);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
 }
 
 .triqui-loading h1 {
-    margin:
-        8px 0;
-
-    font-size:
-        clamp(20px, 4vw, 35px);
+    margin: 0;
+    font-size: 1.8rem;
 }
 
 .triqui-loading p {
-    color:
-        rgba(255, 255, 255, .3);
-
-    font-size: 11px;
+    margin: 0;
+    color: var(--suave);
 }
 
 /* =========================================================
-   RESPONSIVE
+   VENTANA DE LA PREGUNTA (con teclado al lado)
 ========================================================= */
 
-@media (max-width: 650px) {
-
-    .triqui-container {
-        padding:
-            7px 8px;
-
-        gap: 5px;
-    }
-
-    .triqui-header {
-        min-height: 43px;
-
-        padding:
-            5px 9px;
-    }
-
-    .triqui-brand {
-        display: none;
-    }
-
-    .triqui-header h1 {
-        font-size: 13px;
-    }
-
-    .triqui-round {
-        font-size: 7px;
-
-        padding:
-            5px 7px;
-    }
-
-    .triqui-players {
-        gap: 5px;
-    }
-
-    .triqui-player {
-        min-height: 43px;
-
-        padding:
-            5px 6px;
-
-        gap: 5px;
-    }
-
-    .triqui-symbol {
-        width: 30px;
-
-        height: 30px;
-
-        font-size: 15px;
-    }
-
-    .triqui-player-info strong {
-        font-size: 9px;
-    }
-
-    .triqui-player-info span {
-        display: none;
-    }
-
-    .triqui-score small {
-        display: none;
-    }
-
-    .triqui-score strong {
-        font-size: 14px;
-    }
-
-    .triqui-turn {
-        min-height: 34px;
-
-        gap: 5px;
-    }
-
-    .triqui-turn small {
-        display: none;
-    }
-
-    .triqui-my-player {
-        min-height: 34px;
-
-        padding:
-            3px 7px;
-    }
-
-    .triqui-my-symbol {
-        width: 27px;
-
-        height: 27px;
-    }
-
-    .triqui-my-player span {
-        display: none;
-    }
-
-    .triqui-my-player strong {
-        font-size: 9px;
-    }
-
-    .triqui-board {
-        width:
-            min(
-                80vw,
-                48vh
-            );
-
-        gap: 5px;
-    }
-
-    .triqui-cell {
-        border-radius: 9px;
-
-        font-size:
-            clamp(
-                35px,
-                10vw,
-                55px
-            );
-    }
-
-    .triqui-instruction {
-        font-size: 10px;
-        color: chocolate;
-    }
-
-    .triqui-back {
-        height: 27px;
-
-        font-size: 6px;
-    }
-
-    .triqui-result-modal {
-        padding:
-            22px 12px;
-    }
-
-    .triqui-versus {
-        gap: 7px;
-    }
-
-    .result-player {
-        width:
-            clamp(
-                105px,
-                32vw,
-                140px
-            );
-    }
-
-    .result-vs {
-        font-size: 11px;
-    }
-
-    .triqui-final-score {
-        gap: 12px;
-    }
-
-    .triqui-final-score span {
-        max-width: 70px;
-
-        font-size: 7px;
-    }
-
-    .triqui-result-actions {
-        flex-direction: column;
-    }
-
-    .triqui-rematch-button,
-    .triqui-exit-button {
-        width: 100%;
-    }
+.triqui-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 0.6rem;
+    background: rgba(3, 6, 14, 0.78);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
-.triqui-timer{
-    font-size: 30px;
+.triqui-modal-layout {
+    max-height: 100%;
+    display: flex;
+    align-items: stretch;
+    gap: 0.6rem;
 }
-
-
-/* =========================================================
-   1) REEMPLAZA tu bloque .triqui-page por este
-   ---------------------------------------------------------
-   Pon tu imagen en /public/images/triqui-bg.jpg
-   (o cambia la ruta del url()).
-   La primera capa (linear-gradient) es la capa oscura.
-   Sube o baja el 0.78 / 0.9 para oscurecer más o menos.
-========================================================= */
-
-.triqui-page {
-    width: 100vw;
-    height: 100dvh;
-    min-height: 100dvh;
-
-    background:
-        /* capa oscura encima */
-        linear-gradient(180deg,
-            rgba(7, 11, 18, 0.915) 0%,
-            rgba(7, 11, 18, 0.9) 100%),
-        /* brillos de color */
-        radial-gradient(circle at 50% -20%,
-            rgba(66, 150, 255, 0.18),
-            transparent 45%),
-        radial-gradient(circle at 0% 100%,
-            rgba(66, 211, 146, 0.08),
-            transparent 35%),
-        /* imagen de fondo */
-        url("/img/lobby.jpeg") center / cover no-repeat,
-        #070b12;
-
-    overflow: hidden;
-    position: relative;
-}
-
-
-/* =========================================================
-   2) REEMPLAZA .triqui-modal (más angosto, deja sitio al teclado)
-========================================================= */
 
 .triqui-modal {
-    width: min(440px, 100%);
-    max-height: 100%;
-
+    width: 24rem;
+    max-width: calc(100vw - 17rem);
     display: flex;
     flex-direction: column;
-
-    border-radius: 20px;
-    background: #101722;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 30px 100px rgba(0, 0, 0, .65);
-
     overflow: hidden;
+    border: 1px solid var(--linea);
+    border-radius: 0.8rem;
+    background: #101722;
+}
 
-    animation: modalAppear .2s ease-out;
+.triqui-modal-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem 0.7rem;
+    border-bottom: 1px solid var(--linea);
+}
+
+.triqui-modal-header > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.triqui-modal-header span {
+    color: var(--suave);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.triqui-modal-header strong {
+    width: 1.9rem;
+    height: 1.9rem;
+    display: grid;
+    place-items: center;
+    border-radius: 0.35rem;
+    font-size: 1.2rem;
+}
+
+.triqui-modal-header .triqui-timer {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.triqui-modal-close {
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 1.4rem;
+    line-height: 1;
 }
 
 .triqui-modal-content {
-    padding: clamp(14px, 3vh, 30px) 18px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.6rem 0.8rem;
     text-align: center;
     overflow-y: auto;
 }
 
-
-/* =========================================================
-   3) AGREGA: contenedor modal + teclado lado a lado
-========================================================= */
-
-.triqui-modal-layout {
-    width: min(720px, 100%);
-    max-height: 100%;
-
-    display: flex;
-    align-items: stretch;
-    justify-content: center;
-    gap: 12px;
+.triqui-modal-icon {
+    display: none;
 }
 
+.triqui-modal-content h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+}
 
-/* =========================================================
-   4) AGREGA: teclado numérico
-========================================================= */
+.triqui-modal-content p {
+    display: none;
+}
 
+.triqui-selected-cell {
+    padding: 0.1rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(255, 207, 62, 0.16);
+    color: var(--oro);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.triqui-question-operation {
+    font-size: 2.4rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    font-variant-numeric: tabular-nums;
+}
+
+.triqui-answer {
+    width: 100%;
+}
+
+.triqui-answer input {
+    width: 100%;
+    height: 3rem;
+    border: 2px solid rgba(255, 207, 62, 0.55);
+    border-radius: 0.5rem;
+    background: rgba(0, 0, 0, 0.4);
+    color: #fff;
+    font: inherit;
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    outline: none;
+    caret-color: var(--oro);
+}
+
+.triqui-answer-correct,
+.triqui-answer-wrong {
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.triqui-answer-correct { color: #34d399; }
+.triqui-answer-wrong { color: #f87171; }
+
+.triqui-modal-footer {
+    flex-shrink: 0;
+    padding: 0.4rem 0.7rem 0.6rem;
+}
+
+.triqui-cancel-button {
+    width: 100%;
+    height: 2.3rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.4rem;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+/* Teclado numérico */
 .triqui-keypad {
-    flex: 0 0 auto;
-
-    width: clamp(150px, 26vw, 220px);
-
-    padding: 10px;
-
+    width: 15rem;
     display: flex;
-    align-items: center;
-
-    border-radius: 20px;
-    background: rgba(16, 23, 34, 0.96);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 30px 100px rgba(0, 0, 0, .65);
-
-    animation: keypadAppear .22s ease-out;
-}
-
-@keyframes keypadAppear {
-    from {
-        opacity: 0;
-        transform: translateX(15px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+    padding: 0.5rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.8rem;
+    background: #101722;
 }
 
 .triqui-keypad-grid {
-    width: 100%;
-
+    flex: 1;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 7px;
+    grid-auto-rows: minmax(2.4rem, 1fr);
+    gap: 0.35rem;
 }
 
 .triqui-key {
-    height: clamp(40px, 7vh, 54px);
-
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-
-    background: rgba(255, 255, 255, 0.06);
-    color: white;
-
-    font-size: clamp(17px, 2.6vh, 22px);
-    font-weight: 900;
-
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
+    border: 1px solid var(--linea);
+    border-radius: 0.45rem;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 1.4rem;
+    font-weight: 700;
     touch-action: manipulation;
-
-    transition:
-        transform .08s,
-        background .12s;
 }
 
-.triqui-key:hover {
-    background: rgba(255, 255, 255, 0.12);
+.triqui-key:active:not(:disabled) {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.16);
 }
 
-.triqui-key:active {
-    transform: scale(0.93);
-    background: rgba(85, 168, 255, 0.25);
+.key-del,
+.key-sign,
+.key-clear {
+    color: var(--oro) !important;
 }
 
-.triqui-key.key-sign {
-    color: #ffc857;
-}
-
-.triqui-key.key-del {
-    color: #ff8990;
-    background: rgba(255, 93, 104, 0.1);
-}
-
-.triqui-key.key-clear {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 15px;
-}
-
-.triqui-key.key-submit {
+.key-submit {
     grid-column: span 2;
-
-    background: #55a8ff;
-    color: #07111c;
-    border: none;
-
-    font-size: clamp(9px, 1.4vh, 11px);
-    letter-spacing: 1px;
-}
-
-.triqui-key.key-submit:active {
-    background: #3d8ee6;
-}
-
-
-/* =========================================================
-   5) AGREGA al final: responsive del modal + teclado
-========================================================= */
-
-/* Celular: modal y teclado siguen lado a lado, más compactos */
-@media (max-width: 650px) {
-
-    .triqui-modal-overlay {
-        padding: 8px;
-    }
-
-    .triqui-modal-layout {
-        gap: 6px;
-    }
-
-    .triqui-modal {
-        flex: 1;
-        min-width: 0;
-        border-radius: 14px;
-    }
-
-    .triqui-modal-header {
-        min-height: 44px;
-        padding: 6px 9px;
-    }
-
-    .triqui-modal-icon,
-    .triqui-modal-content p {
-        display: none;
-    }
-
-    .triqui-modal-content {
-        padding: 12px 10px;
-    }
-
-    .triqui-question-operation {
-        font-size: clamp(24px, 8vw, 38px);
-        margin-bottom: 10px;
-    }
-
-    .triqui-answer input {
-        height: 40px;
-        font-size: 16px;
-    }
-
-    .triqui-timer {
-        font-size: 18px;
-    }
-
-    .triqui-keypad {
-        width: 138px;
-        padding: 6px;
-        border-radius: 14px;
-    }
-
-    .triqui-keypad-grid {
-        gap: 5px;
-    }
-
-    .triqui-key {
-        height: 40px;
-        font-size: 17px;
-        border-radius: 8px;
-    }
-}
-
-/* Celulares muy angostos: el teclado pasa debajo */
-@media (max-width: 400px) {
-
-    .triqui-modal-layout {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .triqui-modal {
-        width: 100%;
-        flex: 0 1 auto;
-    }
-
-    .triqui-keypad {
-        width: 100%;
-    }
-
-    .triqui-key {
-        height: 38px;
-    }
-}
-
-/* Pantallas bajitas (celular horizontal) */
-@media (max-height: 500px) {
-
-    .triqui-modal-icon,
-    .triqui-modal-content p,
-    .triqui-selected-cell {
-        display: none;
-    }
-
-    .triqui-key {
-        height: 34px;
-    }
+    border: 0;
+    background: linear-gradient(180deg, #ffe45c, #ffcc1f 55%, #f2a900);
+    color: #2a1c00 !important;
+    font-size: 1rem;
 }
 
 /* =========================================================
-   SIN SELECCIÓN DE TEXTO NI CURSOR DE TEXTO
+   VENTANA DEL RESULTADO
 ========================================================= */
 
-.triqui-page,
-.triqui-page * {
-    -webkit-user-select: none;
-    user-select: none;
-
-    -webkit-touch-callout: none;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-user-drag: none;
-
-    caret-color: transparent;
+.triqui-result-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: grid;
+    place-items: center;
+    padding: 0.6rem;
+    background: rgba(3, 6, 14, 0.82);
 }
 
-.triqui-page {
-    cursor: default;
-}
-
-.triqui-page button {
-    cursor: pointer;
-}
-
-.triqui-page button:disabled {
-    cursor: default;
-}
-
-/* El input sí mantiene su cursor visible */
-.triqui-page input {
-    -webkit-user-select: text;
-    user-select: text;
-
-    caret-color: #55a8ff;
-    cursor: text;
-}
-
-.triqui-page ::selection {
-    background: transparent;
-}
-
-.triqui-page input::selection {
-    background: rgba(85, 168, 255, 0.35);
-}
-
-/* =========================================================
-   BOTÓN DE SONIDO
-========================================================= */
-
-.triqui-header-actions {
+.triqui-result-modal {
+    width: min(30rem, 100%);
+    max-height: 100%;
+    overflow-y: auto;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 0.4rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(255, 207, 62, 0.5);
+    border-radius: 0.8rem;
+    background: linear-gradient(180deg, #1a1608, #101722 40%);
+    text-align: center;
 }
 
-.triqui-sound-toggle {
-    width: 34px;
-    height: 34px;
+.triqui-result-crown {
+    font-size: 2.4rem;
+    line-height: 1;
+}
 
+.triqui-result-label {
+    color: var(--oro);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.triqui-result-modal h2 {
+    margin: 0;
+    font-size: 1.6rem;
+    text-transform: uppercase;
+}
+
+.triqui-versus {
     display: flex;
     align-items: center;
     justify-content: center;
-
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
-
-    font-size: 16px;
+    gap: 0.8rem;
 }
 
-.triqui-sound-toggle:active {
-    transform: scale(0.92);
+.result-player {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    min-width: 7rem;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.06);
 }
 
-@media (max-width: 650px) {
-    .triqui-sound-toggle {
-        width: 28px;
-        height: 28px;
-        font-size: 13px;
-    }
+.result-player.winner {
+    border: 1px solid var(--oro);
+}
+
+.result-player.loser {
+    opacity: 0.7;
+}
+
+.result-crown {
+    position: absolute;
+    top: -0.8rem;
+    font-size: 1.2rem;
+}
+
+.result-symbol {
+    width: 2.4rem;
+    height: 2.4rem;
+    display: grid;
+    place-items: center;
+    border-radius: 0.4rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.loser-symbol {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: var(--suave);
+}
+
+.result-player strong {
+    font-size: 0.95rem;
+}
+
+.result-player span {
+    color: var(--suave);
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.result-player b {
+    font-size: 0.95rem;
+}
+
+.result-vs {
+    color: var(--suave);
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.triqui-final-score {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.85rem;
+}
+
+.triqui-final-score > div {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.triqui-final-score strong {
+    color: var(--oro);
+    font-size: 1.3rem;
+}
+
+.triqui-result-actions {
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.triqui-rematch-button,
+.triqui-exit-button {
+    flex: 1;
+    height: 2.7rem;
+    border: 0;
+    border-radius: 0.4rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.triqui-rematch-button {
+    background: linear-gradient(180deg, #ffe45c, #ffcc1f 55%, #f2a900);
+    color: #2a1c00 !important;
+}
+
+.triqui-exit-button {
+    border: 1px solid var(--linea);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 /* =========================================================
-   SWEETALERT
+   ALERTAS (SweetAlert2)
 ========================================================= */
 
 .triqui-swal {
-    z-index: 5000 !important;
+    z-index: 9500 !important;
+    font-family: var(--fuente-juego);
 }
 
 .triqui-swal-popup {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px !important;
-    font-family: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 0.9rem !important;
+    font-size: 0.9rem !important;
 }
 
 .triqui-swal .swal2-title {
-    font-weight: 900;
+    font-size: 1.3rem !important;
 }
 
 .triqui-swal .swal2-toast .swal2-title {
-    font-size: 13px;
+    font-size: 0.95rem !important;
 }
 
-/* Los botones y textos de las alertas siguen sin seleccionarse */
 .triqui-swal,
 .triqui-swal * {
-    user-select: none;
-    -webkit-user-select: none;
+    font-family: var(--fuente-juego) !important;
 }
 
-/* =========================================================
-   TELÉFONO HORIZONTAL (pantallas bajitas)
-   Datos de la partida a la izquierda y el tablero a la
-   derecha, ocupando todo el alto. Nada se corta ni hace
-   scroll como página.
-========================================================= */
-
-@media (orientation: landscape) and (max-height: 560px) {
-    .triqui-container {
-        width: 100%;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        grid-template-rows: auto auto auto 1fr auto;
-        grid-template-areas:
-            "header board"
-            "players board"
-            "turn board"
-            "instr board"
-            "back board";
-        align-items: start;
-        column-gap: 14px;
-        row-gap: 6px;
-        padding: 8px 12px;
-    }
-
-    .triqui-header {
-        grid-area: header;
-    }
-
-    .triqui-players {
-        grid-area: players;
-    }
-
-    .triqui-turn {
-        grid-area: turn;
-        width: 100%;
-    }
-
-    .triqui-instruction {
-        grid-area: instr;
-        align-self: center;
-        margin: 0;
-    }
-
-    .triqui-back {
-        grid-area: back;
-        justify-self: end;
-        margin: 0;
-    }
-
-    .triqui-board {
-        grid-area: board;
-        align-self: center;
-        width: min(calc(100dvh - 20px), 50vw);
-        margin: 0;
-    }
-
-    /* Columna de datos más limpia: se quitan rótulos pequeños */
-    .triqui-player-info > span,
-    .triqui-score small,
-    .triqui-turn small,
-    .triqui-brand {
-        display: none;
-    }
-
-    .triqui-player {
-        min-width: 0;
-        min-height: 0;
-        padding: 6px 8px;
-        gap: 6px;
-    }
-
-    .triqui-player-info {
-        min-width: 0;
-    }
-
-    .triqui-player-info strong {
-        display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-size: 12px;
-    }
-
-    .triqui-symbol {
-        width: 30px;
-        height: 30px;
-        flex-shrink: 0;
-        font-size: 16px;
-    }
-
-    .triqui-turn {
-        padding: 6px 10px;
-        gap: 8px;
-        flex-wrap: nowrap;
-    }
-
-    .triqui-turn strong {
-        font-size: 12px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .triqui-timer {
-        margin-left: auto;
-        font-size: 20px;
-    }
-
-    .triqui-header h1 {
-        font-size: 15px;
-        letter-spacing: 0.1em;
-    }
-
-    .triqui-instruction {
-        font-size: 11px;
-    }
-
-    .triqui-cell {
-        min-height: 0;
-    }
-
-    .triqui-emoji-area {
-        right: auto;
-        left: 12px;
-        bottom: 8px;
+@media (prefers-reduced-motion: reduce) {
+    .triqui-timer.danger,
+    .triqui-cell.winning,
+    .triqui-floating-emoji {
+        animation: none;
     }
 }

@@ -181,8 +181,8 @@ más grande.
 - **Tamaño:** en las pantallas rediseñadas todo se mide en `rem`, y `1rem` depende del
   **alto** de la pantalla (`.escala-juego` en `src/styles/globals.css`). Por eso se ve
   igual con o sin pantalla completa y en cualquier teléfono. Las pantallas que aún no
-  se rediseñan usan el modo anterior; al rediseñar una, se agrega su ruta a
-  `RUTAS_JUEGO` en `index.html`.
+  se rediseñan (inicio de sesión y panel de administración) usan el modo anterior;
+  al rediseñar una, se agrega su ruta a `RUTAS_JUEGO` en `index.html`.
 - **Lobby:** el personaje ocupa el centro; arriba el perfil, oro y diamantes; a la
   izquierda el menú; a la derecha los jugadores en línea (se pliega); abajo los atajos,
   el juego elegido y el botón **INICIAR** (un jugador → entra directo; multijugador →
@@ -190,6 +190,13 @@ más grande.
 - **Menú flotante:** botón redondo que se arrastra a cualquier borde. Tiene pantalla
   completa, sonido (silencia todo el juego), Inicio, Mi sala, Tienda, Personajes,
   Perfil, Panel (admin) y Cerrar sesión.
+- **Pantallas** (Personajes/Tienda, Perfil, Sala, Preguntas): barra del jugador arriba
+  con el título y la ✕, pestañas a la izquierda y el contenido al lado, como el
+  inventario y el perfil de Free Fire (`PantallaFF` en `src/components/juego/`).
+- **Juegos** (SigloGamif, Triqui, Preguntas, Escape Álgebra): sin encabezado; solo las
+  partes del juego, y los controles (salir, reloj, sonido, emojis) van dentro de ellas.
+  La lista de emojis se abre centrada para que nunca quede por fuera de la pantalla.
+- El **Mundo** se quitó: los jugadores en línea y las invitaciones están en el lobby.
 - **Invitaciones:** llegan arriba, en cualquier pantalla, por unos segundos. Se puede
   invitar a la misma persona las veces que quieras (con 10 s entre una y otra). Cada
   jugador aparece como *Disponible*, *En una sala* o *Jugando*, y la lista se actualiza

@@ -1,252 +1,169 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-    LuArrowRight,
-    LuBookOpen,
-    LuGraduationCap,
-    LuHeart,
-    LuListChecks,
-    LuTimer,
-    LuTrophy,
-} from "react-icons/lu";
+import { LuGem, LuHeart, LuListChecks, LuPlay, LuStar, LuTimer, LuTrophy } from "react-icons/lu";
 
-import MainNav from "../../components/navigation/MainNav";
-import Recompensas from "../../components/common/Recompensas";
+import PantallaFF, { Pestanas } from "../../components/juego/PantallaFF";
 import { NOMBRE_DIFICULTAD } from "../../data/textos";
 import { api } from "../../services/api";
-import assets from "../../data/mock/assets.json";
 
-import "../../styles/ludo.css";
+import "./niveles.css";
 
 /* =========================================================
-   JUEGO DE PREGUNTAS · ELEGIR NIVEL
+   JUEGO DE PREGUNTAS · ELEGIR NIVEL (estilo Free Fire)
+   Izquierda: grados · centro: asignatura, dificultad y los
+   niveles · derecha: el nivel elegido y el botón JUGAR.
    Los niveles los crea el administrador desde el panel.
 ========================================================= */
 
 const TODOS = "";
+const DIFICULTADES = ["facil", "media", "dificil"];
+
+function Premio({ xp, oro, diamantes }) {
+    return (
+        <span className="nv-premio">
+            {xp > 0 && <span><LuStar aria-hidden="true" className="nv-xp" />{xp}<span className="ffl-oculto"> XP</span></span>}
+            {oro > 0 && <span><span className="ffl-moneda-oro nv-oro" aria-hidden="true" />{oro}<span className="ffl-oculto"> de oro</span></span>}
+            {diamantes > 0 && <span><LuGem aria-hidden="true" className="nv-gema" />{diamantes}<span className="ffl-oculto"> diamantes</span></span>}
+        </span>
+    );
+}
 
 export default function Niveles() {
     const navigate = useNavigate();
-
     const [niveles, setNiveles] = useState([]);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState("");
-
     const [grado, setGrado] = useState(TODOS);
     const [asignatura, setAsignatura] = useState(TODOS);
     const [dificultad, setDificultad] = useState(TODOS);
+    const [elegidoId, setElegidoId] = useState(null);
 
     useEffect(() => {
         let cancelado = false;
-
         api("/niveles")
             .then((datos) => !cancelado && setNiveles(datos.niveles || []))
             .catch((e) => !cancelado && setError(e.message))
             .finally(() => !cancelado && setCargando(false));
-
         return () => {
             cancelado = true;
         };
     }, []);
 
     const grados = useMemo(() => [...new Set(niveles.map((n) => n.grado))], [niveles]);
-
     const asignaturas = useMemo(
-        () =>
-            [...new Set(niveles.filter((n) => !grado || n.grado === grado).map((n) => n.asignatura))].sort(),
+        () => [...new Set(niveles.filter((n) => !grado || n.grado === grado).map((n) => n.asignatura))].sort(),
         [niveles, grado]
     );
 
     const visibles = niveles.filter(
-        (n) =>
-            (!grado || n.grado === grado) &&
-            (!asignatura || n.asignatura === asignatura) &&
-            (!dificultad || n.dificultad === dificultad)
+        (n) => (!grado || n.grado === grado) && (!asignatura || n.asignatura === asignatura) && (!dificultad || n.dificultad === dificultad)
     );
+    const elegido = visibles.find((n) => n.id === elegidoId) || visibles[0] || null;
+
+    const pestanas = [
+        { id: TODOS, texto: "Todos", cuenta: niveles.length },
+        ...grados.map((g) => ({ id: g, texto: g, cuenta: niveles.filter((n) => n.grado === g).length })),
+    ];
 
     return (
-        <div className="lg">
-            <div
-                className="lb-bg"
-                aria-hidden="true"
-                style={{ backgroundImage: `url(${assets.backgrounds.lobby})` }}
+        <PantallaFF titulo="Preguntas" className="nv">
+            <Pestanas
+                items={pestanas}
+                activa={grado}
+                alCambiar={(g) => {
+                    setGrado(g);
+                    setAsignatura(TODOS);
+                }}
+                etiqueta="Grado"
             />
 
-            <MainNav />
-
-            <main className="lg-main">
-                <header className="lg-head">
-                    <div>
-                        <p className="lb-eyebrow">
-                            <LuBookOpen aria-hidden="true" />
-                            <span>Ludo Millonario</span>
-                        </p>
-                        <h1 className="lg-h1">Juego de preguntas</h1>
-                        <p className="lg-lead">
-                            Elige tu grado y una asignatura. Cada respuesta correcta suma puntos y al
-                            terminar ganas experiencia, oro y, en los niveles difíciles, diamantes.
-                        </p>
-                    </div>
-                </header>
-
-                {/* ---------- Filtros ---------- */}
-                <section className="lb-card lg-filters" aria-label="Filtrar niveles">
-                    <div className="lg-field" style={{ flex: "2 1 320px" }}>
-                        <span>Grado</span>
-                        <div className="lg-chips" role="group" aria-label="Grado">
-                            <button
-                                type="button"
-                                className="lg-chip"
-                                aria-pressed={grado === TODOS}
-                                onClick={() => {
-                                    setGrado(TODOS);
-                                    setAsignatura(TODOS);
-                                }}
-                            >
-                                Todos los grados
+            <section className="nv-centro ffp-panel" aria-label="Niveles">
+                <div className="nv-filtros">
+                    <div className="nv-chips" role="group" aria-label="Asignatura">
+                        <button type="button" className="nv-chip" aria-pressed={asignatura === TODOS} onClick={() => setAsignatura(TODOS)}>
+                            Todas
+                        </button>
+                        {asignaturas.map((a) => (
+                            <button key={a} type="button" className="nv-chip" aria-pressed={asignatura === a} onClick={() => setAsignatura(a)}>
+                                {a}
                             </button>
-                            {grados.map((g) => (
-                                <button
-                                    key={g}
-                                    type="button"
-                                    className="lg-chip"
-                                    aria-pressed={grado === g}
-                                    onClick={() => {
-                                        setGrado(g);
-                                        setAsignatura(TODOS);
-                                    }}
-                                >
-                                    {g}
-                                </button>
-                            ))}
-                        </div>
+                        ))}
                     </div>
+                    <div className="nv-chips nv-chips-dif" role="group" aria-label="Dificultad">
+                        {DIFICULTADES.map((d) => (
+                            <button
+                                key={d}
+                                type="button"
+                                className={`nv-chip nv-dif-${d}`}
+                                aria-pressed={dificultad === d}
+                                onClick={() => setDificultad((actual) => (actual === d ? TODOS : d))}
+                            >
+                                {NOMBRE_DIFICULTAD[d] || d}
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
-                    <label className="lg-field" style={{ flex: "1 1 200px" }}>
-                        <span>Asignatura</span>
-                        <select
-                            className="lg-select"
-                            value={asignatura}
-                            onChange={(e) => setAsignatura(e.target.value)}
-                        >
-                            <option value={TODOS}>Todas las asignaturas</option>
-                            {asignaturas.map((a) => (
-                                <option key={a} value={a}>
-                                    {a}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-
-                    <label className="lg-field" style={{ flex: "1 1 160px" }}>
-                        <span>Dificultad</span>
-                        <select
-                            className="lg-select"
-                            value={dificultad}
-                            onChange={(e) => setDificultad(e.target.value)}
-                        >
-                            <option value={TODOS}>Toda dificultad</option>
-                            <option value="facil">Fácil</option>
-                            <option value="media">Media</option>
-                            <option value="dificil">Difícil</option>
-                        </select>
-                    </label>
-                </section>
-
-                {/* ---------- Niveles ---------- */}
-                {/* Solo la lista hace scroll; encabezado y filtros quedan fijos */}
-                <div className="lg-scroll">
                 {cargando ? (
-                    <div className="lb-card lg-empty" role="status">
-                        <span className="lg-spinner" style={{ margin: "0 auto 10px", display: "block" }} />
-                        Cargando niveles…
-                    </div>
+                    <p className="nv-vacio">Cargando niveles…</p>
                 ) : error ? (
-                    <p className="lg-alert" role="alert">{error}</p>
+                    <p className="nv-vacio ffp-aviso-error">{error}</p>
                 ) : visibles.length === 0 ? (
-                    <div className="lb-card lg-empty">
-                        {niveles.length === 0
-                            ? "Todavía no hay niveles. Pídele a tu profesor que cree uno."
-                            : "No hay niveles con esos filtros."}
-                    </div>
+                    <p className="nv-vacio">{niveles.length ? "No hay niveles con esos filtros." : "Aún no hay niveles. Pídele a tu profe que cree uno."}</p>
                 ) : (
-                    <ul className="lg-grid">
-                        {visibles.map((nivel) => (
-                            <li key={nivel.id} style={{ display: "flex" }}>
+                    <ul className="nv-lista">
+                        {visibles.map((n) => (
+                            <li key={n.id}>
                                 <button
                                     type="button"
-                                    className="lg-level"
-                                    style={{ flex: 1 }}
-                                    onClick={() => navigate(`/games/preguntas/${nivel.id}`)}
+                                    className={`nv-nivel nv-borde-${n.dificultad} ${elegido?.id === n.id ? "nv-nivel-elegido" : ""}`}
+                                    onClick={() => setElegidoId(n.id)}
+                                    onDoubleClick={() => navigate(`/games/preguntas/${n.id}`)}
+                                    aria-pressed={elegido?.id === n.id}
                                 >
-                                    <span className="lg-level-top">
-                                        <span className="lg-tag">
-                                            <LuGraduationCap aria-hidden="true" />
-                                            {nivel.grado}
-                                        </span>
-                                        <span className={`lg-tag lg-tag-${nivel.dificultad}`}>
-                                            {NOMBRE_DIFICULTAD[nivel.dificultad] || nivel.dificultad}
-                                        </span>
-                                    </span>
-
-                                    <span>
-                                        <span className="lb-eyebrow">{nivel.asignatura}</span>
-                                        <span className="lg-level-name" style={{ display: "block" }}>
-                                            {nivel.nombre}
-                                        </span>
-                                        {nivel.descripcion && (
-                                            <span className="lg-level-desc" style={{ display: "block" }}>
-                                                {nivel.descripcion}
-                                            </span>
+                                    <small>{`${n.asignatura} · ${n.grado}`}</small>
+                                    <strong>{n.nombre}</strong>
+                                    <span className="nv-nivel-pie">
+                                        <span className={`nv-dif nv-dif-${n.dificultad}`}>{NOMBRE_DIFICULTAD[n.dificultad] || n.dificultad}</span>
+                                        {n.mis_partidas > 0 ? (
+                                            <span className="nv-mejor"><LuTrophy aria-hidden="true" />{n.mejor_puntaje ?? 0}</span>
+                                        ) : (
+                                            <span className="nv-nuevo">Nuevo</span>
                                         )}
-                                    </span>
-
-                                    <span className="lg-meta">
-                                        <span>
-                                            <LuListChecks aria-hidden="true" />
-                                            {`${Math.min(nivel.preguntas_por_partida, nivel.total_preguntas)} preguntas`}
-                                        </span>
-                                        <span>
-                                            <LuTimer aria-hidden="true" />
-                                            {nivel.segundos_por_pregunta > 0
-                                                ? `${nivel.segundos_por_pregunta} s`
-                                                : "Sin tiempo"}
-                                        </span>
-                                        <span>
-                                            <LuHeart aria-hidden="true" />
-                                            {`${nivel.vidas} vidas`}
-                                        </span>
-                                    </span>
-
-                                    <Recompensas
-                                        xp={nivel.recompensa_xp}
-                                        oro={nivel.recompensa_oro}
-                                        diamantes={nivel.recompensa_diamantes}
-                                    />
-
-                                    <span className="lg-level-foot">
-                                        <span className="lb-muted">
-                                            {nivel.mis_partidas > 0 ? (
-                                                <>
-                                                    <LuTrophy aria-hidden="true" style={{ verticalAlign: "-2px" }} />
-                                                    {` Mejor: ${nivel.mejor_puntaje ?? 0} pts`}
-                                                </>
-                                            ) : (
-                                                "¡Nuevo para ti!"
-                                            )}
-                                        </span>
-                                        <span className="lb-btn lb-btn-primary lb-btn-sm" aria-hidden="true">
-                                            Jugar
-                                            <LuArrowRight />
-                                        </span>
                                     </span>
                                 </button>
                             </li>
                         ))}
                     </ul>
                 )}
-                </div>
-            </main>
-        </div>
+            </section>
+
+            <aside className="nv-detalle ffp-panel" aria-label="Nivel elegido">
+                {elegido ? (
+                    <>
+                        <div className="nv-detalle-texto">
+                            <small>{`${elegido.asignatura} · ${elegido.grado}`}</small>
+                            <h2>{elegido.nombre}</h2>
+                            {elegido.descripcion && <p>{elegido.descripcion}</p>}
+                        </div>
+                        <ul className="nv-datos">
+                            <li><LuListChecks aria-hidden="true" />{`${Math.min(elegido.preguntas_por_partida, elegido.total_preguntas)} preguntas`}</li>
+                            <li><LuTimer aria-hidden="true" />{elegido.segundos_por_pregunta > 0 ? `${elegido.segundos_por_pregunta} s` : "Sin tiempo"}</li>
+                            <li><LuHeart aria-hidden="true" />{`${elegido.vidas} vidas`}</li>
+                        </ul>
+                        <div className="nv-gana">
+                            <small>Ganas hasta</small>
+                            <Premio xp={elegido.recompensa_xp} oro={elegido.recompensa_oro} diamantes={elegido.recompensa_diamantes} />
+                        </div>
+                        <button type="button" className="ffl-iniciar nv-jugar" onClick={() => navigate(`/games/preguntas/${elegido.id}`)}>
+                            <LuPlay aria-hidden="true" />
+                            Jugar
+                        </button>
+                    </>
+                ) : (
+                    <p className="nv-vacio">Elige un nivel.</p>
+                )}
+            </aside>
+        </PantallaFF>
     );
 }

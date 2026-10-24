@@ -13,9 +13,13 @@ import "@fontsource/nunito/500.css";
 import "@fontsource/nunito/700.css";
 import "@fontsource/nunito/800.css";
 import "@fontsource/nunito/900.css";
+// Letra de los títulos y botones del juego (estilo Free Fire).
+import "@fontsource/rajdhani/600.css";
+import "@fontsource/rajdhani/700.css";
 
 import "./styles/globals.css";
 import "./styles/components.css";
+import "./components/juego/juego.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>

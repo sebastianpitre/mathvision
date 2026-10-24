@@ -60,7 +60,7 @@ export function SelectorEmojis({ arriba = false, className = "" }) {
         <div className={`em-selector ${className}`} ref={caja}>
             <button
                 type="button"
-                className="lb-icon-btn em-boton"
+                className="em-boton"
                 onClick={() => setAbierto((a) => !a)}
                 aria-expanded={abierto}
                 aria-label="Enviar emoji"

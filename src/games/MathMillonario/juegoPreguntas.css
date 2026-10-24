@@ -1,105 +1,435 @@
 /* =========================================================
-   JUEGO DE PREGUNTAS · TELÉFONO HORIZONTAL
-   Todo tiene que caber en ~360 px de alto: encabezado
-   delgado, pregunta más pequeña y opciones en 2 columnas.
-   Si una pregunta es muy larga, hace scroll solo la zona
-   de la pregunta, nunca la página.
+   LUDO MILLONARIO (diseño juego, en rem, sin encabezado)
+   Izquierda: pregunta y 4 opciones · derecha: salir, vidas,
+   sonido, reloj, escalera de puntos y ayudas.
+   Cabe en 27.8rem de alto; si una pregunta es muy larga,
+   solo hace scroll la zona de la pregunta.
 ========================================================= */
 
-@media (orientation: landscape) and (max-height: 560px) {
-    .jp-header {
-        height: 44px;
-        padding: 0 12px;
-    }
+.jp {
+    background:
+        linear-gradient(180deg, rgba(5, 6, 22, 0.55), rgba(5, 6, 22, 0.8)),
+        url("/img/MathMillonario/fondo.jpg") center / cover;
+}
 
-    .jp-header h1 {
-        font-size: 0.95rem;
-    }
+.jp-centro {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: fit-content;
+    height: fit-content;
+    max-width: calc(100% - 2rem);
+    max-height: calc(100% - 1.2rem);
+    color: var(--suave);
+    text-align: center;
+}
 
-    .jp-header p {
-        font-size: 10px;
-        letter-spacing: 0.15em;
-    }
+.jp-tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.2rem;
+}
 
-    .jp-zona {
-        justify-content: flex-start;
-        padding: 8px 14px 10px;
-    }
+.jp-tarjeta h1 {
+    margin: 0;
+    color: var(--texto);
+    font-size: 1.4rem;
+}
 
-    /* El margen automático centra cuando sobra espacio y
-       deja hacer scroll cuando falta. */
-    .jp-zona > * {
-        flex-shrink: 0;
-    }
+.jp-tarjeta p {
+    margin: 0;
+}
 
-    .jp-zona > :first-child {
-        margin-top: auto;
-    }
+.jp-botones {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
 
-    .jp-zona > :last-child {
-        margin-bottom: auto;
-    }
+.jp-main {
+    position: absolute;
+    top: max(0.6rem, env(safe-area-inset-top));
+    left: var(--borde);
+    right: var(--borde-der);
+    bottom: max(0.6rem, env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 13.5rem;
+    gap: 0.8rem;
+}
 
-    .jp-indicadores {
-        margin-bottom: 8px;
-        gap: 6px;
-    }
+/* ---------- Pregunta ---------- */
 
-    .jp-indicadores span {
-        padding: 2px 10px;
-        font-size: 12px;
-    }
+.jp-zona {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
 
-    .jp-caja-pregunta {
-        padding: 10px 40px;
-    }
+.jp-indicadores {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
 
-    .jp-pregunta {
-        font-size: clamp(1rem, 4.2vh, 1.35rem);
-        line-height: 1.3;
-    }
+.jp-indicadores span {
+    padding: 0.15rem 0.7rem;
+    border-radius: 0.3rem;
+    background: rgba(0, 0, 0, 0.45);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
 
-    .jp-opciones {
-        margin-top: 8px;
-        gap: 6px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+.jp-puntos {
+    color: #fde047;
+}
 
-    .jp-opcion {
-        min-height: 44px;
-        padding: 8px 30px;
-        font-size: 0.95rem;
-    }
+.jp-pregunta-zona {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: safe center;
+    gap: 0.6rem;
+}
 
-    .jp-explicacion {
-        margin-top: 6px;
-        padding: 6px 12px;
-        font-size: 13px;
-    }
+.jp-caja-pregunta {
+    padding: 0.9rem 2.4rem;
+    clip-path: polygon(1.6rem 0, calc(100% - 1.6rem) 0, 100% 50%, calc(100% - 1.6rem) 100%, 1.6rem 100%, 0 50%);
+    background: linear-gradient(180deg, rgba(20, 28, 60, 0.95), rgba(10, 14, 34, 0.95));
+    box-shadow: inset 0 0 0 1px rgba(90, 169, 255, 0.35);
+    text-align: center;
+}
 
-    .jp-ayudas {
-        margin-top: 8px;
-        gap: 8px;
-    }
+.jp-pregunta {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
 
-    .jp-ayudas button {
-        min-height: 36px;
-        padding: 4px 12px;
-    }
+.jp-opciones {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
 
-    /* Pantalla final */
-    .final-tarjeta {
-        padding: 14px 20px !important;
-    }
+.jp-opcion {
+    min-height: 3.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 1.6rem;
+    border: 0;
+    clip-path: polygon(1rem 0, calc(100% - 1rem) 0, 100% 50%, calc(100% - 1rem) 100%, 1rem 100%, 0 50%);
+    background: rgba(12, 18, 40, 0.92);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-align: left;
+    transition: background 0.15s;
+}
 
-    .final-tarjeta > div:first-child {
-        width: 52px;
-        height: 52px;
-        margin-bottom: 4px;
-        font-size: 28px;
-    }
+.jp-opcion:hover:not(:disabled) {
+    background: rgba(30, 42, 80, 0.95);
+}
 
-    .final-tarjeta .lg-stats {
-        margin: 10px 0 !important;
-    }
+.jp-letra {
+    flex-shrink: 0;
+    color: var(--oro);
+    font-size: 1.1rem;
+}
+
+.jp-opcion-texto {
+    min-width: 0;
+    line-height: 1.15;
+}
+
+.jp-elegida { background: rgba(90, 169, 255, 0.3); }
+.jp-bien { background: rgba(16, 185, 129, 0.35); box-shadow: inset 0 0 0 2px #34d399; }
+.jp-mal { background: rgba(239, 68, 68, 0.35); box-shadow: inset 0 0 0 2px #f87171; }
+.jp-oculta { opacity: 0.25; cursor: not-allowed; }
+
+.jp-explicacion {
+    margin: 0;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.4rem;
+    background: rgba(0, 0, 0, 0.55);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* ---------- Lado ---------- */
+
+.jp-lado {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.jp-controles {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.jp-vidas {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    color: #f87171;
+}
+
+.jp-vidas svg {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.jp-vida-perdida {
+    opacity: 0.35;
+}
+
+.jp-nivel {
+    flex-shrink: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.jp-nivel small {
+    color: var(--oro);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.jp-nivel strong {
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.jp-reloj {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    height: 2.4rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.4rem;
+    background: var(--panel);
+    color: #67e8f9;
+    font-size: 1.3rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.jp-reloj svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.jp-reloj-urgente {
+    border-color: #f87171;
+    color: #f87171;
+    animation: jp-latido 0.8s ease-in-out infinite;
+}
+
+@keyframes jp-latido {
+    50% { transform: scale(1.05); }
+}
+
+.jp-escalera {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 0.3rem;
+    list-style: none;
+    display: flex;
+    /* De abajo hacia arriba: la pregunta actual queda a la vista. */
+    flex-direction: column-reverse;
+    gap: 0.15rem;
+    overflow-y: auto;
+}
+
+.jp-escalera li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.15rem 0.6rem;
+    border-radius: 0.25rem;
+    color: var(--suave);
+    font-size: 0.85rem;
+}
+
+.jp-escalera li span {
+    opacity: 0.6;
+}
+
+.jp-escalera .jp-logrado {
+    color: #34d399;
+}
+
+.jp-escalera .jp-actual {
+    background: rgba(253, 224, 71, 0.16);
+    color: #fde047;
+    box-shadow: inset 0 0 0 1px rgba(253, 224, 71, 0.4);
+}
+
+.jp-ayudas {
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+}
+
+.jp-ayuda {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    height: 2.4rem;
+    border: 1px solid;
+    border-radius: 0.4rem;
+    background: transparent;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.jp-ayuda svg {
+    width: 0.9rem;
+    height: 0.9rem;
+}
+
+.jp-ayuda-50 {
+    border-color: rgba(253, 224, 71, 0.5);
+    background: rgba(253, 224, 71, 0.12);
+    color: #fde047 !important;
+}
+
+.jp-ayuda-retiro {
+    border-color: rgba(52, 211, 153, 0.5);
+    color: #6ee7b7 !important;
+}
+
+.jp-ayuda:disabled {
+    border-color: var(--linea);
+    background: transparent;
+    color: #64748b !important;
+    cursor: not-allowed;
+}
+
+.jp-resultado {
+    position: fixed;
+    left: 50%;
+    bottom: 1rem;
+    z-index: 50;
+    transform: translateX(-50%);
+    padding: 0.5rem 1.4rem;
+    border: 1px solid;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.jp-resultado-bien { border-color: rgba(52, 211, 153, 0.5); background: rgba(6, 40, 30, 0.94); color: #6ee7b7; }
+.jp-resultado-mal { border-color: rgba(248, 113, 113, 0.5); background: rgba(50, 10, 10, 0.94); color: #fca5a5; }
+
+/* ---------- Final ---------- */
+
+.jp-final {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1rem 1.4rem;
+    text-align: left;
+}
+
+.jp-final-icono {
+    flex-shrink: 0;
+    width: 6rem;
+    height: 6rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(253, 224, 71, 0.1);
+    font-size: 3.2rem;
+}
+
+.jp-final-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.jp-final-texto small {
+    color: var(--oro);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.jp-final-texto h1 {
+    margin: 0;
+    color: var(--texto);
+    font-size: 1.7rem;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.jp-final-datos {
+    margin: 0;
+    display: flex;
+    gap: 1.2rem;
+}
+
+.jp-final-datos dt {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+}
+
+.jp-final-datos dd {
+    margin: 0;
+    color: var(--texto);
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.jp-final-premio {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.jp-sin-premio {
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    font-weight: 700;
+}
+
+.jp-subio {
+    color: #34d399;
+}
+
+.jp-mensaje {
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+.jp-final .jp-botones {
+    justify-content: flex-start;
 }

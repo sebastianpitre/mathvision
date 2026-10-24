@@ -1,103 +1,112 @@
 /* =========================================================
-   SALA MULTIJUGADOR
-   Misma estructura del lobby: tres columnas que miden el
-   alto de la pantalla. Ningún bloque empuja a los demás:
-   las listas hacen scroll por dentro.
+   SALA (estilo Free Fire)
+   Izquierda jugadores · centro personajes + INICIAR ·
+   derecha invitar. Todo en rem.
 ========================================================= */
 
-.sl-main {
-    position: relative;
-    z-index: 1;
-    flex: 1;
-    min-height: 0;
-    width: min(1560px, 100%);
-    margin: 0 auto;
-    padding: var(--lb-gap);
-    display: grid;
-    grid-template-columns: minmax(250px, 300px) minmax(0, 1fr) minmax(270px, 330px);
-    gap: var(--lb-gap);
-    overflow: hidden;
+.sl-estado {
+    margin: auto;
+    color: var(--suave);
 }
 
-.sl-col {
-    min-width: 0;
-    min-height: 0;
+/* Código de la sala, junto al título */
+.sl-codigo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 2.1rem;
+    padding: 0 0.6rem;
+    border: 1px solid rgba(255, 207, 62, 0.5);
+    border-radius: 0.3rem;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.sl-codigo small {
+    color: var(--suave);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+}
+
+.sl-codigo strong {
+    color: var(--oro);
+    font-size: 1.2rem;
+    letter-spacing: 0.14em;
+}
+
+.sl-codigo svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* ---------- Jugadores de la sala ---------- */
+
+.sl-miembros {
+    flex: 0 0 13rem;
     display: flex;
     flex-direction: column;
-    gap: var(--lb-gap);
     overflow: hidden;
 }
 
-.sl-col > .lb-card {
-    min-height: 0;
-}
-
-.sl-card-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
-/* ---------- Código de la sala ---------- */
-
-.sl-codigo {
+.sl-cabeza {
     flex-shrink: 0;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.sl-codigo-fila {
-    display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    padding: 0.35rem 0.6rem;
+    border-bottom: 1px solid var(--linea);
 }
 
-.sl-codigo-valor {
-    font-size: 2rem;
-    font-weight: 900;
-    letter-spacing: 0.18em;
-    font-variant-numeric: tabular-nums;
-    color: var(--lb-accent);
+.sl-cabeza h2 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
-/* ---------- Listas (jugadores, invitar) ---------- */
-
-.sl-lista-card {
-    flex: 1 1 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+.sl-cabeza span {
+    color: var(--oro);
+    font-weight: 700;
 }
 
 .sl-lista {
     flex: 1;
     min-height: 0;
+    margin: 0;
+    padding: 0.35rem;
+    list-style: none;
     overflow-y: auto;
-    overscroll-behavior: contain;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    scrollbar-width: thin;
+    gap: 0.3rem;
 }
 
 .sl-jugador {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px;
-    border-radius: 12px;
-    background: var(--lb-surface-2);
-    border: 1px solid var(--lb-border);
+    gap: 0.4rem;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    background: rgba(255, 255, 255, 0.05);
 }
 
-.sl-jugador .lb-avatar {
-    width: 40px;
-    height: 40px;
+.sl-desconectado {
+    opacity: 0.55;
+}
+
+.sl-foto {
     flex-shrink: 0;
+    width: 2.2rem;
+    height: 2.2rem;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 0.25rem;
+    background: #1b2236;
+}
+
+.sl-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .sl-jugador-datos {
@@ -105,73 +114,97 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
+    line-height: 1.1;
 }
 
 .sl-jugador-datos strong {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.88rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .sl-jugador-datos small {
-    color: var(--lb-text-muted);
-    font-size: var(--lb-fs-sm);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--suave);
+    font-size: 0.72rem;
+}
+
+.sl-corona {
+    flex-shrink: 0;
+    width: 0.9rem;
+    height: 0.9rem;
+    color: var(--oro);
 }
 
 .sl-tu {
-    color: var(--lb-text-muted);
+    color: var(--suave);
+    font-weight: 600;
+}
+
+.sl-victorias {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    color: var(--oro);
     font-weight: 700;
 }
 
-.sl-creador {
-    color: var(--lb-warning);
-    display: inline-flex;
+.sl-victorias svg {
+    width: 0.8rem;
+    height: 0.8rem;
 }
 
-.sl-desconectado {
-    opacity: 0.55;
-}
-
-.sl-icono-off {
-    color: var(--lb-danger);
-}
-
-/* Sacar a alguien (solo el creador) */
-.sl-sacar {
-    flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-    color: var(--lb-text-muted);
+.sl-off {
+    width: 1rem;
+    height: 1rem;
+    color: #f87171;
 }
 
 .sl-sacar:hover {
-    color: var(--lb-danger);
+    color: #f87171;
+    border-color: #f87171;
 }
 
 .sl-sacar-confirmar {
     flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+    display: flex;
+    gap: 0.2rem;
 }
 
-.sl-sacar-no {
-    width: 30px;
-    height: 30px;
+.sl-btn-sacar {
+    height: 1.7rem;
+    padding: 0 0.5rem;
+    border: 1px solid rgba(248, 113, 113, 0.6);
+    border-radius: 0.3rem;
+    background: rgba(248, 113, 113, 0.18);
+    color: #fca5a5 !important;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
-.sl-vacio {
-    padding: 10px 2px;
+.sl-salir {
+    flex-shrink: 0;
+    margin: 0.35rem;
+    min-height: 2.1rem;
+    font-size: 0.85rem;
 }
 
-/* ---------- Escenario con los personajes ---------- */
+/* ---------- Centro: personajes + iniciar ---------- */
 
 .sl-centro {
+    flex: 1;
     min-width: 0;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--lb-gap);
+    gap: 0.4rem;
 }
 
 .sl-escenario {
@@ -180,42 +213,71 @@
     min-height: 0;
 }
 
-.sl-escenario > canvas,
-.sl-escenario > div {
+.sl-escenario > div:not(.sl-emojis) {
     position: absolute !important;
     inset: 0;
+}
+
+.sl-plataforma {
+    bottom: 1.2rem;
+    width: 96%;
+}
+
+.sl-emojis {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 4%;
+    display: grid;
+    pointer-events: none;
+}
+
+.sl-emojis > span {
+    display: flex;
+    justify-content: center;
+    min-height: 2.6rem;
+}
+
+.sl-emojis .em-burbuja {
+    font-size: 2.2rem;
+}
+
+.sl-selector-emojis {
+    position: absolute;
+    top: 0.2rem;
+    right: 0.2rem;
+    z-index: 4;
 }
 
 .sl-puestos {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 6px;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.25rem;
     align-items: end;
-    gap: 8px;
-    padding: 0 8px;
     pointer-events: none;
 }
 
-.sl-puesto {
+.sl-puestos li {
     display: flex;
     justify-content: center;
-    align-items: flex-end;
+    min-width: 0;
 }
 
 .sl-etiqueta {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 0.25rem;
     max-width: 100%;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: rgba(7, 11, 20, 0.78);
-    border: 1px solid var(--lb-border);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.2rem;
+    background: rgba(0, 0, 0, 0.65);
+    font-size: 0.8rem;
 }
 
 .sl-etiqueta strong {
@@ -224,40 +286,16 @@
     white-space: nowrap;
 }
 
-.sl-etiqueta small {
-    color: var(--lb-text-muted);
-    white-space: nowrap;
-}
-
 .sl-etiqueta svg {
-    color: var(--lb-warning);
     flex-shrink: 0;
+    width: 0.8rem;
+    height: 0.8rem;
+    color: var(--oro);
 }
 
-/* De 6 a 8 puestos: etiquetas más chicas */
-.sl-puestos-muchos {
-    gap: 4px;
-    padding: 0 4px;
-}
-
-.sl-puestos-muchos .sl-etiqueta {
-    padding: 4px 8px;
-    gap: 4px;
-    font-size: var(--lb-fs-sm);
-}
-
-.sl-puestos-muchos .sl-etiqueta small {
-    display: none;
-}
-
-.sl-puestos-muchos .sl-espera {
-    font-size: 0.72rem;
-}
-
-/* Puesto libre: silueta punteada a lo alto del escenario */
-.sl-puesto-vacio {
-    position: relative;
-    align-self: end;
+.sl-etiqueta small {
+    color: var(--oro);
+    white-space: nowrap;
 }
 
 .sl-espera {
@@ -265,281 +303,130 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    width: min(100%, 150px);
-    height: min(46vh, 300px);
+    gap: 0.25rem;
+    width: min(100%, 6rem);
+    height: 11rem;
     border: 2px dashed rgba(255, 255, 255, 0.25);
-    border-radius: 80px 80px 16px 16px;
-    background: rgba(7, 11, 20, 0.35);
-    color: var(--lb-text-muted);
-    font-size: var(--lb-fs-sm);
-    font-weight: 800;
-    text-align: center;
-    padding: 10px;
+    border-radius: 3rem 3rem 0.5rem 0.5rem;
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--suave);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
 .sl-espera svg {
-    width: 28px;
-    height: 28px;
+    width: 1.3rem;
+    height: 1.3rem;
 }
 
-/* ---------- Iniciar ---------- */
+.sl-puestos-muchos .sl-etiqueta {
+    padding: 0.1rem 0.3rem;
+    font-size: 0.7rem;
+}
+
+.sl-puestos-muchos .sl-espera {
+    height: 8rem;
+    font-size: 0.65rem;
+}
 
 .sl-inicio {
     flex-shrink: 0;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-}
-
-.sl-inicio-juego {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.sl-inicio-nombre {
-    font-size: var(--lb-fs-lg);
-    font-weight: 900;
-}
-
-.sl-btn-iniciar {
-    min-width: 200px;
-    min-height: 54px;
-    font-size: var(--lb-fs-md);
-}
-
-.sl-espera-creador {
-    color: var(--lb-text-muted);
-    font-weight: 800;
-    text-align: right;
-}
-
-/* ---------- Juegos ---------- */
-
-.sl-juegos-card {
-    flex: 0 1 auto;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.sl-juegos {
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    gap: 0.4rem;
+    height: 3.4rem;
 }
 
 .sl-juego {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 12px;
-    border-radius: 14px;
-    border: 2px solid var(--lb-border);
-    background: var(--lb-surface-2);
-    text-align: left;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
 }
 
-.sl-juego small {
-    color: var(--lb-text-muted);
-    font-size: var(--lb-fs-sm);
-    line-height: 1.35;
-}
-
-.sl-juego:not(:disabled):hover {
-    border-color: var(--lb-accent);
-}
-
-.sl-juego-elegido {
-    border-color: var(--lb-accent);
-    background: var(--lb-accent-soft);
-}
-
-.lg .sl-juego:disabled {
-    opacity: 1;
+.sl-juego:disabled {
     cursor: default;
 }
 
-.lg .sl-juego:disabled:not(.sl-juego-elegido) {
-    opacity: 0.6;
+.sl-iniciar {
+    flex: 0 0 13rem;
+    height: 100%;
+    font-size: 1.7rem;
+}
+
+.sl-iniciar:disabled {
+    filter: grayscale(0.85) brightness(0.65);
+    cursor: default;
+}
+
+.sl-esperando {
+    flex: 0 0 13rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--linea);
+    border-radius: 0.3rem;
+    background: var(--panel);
+    color: var(--suave);
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* ---------- Invitar ---------- */
+
+.sl-invitar {
+    flex: 0 0 9rem;
+    min-height: 0;
+    display: flex;
 }
 
 /* ---------- Sin sala ---------- */
 
 .sl-vacia {
-    justify-content: center;
-    align-items: center;
-}
-
-.sl-vacia-caja {
-    width: min(460px, 100%);
+    margin: auto;
+    width: min(24rem, 100%);
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 0.6rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.sl-vacia h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.sl-vacia p {
+    margin: 0;
+    color: var(--suave);
+    font-size: 0.95rem;
 }
 
 .sl-unirse {
     display: flex;
-    align-items: flex-end;
-    gap: 10px;
+    gap: 0.4rem;
 }
 
-.sl-codigo-input {
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    font-weight: 900;
-}
-
-/* ---------- Avisos ---------- */
-
-.sl-avisos {
-    position: fixed;
-    right: 16px;
-    bottom: 16px;
-    z-index: 50;
-    width: min(380px, calc(100vw - 32px));
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.sl-invitacion {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* ---------- Pantallas angostas (vertical) ---------- */
-
-@media (max-width: 900px) and (orientation: portrait) {
-    .sl-main {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: auto minmax(320px, 1fr) auto;
-        overflow-y: auto;
-    }
-
-    .sl-centro {
-        order: -1;
-        min-height: 420px;
-    }
-}
-
-.sl-cargando-3d {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: rgba(7, 11, 20, 0.78);
-    color: var(--lb-text-muted, #c1c9da);
-    font: 800 0.8rem "Nunito", system-ui, sans-serif;
-    white-space: nowrap;
-}
-
-.sl-btn-sacar {
-    background: var(--lb-danger-soft);
-    color: var(--lb-danger);
-    border: 1px solid rgba(248, 113, 113, 0.45);
-}
-
-.sl-btn-sacar:hover {
-    background: rgba(248, 113, 113, 0.28);
-}
-
-/* ---------- Invitar ocupa toda la columna derecha ---------- */
-.sl-invitar {
-    flex: 1 1 auto;
-}
-
-/* ---------- Partidas ganadas en la sala ---------- */
-.sl-victorias {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    margin-left: 8px;
-    color: var(--lb-warning);
-    font-weight: 800;
-}
-
-.sl-etiqueta .sl-etiqueta-victorias {
-    color: var(--lb-warning);
-}
-
-/* ---------- Juego elegido + Cambiar ---------- */
-.sl-inicio-fila {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-/* ---------- Ventana para elegir el juego ---------- */
-.sl-modal-fondo {
-    position: fixed;
-    inset: 0;
-    z-index: 70;
-    display: grid;
-    place-items: center;
-    padding: 16px;
-    background: rgba(3, 6, 12, 0.6);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-}
-
-.sl-modal {
-    width: min(460px, 100%);
-    max-height: calc(100% - 32px);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.sl-modal .sl-juego {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.sl-juego-texto {
+.sl-unirse input {
+    flex: 1;
     min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    height: 2.5rem;
+    padding: 0 0.6rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.3rem;
+    background: rgba(0, 0, 0, 0.45);
+    color: var(--texto);
+    font: inherit;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-align: center;
+    text-transform: uppercase;
+    outline: none;
 }
 
-/* ---------- Emojis sobre los personajes ---------- */
-.sl-emojis {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 6%;
-    display: grid;
-    padding: 0 8px;
-    pointer-events: none;
-}
-
-.sl-emoji-puesto {
-    display: flex;
-    justify-content: center;
-    min-height: 48px;
-}
-
-.sl-emojis .em-burbuja {
-    font-size: 2.4rem;
-}
-
-.sl-selector-emojis {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 5;
+.sl-unirse input:focus {
+    border-color: var(--oro);
 }

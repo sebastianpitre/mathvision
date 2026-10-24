@@ -13,7 +13,6 @@ import MenuFlotante from "../components/juego/MenuFlotante";
  */
 const Login = lazy(() => import("../pages/Login"));
 const Lobby = lazy(() => import("../pages/Lobby"));
-const World = lazy(() => import("../pages/World"));
 const Character = lazy(() => import("../pages/Character"));
 const Profile = lazy(() => import("../pages/Profile/Profile"));
 const Niveles = lazy(() => import("../pages/Preguntas/Niveles"));
@@ -93,8 +92,7 @@ function ModoPantalla() {
     const { pathname } = useLocation();
 
     useEffect(() => {
-        const nuevas = window.RUTAS_JUEGO || [];
-        window.ajustarPantalla?.(nuevas.includes(pathname) ? "juego" : "virtual");
+        window.ajustarPantalla?.(window.esRutaJuego?.(pathname) ? "juego" : "virtual");
     }, [pathname]);
 
     return null;
@@ -102,16 +100,20 @@ function ModoPantalla() {
 
 function AppRouter() {
     return (
-        <Suspense fallback={<Cargando />}>
+        <>
+            {/* Fuera del Suspense: mientras una pantalla se descarga, los
+                avisos, las invitaciones y el menú flotante no se reinician. */}
             <ModoPantalla />
             <EscuchaSala />
             <Notificaciones />
             <MenuFlotante />
+            <Suspense fallback={<Cargando />}>
             <Routes>
                 <Route path="/" element={<Login />} />
 
                 <Route path="/lobby" element={<Privada><Lobby /></Privada>} />
-                <Route path="/world" element={<Privada><World /></Privada>} />
+                {/* El Mundo se quitó: la lista de jugadores e invitaciones está en el lobby. */}
+                <Route path="/world" element={<Navigate to="/lobby" replace />} />
                 <Route path="/character" element={<Privada><Character /></Privada>} />
                 <Route path="/tienda" element={<Privada><Character /></Privada>} />
                 <Route path="/profile" element={<Privada><Profile /></Privada>} />
@@ -135,7 +137,8 @@ function AppRouter() {
 
                 <Route path="*" element={<Navigate to="/lobby" replace />} />
             </Routes>
-        </Suspense>
+            </Suspense>
+        </>
     );
 }
 
