@@ -22,6 +22,78 @@ const CASOS = [
     { id: "perdida", texto: "Pierde" },
 ];
 
+/* Poder 🔄 de SigloGamif: cuántas veces sale y cuánto dura. */
+function ReglasSiglo() {
+    const { datos, cargando, error } = useCarga("/admin/reglas-siglo");
+    const [reglas, setReglas] = useState(null);
+    const [aviso, setAviso] = useState({ texto: "", tono: "" });
+
+    useEffect(() => {
+        if (datos) setReglas(datos.reglas);
+    }, [datos]);
+
+    async function guardar(e) {
+        e.preventDefault();
+        try {
+            const r = await api("/admin/reglas-siglo", { metodo: "PUT", body: { reglas } });
+            setReglas(r.reglas);
+            setAviso({ texto: "Guardado. Se aplica desde la próxima partida.", tono: "ok" });
+        } catch (err) {
+            setAviso({ texto: err.message, tono: "error" });
+        }
+    }
+
+    if (cargando && !reglas) return null;
+    if (error) return <p className="lg-alert" role="alert">{error}</p>;
+    if (!reglas) return null;
+
+    const numero = (clave, min, max) => (
+        <input
+            className="lg-input"
+            style={{ width: 90 }}
+            type="number"
+            min={min}
+            max={max}
+            value={reglas[clave]}
+            onChange={(e) => setReglas({ ...reglas, [clave]: e.target.value })}
+        />
+    );
+
+    return (
+        <form className="lb-card" onSubmit={guardar} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <h3 className="lg-card-title">Poder 🔄 de SigloGamif</h3>
+            <p className="lb-muted" style={{ margin: 0 }}>
+                Aparece flotando al azar entre la ronda 2 y la 4. El primero que lo toca elige a otro jugador y le pone
+                un número del 0 al 6 (unidad o decena) en su siguiente espacio: ese jugador pierde ese turno, y si se
+                pasa de 100 queda eliminado.
+            </p>
+            {aviso.texto && <p className={aviso.tono === "error" ? "lg-alert" : "lg-ok"} role="status">{aviso.texto}</p>}
+            <label className="lg-row" style={{ alignItems: "center", gap: 8, cursor: "pointer" }}>
+                <input type="checkbox" checked={reglas.poder_activo} onChange={(e) => setReglas({ ...reglas, poder_activo: e.target.checked })} />
+                <strong>Poder activado</strong>
+            </label>
+            <div className="lg-row" style={{ alignItems: "flex-end" }}>
+                <label className="lg-field">
+                    <span>Veces por partida (0 a 5)</span>
+                    {numero("poder_por_partida", 0, 5)}
+                </label>
+                <label className="lg-field">
+                    <span>Segundos flotando (3 a 30)</span>
+                    {numero("poder_segundos_visible", 3, 30)}
+                </label>
+                <label className="lg-field">
+                    <span>Segundos para usarlo (5 a 30)</span>
+                    {numero("poder_segundos_elegir", 5, 30)}
+                </label>
+                <button type="submit" className="lb-btn lb-btn-primary">
+                    <LuSave aria-hidden="true" />
+                    Guardar
+                </button>
+            </div>
+        </form>
+    );
+}
+
 export default function PremiosAdmin() {
     const { datos, cargando, error } = useCarga("/admin/premios");
     const [premios, setPremios] = useState(null);
@@ -125,6 +197,8 @@ export default function PremiosAdmin() {
                     {guardando ? "Guardando…" : "Guardar premios"}
                 </button>
             </div>
+
+            <ReglasSiglo />
         </div>
     );
 }

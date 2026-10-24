@@ -23,7 +23,7 @@ const PESTANAS = [
     { id: "niveles", label: "Niveles y preguntas", icon: LuLayers, Componente: NivelesAdmin },
     { id: "tienda", label: "Personajes", icon: LuShirt, Componente: TiendaAdmin },
     { id: "usuarios", label: "Jugadores", icon: LuUsers, Componente: UsuariosAdmin },
-    { id: "premios", label: "Premios", icon: LuGift, Componente: PremiosAdmin },
+    { id: "premios", label: "Premios y reglas", icon: LuGift, Componente: PremiosAdmin },
     { id: "voz", label: "Voz y reportes", icon: LuMic, Componente: VozAdmin },
     { id: "sonidos", label: "Sonidos", icon: LuMusic, Componente: SonidosAdmin },
 ];

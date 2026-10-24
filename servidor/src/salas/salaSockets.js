@@ -14,6 +14,8 @@
      siglo:elegir { opcion: "unidad" | "decena", numero? (joker 0–6) }
      siglo:volverATirar         cuesta 1 diamante, una vez por partida
      sala:emoji { emoji }       reacción (en la sala y en SigloGamif)
+     siglo:poderAgarrar         el primero que toca el poder 🔄
+     siglo:poderUsar { objetivo, opcion, numero }  ponerle un número a otro
      siglo:salir
 
    Servidor → navegador
@@ -33,6 +35,7 @@ import { getUserProfile } from "../users/userService.js";
 import { registrarResultadoMultijugador } from "../partidas/partidasService.js";
 import { gastarDiamantes, devolverDiamantes } from "../progreso/progreso.js";
 import { SigloGame } from "../games/siglo/SigloGame.js";
+import { reglasSiglo } from "../config/reglasSiglo.js";
 import { JUEGOS_SALA, motivoNoIniciar, EMOJIS, PAUSA_EMOJI_MS } from "./juegos.js";
 
 /*
@@ -218,6 +221,7 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
 
         const juego = new SigloGame({
             jugadores,
+            reglas: reglasSiglo(),
             onCambio: (estado) => io.to(room.code).emit("siglo:estado", estado),
             onFin: (resultado, partida) => {
                 room.estado = "sala";
@@ -420,6 +424,8 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
     socket.on("siglo:votar", accionSiglo((p, { segundos }) => p.votar(yo(), segundos)));
     socket.on("siglo:tirar", accionSiglo((p) => p.tirar(yo())));
     socket.on("siglo:elegir", accionSiglo((p, { opcion, numero }) => p.elegir(yo(), opcion, numero)));
+    socket.on("siglo:poderAgarrar", accionSiglo((p) => p.agarrarPoder(yo())));
+    socket.on("siglo:poderUsar", accionSiglo((p, { objetivo, opcion, numero }) => p.usarPoder(yo(), objetivo, opcion, numero)));
 
     socket.on("siglo:volverATirar", async () => {
         const fallo = (message) => socket.emit("siglo:error", { message });

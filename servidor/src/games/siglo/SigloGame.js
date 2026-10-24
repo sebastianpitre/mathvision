@@ -25,6 +25,13 @@
       dado una vez y gana el número más alto (se repite si
       vuelven a empatar).
 
+   PODER 🔄 (se configura en el panel): de vez en cuando, entre
+   la ronda 2 y la 4, aparece flotando para todos. El primero
+   que lo toca elige a otro jugador vivo y le pone un número
+   del 0 al 6 (unidad o decena) en su siguiente espacio vacío.
+   Ese jugador pierde ese turno, y si se pasa de 100 queda
+   eliminado.
+
    Si se acaba el tiempo del turno, el servidor tira el dado
    por el jugador y elige la opción más prudente. Todo lo
    decide el servidor: el navegador solo envía "tirar" y
@@ -67,7 +74,7 @@ export class SigloGame {
      * onCambio(estado)  → se llama en cada cambio para avisar a la sala
      * onFin(resultado)  → al terminar (para premios y volver a la sala)
      */
-    constructor({ jugadores, onCambio, onFin }) {
+    constructor({ jugadores, onCambio, onFin, reglas }) {
         this.tipo = "siglo";
         this.onCambio = onCambio || (() => {});
         this.onFin = onFin || (() => {});
@@ -83,7 +90,14 @@ export class SigloGame {
             tiroDesempate: null,
             retiroUsado: false, // ya usó su diamante para volver a tirar
             retiroPendiente: false, // se está cobrando el diamante
+            marcasPoder: [], // espacios que le llenó otro con el poder 🔄
         }));
+
+        // Poder 🔄
+        this.reglasPoder = reglas || { poder_activo: false, poder_por_partida: 0 };
+        this.poder = null; // { id, estado: "flotando" | "eligiendo", hasta, duenio }
+        this.poderesSalidos = 0;
+        this.timerPoder = null;
 
         // El orden de turno se sortea al empezar.
         this.orden = this.jugadores.map((_, i) => i).sort(() => Math.random() - 0.5);
@@ -145,8 +159,10 @@ export class SigloGame {
     destruir() {
         clearTimeout(this.timer);
         clearTimeout(this.timerPausa);
+        clearTimeout(this.timerPoder);
         this.timer = null;
         this.timerPausa = null;
+        this.timerPoder = null;
     }
 
     // El Triqui usa este nombre al limpiar la sala.
@@ -230,6 +246,7 @@ export class SigloGame {
         this.dado = null;
         this.finEn = Date.now() + this.segundosTurno * 1000;
         this.programar(this.segundosTurno * 1000, () => this.tiempoAgotado());
+        this.intentarPoder();
         this.avisar();
     }
 
@@ -460,6 +477,7 @@ export class SigloGame {
     --------------------------------------------------------- */
 
     empezarDesempate(empatados) {
+        this.quitarPoder();
         this.fase = "desempate";
         this.empatados = empatados.map((j) => j.userId);
         for (const j of this.jugadores) j.tiroDesempate = null;
@@ -529,6 +547,139 @@ export class SigloGame {
     }
 
     /* ---------------------------------------------------------
+       PODER 🔄
+    --------------------------------------------------------- */
+
+    /* Primer espacio vacío de un jugador desde la ronda actual. */
+    siguienteEspacio(jugador) {
+        for (let k = this.ronda; k < ESPACIOS; k += 1) if (jugador.espacios[k] === null) return k;
+        return -1;
+    }
+
+    objetivosPoder(userId) {
+        return this.vivos().filter((j) => j.userId !== String(userId) && this.siguienteEspacio(j) !== -1);
+    }
+
+    /* Al empezar cada turno, entre la ronda 2 y la 4, puede salir
+       el poder. La probabilidad sube a medida que quedan menos
+       turnos, así sale las veces que dice el panel. */
+    intentarPoder() {
+        const r = this.reglasPoder;
+        if (!r?.poder_activo || this.poder || this.fase !== "jugando") return;
+        if (this.ronda < 1 || this.ronda > ESPACIOS - 2) return;
+
+        const faltan = r.poder_por_partida - this.poderesSalidos;
+        if (faltan <= 0 || this.vivos().length < 2) return;
+
+        const pendientesRonda = this.vivos().filter((j) => j.espacios[this.ronda] === null).length;
+        const turnosQuedan = pendientesRonda + this.vivos().length * (ESPACIOS - 2 - this.ronda);
+        if (Math.random() < faltan / Math.max(1, turnosQuedan)) this.soltarPoder();
+    }
+
+    soltarPoder() {
+        const segundos = this.reglasPoder.poder_segundos_visible || 8;
+        this.poderesSalidos += 1;
+        this.poder = { id: this.poderesSalidos, estado: "flotando", hasta: Date.now() + segundos * 1000, duenio: null };
+        this.evento("🔄 ¡Apareció un poder! El primero que lo toque lo usa.", "poder");
+
+        clearTimeout(this.timerPoder);
+        this.timerPoder = setTimeout(() => this.perderPoder("🔄 Nadie agarró el poder."), segundos * 1000);
+    }
+
+    quitarPoder() {
+        clearTimeout(this.timerPoder);
+        this.timerPoder = null;
+        this.poder = null;
+    }
+
+    perderPoder(texto) {
+        if (!this.poder) return;
+        this.quitarPoder();
+        if (this.fase !== "jugando") return;
+        this.evento(texto, "poder");
+        this.avisar();
+    }
+
+    agarrarPoder(userId) {
+        const jugador = this.jugador(userId);
+
+        if (this.fase !== "jugando" || !this.poder) return { success: false, message: "Ya no hay poder." };
+        if (this.poder.estado !== "flotando") {
+            const duenio = this.jugador(this.poder.duenio);
+            return { success: false, message: duenio?.userId === String(userId) ? "Ya lo tienes." : `${duenio?.nombre || "Alguien"} lo agarró primero.` };
+        }
+        if (!jugador || jugador.eliminado) return { success: false, message: "Solo los jugadores en juego pueden agarrarlo." };
+        if (!this.objetivosPoder(userId).length) return { success: false, message: "No hay a quién ponerle el número." };
+
+        const segundos = this.reglasPoder.poder_segundos_elegir || 10;
+        this.poder = { ...this.poder, estado: "eligiendo", duenio: jugador.userId, hasta: Date.now() + segundos * 1000 };
+        this.evento(`🔄 ${jugador.nombre} agarró el poder.`, "poder");
+
+        clearTimeout(this.timerPoder);
+        this.timerPoder = setTimeout(() => this.perderPoder(`🔄 ${jugador.nombre} no usó el poder a tiempo.`), segundos * 1000);
+
+        this.avisar();
+        return { success: true };
+    }
+
+    /* opcion: "unidad" | "decena", numero: 0 a 6 */
+    usarPoder(userId, objetivoId, opcion, numero) {
+        const duenio = this.jugador(userId);
+        const objetivo = this.jugador(objetivoId);
+        const base = Number(numero);
+
+        if (this.fase !== "jugando" || this.poder?.estado !== "eligiendo") return { success: false, message: "Ya no tienes el poder." };
+        if (this.poder.duenio !== String(userId)) return { success: false, message: "El poder lo tiene otro jugador." };
+        if (!objetivo || objetivo.eliminado) return { success: false, message: "Elige a un jugador que siga en juego." };
+        if (objetivo.userId === duenio.userId) return { success: false, message: "El poder se usa con otro jugador." };
+        if (opcion !== "unidad" && opcion !== "decena") return { success: false, message: "Elige unidad o decena." };
+        if (!NUMEROS_JOKER.includes(base)) return { success: false, message: "Elige un número del 0 al 6." };
+        if (objetivo.retiroPendiente) return { success: false, message: "Espera un momento: está volviendo a tirar." };
+
+        const k = this.siguienteEspacio(objetivo);
+        if (k === -1) return { success: false, message: `${objetivo.nombre} ya llenó sus espacios.` };
+
+        const valor = opcion === "decena" ? base * 10 : base;
+        const enSuTurno = this.turno === objetivo.userId && k === this.ronda;
+
+        this.quitarPoder();
+        objetivo.espacios[k] = valor;
+        objetivo.total += valor;
+        objetivo.marcasPoder.push(k);
+
+        const llenos = objetivo.espacios.filter((v) => v !== null).length;
+
+        if (objetivo.total > META) {
+            objetivo.eliminado = true;
+            objetivo.motivo = "se_paso";
+            this.evento(`🔄 ${duenio.nombre} le puso ${valor} a ${objetivo.nombre} → ${objetivo.total}: ¡eliminado!`, "eliminado");
+        } else if (llenos === ESPACIOS && objetivo.total === META) {
+            this.evento(`🔄 ${duenio.nombre} le puso ${valor} a ${objetivo.nombre}… ¡y le dio el SIGLO!`, "siglo");
+            this.terminar({ tipo: "siglo", ganadores: [objetivo.userId] });
+            return { success: true };
+        } else {
+            this.evento(`🔄 ${duenio.nombre} le puso ${valor} a ${objetivo.nombre} → ${objetivo.total}. Pierde ese turno.`, "poder");
+        }
+
+        if (this.revisarUltimoEnPie()) return { success: true };
+
+        // Si era su turno, se le acaba y sigue el próximo.
+        if (enSuTurno || (this.turno === objetivo.userId && objetivo.eliminado)) {
+            clearTimeout(this.timer);
+            this.turno = null;
+            this.finEn = null;
+            this.dado = null;
+            clearTimeout(this.timerPausa);
+            this.timerPausa = setTimeout(() => {
+                if (this.fase === "jugando") this.empezarTurno(this.siguienteEnRonda());
+            }, PAUSA_MOSTRAR_DADO_MS);
+        }
+
+        this.avisar();
+        return { success: true };
+    }
+
+    /* ---------------------------------------------------------
        ABANDONO (salió de la partida o se desconectó)
     --------------------------------------------------------- */
 
@@ -539,6 +690,7 @@ export class SigloGame {
         jugador.eliminado = true;
         jugador.motivo = "abandono";
         this.votos.delete(jugador.userId);
+        if (this.poder?.duenio === jugador.userId) this.quitarPoder();
         this.evento(`${jugador.nombre} salió.`, "eliminado");
 
         if (this.revisarUltimoEnPie()) return;
@@ -574,6 +726,7 @@ export class SigloGame {
     terminar({ tipo, ganadores }) {
         this.destruir();
 
+        this.poder = null;
         this.fase = "terminada";
         this.status = "finished";
         this.turno = null;
@@ -615,6 +768,7 @@ export class SigloGame {
             numerosJoker: NUMEROS_JOKER,
             votos: conteoVotos,
             empatados: this.empatados,
+            poder: this.poder ? { id: this.poder.id, estado: this.poder.estado, hasta: this.poder.hasta, duenio: this.poder.duenio } : null,
             jugadores: this.orden.map((i) => {
                 const j = this.jugadores[i];
                 return {
@@ -627,6 +781,7 @@ export class SigloGame {
                     motivo: j.motivo,
                     tiroDesempate: j.tiroDesempate,
                     retiroUsado: j.retiroUsado,
+                    marcasPoder: j.marcasPoder,
                 };
             }),
             eventos: this.eventos,

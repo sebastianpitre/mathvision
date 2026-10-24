@@ -23,6 +23,7 @@
    PUT    /usuarios/:id/voz            { bloqueada }  quitar o devolver la voz
    GET    /usuarios/:id/reportes       sus reportes con el motivo
    /sonidos/…                          biblioteca de sonidos (ver sonidos/sonidosAdmin.js)
+   GET|PUT /reglas-siglo                poder 🔄 de SigloGamif
    POST   /usuarios/:id/reportes/revisar   marcar revisados (ya no cuentan)
    GET    /voz                         reglas de la voz
    PUT    /voz                         guardar reglas
@@ -41,6 +42,7 @@ import { ARCHIVOS_DIR, URL_ARCHIVOS, TIPOS_ARCHIVO } from "../config/archivos.js
 import { obtenerPremios, guardarPremios } from "../config/premios.js";
 import { olvidarBloqueo } from "../auth/bloqueo.js";
 import sonidosAdmin from "../sonidos/sonidosAdmin.js";
+import { reglasSiglo, guardarReglasSiglo } from "../config/reglasSiglo.js";
 import { obtenerConfigVoz, guardarConfigVoz, olvidarPermisoVoz, MOTIVOS_REPORTE } from "../voz/voz.js";
 import {
     listarNivelesAdmin,
@@ -682,6 +684,21 @@ router.post(
         );
         olvidarPermisoVoz(id);
         res.json({ success: true, revisados: rowCount });
+    })
+);
+
+/* Reglas de SigloGamif (poder 🔄) */
+router.get(
+    "/reglas-siglo",
+    ruta(async (req, res) => {
+        res.json({ success: true, reglas: reglasSiglo() });
+    })
+);
+
+router.put(
+    "/reglas-siglo",
+    ruta(async (req, res) => {
+        res.json({ success: true, reglas: await guardarReglasSiglo(req.body?.reglas) });
     })
 );
 

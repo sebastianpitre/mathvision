@@ -40,7 +40,9 @@ async function completarHuellas() {
 
 const nombreLimpio = (texto) =>
     String(texto || "")
-        .replace(/[\u0000-\u001f<>]/g, "")
+        .split("")
+        .filter((c) => c.charCodeAt(0) >= 32 && c !== "<" && c !== ">")
+        .join("")
         .trim()
         .slice(0, 80);
 
