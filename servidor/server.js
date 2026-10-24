@@ -23,6 +23,7 @@ import reportesRoutes from "./src/voz/reportesRoutes.js";
 import { crearVoz } from "./src/voz/vozSockets.js";
 import { ARCHIVOS_DIR, URL_ARCHIVOS, FRONTEND_DIR } from "./src/config/archivos.js";
 import sonidosRoutes from "./src/sonidos/sonidosRoutes.js";
+import { cargarReglasSiglo } from "./src/config/reglasSiglo.js";
 import { TriquiGame } from "./src/games/triqui/TriquiGame.js";
 
 import {
@@ -1690,6 +1691,9 @@ httpServer.on(
         process.exit(1);
     }
 );
+
+// Reglas de SigloGamif del panel (poder 🔄): quedan en memoria.
+cargarReglasSiglo();
 
 httpServer.listen(
     PORT,

@@ -1,0 +1,263 @@
+/* Poder 🔄 de SigloGamif (medidas en rem: escala con la pantalla) */
+
+.pd-flotante {
+    position: fixed;
+    z-index: 60;
+    left: 30%;
+    top: 30%;
+    width: 4.4rem;
+    height: 4.4rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 3px solid #fde047;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #a855f7, #6d28d9);
+    box-shadow: 0 0 0 0.4rem rgba(253, 224, 71, 0.25), 0 0.4rem 1.2rem rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    animation: pd-flotar 6s ease-in-out infinite;
+}
+
+.pd-flotante:disabled {
+    cursor: default;
+    filter: grayscale(0.6);
+}
+
+.pd-icono {
+    font-size: 2.2rem;
+    line-height: 1;
+    animation: pd-girar 2.4s linear infinite;
+}
+
+.pd-cuenta {
+    position: absolute;
+    right: -0.3rem;
+    bottom: -0.3rem;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: #fde047;
+    color: #1f1300;
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+@keyframes pd-flotar {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(14vw, -8vh); }
+    50% { transform: translate(28vw, 6vh); }
+    75% { transform: translate(10vw, 14vh); }
+    100% { transform: translate(0, 0); }
+}
+
+@keyframes pd-girar {
+    to { transform: rotate(360deg); }
+}
+
+.pd-aviso {
+    position: fixed;
+    z-index: 60;
+    left: 50%;
+    top: 0.6rem;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 0.35rem 0.9rem;
+    border: 1px solid rgba(192, 132, 252, 0.6);
+    border-radius: 999px;
+    background: rgba(46, 16, 101, 0.92);
+    color: #f5d0fe;
+    font-size: 0.9rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Ventana de quien tiene el poder */
+.pd-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    padding: 0.6rem;
+    background: rgba(3, 6, 12, 0.7);
+}
+
+.pd-ventana {
+    width: 34rem;
+    max-width: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0.8rem 1rem;
+    border: 2px solid rgba(192, 132, 252, 0.7);
+    border-radius: 0.7rem;
+    background: #160c2b;
+    color: #f5f7fb;
+    font-family: var(--fuente-juego);
+}
+
+.pd-ventana header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pd-ventana h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+}
+
+.pd-reloj {
+    padding: 0.1rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--oro, #fde047);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+.pd-reloj-urgente {
+    background: #dc2626;
+    color: #fff;
+}
+
+.pd-paso {
+    margin: 0.2rem 0 0;
+    color: #d8b4fe;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.pd-jugadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    gap: 0.35rem;
+}
+
+.pd-jugador {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.3rem;
+    border: 2px solid rgba(255, 255, 255, 0.14);
+    border-radius: 0.45rem;
+    background: rgba(255, 255, 255, 0.05);
+    text-align: left;
+    cursor: pointer;
+}
+
+.pd-foto {
+    flex-shrink: 0;
+    width: 2.2rem;
+    height: 2.2rem;
+    overflow: hidden;
+    border-radius: 0.3rem;
+    background: #1b2236;
+}
+
+.pd-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pd-datos {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.pd-datos strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pd-datos small {
+    color: #c7cede;
+    font-size: 0.75rem;
+}
+
+.pd-numeros {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.3rem;
+}
+
+.pd-numero {
+    height: 2.5rem;
+    border: 2px solid rgba(192, 132, 252, 0.55);
+    border-radius: 0.4rem;
+    background: rgba(192, 132, 252, 0.12);
+    font-size: 1.3rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.pd-elegido {
+    border-color: #fde047 !important;
+    background: rgba(253, 224, 71, 0.18) !important;
+}
+
+.pd-opciones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+}
+
+.pd-opcion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.35rem;
+    border: 2px solid rgba(52, 211, 153, 0.6);
+    border-radius: 0.5rem;
+    background: rgba(52, 211, 153, 0.12);
+    cursor: pointer;
+}
+
+.pd-opcion strong {
+    font-size: 1.7rem;
+    line-height: 1.1;
+}
+
+.pd-opcion small {
+    color: #c7cede;
+    font-size: 0.78rem;
+}
+
+.pd-opcion-pasa {
+    border-color: rgba(248, 113, 113, 0.8);
+    background: rgba(248, 113, 113, 0.16);
+}
+
+.pd-opcion:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+/* Espacio que llenó otro con el poder */
+.sg-espacio-poder {
+    position: relative;
+    border-color: rgba(192, 132, 252, 0.9) !important;
+    background: rgba(147, 51, 234, 0.25) !important;
+}
+
+.sg-espacio-poder::after {
+    content: "🔄";
+    position: absolute;
+    top: -0.45rem;
+    right: -0.35rem;
+    font-size: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pd-flotante, .pd-icono { animation: none; }
+}

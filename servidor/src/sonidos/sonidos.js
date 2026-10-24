@@ -38,6 +38,7 @@ export const MOMENTOS = [
     { clave: "incorrecto", nombre: "Respuesta incorrecta", grupo: "juego", defecto: "/sounds/incorrect.mp3", volumen: 80 },
     { clave: "eliminado", nombre: "Eliminado (se pasó de 100)", grupo: "juego", defecto: "/sounds/incorrect.mp3", volumen: 70 },
     { clave: "joker", nombre: "Joker o premio especial", grupo: "juego", defecto: "/sounds/victory.mp3", volumen: 70 },
+    { clave: "poder", nombre: "Aparece el poder 🔄 (SigloGamif)", grupo: "juego", defecto: "/sounds/unlock.mp3", volumen: 80 },
     { clave: "comodin", nombre: "Usar un comodín", grupo: "juego", defecto: "/sounds/lifeline.mp3", volumen: 80 },
     { clave: "retirarse", nombre: "Retirarse", grupo: "juego", defecto: "/sounds/retire.mp3", volumen: 80 },
     { clave: "desbloquear", nombre: "Desbloquear (Escape)", grupo: "juego", defecto: "/sounds/unlock.mp3", volumen: 80 },

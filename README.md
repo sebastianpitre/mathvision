@@ -130,8 +130,9 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   oro o diamantes. La columna **Reportes** muestra "sin revisar / total"; al tocarla se
   ven los motivos y quién reportó, y se pueden **marcar como revisados**. La casilla
   "Más reportados primero" ordena la lista.
-- **Premios:** XP y oro de Triqui y SigloGamif según gane, empate o pierda, partidas
-  premiadas al día y los diamantes extra por ¡SIGLO!.
+- **Premios y reglas:** XP y oro de Triqui y SigloGamif según gane, empate o pierda, partidas
+  premiadas al día y los diamantes extra por ¡SIGLO!. Abajo, el poder 🔄 de SigloGamif
+  (activarlo, cuántas veces sale por partida y cuántos segundos dura).
 - **Sonidos:** la biblioteca de música y efectos. Se suben archivos mp3, ogg, wav o m4a
   (hasta 10 MB) y se pueden escuchar, renombrar y borrar (si no se están usando). Si subes
   un archivo idéntico a uno que ya está, no se guarda otra vez: se reutiliza. Arriba se
@@ -266,6 +267,12 @@ del turno, el juego tira y elige la opción más prudente.
 
 - **Joker:** muy de vez en cuando (1 de cada 20 tiros) el dado sale joker y el jugador
   elige el número que quiera del 0 al 6, y luego unidad o decena.
+- **Poder 🔄:** al azar entre la ronda 2 y la 4 aparece un 🔄 flotando para todos. El
+  primero que lo toca elige a otro jugador en juego, un número del 0 al 6 y si va como
+  unidad o decena: ese número se pone en el **siguiente espacio vacío** del otro, que
+  pierde ese turno (y si se pasa de 100, queda eliminado). Tiene 10 s para usarlo o lo
+  pierde. En el panel (**Premios y reglas**) se activa o apaga, cuántas veces sale por
+  partida (1 por defecto) y cuántos segundos dura.
 - **Volver a tirar:** una vez por partida, después de tirar, el jugador puede pagar
   **1 diamante** para volver a tirar. Si su turno se acaba mientras se cobra, se le
   devuelve el diamante.

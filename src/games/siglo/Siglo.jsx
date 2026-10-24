@@ -11,6 +11,7 @@ import { BurbujaEmoji, SelectorEmojis } from "../../components/common/Emojis";
 import { useEmojisSala } from "../../components/common/useEmojisSala";
 import { sonar as sonarMomento } from "../../services/sonidos";
 import { useSonido } from "../../hooks/useSonido";
+import PoderSiglo from "./Poder";
 import BotonHablar, { HablandoMarca } from "../../components/juego/BotonHablar";
 import { AccionesJugador } from "../../components/juego/Reportar";
 import { useVoz } from "../../hooks/useVoz";
@@ -408,6 +409,7 @@ export default function Siglo() {
                                                 "sg-espacio",
                                                 v !== null && "sg-espacio-lleno",
                                                 v === null && i === partida.ronda && !j.eliminado && partida.fase === "jugando" && "sg-espacio-actual",
+                                                j.marcasPoder?.includes(i) && "sg-espacio-poder",
                                             ].filter(Boolean).join(" ")}
                                         >
                                             <AnimatePresence>
@@ -613,6 +615,8 @@ export default function Siglo() {
                     )}
                 </section>
             </main>
+
+            <PoderSiglo partida={partida} miId={miId} desfase={desfase.current} />
 
             {error && <p className="sg-error" role="alert">{error}</p>}
         </div>
