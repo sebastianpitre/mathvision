@@ -3,7 +3,7 @@ import { LuGem, LuPlus } from "react-icons/lu";
 
 import { useAuth } from "../../context/AuthContext";
 import { jugadorDesdeUsuario } from "../../services/jugador";
-import AssetImage from "../common/AssetImage";
+import FotoPerfil from "./FotoPerfil";
 
 /* Perfil (foto, nivel, XP), oro y diamantes: arriba a la
    izquierda en todas las pantallas, como en Free Fire. */
@@ -20,7 +20,7 @@ export default function BarraJugador() {
         <>
             <button type="button" className="ffl-perfil" onClick={() => navigate("/profile")} aria-label={`Tu perfil: ${jugador.displayName}, nivel ${jugador.level}`}>
                 <span className="ffl-avatar">
-                    <AssetImage src={jugador.avatar} type="player" alt="" />
+                    <FotoPerfil foto={jugador.avatar} marco={user?.marco} />
                     <span className="ffl-nivel">{jugador.level}</span>
                 </span>
                 <span className="ffl-perfil-datos">

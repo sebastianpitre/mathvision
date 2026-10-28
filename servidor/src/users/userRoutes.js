@@ -29,6 +29,7 @@ function perfilPublico(user) {
         coins: user.coins,
         gems: user.gems,
         avatar: user.avatar,
+        marco: user.marco,
         character_id: user.character_id,
         character_name: user.character_name,
         character_model_path: user.character_model_path,

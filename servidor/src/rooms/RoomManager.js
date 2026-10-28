@@ -167,6 +167,7 @@ export class RoomManager {
                 userId: m.userId,
                 nombre: m.nombre,
                 avatar: m.avatar,
+                marco: m.marco || null,
                 nivel: m.nivel,
                 modelo: m.modelo,
                 personaje: m.personaje,

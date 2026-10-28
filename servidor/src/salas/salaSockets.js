@@ -100,6 +100,7 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
             socketId: socket.id,
             nombre: String(perfil?.display_name || perfil?.username || socket.username || "Jugador").slice(0, 30),
             avatar: perfil?.avatar || null,
+            marco: perfil?.marco || null,
             nivel: perfil?.level || 1,
             modelo: perfil?.character_model_path || null,
             personaje: perfil?.character_name || null,

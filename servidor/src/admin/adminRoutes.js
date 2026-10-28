@@ -24,6 +24,7 @@
    GET    /usuarios/:id/reportes       sus reportes con el motivo
    /sonidos/…                          biblioteca de sonidos (ver sonidos/sonidosAdmin.js)
    GET|PUT /reglas-siglo                poder 🔄 de SigloGamif
+   temporadas, eventos y fotos/marcos   ver adminTemporadasEventos.js
    POST   /usuarios/:id/reportes/revisar   marcar revisados (ya no cuentan)
    GET    /voz                         reglas de la voz
    PUT    /voz                         guardar reglas
@@ -42,6 +43,7 @@ import { ARCHIVOS_DIR, URL_ARCHIVOS, TIPOS_ARCHIVO } from "../config/archivos.js
 import { obtenerPremios, guardarPremios } from "../config/premios.js";
 import { olvidarBloqueo } from "../auth/bloqueo.js";
 import sonidosAdmin from "../sonidos/sonidosAdmin.js";
+import adminTemporadasEventos from "./adminTemporadasEventos.js";
 import { reglasSiglo, guardarReglasSiglo } from "../config/reglasSiglo.js";
 import { obtenerConfigVoz, guardarConfigVoz, olvidarPermisoVoz, MOTIVOS_REPORTE } from "../voz/voz.js";
 import {
@@ -64,6 +66,7 @@ const router = express.Router();
 router.use(express.json({ limit: "3mb" }));
 router.use(requireAdmin);
 router.use("/sonidos", sonidosAdmin);
+router.use(adminTemporadasEventos);
 
 function idValido(valor) {
     const id = Number(valor);

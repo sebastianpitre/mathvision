@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { LuCheck, LuGamepad2, LuGem, LuPercent, LuSave, LuTrophy } from "react-icons/lu";
+import { LuCheck, LuGamepad2, LuGem, LuLock, LuPercent, LuSave, LuTrophy } from "react-icons/lu";
 
 import PantallaFF, { Pestanas } from "../../components/juego/PantallaFF";
 import Personaje3D from "../../components/juego/Personaje3D";
-import AssetImage from "../../components/common/AssetImage";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
 import assets from "../../data/mock/assets.json";
 import icons from "../../data/mock/icons.json";
 
 import "./perfil.css";
+import FotoPerfil from "../../components/juego/FotoPerfil";
+import InsigniaRango from "../../components/juego/InsigniaRango";
 
 /* =========================================================
    PERFIL (como el perfil de Free Fire)
@@ -35,6 +36,9 @@ export default function Profile() {
     const [foto, setFoto] = useState(null);
     const [guardando, setGuardando] = useState(false);
     const [aviso, setAviso] = useState({ texto: "", tono: "" });
+    const [cosmeticos, setCosmeticos] = useState({ fotos: [], marcos: [], marcoId: null });
+    const [marco, setMarco] = useState(null); // id del marco elegido
+    const [rango, setRango] = useState(null);
 
     useEffect(() => {
         let cancelado = false;
@@ -55,6 +59,41 @@ export default function Profile() {
             cancelado = true;
         };
     }, [id, propio]);
+
+    // Fotos exclusivas y marcos (los míos) · rango de temporada (de quien sea).
+    useEffect(() => {
+        if (!propio) return;
+        api("/perfiles/cosmeticos")
+            .then((c) => {
+                setCosmeticos(c);
+                setMarco(c.marcoId);
+            })
+            .catch(() => {});
+    }, [propio]);
+
+    useEffect(() => {
+        const quien = perfil?.id;
+        if (!quien) return;
+        api(`/perfiles/rango/${quien}`, { auth: false })
+            .then(setRango)
+            .catch(() => setRango(null));
+    }, [perfil?.id]);
+
+    async function guardarMarco() {
+        setGuardando(true);
+        setAviso({ texto: "", tono: "" });
+        try {
+            await api("/perfiles/marco", { metodo: "PUT", body: { marcoId: marco } });
+            const nuevo = await refreshUser();
+            setPerfil((p) => ({ ...p, ...(nuevo || {}) }));
+            setCosmeticos((c) => ({ ...c, marcoId: marco }));
+            setAviso({ texto: "¡Marco actualizado!", tono: "ok" });
+        } catch (e) {
+            setAviso({ texto: e.message || "No se pudo guardar.", tono: "error" });
+        } finally {
+            setGuardando(false);
+        }
+    }
 
     async function guardarFoto() {
         setGuardando(true);
@@ -91,6 +130,7 @@ export default function Profile() {
         { id: "resumen", texto: "Resumen" },
         { id: "estadisticas", texto: "Estadísticas" },
         propio && { id: "foto", texto: "Foto de perfil" },
+        propio && { id: "marco", texto: "Marcos" },
     ].filter(Boolean);
 
     return (
@@ -114,7 +154,7 @@ export default function Profile() {
                     </div>
                     <div className="pf-tarjeta-cuerpo">
                         <span className="pf-foto">
-                            <AssetImage src={perfil.avatar} type="player" alt={`Foto de ${nombre}`} />
+                            <FotoPerfil foto={perfil.avatar} marco={perfil.marco} alt={`Foto de ${nombre}`} />
                         </span>
                         <div className="pf-datos">
                             <strong>{nombre}</strong>
@@ -122,6 +162,12 @@ export default function Profile() {
                                 <span style={{ width: `${xp}%` }} />
                             </span>
                             <small>{`Nv. ${perfil.level || 1} · ID ${perfil.id ?? id ?? ""}`}</small>
+                            {rango && (
+                                <span className="pf-rango">
+                                    <InsigniaRango rango={rango.rango} tamano="1.3rem" conNombre />
+                                    <small>{`${formato(rango.puntos)} pts`}</small>
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -169,6 +215,23 @@ export default function Profile() {
                     {pestana === "foto" && propio && (
                         <div className="pf-fotos">
                             <ul>
+                                {cosmeticos.fotos.map((c) => (
+                                    <li key={`c${c.id}`}>
+                                        <button
+                                            type="button"
+                                            className={`pf-foto-opcion ${foto === c.ruta ? "pf-foto-elegida" : ""} ${c.tengo ? "" : "pf-bloqueada"}`}
+                                            onClick={() => c.tengo && setFoto(c.ruta)}
+                                            disabled={!c.tengo}
+                                            aria-pressed={foto === c.ruta}
+                                            aria-label={c.tengo ? c.nombre : `${c.nombre} (se gana en eventos)`}
+                                            title={c.tengo ? c.nombre : "Se gana en eventos"}
+                                        >
+                                            <img src={c.ruta} alt="" loading="lazy" draggable="false" />
+                                            {foto === c.ruta && <LuCheck aria-hidden="true" />}
+                                            {!c.tengo && <LuLock aria-hidden="true" className="pf-candado" />}
+                                        </button>
+                                    </li>
+                                ))}
                                 {icons.map((icono) => (
                                     <li key={icono.id}>
                                         <button
@@ -193,9 +256,44 @@ export default function Profile() {
                             </div>
                         </div>
                     )}
+
+                    {pestana === "marco" && propio && (
+                        <div className="pf-fotos">
+                            {cosmeticos.marcos.length === 0 ? (
+                                <p className="pf-vacio">Aún no hay marcos. Se ganan en los eventos.</p>
+                            ) : (
+                                <ul>
+                                    {[{ id: null, nombre: "Sin marco", ruta: null, tengo: true }, ...cosmeticos.marcos].map((c) => (
+                                        <li key={c.id ?? "ninguno"}>
+                                            <button
+                                                type="button"
+                                                className={`pf-foto-opcion pf-marco-opcion ${marco === c.id ? "pf-foto-elegida" : ""} ${c.tengo ? "" : "pf-bloqueada"}`}
+                                                onClick={() => c.tengo && setMarco(c.id)}
+                                                disabled={!c.tengo}
+                                                aria-pressed={marco === c.id}
+                                                aria-label={c.tengo ? c.nombre : `${c.nombre} (se gana en eventos)`}
+                                                title={c.tengo ? c.nombre : "Se gana en eventos"}
+                                            >
+                                                <FotoPerfil foto={perfil.avatar} marco={c.ruta} />
+                                                {marco === c.id && <LuCheck aria-hidden="true" />}
+                                                {!c.tengo && <LuLock aria-hidden="true" className="pf-candado" />}
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                            <div className="pf-fotos-pie">
+                                {aviso.texto ? <p className={`ffp-aviso ffp-aviso-${aviso.tono}`} role="status">{aviso.texto}</p> : <span />}
+                                <button type="button" className="ffp-btn" onClick={guardarMarco} disabled={guardando || marco === cosmeticos.marcoId}>
+                                    <LuSave aria-hidden="true" />
+                                    Guardar
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                {propio && pestana !== "foto" && (
+                {propio && pestana !== "foto" && pestana !== "marco" && (
                     <div className="pf-monedas">
                         <span><span className="ffl-moneda-oro" aria-hidden="true" />{formato(perfil.coins)}</span>
                         <span><LuGem aria-hidden="true" className="pf-gema" />{formato(perfil.gems)}</span>

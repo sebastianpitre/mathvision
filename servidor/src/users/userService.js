@@ -10,6 +10,7 @@
 import { pool } from "../database/db.js";
 import { conProgreso } from "../progreso/progreso.js";
 import { errorConEstado } from "../http/ruta.js";
+import { fotoPermitida } from "../perfiles/cosmeticos.js";
 
 /* ---------------------------------------------------------
    PERFIL COMPLETO
@@ -33,6 +34,8 @@ export async function getUserProfile(userId) {
             p.gems,
             p.character_id,
             p.avatar,
+            p.marco_id,
+            m.ruta AS marco,
 
             c.name AS character_name,
             c.model_path AS character_model_path,
@@ -49,6 +52,7 @@ export async function getUserProfile(userId) {
         JOIN player_profiles p ON p.user_id = u.id
         LEFT JOIN player_stats s ON s.user_id = u.id
         LEFT JOIN characters c ON c.id = p.character_id
+        LEFT JOIN cosmeticos m ON m.id = p.marco_id
         WHERE u.id = $1
         `,
         [userId]
@@ -129,16 +133,20 @@ export async function updateCharacter(userId, characterId) {
 
 /* ---------------------------------------------------------
    FOTO DE PERFIL
-   Solo imágenes del propio juego (/img/...), para que nadie
-   pueda poner enlaces externos o código.
+   Solo imágenes del propio juego (/img/...) o fotos subidas
+   en el panel que el jugador pueda usar (las exclusivas solo
+   si las ganó), para que nadie ponga enlaces externos.
 --------------------------------------------------------- */
 
 const AVATAR_VALIDO = /^\/img\/[\w\-./]+\.(png|jpe?g|webp|avif|gif|svg)$/i;
 
 export async function updateAvatar(userId, avatar) {
-    if (typeof avatar !== "string" || avatar.length > 255 || !AVATAR_VALIDO.test(avatar) || avatar.includes("..")) {
-        throw errorConEstado("Foto de perfil no válida.");
-    }
+    const valida =
+        typeof avatar === "string" &&
+        avatar.length <= 255 &&
+        !avatar.includes("..") &&
+        (AVATAR_VALIDO.test(avatar) || (avatar.startsWith("/archivos/") && (await fotoPermitida(userId, avatar))));
+    if (!valida) throw errorConEstado("Foto de perfil no válida.");
 
     await pool.query(
         `

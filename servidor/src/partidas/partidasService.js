@@ -15,6 +15,7 @@ import {
 } from "../progreso/progreso.js";
 import { getUserProfile } from "../users/userService.js";
 import { obtenerPremios } from "../config/premios.js";
+import { sumarPuntosTemporada } from "../temporadas/temporadas.js";
 
 export class ErrorJuego extends Error {
     constructor(mensaje, status = 400) {
@@ -152,6 +153,9 @@ async function terminarPartida(client, partida, nivel, resultado) {
 
     const gano = resultado === "completada" && calculo.alcanzo_minimo;
 
+    // Puntos de temporada (no cuentan las partidas que pasan el límite diario).
+    const temporada = limiteDiario ? null : await sumarPuntosTemporada(client, partida.user_id, gano ? "ganada" : "perdida");
+
     await sumarEstadisticas(client, partida.user_id, {
         jugadas: 1,
         ganadas: gano ? 1 : 0,
@@ -169,10 +173,11 @@ async function terminarPartida(client, partida, nivel, resultado) {
             xp_ganada = $3,
             oro_ganado = $4,
             diamantes_ganados = $5,
+            gano = $6,
             terminada_en = CURRENT_TIMESTAMP
         WHERE id = $1
         `,
-        [partida.id, resultado, xp, oro, diamantes]
+        [partida.id, resultado, xp, oro, diamantes, gano]
     );
 
     return {
@@ -186,6 +191,7 @@ async function terminarPartida(client, partida, nivel, resultado) {
         puntos: partida.puntos,
         limite_diario_alcanzado: limiteDiario,
         recompensa,
+        temporada,
     };
 }
 
@@ -430,6 +436,8 @@ export async function registrarPartidaSimple(userId, { juego, aciertos, total })
         }
 
         const recompensa = await entregarRecompensa(client, userId, { xp, oro });
+        const gano = totalSeguro > 0 && aciertosSeguros === totalSeguro;
+        const temporada = limiteDiario ? null : await sumarPuntosTemporada(client, userId, gano ? "ganada" : "perdida");
 
         await sumarEstadisticas(client, userId, {
             jugadas: 1,
@@ -443,8 +451,8 @@ export async function registrarPartidaSimple(userId, { juego, aciertos, total })
         await client.query(
             `
             INSERT INTO partidas (user_id, juego, estado, resultado, total_preguntas, aciertos, errores,
-                                  xp_ganada, oro_ganado, terminada_en)
-            VALUES ($1, $2, 'terminada', $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
+                                  xp_ganada, oro_ganado, gano, terminada_en)
+            VALUES ($1, $2, 'terminada', $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)
             `,
             [
                 userId,
@@ -455,10 +463,11 @@ export async function registrarPartidaSimple(userId, { juego, aciertos, total })
                 totalSeguro - aciertosSeguros,
                 xp,
                 oro,
+                gano,
             ]
         );
 
-        return { recompensa, limite_diario_alcanzado: limiteDiario };
+        return { recompensa, limite_diario_alcanzado: limiteDiario, temporada };
     });
 }
 
@@ -495,6 +504,7 @@ export async function registrarResultadoMultijugador(juego, resultados) {
             }
 
             const recompensa = await entregarRecompensa(client, userId, { xp, oro, diamantes });
+            const temporada = limiteDiario ? null : await sumarPuntosTemporada(client, userId, resultado);
 
             await sumarEstadisticas(client, userId, {
                 jugadas: 1,
@@ -505,13 +515,13 @@ export async function registrarResultadoMultijugador(juego, resultados) {
             await client.query(
                 `
                 INSERT INTO partidas (user_id, juego, estado, resultado, xp_ganada, oro_ganado,
-                                      diamantes_ganados, terminada_en)
-                VALUES ($1, $2, 'terminada', $3, $4, $5, $6, CURRENT_TIMESTAMP)
+                                      diamantes_ganados, gano, terminada_en)
+                VALUES ($1, $2, 'terminada', $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
                 `,
-                [userId, juego, resultado, xp, oro, diamantes]
+                [userId, juego, resultado, xp, oro, diamantes, resultado === "ganada"]
             );
 
-            return { ...recompensa, limite_diario_alcanzado: limiteDiario };
+            return { ...recompensa, limite_diario_alcanzado: limiteDiario, temporada };
         });
 
         premios.push({ userId, resultado, recompensa: premio });

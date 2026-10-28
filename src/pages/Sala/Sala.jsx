@@ -7,7 +7,6 @@ import { LuCheck, LuCopy, LuCrown, LuDoorOpen, LuLogIn, LuPlus, LuSettings2, LuS
 import PantallaFF from "../../components/juego/PantallaFF";
 import ElegirJuego, { textoJugadores } from "../../components/juego/ElegirJuego";
 import ListaJugadores from "../../components/juego/ListaJugadores";
-import AssetImage from "../../components/common/AssetImage";
 import ProtegerError from "../../components/common/ProtegerError";
 import VRMCharacter from "../../components/character/VRMCharacter";
 import LucesPersonaje from "../../components/character/LucesPersonaje";
@@ -22,6 +21,7 @@ import { avisar } from "../../services/avisos";
 import games from "../../data/mock/games.json";
 
 import "./sala.css";
+import FotoPerfil from "../../components/juego/FotoPerfil";
 
 /* =========================================================
    SALA MULTIJUGADOR (estilo Free Fire)
@@ -289,7 +289,7 @@ export default function Sala() {
                     {miembros.map((m) => (
                         <li key={m.userId} className={`sl-jugador ${m.conectado ? "" : "sl-desconectado"}`}>
                             <span className="sl-foto">
-                                <AssetImage src={m.avatar} type="player" alt="" />
+                                <FotoPerfil foto={m.avatar} marco={m.marco} />
                             </span>
                             <span className="sl-jugador-datos">
                                 <strong>

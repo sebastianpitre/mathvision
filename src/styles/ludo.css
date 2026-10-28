@@ -448,7 +448,8 @@
     border-radius: 16px;
     background: var(--lb-surface);
     border: 1px solid var(--lb-border);
-    overflow-x: auto;
+    /* Muchas pestañas: bajan a otra línea en vez de esconderse. */
+    flex-wrap: wrap;
 }
 
 .lg-tab {
@@ -940,4 +941,56 @@
     .login-form .lg-help {
         display: none;
     }
+}
+
+/* Panel · fotos y marcos */
+.lg-cosmeticos {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+}
+
+.lg-cosmeticos li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid var(--lb-border);
+    border-radius: 12px;
+}
+
+.lg-cosmetico {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #1b2236;
+    flex-shrink: 0;
+}
+
+.lg-cosmetico img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Panel · misiones de un evento */
+.lg-mision {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 12px;
+    border: 1px solid var(--lb-border);
+    border-radius: 12px;
+}
+
+.lg-mision legend {
+    padding: 0 6px;
+    font-weight: 700;
 }

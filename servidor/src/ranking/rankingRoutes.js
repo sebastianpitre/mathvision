@@ -9,6 +9,7 @@ import express from "express";
 import { pool } from "../database/db.js";
 import { requireAuth } from "../auth/authMiddleware.js";
 import { ruta } from "../http/ruta.js";
+import { tablaTemporada } from "../temporadas/temporadas.js";
 
 const router = express.Router();
 
@@ -19,6 +20,16 @@ const ORDEN = {
 };
 
 const TOP = 50;
+
+/* GET /api/ranking/temporada[?id=] → tabla de la temporada con rangos */
+router.get(
+    "/temporada",
+    requireAuth,
+    ruta(async (req, res) => {
+        const id = Number(req.query.id) || null;
+        res.json({ success: true, ...(await tablaTemporada(req.user.userId, { temporadaId: id })) });
+    })
+);
 
 router.get(
     "/",
@@ -33,6 +44,7 @@ router.get(
                     u.id,
                     p.display_name AS nombre,
                     p.avatar,
+                    m.ruta AS marco,
                     p.level AS nivel,
                     p.xp,
                     COALESCE(s.games_played, 0) AS partidas,
@@ -46,6 +58,7 @@ router.get(
                 JOIN player_profiles p ON p.user_id = u.id
                 LEFT JOIN player_stats s ON s.user_id = u.id
                 LEFT JOIN characters c ON c.id = p.character_id
+                LEFT JOIN cosmeticos m ON m.id = p.marco_id
                 WHERE u.bloqueado = FALSE
             )
             SELECT * FROM tabla

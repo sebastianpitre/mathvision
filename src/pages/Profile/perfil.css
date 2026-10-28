@@ -291,3 +291,49 @@
     height: 1rem;
     color: #67e8f9;
 }
+
+/* Rango, fotos exclusivas y marcos */
+.pf-rango {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.15rem;
+    font-size: 0.8rem;
+}
+
+.pf-rango .rg-nombre {
+    color: #2b1d00 !important;
+    font-size: 0.78rem;
+}
+
+.pf-rango small {
+    color: #4b3b16;
+}
+
+.pf-bloqueada {
+    cursor: not-allowed;
+}
+
+.pf-bloqueada img {
+    filter: grayscale(1) brightness(0.45);
+}
+
+.pf-foto-opcion .pf-candado {
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+    width: 1.4rem;
+    height: 1.4rem;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    z-index: 2;
+}
+
+.pf-marco-opcion .fp-marco {
+    filter: none;
+}
+
+.pf-vacio {
+    margin: auto;
+    color: var(--suave);
+    text-align: center;
+}

@@ -1248,3 +1248,58 @@
     clip: rect(0 0 0 0);
     white-space: nowrap;
 }
+
+/* ---------- Marco de la foto de perfil ---------- */
+.fp-marco {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ---------- Insignia de rango ---------- */
+.rg {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.rg svg {
+    filter: drop-shadow(0 0.1rem 0.2rem rgba(0, 0, 0, 0.5));
+}
+
+.rg-nombre {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.ffp-insignia-cuenta {
+    position: absolute;
+    top: -0.35rem;
+    right: -0.35rem;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 0.25rem;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+/* Contenedores de foto que pueden llevar marco */
+.sl-foto,
+.rk-foto,
+.pf-foto,
+.ffl-avatar {
+    position: relative;
+}

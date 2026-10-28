@@ -142,6 +142,21 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   respuestas, comodín, etc. Los sonidos que trae el juego quedan "de fábrica" y no se
   borran. En el menú flotante cada jugador puede apagar todo el sonido o solo la música, y
   la música baja sola mientras alguien habla por el walkie-talkie.
+- **Temporadas:** nombre y fecha de fin de la temporada actual (por defecto duran 2 meses),
+  botón "Cerrar ahora", puntos por partida (gana +30, empata +12, pierde −8), puntos de
+  cada rango (Bronce, Plata, Oro, Platino, Diamante, Heroico, Maestro) y el premio en oro
+  y diamantes de cada rango. Al llegar la fecha de fin se cierra sola (se revisa cada
+  minuto): entrega los premios, guarda el rango final de cada uno y empieza otra
+  temporada con todos en Bronce. Hay historial con la tabla de cada temporada. Solo
+  cuentan las partidas que dan premio (no las que pasan el límite diario).
+- **Eventos:** cada evento tiene título, descripción, imagen del anuncio, fecha y hora de
+  inicio y fin, y hasta 12 misiones. Cada misión: qué hacer (jugar, ganar, responder o
+  acertar N preguntas, jugar N días distintos), en qué juego (o cualquiera), fechas propias
+  opcionales (por ejemplo "este sábado de 3 a 6 p. m.") y su recompensa: oro, diamantes,
+  un personaje, una foto de perfil y/o un marco. Se pueden editar (sin perder lo ya
+  reclamado), duplicar y borrar, y se ve cuántos reclamaron cada misión.
+- **Fotos y marcos:** fotos de perfil y marcos (PNG con el centro transparente) para dar en
+  los eventos. "Exclusivo" = solo quien lo gana; si no, cualquiera lo puede usar.
 - **Voz y reportes:** activar o apagar la voz para todos, segundos máximos por turno
   (5 por defecto), espera para volver a hablar (3) y cuántos reportes sin revisar de
   jugadores distintos quitan la voz (3).
@@ -176,6 +191,17 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
 - También sirve el formato anterior: `question`, `options`, `correctAnswer`.
 - El panel muestra una vista previa y los errores con su número de pregunta antes de guardar.
 - Ejemplos completos: `servidor/datos/niveles/*.json` (son los niveles que vienen al instalar).
+
+### Eventos, temporadas y perfiles (para el jugador)
+
+- **Eventos** (botón en el lobby con el número de premios por reclamar, o menú flotante):
+  el anuncio con su cuenta regresiva y las misiones con su barra de progreso y el botón
+  **Reclamar**. El avance se calcula con las partidas que termina entre las fechas.
+- **Ranking → Temporada:** tabla de la temporada con el rango de cada uno, cuánto falta
+  para el siguiente rango y cuándo termina.
+- **Perfil:** muestra el rango de la temporada. En "Foto de perfil" aparecen también las
+  fotos exclusivas (con candado si no las tiene) y en "Marcos" se pone o quita el marco,
+  que se ve en la barra de arriba, el perfil, la sala y el ranking.
 
 ### Cómo se gana
 

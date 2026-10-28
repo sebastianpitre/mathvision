@@ -24,6 +24,9 @@ import { crearVoz } from "./src/voz/vozSockets.js";
 import { ARCHIVOS_DIR, URL_ARCHIVOS, FRONTEND_DIR } from "./src/config/archivos.js";
 import sonidosRoutes from "./src/sonidos/sonidosRoutes.js";
 import { cargarReglasSiglo } from "./src/config/reglasSiglo.js";
+import eventosRoutes from "./src/eventos/eventosRoutes.js";
+import perfilesRoutes from "./src/perfiles/perfilesRoutes.js";
+import { revisarTemporadas } from "./src/temporadas/temporadas.js";
 import { TriquiGame } from "./src/games/triqui/TriquiGame.js";
 
 import {
@@ -126,6 +129,8 @@ app.use("/api/tienda", tiendaRoutes);
 app.use("/api/ranking", rankingRoutes);
 app.use("/api/reportes", reportesRoutes);
 app.use("/api/sonidos", sonidosRoutes);
+app.use("/api/eventos", eventosRoutes);
+app.use("/api/perfiles", perfilesRoutes);
 
 /*
  * Modelos 3D y fotos subidos desde el panel. Cada archivo
@@ -1694,6 +1699,10 @@ httpServer.on(
 
 // Reglas de SigloGamif del panel (poder 🔄): quedan en memoria.
 cargarReglasSiglo();
+
+// Temporadas: se revisa cada minuto si ya terminó la actual (y se cierra con premios).
+revisarTemporadas();
+setInterval(revisarTemporadas, 60 * 1000).unref();
 
 httpServer.listen(
     PORT,

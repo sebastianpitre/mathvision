@@ -19,6 +19,7 @@ import {
     LuSmartphone,
     LuUserRound,
     LuTrophy,
+    LuGift,
     LuUsers,
     LuVolume2,
     LuVolumeX,
@@ -42,6 +43,8 @@ import AssetImage from "../components/common/AssetImage";
 import ProtegerError from "../components/common/ProtegerError";
 import VRMCharacter from "../components/character/VRMCharacter";
 import LucesPersonaje from "../components/character/LucesPersonaje";
+import FotoPerfil from "../components/juego/FotoPerfil";
+import { api } from "../services/api";
 
 /* =========================================================
    LOBBY (diseño tipo Free Fire)
@@ -160,6 +163,14 @@ export default function Lobby() {
     const [silencio, setSilencio] = useState(() => estaSilenciado());
 
     useEffect(() => alAvisar(setAviso), []);
+
+    // Recompensas de eventos listas para reclamar (el número rojo en "Eventos").
+    const [porReclamar, setPorReclamar] = useState(0);
+    useEffect(() => {
+        api("/eventos")
+            .then((r) => setPorReclamar(r.porReclamar || 0))
+            .catch(() => {});
+    }, []);
     useEffect(() => alCambiarSilencio(setSilencio), []);
     useEffect(() => {
         const ver = () => setCompleta(enPantallaCompleta());
@@ -215,7 +226,7 @@ export default function Lobby() {
             <header className="ffl-arriba">
                 <button type="button" className="ffl-perfil" onClick={() => navigate("/profile")} aria-label={`Tu perfil: ${jugador.displayName}, nivel ${jugador.level}`}>
                     <span className="ffl-avatar">
-                        <AssetImage src={jugador.avatar} type="player" alt="" />
+                        <FotoPerfil foto={jugador.avatar} marco={user?.marco} />
                         <span className="ffl-nivel">{jugador.level}</span>
                     </span>
                     <span className="ffl-perfil-datos">
@@ -271,10 +282,12 @@ export default function Lobby() {
                     { texto: "Preguntas", icono: LuBookOpen, ruta: "/games/preguntas" },
                     { texto: "Sala", icono: LuUsers, ruta: "/sala" },
                     { texto: "Ranking", icono: LuTrophy, ruta: "/ranking" },
-                ].map(({ texto, icono: Icono, ruta }) => (
-                    <button key={ruta} type="button" className="ffl-menu-btn" onClick={() => navigate(ruta)}>
+                    { texto: "Eventos", icono: LuGift, ruta: "/eventos", cuenta: porReclamar },
+                ].map(({ texto, icono: Icono, ruta, cuenta }) => (
+                    <button key={ruta} type="button" className="ffl-menu-btn" onClick={() => navigate(ruta)} aria-label={cuenta ? `${texto}: ${cuenta} para reclamar` : undefined}>
                         <Icono aria-hidden="true" />
                         <span>{texto}</span>
+                        {cuenta > 0 && <span className="ffp-insignia-cuenta" aria-hidden="true">{cuenta}</span>}
                     </button>
                 ))}
             </nav>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LuChartColumn, LuGift, LuLayers, LuMic, LuMusic, LuShieldCheck, LuShirt, LuUsers } from "react-icons/lu";
+import { LuChartColumn, LuGift, LuCalendarDays, LuLayers, LuMedal, LuMic, LuMusic, LuSquareUser, LuShieldCheck, LuShirt, LuUsers } from "react-icons/lu";
 
 import MainNav from "../../components/navigation/MainNav";
 import Resumen from "./Resumen";
@@ -9,6 +9,9 @@ import UsuariosAdmin from "./UsuariosAdmin";
 import PremiosAdmin from "./PremiosAdmin";
 import VozAdmin from "./VozAdmin";
 import SonidosAdmin from "./SonidosAdmin";
+import TemporadasAdmin from "./TemporadasAdmin";
+import EventosAdmin from "./EventosAdmin";
+import PerfilesAdmin from "./PerfilesAdmin";
 
 import "../../styles/ludo.css";
 
@@ -26,6 +29,9 @@ const PESTANAS = [
     { id: "premios", label: "Premios y reglas", icon: LuGift, Componente: PremiosAdmin },
     { id: "voz", label: "Voz y reportes", icon: LuMic, Componente: VozAdmin },
     { id: "sonidos", label: "Sonidos", icon: LuMusic, Componente: SonidosAdmin },
+    { id: "temporadas", label: "Temporadas", icon: LuMedal, Componente: TemporadasAdmin },
+    { id: "eventos", label: "Eventos", icon: LuCalendarDays, Componente: EventosAdmin },
+    { id: "perfiles", label: "Fotos y marcos", icon: LuSquareUser, Componente: PerfilesAdmin },
 ];
 
 function pestanaInicial() {
