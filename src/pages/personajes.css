@@ -119,6 +119,18 @@
     white-space: nowrap;
 }
 
+.pj-detalle-texto .pj-creditos {
+    margin-top: 0.15rem;
+    color: var(--suave);
+    font-size: 0.68rem;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .pj-detalle-botones {
     flex-shrink: 0;
     display: flex;

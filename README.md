@@ -320,8 +320,24 @@ Van en `servidor/src/database/migraciones/` como pasos numerados (`004_algo.sql`
 
 ### Agregar un personaje a la tienda
 
-Desde el panel: **Personajes → Nuevo personaje**, sube el modelo `.vrm` y la foto, pon el
-precio y listo. Los archivos subidos se guardan en el volumen de Docker
+Desde el panel: **Personajes → Nuevo personaje**, sube el modelo (`.vrm` o `.glb`) y la
+foto, pon el precio y listo. Al subirlo, el panel lo revisa, dice cómo se va a ver y muestra
+una vista previa:
+
+| Modelo | En el juego |
+| --- | --- |
+| VRM 1.0 | Se anima completo: camina, saluda y parpadea. |
+| VRM 0.x (el de muchas apps de teléfono) | Se gira y se corrigen sus ejes solos. Se anima completo. |
+| GLB con esqueleto (Mixamo, Unreal, VRoid, Blender…) | Camina y saluda (no parpadea). Se ajusta a 1,6 m y se para en el piso. |
+| GLB sin esqueleto | Se muestra con su propia animación, si trae; si no, quieto. |
+
+- De Sketchfab descarga el formato **GLB** (no FBX).
+- Para que un modelo sin esqueleto camine, pásalo por **Mixamo** (gratis), que le pone el
+  esqueleto, y expórtalo a GLB con Blender.
+- Personajes VRM: **VRoid Hub** (revisa que permita descarga y uso), **Booth** (busca
+  "VRM 無料") o créalos en **VRoid Studio** (gratis).
+- **Créditos del autor:** si la licencia lo pide (por ejemplo CC Attribution), escríbelos
+  en el campo "Créditos": se muestran en la tienda debajo del nombre. Los archivos subidos se guardan en el volumen de Docker
 `ludogamif_archivos` (se sirven en `/archivos/…`) y sobreviven a las actualizaciones.
 
 Para subir modelos grandes, el bloque nginx de ludogamif necesita

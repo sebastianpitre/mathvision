@@ -1,5 +1,6 @@
 import React, {
     useEffect,
+    useMemo,
     useRef
 } from "react";
 
@@ -19,6 +20,8 @@ import {
 import {
     useAuth
 } from "../../context/AuthContext";
+
+import { adaptarModelo } from "./adaptarModelo";
 
 
 /*
@@ -124,7 +127,9 @@ export default function VRMCharacter({
         }
     );
 
-    const vrm = gltf?.userData?.vrm;
+    // VRM 1.0, VRM 0.x o GLB: todos quedan con la misma forma
+    // (ver adaptarModelo.js).
+    const vrm = useMemo(() => (gltf ? adaptarModelo(gltf) : null), [gltf]);
 
 
     /*
@@ -140,10 +145,7 @@ export default function VRMCharacter({
             return;
         }
 
-        if (!vrm) {
-            console.error("❌ No se encontró un modelo VRM válido:", characterUrl);
-            return;
-        }
+        if (!vrm) return;
 
         timeRef.current = 0;
         blinkTimerRef.current = 0;
@@ -159,14 +161,8 @@ export default function VRMCharacter({
 
         vrmRef.current = vrm;
 
-        const humanoid = vrm.humanoid;
-
-        if (!humanoid) {
-            console.error("❌ El VRM no tiene humanoid.");
-            return;
-        }
-
-        const getBone = (name) => humanoid.getNormalizedBoneNode(name);
+        // Sin esqueleto: se muestra quieto (o con su propia animación).
+        const getBone = (name) => vrm.hueso(name);
 
         bonesRef.current = {
             chest: getBone("chest"),
@@ -509,7 +505,7 @@ export default function VRMCharacter({
 
     return (
         <primitive
-            object={vrm.scene}
+            object={vrm.objeto}
             scale={scale}
             position={position}
             rotation={rotation}

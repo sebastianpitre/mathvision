@@ -4,6 +4,8 @@ import { LuImage, LuPlus, LuSave, LuTrash2, LuUpload } from "react-icons/lu";
 import { api } from "../../services/api";
 import { useCarga } from "./useCarga";
 import { subirArchivo } from "./subirArchivo";
+import { analizarModelo, TEXTO_TIPO } from "../../components/character/adaptarModelo";
+import Personaje3D from "../../components/juego/Personaje3D";
 
 /* =========================================================
    PERSONAJES: crear nuevos (subiendo su modelo .vrm y su
@@ -12,7 +14,29 @@ import { subirArchivo } from "./subirArchivo";
    Precio 0 en oro y en diamantes = gratis para todos.
 ========================================================= */
 
-const VACIO = { name: "", precio_oro: 300, precio_diamantes: 0, nivel_minimo: 1, activo: true, model_path: "", thumbnail_path: "" };
+const VACIO = { name: "", precio_oro: 300, precio_diamantes: 0, nivel_minimo: 1, activo: true, model_path: "", thumbnail_path: "", creditos: "" };
+
+/* Al subir un modelo se revisa cómo se va a ver en el juego. */
+function EstadoModelo({ ruta }) {
+    const [estado, setEstado] = useState(null);
+    useEffect(() => {
+        if (!ruta) return;
+        let cancelado = false;
+        setEstado({ tono: "", texto: "Revisando el modelo…" });
+        analizarModelo(ruta)
+            .then((tipo) => !cancelado && setEstado(TEXTO_TIPO[tipo]))
+            .catch(() => !cancelado && setEstado({ tono: "error", texto: "No se pudo abrir el modelo. ¿Es un .vrm o .glb válido?" }));
+        return () => {
+            cancelado = true;
+        };
+    }, [ruta]);
+    if (!ruta || !estado) return null;
+    return (
+        <span className={estado.tono === "error" ? "lg-alert" : estado.tono === "ok" ? "lg-ok" : "lb-muted"} style={{ padding: "4px 10px" }} role="status">
+            {estado.texto}
+        </span>
+    );
+}
 
 /* Botón que abre el selector de archivos y sube el archivo. */
 function BotonSubir({ tipo, texto, alSubir, alError }) {
@@ -80,6 +104,7 @@ export default function TiendaAdmin() {
                     orden: Number(p.orden) || 0,
                     model_path: p.model_path,
                     thumbnail_path: p.thumbnail_path || undefined,
+                    creditos: p.creditos || "",
                 },
             });
             setFilas((lista) => lista.map((x) => (x.id === p.id ? { ...x, cambiado: false } : x)));
@@ -171,13 +196,24 @@ export default function TiendaAdmin() {
                         </label>
                     </div>
                     <div className="lg-row">
-                        <BotonSubir tipo="modelo" texto="Subir modelo .vrm" alSubir={(ruta) => setNuevo((n) => ({ ...n, model_path: ruta }))} alError={(m) => avisar(m, "error")} />
-                        <span className={nuevo.model_path ? "lg-ok" : "lb-muted"} style={{ padding: "4px 10px" }}>
-                            {nuevo.model_path ? `Modelo listo ✔` : "Falta el modelo (hasta 60 MB)"}
-                        </span>
+                        <BotonSubir tipo="modelo" texto="Subir modelo .vrm o .glb" alSubir={(ruta) => setNuevo((n) => ({ ...n, model_path: ruta }))} alError={(m) => avisar(m, "error")} />
+                        {nuevo.model_path ? (
+                            <EstadoModelo ruta={nuevo.model_path} />
+                        ) : (
+                            <span className="lb-muted" style={{ padding: "4px 10px" }}>Falta el modelo (.vrm o .glb, hasta 60 MB)</span>
+                        )}
                         <BotonSubir tipo="foto" texto="Subir foto" alSubir={(ruta) => setNuevo((n) => ({ ...n, thumbnail_path: ruta }))} alError={(m) => avisar(m, "error")} />
                         {nuevo.thumbnail_path && <img src={nuevo.thumbnail_path} alt="Foto" width={48} height={48} style={{ borderRadius: 10, objectFit: "cover" }} />}
                     </div>
+                    <label className="lg-field">
+                        <span>Créditos del autor (si la licencia lo pide). Ej: Zombie por Grim Greg · CC BY · sketchfab.com</span>
+                        <input className="lg-input" maxLength={300} value={nuevo.creditos} onChange={(e) => setNuevo({ ...nuevo, creditos: e.target.value })} />
+                    </label>
+                    {nuevo.model_path && (
+                        <div style={{ position: "relative", height: 260, borderRadius: 12, overflow: "hidden", background: "#0c1220" }} aria-label="Vista previa del modelo">
+                            <Personaje3D modelo={nuevo.model_path} />
+                        </div>
+                    )}
                     <div className="lg-row">
                         <button type="submit" className="lb-btn lb-btn-primary" disabled={!nuevo.name.trim() || !nuevo.model_path || guardando === "nuevo"}>
                             <LuSave aria-hidden="true" />
@@ -197,7 +233,7 @@ export default function TiendaAdmin() {
                         <tr>
                             <th scope="col">Foto</th>
                             <th scope="col">Nombre</th>
-                            <th scope="col">Archivos</th>
+                            <th scope="col">Archivos y créditos</th>
                             <th scope="col">Oro</th>
                             <th scope="col">Diamantes</th>
                             <th scope="col">Nivel mín.</th>
@@ -225,6 +261,16 @@ export default function TiendaAdmin() {
                                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                                         <BotonSubir tipo="modelo" texto="Cambiar modelo" alSubir={(ruta) => cambiar(p.id, "model_path", ruta)} alError={(m) => avisar(m, "error")} />
                                         <BotonSubir tipo="foto" texto="Cambiar foto" alSubir={(ruta) => cambiar(p.id, "thumbnail_path", ruta)} alError={(m) => avisar(m, "error")} />
+                                        {p.cambiado && <EstadoModelo ruta={p.model_path} />}
+                                        <input
+                                            className="lg-input"
+                                            style={{ minWidth: 180 }}
+                                            maxLength={300}
+                                            placeholder="Créditos del autor"
+                                            value={p.creditos || ""}
+                                            aria-label={`Créditos del autor de ${p.name}`}
+                                            onChange={(e) => cambiar(p.id, "creditos", e.target.value)}
+                                        />
                                     </div>
                                 </td>
                                 <td>

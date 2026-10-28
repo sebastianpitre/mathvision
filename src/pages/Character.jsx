@@ -202,6 +202,7 @@ export default function Character() {
                         <div className="pj-detalle-texto">
                             <small>{enUso ? "En uso" : elegido.comprado ? "Tuyo" : porNivel ? `Nivel ${elegido.nivel_minimo}` : "En la tienda"}</small>
                             <strong>{elegido.name}</strong>
+                            {elegido.creditos && <small className="pj-creditos">{`Modelo: ${elegido.creditos}`}</small>}
                             {aviso.texto && <p className={`ffp-aviso ffp-aviso-${aviso.tono}`} role="status">{aviso.texto}</p>}
                         </div>
 

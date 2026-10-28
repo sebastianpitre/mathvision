@@ -328,7 +328,8 @@ router.put(
                 activo = $6,
                 orden = $7,
                 model_path = COALESCE($8, model_path),
-                thumbnail_path = COALESCE($9, thumbnail_path)
+                thumbnail_path = COALESCE($9, thumbnail_path),
+                creditos = $10
             WHERE id = $1
             `,
             [
@@ -341,6 +342,7 @@ router.put(
                 numero(datos.orden ?? 0, -1000, 1000),
                 datos.model_path ? rutaArchivo(datos.model_path, "modelo") : null,
                 datos.thumbnail_path ? rutaArchivo(datos.thumbnail_path, "foto") : null,
+                creditosDe(datos.creditos),
             ]
         );
 
@@ -436,6 +438,17 @@ function rutaArchivo(valor, tipo) {
     return ruta;
 }
 
+// Crédito del autor del modelo (por ejemplo "Zombie por Grim Greg · CC BY").
+function creditosDe(valor) {
+    const texto = String(valor ?? "")
+        .split("")
+        .filter((c) => c.charCodeAt(0) >= 32)
+        .join("")
+        .trim()
+        .slice(0, 300);
+    return texto || null;
+}
+
 function slug(texto) {
     return String(texto || "")
         .normalize("NFD")
@@ -482,7 +495,7 @@ router.post(
         const datos = req.body || {};
         const nombre = String(datos.name || "").trim().slice(0, 100);
         if (!nombre) throw errorConEstado("El nombre es obligatorio.");
-        if (!datos.model_path) throw errorConEstado("Sube el modelo 3D del personaje (.vrm).");
+        if (!datos.model_path) throw errorConEstado("Sube el modelo 3D del personaje (.vrm o .glb).");
 
         const modelo = rutaArchivo(datos.model_path, "modelo");
         const foto = datos.thumbnail_path ? rutaArchivo(datos.thumbnail_path, "foto") : null;
@@ -500,8 +513,8 @@ router.post(
         await pool.query(
             `
             INSERT INTO characters (id, name, model_path, thumbnail_path, is_default,
-                                    precio_oro, precio_diamantes, nivel_minimo, activo, orden)
-            VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $9)
+                                    precio_oro, precio_diamantes, nivel_minimo, activo, orden, creditos)
+            VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $9, $10)
             `,
             [
                 id,
@@ -513,6 +526,7 @@ router.post(
                 Math.max(1, numero(datos.nivel_minimo ?? 1, 1, 100)),
                 datos.activo !== false,
                 numero(datos.orden, -1000, 1000),
+                creditosDe(datos.creditos),
             ]
         );
 

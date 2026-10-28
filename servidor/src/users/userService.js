@@ -73,6 +73,7 @@ export async function getCharacters(userId) {
             c.precio_oro,
             c.precio_diamantes,
             c.nivel_minimo,
+            c.creditos,
             (pj.user_id IS NOT NULL
                 OR (c.precio_oro = 0 AND c.precio_diamantes = 0)) AS comprado
         FROM characters c
