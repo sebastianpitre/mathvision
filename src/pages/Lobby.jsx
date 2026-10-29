@@ -20,6 +20,7 @@ import {
     LuUserRound,
     LuTrophy,
     LuGift,
+    LuBadgeCheck,
     LuUsers,
     LuVolume2,
     LuVolumeX,
@@ -39,11 +40,12 @@ import { avisar } from "../services/avisos";
 import games from "../data/mock/games.json";
 import assets from "../data/mock/assets.json";
 
-import AssetImage from "../components/common/AssetImage";
 import ProtegerError from "../components/common/ProtegerError";
 import VRMCharacter from "../components/character/VRMCharacter";
 import LucesPersonaje from "../components/character/LucesPersonaje";
 import FotoPerfil from "../components/juego/FotoPerfil";
+import InsigniaRango from "../components/juego/InsigniaRango";
+import NombreDeslizante from "../components/juego/NombreDeslizante";
 import { api } from "../services/api";
 
 /* =========================================================
@@ -315,13 +317,25 @@ export default function Lobby() {
                                 const jugando = p.status === "playing";
 
                                 return (
-                                    <li key={p.id} className="ffl-amigo">
-                                        <button type="button" className="ffl-amigo-perfil" onClick={() => navigate(`/profile/${p.id}`)} aria-label={`${p.name}, ${estado.texto}`}>
+                                    <li key={p.id} className={`ffl-amigo ffl-placa ${p.admin ? "ffl-placa-admin" : `ffl-placa-${p.rango?.id || "bronce"}`}`}>
+                                        <button
+                                            type="button"
+                                            className="ffl-amigo-perfil"
+                                            onClick={() => navigate(`/profile/${p.id}`)}
+                                            aria-label={`${p.name}${p.admin ? ", administrador verificado" : ""}, rango ${p.rango?.nombre || "Bronce"}, ${estado.texto}`}
+                                        >
                                             <span className="ffl-amigo-foto">
-                                                <AssetImage src={p.avatar} type="player" alt="" />
+                                                <FotoPerfil foto={p.avatar} marco={p.marco} />
                                                 <i className={`ffl-estado ffl-estado-${estado.tono}`} aria-hidden="true" />
+                                                {p.admin && <LuBadgeCheck className="ffl-verificado" aria-hidden="true" />}
                                             </span>
-                                            <span className="ffl-amigo-nombre">{p.name}</span>
+                                            <span className="ffl-amigo-datos">
+                                                <NombreDeslizante texto={p.name} className="ffl-amigo-nombre" />
+                                                <span className="ffl-amigo-rango">
+                                                    <InsigniaRango rango={p.rango || { id: "bronce", nombre: "Bronce" }} tamano="0.85rem" />
+                                                    {p.admin ? "Admin" : p.rango?.nombre || "Bronce"}
+                                                </span>
+                                            </span>
                                         </button>
                                         <button
                                             type="button"

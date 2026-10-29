@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { LuChartColumn, LuGift, LuCalendarDays, LuLayers, LuMedal, LuMic, LuMusic, LuSquareUser, LuShieldCheck, LuShirt, LuUsers } from "react-icons/lu";
+import { useNavigate } from "react-router-dom";
+import { LuChartColumn, LuGift, LuCalendarDays, LuLayers, LuMedal, LuMic, LuMusic, LuSquareUser, LuShieldCheck, LuShirt, LuUsers, LuArrowLeft } from "react-icons/lu";
 
-import MainNav from "../../components/navigation/MainNav";
+import { useAuth } from "../../context/AuthContext";
 import Resumen from "./Resumen";
 import NivelesAdmin from "./NivelesAdmin";
 import TiendaAdmin from "./TiendaAdmin";
@@ -14,6 +15,7 @@ import EventosAdmin from "./EventosAdmin";
 import PerfilesAdmin from "./PerfilesAdmin";
 
 import "../../styles/ludo.css";
+import "./admin.css";
 
 /* =========================================================
    PANEL DE ADMINISTRACIÓN
@@ -40,6 +42,8 @@ function pestanaInicial() {
 }
 
 export default function Admin() {
+    const navigate = useNavigate();
+    const { user } = useAuth();
     const [activa, setActiva] = useState(pestanaInicial);
 
     const cambiar = (id) => {
@@ -47,29 +51,24 @@ export default function Admin() {
         const url = new URL(window.location.href);
         url.searchParams.set("tab", id);
         window.history.replaceState(null, "", url);
+        document.querySelector(".adm-contenido")?.scrollTo({ top: 0 });
     };
 
     const { Componente } = PESTANAS.find((p) => p.id === activa);
 
     return (
-        <div className="lg">
-            <MainNav />
+        <div className="lg adm">
+            {/* Menú del panel: a la izquierda en PC; arriba (en una fila que se desliza) en el teléfono */}
+            <aside className="adm-lado">
+                <div className="adm-marca">
+                    <LuShieldCheck aria-hidden="true" />
+                    <span>
+                        LUDO<b>GAMIF</b>
+                        <small>Panel</small>
+                    </span>
+                </div>
 
-            <main className="lg-main">
-                <header className="lg-head">
-                    <div>
-                        <p className="lb-eyebrow">
-                            <LuShieldCheck aria-hidden="true" />
-                            <span>Administración</span>
-                        </p>
-                        <h1 className="lg-h1">Panel de LudoGamif</h1>
-                        <p className="lg-lead">
-                            Niveles y preguntas, personajes, jugadores y premios: todo el juego se administra aquí.
-                        </p>
-                    </div>
-                </header>
-
-                <div className="lg-tabs" role="tablist" aria-label="Secciones del panel">
+                <nav className="adm-nav" role="tablist" aria-label="Secciones del panel">
                     {PESTANAS.map(({ id, label, icon: Icon }) => (
                         <button
                             key={id}
@@ -78,18 +77,26 @@ export default function Admin() {
                             id={`tab-${id}`}
                             aria-selected={activa === id}
                             aria-controls={`panel-${id}`}
-                            className="lg-tab"
+                            className="adm-tab"
                             onClick={() => cambiar(id)}
                         >
                             <Icon aria-hidden="true" />
-                            {label}
+                            <span>{label}</span>
                         </button>
                     ))}
-                </div>
+                </nav>
 
-                <section className="lg-scroll" role="tabpanel" id={`panel-${activa}`} aria-labelledby={`tab-${activa}`}>
-                    <Componente />
-                </section>
+                <div className="adm-pie">
+                    {user && <span className="adm-usuario" title={user.username}>{user.display_name || user.username}</span>}
+                    <button type="button" className="adm-volver" onClick={() => navigate("/lobby")}>
+                        <LuArrowLeft aria-hidden="true" />
+                        <span>Volver al juego</span>
+                    </button>
+                </div>
+            </aside>
+
+            <main className="adm-contenido" role="tabpanel" id={`panel-${activa}`} aria-labelledby={`tab-${activa}`}>
+                <Componente />
             </main>
         </div>
     );

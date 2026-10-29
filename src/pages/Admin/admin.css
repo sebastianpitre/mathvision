@@ -1,0 +1,235 @@
+/* =========================================================
+   PANEL DE ADMINISTRACIÓN · estructura
+   PC: menú a la izquierda y el contenido con su propio
+   scroll. Teléfono: el menú es una fila que se desliza y
+   todo hace scroll junto (nada se queda fijo arriba).
+========================================================= */
+
+.lg.adm {
+    flex-direction: row;
+    background:
+        radial-gradient(1200px 500px at 85% -10%, rgba(90, 169, 255, 0.08), transparent 60%),
+        radial-gradient(900px 500px at -10% 110%, rgba(192, 132, 252, 0.08), transparent 60%),
+        var(--lb-bg);
+}
+
+.adm-lado {
+    flex: 0 0 232px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+    padding: 16px 12px;
+    border-right: 1px solid var(--lb-border);
+    background: rgba(8, 12, 22, 0.85);
+}
+
+.adm-marca {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 8px 10px;
+    border-bottom: 1px solid var(--lb-border);
+}
+
+.adm-marca > svg {
+    width: 26px;
+    height: 26px;
+    color: var(--lb-accent);
+}
+
+.adm-marca > span {
+    display: flex;
+    flex-direction: column;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 1.05;
+}
+
+.adm-marca b {
+    color: #b78bff;
+}
+
+.adm-marca small {
+    color: var(--lb-text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.adm-nav {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.adm-tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 38px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--lb-text-muted);
+    font-size: 14.5px;
+    font-weight: 700;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.adm-tab svg {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+}
+
+.adm-tab:hover {
+    background: var(--lb-surface-2);
+    color: var(--lb-text);
+}
+
+.adm-tab[aria-selected="true"] {
+    background: var(--lb-accent-soft);
+    color: var(--lb-text);
+    box-shadow: inset 3px 0 0 var(--lb-accent);
+}
+
+.adm-tab[aria-selected="true"] svg {
+    color: var(--lb-accent);
+}
+
+.adm-pie {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--lb-border);
+}
+
+.adm-usuario {
+    padding: 0 8px;
+    color: var(--lb-text-muted);
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.adm-volver {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 38px;
+    border: 1px solid var(--lb-border-strong);
+    border-radius: 10px;
+    background: var(--lb-surface-2);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.adm-volver svg {
+    width: 18px;
+    height: 18px;
+}
+
+.adm-contenido {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+    padding: 20px clamp(14px, 2.5vw, 32px) 40px;
+}
+
+.adm-contenido > * {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Títulos de cada sección un poco más compactos */
+.adm .lg-card-title {
+    font-size: 17px;
+}
+
+.adm h2.lg-card-title {
+    font-size: 21px;
+}
+
+/* ---------- Teléfono y pantallas angostas ---------- */
+@media (max-width: 860px), (max-height: 500px) {
+    .lg.adm {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .adm-lado {
+        flex: 0 0 auto;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border-right: 0;
+        border-bottom: 1px solid var(--lb-border);
+    }
+
+    .adm-marca {
+        padding: 0 4px;
+        border-bottom: 0;
+    }
+
+    .adm-marca > span,
+    .adm-usuario,
+    .adm-volver span {
+        display: none;
+    }
+
+    .adm-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+    }
+
+    .adm-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .adm-tab {
+        min-height: 34px;
+        padding: 0 10px;
+        font-size: 13px;
+    }
+
+    .adm-tab[aria-selected="true"] {
+        box-shadow: inset 0 -2px 0 var(--lb-accent);
+    }
+
+    .adm-pie {
+        flex-direction: row;
+        padding: 0;
+        border: 0;
+    }
+
+    .adm-volver {
+        width: 38px;
+        min-height: 34px;
+    }
+
+    .adm-contenido {
+        flex: none;
+        overflow: visible;
+        padding: 14px 12px 30px;
+    }
+}

@@ -194,6 +194,11 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
 
 ### Eventos, temporadas y perfiles (para el jugador)
 
+- **Jugadores en línea** (derecha del lobby): cada uno en una placa con su foto (y marco),
+  su nombre (se desliza si es largo) y su rango, con el fondo del color del rango. Los
+  administradores salen con un fondo especial que brilla y el chulo azul de verificado.
+  La flecha de abajo oculta la lista y la vuelve a mostrar.
+
 - **Eventos** (botón en el lobby con el número de premios por reclamar, o menú flotante):
   el anuncio con su cuenta regresiva y las misiones con su barra de progreso y el botón
   **Reclamar**. El avance se calcula con las partidas que termina entre las fechas.
@@ -365,9 +370,6 @@ una vista previa:
 - **Tamaño:** si un modelo sale muy grande o muy pequeño, usa la barra de tamaño (al crearlo,
   o con el botón de regla 📏 en su fila). La vista previa tiene una línea con la altura
   normal para comparar; el tamaño se aplica en todo el juego.
-- **Tamaño:** si un modelo sale muy grande o muy pequeño, en el panel (al crearlo, o con el
-  botón de la regla 📏 en su fila) se ajusta con una barra del 20 % al 300 %. La vista
-  previa tiene una línea con la altura normal para comparar. Se aplica en todo el juego.
 - **Créditos del autor:** si la licencia lo pide (por ejemplo CC Attribution), escríbelos
   en el campo "Créditos": se muestran en la tienda debajo del nombre. Los archivos subidos se guardan en el volumen de Docker
 `ludogamif_archivos` (se sirven en `/archivos/…`) y sobreviven a las actualizaciones.
