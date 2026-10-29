@@ -26,7 +26,7 @@ import sonidosRoutes from "./src/sonidos/sonidosRoutes.js";
 import { cargarReglasSiglo } from "./src/config/reglasSiglo.js";
 import eventosRoutes from "./src/eventos/eventosRoutes.js";
 import perfilesRoutes from "./src/perfiles/perfilesRoutes.js";
-import { revisarTemporadas } from "./src/temporadas/temporadas.js";
+import { revisarTemporadas, rangoJugador } from "./src/temporadas/temporadas.js";
 import { TriquiGame } from "./src/games/triqui/TriquiGame.js";
 
 import {
@@ -755,6 +755,16 @@ io.on(
                      * Compatibilidad con el código actual
                      * del frontend.
                      */
+
+                    // Para la lista en línea: marco, rango de temporada y si es admin.
+                    player.marco = profile.marco || null;
+                    player.admin = profile.rol === "admin";
+                    try {
+                        const r = await rangoJugador(socket.userId);
+                        player.rango = { id: r.rango.id, nombre: r.rango.nombre };
+                    } catch {
+                        player.rango = player.rango || null;
+                    }
 
                     socket.worldPlayerId =
                         player.id;

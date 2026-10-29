@@ -744,6 +744,15 @@ export class WorldManager {
                         avatar:
                             player.avatar || null,
 
+                        marco:
+                            player.marco || null,
+
+                        admin:
+                            Boolean(player.admin),
+
+                        rango:
+                            player.rango || null,
+
                         status,
 
                         pendingOutgoing:
