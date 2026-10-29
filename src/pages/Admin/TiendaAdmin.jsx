@@ -5,7 +5,7 @@ import { api } from "../../services/api";
 import { useCarga } from "./useCarga";
 import { subirArchivo } from "./subirArchivo";
 import { cargarEscalas } from "../../services/escalas";
-import { analizarModelo, TEXTO_TIPO } from "../../components/character/adaptarModelo";
+import { analizarModelo, tamanoAutomatico, TEXTO_TIPO } from "../../components/character/adaptarModelo";
 import Personaje3D from "../../components/juego/Personaje3D";
 
 /* =========================================================
@@ -17,27 +17,88 @@ import Personaje3D from "../../components/juego/Personaje3D";
 
 const VACIO = { name: "", precio_oro: 300, precio_diamantes: 0, nivel_minimo: 1, activo: true, model_path: "", thumbnail_path: "", creditos: "", escala: 1 };
 
-/* Barra para hacer el modelo más pequeño o más grande (1 = normal). */
-function BarraTamano({ valor, alCambiar, nombre }) {
+/* Barra para hacer el modelo más pequeño o más grande (1 = 100 % = normal).
+   Va de 1 % a 10.000 % en escala logarítmica: así se puede afinar
+   cerca del tamaño normal y también corregir modelos que vienen
+   cien veces más grandes o más pequeños. */
+const MIN = 0.01;
+const MAX = 100;
+const limitar = (v) => Math.min(MAX, Math.max(MIN, Math.round(v * 1000) / 1000));
+const aBarra = (v) => Math.log10(v); // -2 … 2
+const deBarra = (x) => limitar(10 ** x);
+
+function BarraTamano({ valor, alCambiar, nombre, modelo }) {
     const v = Number(valor) || 1;
+    const [texto, setTexto] = useState(String(Math.round(v * 100)));
+    const [calculando, setCalculando] = useState(false);
+
+    useEffect(() => setTexto(String(Math.round(v * 1000) / 10)), [v]);
+
+    const auto = async () => {
+        if (!modelo) return;
+        setCalculando(true);
+        try {
+            const { alto } = await analizarModelo(modelo);
+            alCambiar(tamanoAutomatico(alto));
+        } catch {
+            // Si no se puede medir, se deja como está.
+        } finally {
+            setCalculando(false);
+        }
+    };
+
     return (
         <div className="lg-tamano">
-            <label className="lg-field" style={{ flex: 1 }}>
-                <span>{`Tamaño: ${Math.round(v * 100)}%`}</span>
+            <label className="lg-field" style={{ flex: "1 1 260px" }}>
+                <span>{`Tamaño: ${Math.round(v * 1000) / 10} %`}</span>
                 <input
                     type="range"
-                    min={0.2}
-                    max={3}
-                    step={0.01}
-                    value={v}
-                    onChange={(e) => alCambiar(Number(e.target.value))}
+                    min={-2}
+                    max={2}
+                    step={0.005}
+                    value={aBarra(v)}
+                    onChange={(e) => alCambiar(deBarra(Number(e.target.value)))}
                     aria-label={`Tamaño de ${nombre || "el personaje"}`}
+                    aria-valuetext={`${Math.round(v * 1000) / 10} %`}
+                />
+                <span className="lg-tamano-marcas" aria-hidden="true">
+                    <i>1 %</i>
+                    <i>10 %</i>
+                    <i>100 %</i>
+                    <i>1.000 %</i>
+                    <i>10.000 %</i>
+                </span>
+            </label>
+            <label className="lg-field">
+                <span>Exacto (%)</span>
+                <input
+                    className="lg-input"
+                    style={{ width: 110 }}
+                    type="number"
+                    min={1}
+                    max={10000}
+                    step="any"
+                    value={texto}
+                    onChange={(e) => setTexto(e.target.value)}
+                    onBlur={() => {
+                        const n = Number(texto);
+                        if (n > 0) alCambiar(limitar(n / 100));
+                        else setTexto(String(Math.round(v * 1000) / 10));
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                 />
             </label>
-            <div className="lg-row" style={{ flexWrap: "nowrap" }}>
-                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar(Math.max(0.2, Math.round((v - 0.05) * 100) / 100))} aria-label="Más pequeño">−</button>
+            <div className="lg-row" style={{ flexWrap: "wrap" }}>
+                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar(limitar(v / 2))} title="La mitad">÷2</button>
+                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar(limitar(v * 0.95))} aria-label="Un poco más pequeño">−</button>
                 <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar(1)}>Normal</button>
-                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar(Math.min(3, Math.round((v + 0.05) * 100) / 100))} aria-label="Más grande">+</button>
+                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar(limitar(v * 1.05))} aria-label="Un poco más grande">+</button>
+                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar(limitar(v * 2))} title="El doble">×2</button>
+                {modelo && (
+                    <button type="button" className="lb-btn lb-btn-primary lb-btn-sm" onClick={auto} disabled={calculando} title="Lo deja con la altura de un personaje normal">
+                        {calculando ? "Midiendo…" : "Ajustar solo"}
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -61,7 +122,7 @@ function EstadoModelo({ ruta }) {
         let cancelado = false;
         setEstado({ tono: "", texto: "Revisando el modelo…" });
         analizarModelo(ruta)
-            .then((tipo) => !cancelado && setEstado(TEXTO_TIPO[tipo]))
+            .then(({ tipo }) => !cancelado && setEstado(TEXTO_TIPO[tipo]))
             .catch(() => !cancelado && setEstado({ tono: "error", texto: "No se pudo abrir el modelo. ¿Es un .vrm o .glb válido?" }));
         return () => {
             cancelado = true;
@@ -254,7 +315,7 @@ export default function TiendaAdmin() {
                     {nuevo.model_path && (
                         <>
                             <VistaTamano modelo={nuevo.model_path} tamano={nuevo.escala} />
-                            <BarraTamano valor={nuevo.escala} nombre={nuevo.name} alCambiar={(v) => setNuevo((n) => ({ ...n, escala: v }))} />
+                            <BarraTamano valor={nuevo.escala} nombre={nuevo.name} modelo={nuevo.model_path} alCambiar={(v) => setNuevo((n) => ({ ...n, escala: v }))} />
                         </>
                     )}
                     <div className="lg-row">
@@ -369,8 +430,8 @@ export default function TiendaAdmin() {
                                             <VistaTamano modelo={p.model_path} tamano={Number(p.escala) || 1} />
                                             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
                                                 <strong>{`Tamaño de ${p.name}`}</strong>
-                                                <BarraTamano valor={p.escala} nombre={p.name} alCambiar={(v) => cambiar(p.id, "escala", v)} />
-                                                <span className="lb-muted">Mueve la barra hasta que la cabeza quede cerca de la línea. Luego toca Guardar en la fila.</span>
+                                                <BarraTamano valor={p.escala} nombre={p.name} modelo={p.model_path} alCambiar={(v) => cambiar(p.id, "escala", v)} />
+                                                <span className="lb-muted">Toca "Ajustar solo" o mueve la barra hasta que la cabeza quede cerca de la línea. Luego toca Guardar.</span>
                                                 <div>
                                                     <button type="button" className="lb-btn lb-btn-primary lb-btn-sm" disabled={!p.cambiado || guardando === p.id} onClick={() => guardar(p)}>
                                                         <LuSave aria-hidden="true" />

@@ -454,10 +454,12 @@ function creditosDe(valor) {
     return texto || null;
 }
 
-// Tamaño del modelo: de 0,2 (muy pequeño) a 3 (el triple). 1 = normal.
+// Tamaño del modelo: de 0,01 (100 veces más pequeño) a 100 (100 veces
+// más grande). 1 = normal. Algunos modelos vienen en otra unidad
+// (centímetros) y necesitan tamaños muy grandes o muy pequeños.
 function escalaDe(valor) {
     const n = Number(valor);
-    return Number.isFinite(n) ? Math.min(3, Math.max(0.2, Math.round(n * 100) / 100)) : 1;
+    return Number.isFinite(n) && n > 0 ? Math.min(100, Math.max(0.01, Math.round(n * 1000) / 1000)) : 1;
 }
 
 function slug(texto) {

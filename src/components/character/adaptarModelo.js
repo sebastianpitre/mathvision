@@ -15,7 +15,7 @@
                 esqueleto, se muestra quieto (o con su propia
                 animación si la trae).
 
-   Además los GLB se ajustan de tamaño (1,6 m, como los VRM)
+   Además los GLB se ajustan de tamaño (como los personajes del juego)
    y se paran en el piso, porque cada programa exporta en
    escalas distintas.
 ========================================================= */
@@ -23,7 +23,7 @@
 import * as THREE from "three";
 import { VRMHumanoid, VRMUtils } from "@pixiv/three-vrm";
 
-const ALTURA = 1.6;
+const ALTURA = 1.75; // altura de los personajes que trae el juego (m)
 
 // Parte del cuerpo (sin lado) → hueso humanoide.
 const PARTES = {
@@ -139,7 +139,7 @@ export function adaptarModelo(gltf) {
     } else {
         const escena = gltf.scene;
 
-        // Tamaño y posición: 1,6 m de alto, pies en el piso, centrado.
+        // Tamaño y posición: alto como los personajes del juego, pies en el piso, centrado.
         escena.updateMatrixWorld(true);
         const caja = new THREE.Box3().setFromObject(escena);
         const alto = caja.max.y - caja.min.y;
@@ -206,5 +206,19 @@ export async function analizarModelo(url) {
     const loader = new GLTFLoader();
     loader.register((parser) => new VRMLoaderPlugin(parser));
     const gltf = await loader.loadAsync(url);
-    return adaptarModelo(gltf).tipo;
+    const personaje = adaptarModelo(gltf);
+    // Alto real del modelo, para calcular el tamaño automático.
+    personaje.objeto.updateMatrixWorld(true);
+    const caja = new THREE.Box3().setFromObject(personaje.objeto);
+    const alto = caja.max.y - caja.min.y;
+    return { tipo: personaje.tipo, alto: Number.isFinite(alto) && alto > 0 ? alto : null };
+}
+
+/* Tamaño que deja el modelo con la altura de un personaje normal. */
+export function tamanoAutomatico(alto) {
+    if (!alto) return 1;
+    const t = ALTURA / alto;
+    // Si ya está casi igual, se deja en 100 %.
+    if (Math.abs(t - 1) < 0.06) return 1;
+    return Math.min(100, Math.max(0.01, Math.round(t * 1000) / 1000));
 }

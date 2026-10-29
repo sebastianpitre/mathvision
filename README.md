@@ -361,7 +361,7 @@ una vista previa:
 | --- | --- |
 | VRM 1.0 | Se anima completo: camina, saluda y parpadea. |
 | VRM 0.x (el de muchas apps de teléfono) | Se gira y se corrigen sus ejes solos. Se anima completo. |
-| GLB con esqueleto (Mixamo, Unreal, VRoid, Blender…) | Camina y saluda (no parpadea). Se ajusta a 1,6 m y se para en el piso. |
+| GLB con esqueleto (Mixamo, Unreal, VRoid, Blender…) | Camina y saluda (no parpadea). Se ajusta a la altura de los demás y se para en el piso. |
 | GLB sin esqueleto | Se muestra con su propia animación, si trae; si no, quieto. |
 
 - De Sketchfab descarga el formato **GLB** (no FBX).
@@ -369,9 +369,11 @@ una vista previa:
   esqueleto, y expórtalo a GLB con Blender.
 - Personajes VRM: **VRoid Hub** (revisa que permita descarga y uso), **Booth** (busca
   "VRM 無料") o créalos en **VRoid Studio** (gratis).
-- **Tamaño:** si un modelo sale muy grande o muy pequeño, usa la barra de tamaño (al crearlo,
-  o con el botón de regla 📏 en su fila). La vista previa tiene una línea con la altura
-  normal para comparar; el tamaño se aplica en todo el juego.
+- **Tamaño:** si un modelo sale muy grande o muy pequeño, en el panel (al crearlo, o con el
+  botón de la regla 📏 en su fila) toca **Ajustar solo** (lo mide y lo deja con la altura
+  de los demás) o usa la barra, que va del 1 % al 10.000 %, el campo de porcentaje exacto
+  y los botones ÷2, −, Normal, +, ×2. La vista previa tiene una línea con la altura normal
+  para comparar. Se aplica en todo el juego.
 - **Créditos del autor:** si la licencia lo pide (por ejemplo CC Attribution), escríbelos
   en el campo "Créditos": se muestran en la tienda debajo del nombre. Los archivos subidos se guardan en el volumen de Docker
 `ludogamif_archivos` (se sirven en `/archivos/…`) y sobreviven a las actualizaciones.

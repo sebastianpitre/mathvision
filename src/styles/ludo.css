@@ -1043,3 +1043,15 @@
     border-color: var(--lb-accent) !important;
     color: var(--lb-accent) !important;
 }
+
+.lg-tamano-marcas {
+    display: flex;
+    justify-content: space-between;
+    color: var(--lb-text-muted);
+    font-size: 11px;
+    font-style: normal;
+}
+
+.lg-tamano-marcas i {
+    font-style: normal;
+}
