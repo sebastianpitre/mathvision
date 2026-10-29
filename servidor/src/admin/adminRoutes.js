@@ -332,7 +332,8 @@ router.put(
                 orden = $7,
                 model_path = COALESCE($8, model_path),
                 thumbnail_path = COALESCE($9, thumbnail_path),
-                creditos = $10
+                creditos = $10,
+                escala = COALESCE($11, escala)
             WHERE id = $1
             `,
             [
@@ -346,6 +347,7 @@ router.put(
                 datos.model_path ? rutaArchivo(datos.model_path, "modelo") : null,
                 datos.thumbnail_path ? rutaArchivo(datos.thumbnail_path, "foto") : null,
                 creditosDe(datos.creditos),
+                datos.escala === undefined ? null : escalaDe(datos.escala),
             ]
         );
 
@@ -452,6 +454,12 @@ function creditosDe(valor) {
     return texto || null;
 }
 
+// Tamaño del modelo: de 0,2 (muy pequeño) a 3 (el triple). 1 = normal.
+function escalaDe(valor) {
+    const n = Number(valor);
+    return Number.isFinite(n) ? Math.min(3, Math.max(0.2, Math.round(n * 100) / 100)) : 1;
+}
+
 function slug(texto) {
     return String(texto || "")
         .normalize("NFD")
@@ -516,8 +524,8 @@ router.post(
         await pool.query(
             `
             INSERT INTO characters (id, name, model_path, thumbnail_path, is_default,
-                                    precio_oro, precio_diamantes, nivel_minimo, activo, orden, creditos)
-            VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $9, $10)
+                                    precio_oro, precio_diamantes, nivel_minimo, activo, orden, creditos, escala)
+            VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $9, $10, $11)
             `,
             [
                 id,
@@ -530,6 +538,7 @@ router.post(
                 datos.activo !== false,
                 numero(datos.orden, -1000, 1000),
                 creditosDe(datos.creditos),
+                escalaDe(datos.escala ?? 1),
             ]
         );
 

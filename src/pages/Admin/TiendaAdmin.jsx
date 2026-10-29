@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
-import { LuImage, LuPlus, LuSave, LuTrash2, LuUpload } from "react-icons/lu";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { LuImage, LuPlus, LuRuler, LuSave, LuTrash2, LuUpload } from "react-icons/lu";
 
 import { api } from "../../services/api";
 import { useCarga } from "./useCarga";
 import { subirArchivo } from "./subirArchivo";
+import { cargarEscalas } from "../../services/escalas";
 import { analizarModelo, TEXTO_TIPO } from "../../components/character/adaptarModelo";
 import Personaje3D from "../../components/juego/Personaje3D";
 
@@ -14,7 +15,43 @@ import Personaje3D from "../../components/juego/Personaje3D";
    Precio 0 en oro y en diamantes = gratis para todos.
 ========================================================= */
 
-const VACIO = { name: "", precio_oro: 300, precio_diamantes: 0, nivel_minimo: 1, activo: true, model_path: "", thumbnail_path: "", creditos: "" };
+const VACIO = { name: "", precio_oro: 300, precio_diamantes: 0, nivel_minimo: 1, activo: true, model_path: "", thumbnail_path: "", creditos: "", escala: 1 };
+
+/* Barra para hacer el modelo más pequeño o más grande (1 = normal). */
+function BarraTamano({ valor, alCambiar, nombre }) {
+    const v = Number(valor) || 1;
+    return (
+        <div className="lg-tamano">
+            <label className="lg-field" style={{ flex: 1 }}>
+                <span>{`Tamaño: ${Math.round(v * 100)}%`}</span>
+                <input
+                    type="range"
+                    min={0.2}
+                    max={3}
+                    step={0.01}
+                    value={v}
+                    onChange={(e) => alCambiar(Number(e.target.value))}
+                    aria-label={`Tamaño de ${nombre || "el personaje"}`}
+                />
+            </label>
+            <div className="lg-row" style={{ flexWrap: "nowrap" }}>
+                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar(Math.max(0.2, Math.round((v - 0.05) * 100) / 100))} aria-label="Más pequeño">−</button>
+                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar(1)}>Normal</button>
+                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar(Math.min(3, Math.round((v + 0.05) * 100) / 100))} aria-label="Más grande">+</button>
+            </div>
+        </div>
+    );
+}
+
+/* Vista previa 3D con una línea a la altura normal, para comparar. */
+function VistaTamano({ modelo, tamano }) {
+    return (
+        <div className="lg-vista" aria-label="Vista previa del modelo">
+            <Personaje3D modelo={modelo} tamano={tamano} />
+            <span className="lg-vista-linea" aria-hidden="true">Altura normal</span>
+        </div>
+    );
+}
 
 /* Al subir un modelo se revisa cómo se va a ver en el juego. */
 function EstadoModelo({ ruta }) {
@@ -80,6 +117,7 @@ export default function TiendaAdmin() {
     const [aviso, setAviso] = useState({ texto: "", tono: "" });
     const [guardando, setGuardando] = useState(null);
     const [nuevo, setNuevo] = useState(null); // formulario de personaje nuevo
+    const [viendo, setViendo] = useState(null); // id del personaje con la vista de tamaño abierta
 
     useEffect(() => {
         if (datos) setFilas(datos.personajes);
@@ -105,10 +143,12 @@ export default function TiendaAdmin() {
                     model_path: p.model_path,
                     thumbnail_path: p.thumbnail_path || undefined,
                     creditos: p.creditos || "",
+                    escala: Number(p.escala) || 1,
                 },
             });
             setFilas((lista) => lista.map((x) => (x.id === p.id ? { ...x, cambiado: false } : x)));
             avisar(`"${p.name}" guardado.`);
+            cargarEscalas({ forzar: true });
         } catch (e) {
             avisar(e.message, "error");
         } finally {
@@ -139,8 +179,10 @@ export default function TiendaAdmin() {
                     precio_diamantes: Number(nuevo.precio_diamantes) || 0,
                     nivel_minimo: Number(nuevo.nivel_minimo) || 1,
                     thumbnail_path: nuevo.thumbnail_path || undefined,
+                    escala: Number(nuevo.escala) || 1,
                 },
             });
+            cargarEscalas({ forzar: true });
             avisar(`"${nuevo.name}" ya está en la tienda.`);
             setNuevo(null);
             recargar();
@@ -210,9 +252,10 @@ export default function TiendaAdmin() {
                         <input className="lg-input" maxLength={300} value={nuevo.creditos} onChange={(e) => setNuevo({ ...nuevo, creditos: e.target.value })} />
                     </label>
                     {nuevo.model_path && (
-                        <div style={{ position: "relative", height: 260, borderRadius: 12, overflow: "hidden", background: "#0c1220" }} aria-label="Vista previa del modelo">
-                            <Personaje3D modelo={nuevo.model_path} />
-                        </div>
+                        <>
+                            <VistaTamano modelo={nuevo.model_path} tamano={nuevo.escala} />
+                            <BarraTamano valor={nuevo.escala} nombre={nuevo.name} alCambiar={(v) => setNuevo((n) => ({ ...n, escala: v }))} />
+                        </>
                     )}
                     <div className="lg-row">
                         <button type="submit" className="lb-btn lb-btn-primary" disabled={!nuevo.name.trim() || !nuevo.model_path || guardando === "nuevo"}>
@@ -245,7 +288,8 @@ export default function TiendaAdmin() {
                     </thead>
                     <tbody>
                         {filas.map((p) => (
-                            <tr key={p.id}>
+                            <Fragment key={p.id}>
+                            <tr>
                                 <td>
                                     {p.thumbnail_path ? (
                                         <img src={p.thumbnail_path} alt="" width={48} height={48} style={{ borderRadius: 10, objectFit: "cover" }} />
@@ -300,6 +344,16 @@ export default function TiendaAdmin() {
                                             <LuSave aria-hidden="true" />
                                             {guardando === p.id ? "…" : "Guardar"}
                                         </button>
+                                        <button
+                                            type="button"
+                                            className={`lb-icon-btn ${viendo === p.id ? "lb-icon-btn-activo" : ""}`}
+                                            title="Ver y cambiar tamaño"
+                                            aria-label={`Ver y cambiar el tamaño de ${p.name}`}
+                                            aria-expanded={viendo === p.id}
+                                            onClick={() => setViendo(viendo === p.id ? null : p.id)}
+                                        >
+                                            <LuRuler aria-hidden="true" />
+                                        </button>
                                         {!p.is_default && (
                                             <button type="button" className="lb-icon-btn" title="Borrar personaje" aria-label={`Borrar ${p.name}`} onClick={() => borrar(p)}>
                                                 <LuTrash2 aria-hidden="true" />
@@ -308,6 +362,27 @@ export default function TiendaAdmin() {
                                     </div>
                                 </td>
                             </tr>
+                            {viendo === p.id && (
+                                <tr>
+                                    <td colSpan={10}>
+                                        <div className="lg-tamano-fila">
+                                            <VistaTamano modelo={p.model_path} tamano={Number(p.escala) || 1} />
+                                            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+                                                <strong>{`Tamaño de ${p.name}`}</strong>
+                                                <BarraTamano valor={p.escala} nombre={p.name} alCambiar={(v) => cambiar(p.id, "escala", v)} />
+                                                <span className="lb-muted">Mueve la barra hasta que la cabeza quede cerca de la línea. Luego toca Guardar en la fila.</span>
+                                                <div>
+                                                    <button type="button" className="lb-btn lb-btn-primary lb-btn-sm" disabled={!p.cambiado || guardando === p.id} onClick={() => guardar(p)}>
+                                                        <LuSave aria-hidden="true" />
+                                                        {guardando === p.id ? "Guardando…" : "Guardar"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                            </Fragment>
                         ))}
                     </tbody>
                 </table>

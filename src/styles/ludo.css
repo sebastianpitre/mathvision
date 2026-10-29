@@ -994,3 +994,52 @@
     padding: 0 6px;
     font-weight: 700;
 }
+
+/* Panel · tamaño de los personajes */
+.lg-tamano {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.lg-tamano input[type="range"] {
+    width: 100%;
+    accent-color: var(--lb-accent);
+}
+
+.lg-vista {
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+    height: 300px;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #0c1220;
+}
+
+/* Altura de un personaje normal en la vista previa (cámara del panel). */
+.lg-vista-linea {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 13%;
+    border-top: 2px dashed rgba(255, 207, 62, 0.7);
+    color: rgba(255, 207, 62, 0.9);
+    font-size: 11px;
+    padding-left: 6px;
+    pointer-events: none;
+}
+
+.lg-tamano-fila {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.lb-icon-btn-activo {
+    border-color: var(--lb-accent) !important;
+    color: var(--lb-accent) !important;
+}

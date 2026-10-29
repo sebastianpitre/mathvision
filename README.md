@@ -362,6 +362,9 @@ una vista previa:
   esqueleto, y expórtalo a GLB con Blender.
 - Personajes VRM: **VRoid Hub** (revisa que permita descarga y uso), **Booth** (busca
   "VRM 無料") o créalos en **VRoid Studio** (gratis).
+- **Tamaño:** si un modelo sale muy grande o muy pequeño, usa la barra de tamaño (al crearlo,
+  o con el botón de regla 📏 en su fila). La vista previa tiene una línea con la altura
+  normal para comparar; el tamaño se aplica en todo el juego.
 - **Créditos del autor:** si la licencia lo pide (por ejemplo CC Attribution), escríbelos
   en el campo "Créditos": se muestran en la tienda debajo del nombre. Los archivos subidos se guardan en el volumen de Docker
 `ludogamif_archivos` (se sirven en `/archivos/…`) y sobreviven a las actualizaciones.

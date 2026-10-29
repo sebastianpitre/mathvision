@@ -22,6 +22,7 @@ import {
 } from "../../context/AuthContext";
 
 import { adaptarModelo } from "./adaptarModelo";
+import { useEscala } from "../../services/escalas";
 
 
 /*
@@ -52,6 +53,8 @@ export default function VRMCharacter({
 
     url,
     scale = 1,
+    // Tamaño del modelo (1 = normal). Si no se pasa, se usa el del panel.
+    tamano,
     position = [0, 0, 0],
     rotation = [0, Math.PI, 0]
 
@@ -61,6 +64,9 @@ export default function VRMCharacter({
 
     const characterUrl =
         url || user?.character_model_path || null;
+
+    const tamanoPanel = useEscala(characterUrl);
+    const tamanoFinal = tamano ?? tamanoPanel;
 
 
     /*
@@ -506,7 +512,7 @@ export default function VRMCharacter({
     return (
         <primitive
             object={vrm.objeto}
-            scale={scale}
+            scale={scale * tamanoFinal}
             position={position}
             rotation={rotation}
             dispose={null}
