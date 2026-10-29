@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { LuCheck, LuClock, LuGem, LuGift, LuLock } from "react-icons/lu";
 
 import PantallaFF, { Pestanas } from "../../components/juego/PantallaFF";
@@ -44,7 +45,9 @@ function Premio({ r, marcoDe }) {
 export default function Eventos() {
     const { user, refreshUser } = useAuth();
     const [datos, setDatos] = useState(null);
-    const [elegido, setElegido] = useState(null);
+    // /eventos?evento=5 abre ese evento (desde el anuncio del lobby).
+    const [params] = useSearchParams();
+    const [elegido, setElegido] = useState(() => Number(params.get("evento")) || null);
     const [error, setError] = useState("");
     const [reclamando, setReclamando] = useState(null);
     const [desfase, setDesfase] = useState(0);

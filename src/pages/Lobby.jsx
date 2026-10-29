@@ -46,6 +46,7 @@ import LucesPersonaje from "../components/character/LucesPersonaje";
 import FotoPerfil from "../components/juego/FotoPerfil";
 import InsigniaRango from "../components/juego/InsigniaRango";
 import NombreDeslizante from "../components/juego/NombreDeslizante";
+import AnuncioEventos from "../components/juego/AnuncioEventos";
 import { api } from "../services/api";
 
 /* =========================================================
@@ -295,6 +296,8 @@ export default function Lobby() {
             </nav>
 
             {/* ================= DERECHA: JUGADORES ================= */}
+            <AnuncioEventos />
+
             <aside className={`ffl-amigos ${plegado ? "ffl-plegado" : ""}`} aria-label="Jugadores en línea">
                 <div className="ffl-amigos-caja">
                     <header className="ffl-amigos-cabeza">

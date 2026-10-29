@@ -199,6 +199,8 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
   administradores salen con un fondo especial que brilla y el chulo azul de verificado.
   La flecha de abajo oculta la lista y la vuelve a mostrar.
 
+- **Anuncio al entrar:** al llegar al lobby sale la imagen de cada evento activo (una vez
+  por evento cada vez que se abre el juego). Al tocarla va a ese evento; con la X se cierra.
 - **Eventos** (botón en el lobby con el número de premios por reclamar, o menú flotante):
   el anuncio con su cuenta regresiva y las misiones con su barra de progreso y el botón
   **Reclamar**. El avance se calcula con las partidas que termina entre las fechas.
