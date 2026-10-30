@@ -81,6 +81,22 @@ export default function TemporadasAdmin() {
             [campo]: sub ? { ...c[campo], [id]: { ...c[campo][id], [sub]: v } } : { ...c[campo], [id]: v },
         }));
 
+    const fotos = datos.cosmeticos.filter((c) => c.tipo === "foto");
+    const marcos = datos.cosmeticos.filter((c) => c.tipo === "marco");
+    const lista = (r, campo, nombre, opciones) => (
+        <select
+            className="lg-select"
+            aria-label={`${nombre} para ${r.nombre}`}
+            value={config.premios[r.id][campo] ?? ""}
+            onChange={(e) => setRango("premios", r.id, campo, e.target.value || null)}
+        >
+            <option value="">—</option>
+            {opciones.map((o) => (
+                <option key={o.id} value={o.id}>{o.nombre}</option>
+            ))}
+        </select>
+    );
+
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--lb-gap)" }}>
             <div>
@@ -95,7 +111,7 @@ export default function TemporadasAdmin() {
             {aviso.texto && <p className={aviso.tono === "error" ? "lg-alert" : "lg-ok"} role="status">{aviso.texto}</p>}
 
             <form className="lb-card" onSubmit={guardarActual} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <h3 className="lg-card-title">Temporada actual</h3>
+                <h3 className="lg-card-title">{`Temporada actual · S${datos.actual.numero}`}</h3>
                 <p className="lb-muted" style={{ margin: 0 }}>{`Empezó el ${fechaLarga(datos.actual.inicio)}.`}</p>
                 <div className="lg-row" style={{ alignItems: "flex-end" }}>
                     <label className="lg-field" style={{ flex: "1 1 200px" }}>
@@ -137,23 +153,35 @@ export default function TemporadasAdmin() {
                         {num(config.puntos.perdida, (v) => setConfig({ ...config, puntos: { ...config.puntos, perdida: v } }), { max: 0 })}
                     </label>
                 </div>
+                <p className="lb-muted" style={{ margin: 0 }}>
+                    Premio de cada rango al cerrar la temporada: puede ser cualquier mezcla. Si alguien ya tiene el personaje,
+                    la foto o el marco, no se le repite.
+                </p>
                 <div className="lg-table-wrap">
                     <table className="lg-table">
                         <thead>
                             <tr>
                                 <th scope="col">Rango</th>
                                 <th scope="col">Desde (puntos)</th>
-                                <th scope="col">Premio en oro</th>
-                                <th scope="col">Premio en diamantes</th>
+                                <th scope="col">Oro</th>
+                                <th scope="col">Diamantes</th>
+                                <th scope="col">Tiquetes 🎫</th>
+                                <th scope="col">Personaje</th>
+                                <th scope="col">Foto de perfil</th>
+                                <th scope="col">Marco</th>
                             </tr>
                         </thead>
                         <tbody>
                             {datos.rangos.map((r) => (
                                 <tr key={r.id}>
-                                    <td><InsigniaRango rango={r} tamano="1.4rem" conNombre /></td>
+                                    <td><InsigniaRango rango={r} tamano="1.6rem" temporada={datos.actual.numero} conNombre /></td>
                                     <td>{r.id === "bronce" ? "0" : num(config.umbrales[r.id], (v) => setRango("umbrales", r.id, null, v), { min: 1 })}</td>
-                                    <td>{num(config.premios[r.id].oro, (v) => setRango("premios", r.id, "oro", v), { min: 0 })}</td>
-                                    <td>{num(config.premios[r.id].diamantes, (v) => setRango("premios", r.id, "diamantes", v), { min: 0 })}</td>
+                                    <td>{num(config.premios[r.id].oro, (v) => setRango("premios", r.id, "oro", v), { min: 0, "aria-label": `Oro para ${r.nombre}` })}</td>
+                                    <td>{num(config.premios[r.id].diamantes, (v) => setRango("premios", r.id, "diamantes", v), { min: 0, "aria-label": `Diamantes para ${r.nombre}` })}</td>
+                                    <td>{num(config.premios[r.id].tickets ?? 0, (v) => setRango("premios", r.id, "tickets", v), { min: 0, "aria-label": `Tiquetes para ${r.nombre}` })}</td>
+                                    <td>{lista(r, "personaje_id", "Personaje", datos.personajes.map((p) => ({ id: p.id, nombre: p.name })))}</td>
+                                    <td>{lista(r, "foto_id", "Foto", fotos)}</td>
+                                    <td>{lista(r, "marco_id", "Marco", marcos)}</td>
                                 </tr>
                             ))}
                         </tbody>

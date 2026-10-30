@@ -146,8 +146,10 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   la música baja sola mientras alguien habla por el walkie-talkie.
 - **Temporadas:** nombre y fecha de fin de la temporada actual (por defecto duran 2 meses),
   botón "Cerrar ahora", puntos por partida (gana +30, empata +12, pierde −8), puntos de
-  cada rango (Bronce, Plata, Oro, Platino, Diamante, Heroico, Maestro) y el premio en oro
-  y diamantes de cada rango. Al llegar la fecha de fin se cierra sola (se revisa cada
+  cada rango (Bronce, Plata, Oro, Platino, Diamante, Heroico, Maestro) y el premio de
+  cada rango: cualquier mezcla de oro, diamantes, tiquetes 🎫, un personaje, una foto de
+  perfil y un marco (si ya lo tiene, no se repite). Cada temporada tiene su número
+  (S1, S2, S3…) que sube solo al empezar la siguiente. Al llegar la fecha de fin se cierra sola (se revisa cada
   minuto): entrega los premios, guarda el rango final de cada uno y empieza otra
   temporada con todos en Bronce. Hay historial con la tabla de cada temporada. Solo
   cuentan las partidas que dan premio (no las que pasan el límite diario).
@@ -167,6 +169,12 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   y ver cuántas veces salió cada premio (y el % real). Los tiquetes se ganan en las
   misiones de los **Eventos** (recompensa "Tiquetes") y también se pueden regalar desde
   **Jugadores**.
+- **Anuncios del lobby:** el carrusel de arriba a la izquierda. Cada anuncio muestra un
+  juego (al tocarlo queda elegido), un evento (sale solo mientras dure y abre ese evento)
+  o una pantalla (GiraGamif, Tienda, Ranking, Sala, Personajes, Perfil). Puede llevar foto
+  propia o un fondo de color con título y texto pequeño, y una etiqueta ("Nuevo"). Se
+  ordenan con las flechas, se elige cuántos segundos dura cada uno (5 por defecto) y, si
+  quieres, los eventos activos que no estén en la lista salen solos.
 - **Voz y reportes:** activar o apagar la voz para todos, segundos máximos por turno
   (5 por defecto), espera para volver a hablar (3) y cuántos reportes sin revisar de
   jugadores distintos quitan la voz (3).
@@ -214,11 +222,18 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
 - **Eventos** (botón en el lobby con el número de premios por reclamar, o menú flotante):
   el anuncio con su cuenta regresiva y las misiones con su barra de progreso y el botón
   **Reclamar**. El avance se calcula con las partidas que termina entre las fechas.
-- **GiraGamif** (botón en el lobby o tocando los tiquetes 🎫 de arriba): ruleta redonda con
+- **Carrusel de anuncios** (arriba a la izquierda del lobby, debajo del nombre): pasa
+  solo, se puede deslizar o tocar los puntitos, y al tocarlo lleva a lo anunciado.
+- **GiraGamif** (la ruletita que gira al lado del carrusel, con el número de tiquetes, o
+  tocando los tiquetes 🎫 de arriba): ruleta redonda con
   la foto de cada premio. "Girar" gasta tiquetes y la ruleta se detiene en el premio que
   eligió el servidor; "Premios y suerte" muestra cada premio con su porcentaje.
 - **Ranking → Temporada:** tabla de la temporada con el rango de cada uno, cuánto falta
-  para el siguiente rango y cuándo termina.
+  para el siguiente rango y cuándo termina. **Ranking → Recompensas** (o el botón
+  "Recompensas"): lo que gana cada rango al cerrar la temporada, con su imagen, y cuál
+  es tu rango ahora.
+- **Insignia de rango:** escudo del color del rango con el número de la temporada (S1,
+  S2…). Sale en el ranking, el perfil, la lista de jugadores en línea y el panel.
 - **Perfil:** muestra el rango de la temporada. En "Foto de perfil" aparecen también las
   fotos exclusivas (con candado si no las tiene) y en "Marcos" se pone o quita el marco,
   que se ve en la barra de arriba, el perfil, la sala y el ranking.

@@ -17,7 +17,8 @@
 ========================================================= */
 
 import { pool, enTransaccion } from "../database/db.js";
-import { entregarRecompensa } from "../progreso/progreso.js";
+import { detallador, entregarPaquete, limpiarRecompensa, recompensaVacia, validarRecompensas } from "../recompensas/recompensas.js";
+import { errorConEstado } from "../http/ruta.js";
 
 const CLAVE = "temporadas";
 
@@ -36,7 +37,8 @@ export const CONFIG_POR_DEFECTO = {
     puntos: { ganada: 30, empate: 12, perdida: -8 },
     // Puntos desde los que se llega a cada rango.
     umbrales: { bronce: 0, plata: 200, oro: 500, platino: 1000, diamante: 1800, heroico: 3000, maestro: 5000 },
-    // Premio al cerrar la temporada, según el rango final.
+    // Premio al cerrar la temporada, según el rango final. Puede traer
+    // oro, diamantes, tickets, personaje_id, foto_id y marco_id.
     premios: {
         bronce: { oro: 50, diamantes: 0 },
         plata: { oro: 100, diamantes: 0 },
@@ -71,10 +73,7 @@ function normalizar(v = {}) {
         const u = id === "bronce" ? 0 : entero(v.umbrales?.[id], 0, 1000000, d.umbrales[id]);
         r.umbrales[id] = Math.max(u, anterior + 1);
         anterior = r.umbrales[id];
-        r.premios[id] = {
-            oro: entero(v.premios?.[id]?.oro, 0, 1000000, d.premios[id].oro),
-            diamantes: entero(v.premios?.[id]?.diamantes, 0, 100000, d.premios[id].diamantes),
-        };
+        r.premios[id] = limpiarRecompensa(v.premios?.[id] ?? d.premios[id]);
     }
     return r;
 }
@@ -90,6 +89,10 @@ export async function configTemporadas() {
 
 export async function guardarConfigTemporadas(valor) {
     const limpio = normalizar({ ...(await configTemporadas()), ...(valor || {}) });
+    await validarRecompensas(
+        RANGOS.map((r) => [`Premio de ${r.nombre}`, limpio.premios[r.id]]),
+        (texto) => errorConEstado(texto)
+    );
     await pool.query(
         `
         INSERT INTO config_juego (clave, valor, actualizado_en)
@@ -116,6 +119,12 @@ export function rangoDe(puntos, config) {
 }
 
 /* ---------------- Temporada abierta ---------------- */
+
+/* Número de la temporada (S1, S2, S3…): cuántas hay hasta ella. */
+export async function numeroTemporada(id, db = pool) {
+    const { rows } = await db.query("SELECT COUNT(*)::int AS n FROM temporadas WHERE id <= $1", [id]);
+    return rows[0].n || 1;
+}
 
 export async function temporadaAbierta(db = pool) {
     const { rows } = await db.query("SELECT * FROM temporadas WHERE NOT cerrada ORDER BY id DESC LIMIT 1");
@@ -184,9 +193,12 @@ export async function cerrarTemporada(temporadaId) {
         let entregados = 0;
         for (const [i, fila] of tabla.entries()) {
             const rango = rangoDe(fila.puntos, config);
-            const premio = fila.bloqueado ? { oro: 0, diamantes: 0 } : config.premios[rango.id];
-            if (premio.oro + premio.diamantes > 0) {
-                await entregarRecompensa(client, fila.user_id, premio);
+            const premio = fila.bloqueado ? limpiarRecompensa({}) : config.premios[rango.id];
+            if (!recompensaVacia(premio)) {
+                await entregarPaquete(client, fila.user_id, premio, {
+                    origen: `temporada:${temporadaId}`,
+                    monedaPersonaje: "temporada",
+                });
                 entregados += 1;
             }
             await client.query(
@@ -249,16 +261,33 @@ export async function tablaTemporada(userId, { temporadaId = null, top = 50 } = 
         [temporada.id, top, userId]
     );
 
-    const conRango = (r) => ({ ...r, rango: rangoDe(r.puntos, config) });
-    const yo = rows.find((r) => r.id === userId);
+    const numero = await numeroTemporada(temporada.id);
+    let yo = rows.find((r) => r.id === userId);
+    if (!yo && userId) {
+        // Aún no juega esta temporada: igual se muestran su nombre y su personaje.
+        const { rows: p } = await pool.query(
+            `
+            SELECT u.id, p.display_name AS nombre, p.avatar, p.level AS nivel,
+                   m.ruta AS marco, c.name AS personaje, c.model_path AS modelo,
+                   (u.verificado OR u.rol = 'admin') AS verificado
+            FROM users u
+            JOIN player_profiles p ON p.user_id = u.id
+            LEFT JOIN cosmeticos m ON m.id = p.marco_id
+            LEFT JOIN characters c ON c.id = p.character_id
+            WHERE u.id = $1
+            `,
+            [userId]
+        );
+        yo = { ...(p[0] || { id: userId }), puntos: 0, partidas: 0, ganadas: 0, posicion: null };
+    }
+    const conRango = (r) => ({ ...r, rango: { ...rangoDe(r.puntos, config), temporada: numero } });
+    const detallar = await detallador(Object.values(config.premios));
 
     return {
-        temporada: { id: temporada.id, nombre: temporada.nombre, inicio: temporada.inicio, fin: temporada.fin, cerrada: temporada.cerrada },
-        rangos: RANGOS.map((r) => ({ ...r, desde: config.umbrales[r.id], premio: config.premios[r.id] })),
+        temporada: { id: temporada.id, numero, nombre: temporada.nombre, inicio: temporada.inicio, fin: temporada.fin, cerrada: temporada.cerrada },
+        rangos: RANGOS.map((r) => ({ ...r, desde: config.umbrales[r.id], premio: detallar(config.premios[r.id]) })),
         jugadores: rows.filter((r) => r.posicion <= top).map(conRango),
-        yo: yo
-            ? conRango(yo)
-            : { id: userId, puntos: 0, partidas: 0, ganadas: 0, posicion: null, rango: rangoDe(0, config) },
+        yo: conRango(yo || { id: userId, puntos: 0, partidas: 0, ganadas: 0, posicion: null }),
         ahora: new Date(),
     };
 }
@@ -272,7 +301,14 @@ export async function rangoJugador(userId) {
         [temporada.id, userId]
     );
     const puntos = rows[0]?.puntos || 0;
-    return { temporada: temporada.nombre, fin: temporada.fin, puntos, rango: rangoDe(puntos, config) };
+    const numero = await numeroTemporada(temporada.id);
+    return {
+        temporada: temporada.nombre,
+        numero,
+        fin: temporada.fin,
+        puntos,
+        rango: { ...rangoDe(puntos, config), temporada: numero },
+    };
 }
 
 export async function historialTemporadas() {

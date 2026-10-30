@@ -1,0 +1,274 @@
+/* =========================================================
+   CARRUSEL DE ANUNCIOS + BOTÓN DE LA RULETA (lobby)
+   Medidas en rem: escalan con la pantalla.
+========================================================= */
+
+.cr {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    height: 4.3rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 207, 62, 0.55);
+    border-radius: 0.45rem;
+    background: #111;
+    box-shadow: 0 0.2rem 0.8rem rgba(0, 0, 0, 0.45);
+    touch-action: pan-y;
+}
+
+.cr:hover,
+.cr:focus-within {
+    border-color: var(--oro, #ffcf3e);
+}
+
+.cr-pista {
+    display: flex;
+    height: 100%;
+    transition: transform 0.45s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.cr-boton {
+    flex: 0 0 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+}
+
+.cr-boton:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+}
+
+/* ---------- Un anuncio ---------- */
+.cr-diapo {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    user-select: none;
+}
+
+.cr-diapo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+/* Fondos para anuncios sin foto (solo título) */
+.cr-fondo-morado { background: radial-gradient(circle at 85% 20%, #c084fc 0, transparent 45%), linear-gradient(120deg, #3b0764, #7c3aed); }
+.cr-fondo-oro { background: radial-gradient(circle at 85% 20%, #fff3b0 0, transparent 45%), linear-gradient(120deg, #92400e, #f59e0b); }
+.cr-fondo-azul { background: radial-gradient(circle at 85% 20%, #7dd3fc 0, transparent 45%), linear-gradient(120deg, #0c2d6b, #2563eb); }
+.cr-fondo-rojo { background: radial-gradient(circle at 85% 20%, #fda4af 0, transparent 45%), linear-gradient(120deg, #6b0f1a, #e11d48); }
+.cr-fondo-verde { background: radial-gradient(circle at 85% 20%, #86efac 0, transparent 45%), linear-gradient(120deg, #064e3b, #10b981); }
+.cr-fondo-noche { background: radial-gradient(circle at 85% 20%, #a5b4fc 0, transparent 45%), linear-gradient(120deg, #020617, #1e1b4b); }
+
+.cr-con-imagen {
+    background: #111;
+}
+
+/* Rayas diagonales suaves (estilo Free Fire) en los fondos de color */
+.cr-diapo:not(.cr-con-imagen)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.07) 0 0.5rem, transparent 0.5rem 1.4rem);
+    pointer-events: none;
+}
+
+.cr-diapo-icono {
+    position: absolute;
+    right: 0.4rem;
+    top: 50%;
+    width: 2.6rem;
+    height: 2.6rem;
+    transform: translateY(-50%) rotate(-12deg);
+    color: rgba(255, 255, 255, 0.28);
+}
+
+.cr-diapo-texto {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    padding: 0.35rem 0.5rem 0.55rem;
+    line-height: 1.05;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.cr-con-imagen .cr-diapo-texto {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.85), transparent);
+}
+
+.cr-diapo-texto strong {
+    overflow: hidden;
+    font-size: 1.02rem;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.cr-diapo-texto small {
+    display: -webkit-box;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.66rem;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.cr-etiqueta {
+    position: absolute;
+    top: 0.3rem;
+    right: 0.3rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 0.2rem;
+    background: #ff8a1f;
+    color: #fff;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* ---------- Puntitos ---------- */
+.cr-puntos {
+    position: absolute;
+    left: 50%;
+    bottom: 0.18rem;
+    display: flex;
+    gap: 0.2rem;
+    transform: translateX(-50%);
+}
+
+.cr-punto {
+    width: 0.4rem;
+    height: 0.4rem;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    transition: width 0.25s;
+}
+
+.cr-punto-activo {
+    width: 1rem;
+    background: #ffcf3e;
+}
+
+/* ---------- Fila de arriba: carrusel + ruleta ---------- */
+.ffl-anuncios {
+    display: flex;
+    align-items: stretch;
+    gap: 0.4rem;
+    width: 15.2rem;
+}
+
+/* ---------- Botón de la ruleta GiraGamif ---------- */
+.rb {
+    position: relative;
+    flex: 0 0 4.3rem;
+    height: 4.3rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+
+.rb-rueda {
+    position: absolute;
+    inset: 0.15rem 0.15rem 0.55rem;
+    margin: auto;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0.12rem #3b1d0a, 0 0 0 0.24rem #ffb321, 0 0.25rem 0.8rem rgba(0, 0, 0, 0.6), 0 0 1rem rgba(255, 179, 33, 0.35);
+}
+
+.rb-rueda svg {
+    width: 100%;
+    height: 100%;
+    animation: rb-girar 9s linear infinite;
+}
+
+.rb:hover .rb-rueda svg,
+.rb:focus-visible .rb-rueda svg {
+    animation-duration: 1.4s;
+}
+
+.rb:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+    border-radius: 0.4rem;
+}
+
+.rb-puntero {
+    position: absolute;
+    top: -0.05rem;
+    left: 50%;
+    width: 0.7rem;
+    height: 0.8rem;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, #fff6d6, #ffb321 60%, #c2410c);
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+    filter: drop-shadow(0 0.1rem 0.15rem rgba(0, 0, 0, 0.6));
+}
+
+.rb-nombre {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    padding: 0.05rem 0.35rem;
+    transform: translateX(-50%);
+    border: 1px solid #ffcf3e;
+    border-radius: 0.25rem;
+    background: linear-gradient(180deg, #6d28d9, #3b0764);
+    color: #fff;
+    font-size: 0.58rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.rb-nombre b {
+    color: #ffcf3e;
+}
+
+.rb-cuenta {
+    position: absolute;
+    top: 0;
+    right: -0.15rem;
+    min-width: 1.1rem;
+    height: 1.1rem;
+    display: grid;
+    place-items: center;
+    padding: 0 0.25rem;
+    border: 1px solid #fff;
+    border-radius: 999px;
+    background: #e11d48;
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 900;
+}
+
+@keyframes rb-girar {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cr-pista { transition: none; }
+    .rb-rueda svg { animation: none; }
+}

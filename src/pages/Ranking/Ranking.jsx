@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LuCrown, LuGamepad2, LuPercent, LuTrophy, LuUserRound } from "react-icons/lu";
+import { LuCrown, LuGamepad2, LuGift, LuPercent, LuTrophy, LuUserRound } from "react-icons/lu";
 
 import PantallaFF, { Pestanas } from "../../components/juego/PantallaFF";
 import Personaje3D from "../../components/juego/Personaje3D";
@@ -12,6 +12,7 @@ import "./ranking.css";
 import FotoPerfil from "../../components/juego/FotoPerfil";
 import InsigniaRango from "../../components/juego/InsigniaRango";
 import Verificado from "../../components/juego/Verificado";
+import Premio from "../../components/juego/Premio";
 
 /* =========================================================
    RANKING DE LOS MEJORES
@@ -26,7 +27,37 @@ const CRITERIOS = [
     { id: "nivel", texto: "Nivel" },
     { id: "victorias", texto: "Victorias" },
     { id: "aciertos", texto: "Aciertos" },
+    { id: "recompensas", texto: "Recompensas" },
 ];
+
+const deTemporada = (por) => por === "temporada" || por === "recompensas";
+
+/* Lo que se gana al cerrar la temporada según el rango (de Maestro a Bronce). */
+function Recompensas({ rangos, numero, miRango, marcoDe }) {
+    return (
+        <div className="rk-premios-caja">
+            <p className="rk-premios-nota">Al terminar la temporada recibes el premio del rango en el que quedes.</p>
+            <ol className="rk-premios">
+                {[...rangos].reverse().map((r) => {
+                    const mio = r.id === miRango;
+                    return (
+                        <li key={r.id} className={`rk-premio rk-premio-${r.id} ${mio ? "rk-premio-yo" : ""}`}>
+                            <InsigniaRango rango={r} temporada={numero} tamano="2.3rem" />
+                            <span className="rk-premio-rango">
+                                <strong>
+                                    {r.nombre}
+                                    {mio && <span className="rk-premio-tu">Tu rango</span>}
+                                </strong>
+                                <small>{r.desde ? `Desde ${formato(r.desde)} pts` : "Desde 0 pts"}</small>
+                            </span>
+                            <Premio r={r.premio} marcoDe={marcoDe} className="rk-premio-cosas" />
+                        </li>
+                    );
+                })}
+            </ol>
+        </div>
+    );
+}
 
 // Lo que se muestra en la columna de la derecha de cada fila.
 function valor(j, por) {
@@ -83,7 +114,7 @@ export default function Ranking() {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [por, setPor] = useState("temporada");
-    const [datos, setDatos] = useState({ jugadores: [], yo: null, temporada: null });
+    const [datos, setDatos] = useState({ jugadores: [], yo: null, temporada: null, rangos: [] });
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState("");
     const [elegido, setElegido] = useState(null);
@@ -92,12 +123,13 @@ export default function Ranking() {
         let cancelado = false;
         setCargando(true);
         setError("");
-        api(por === "temporada" ? "/ranking/temporada" : `/ranking?por=${por}`)
+        api(deTemporada(por) ? "/ranking/temporada" : `/ranking?por=${por}`)
             .then((r) => {
                 if (cancelado) return;
-                setDatos({ jugadores: r.jugadores || [], yo: r.yo, temporada: r.temporada || null });
-                // Se muestra primero el número 1.
-                setElegido(r.jugadores?.[0] || r.yo || null);
+                setDatos({ jugadores: r.jugadores || [], yo: r.yo, temporada: r.temporada || null, rangos: r.rangos || [] });
+                // Se muestra primero el número 1 (en Recompensas, tu personaje).
+                const tuyo = r.jugadores?.find((j) => j.id === r.yo?.id) || r.yo;
+                setElegido(por === "recompensas" ? tuyo : r.jugadores?.[0] || r.yo || null);
             })
             .catch((e) => !cancelado && setError(e.message))
             .finally(() => !cancelado && setCargando(false));
@@ -115,12 +147,18 @@ export default function Ranking() {
             <Pestanas items={CRITERIOS} activa={por} alCambiar={setPor} etiqueta="Ordenar por" />
 
             <section className="rk-tabla ffp-panel" aria-label="Los mejores">
-                {por === "temporada" && datos.temporada && !cargando && (
+                {deTemporada(por) && datos.temporada && !cargando && (
                     <header className="rk-temporada">
                         <span>
-                            <strong>{datos.temporada.nombre}</strong>
+                            <strong>{`${datos.temporada.nombre} · S${datos.temporada.numero}`}</strong>
                             <small>{`Termina en ${faltaPara(datos.temporada.fin)}`}</small>
                         </span>
+                        {por === "temporada" && (
+                            <button type="button" className="ffp-btn ffp-btn-2 rk-ver-premios" onClick={() => setPor("recompensas")}>
+                                <LuGift aria-hidden="true" />
+                                Recompensas
+                            </button>
+                        )}
                         {datos.yo && (
                             <span className="rk-temporada-yo" title="Tu rango">
                                 <InsigniaRango rango={datos.yo.rango} tamano="1.6rem" conNombre />
@@ -137,6 +175,8 @@ export default function Ranking() {
                     <p className="rk-vacio">Cargando…</p>
                 ) : error ? (
                     <p className="rk-vacio ffp-aviso-error">{error}</p>
+                ) : por === "recompensas" ? (
+                    <Recompensas rangos={datos.rangos} numero={datos.temporada?.numero} miRango={datos.yo?.rango?.id} marcoDe={user?.avatar} />
                 ) : datos.jugadores.length === 0 ? (
                     <p className="rk-vacio">{por === "temporada" ? "Nadie ha jugado en esta temporada. ¡Sé el primero!" : "Aún no hay jugadores."}</p>
                 ) : (
@@ -148,7 +188,7 @@ export default function Ranking() {
                 )}
 
                 {/* Tu puesto, si no estás entre los mejores */}
-                {yoFuera && (
+                {yoFuera && por !== "recompensas" && (
                     <ol className="rk-lista rk-mia">
                         <Fila j={datos.yo} por={por} elegido={elegido?.id === datos.yo.id} alElegir={setElegido} soyYo />
                     </ol>
@@ -162,14 +202,14 @@ export default function Ranking() {
                 {elegido && (
                     <div className="rk-detalle">
                         <div className="rk-detalle-texto">
-                            <small>{`#${elegido.posicion} · ${elegido.personaje || "Personaje"}`}</small>
-                            {por === "temporada" && elegido.rango && <InsigniaRango rango={elegido.rango} tamano="1.3rem" conNombre />}
-                            <strong>{elegido.nombre}<Verificado activo={elegido.verificado} /></strong>
+                            <small>{`${elegido.posicion ? `#${elegido.posicion} · ` : ""}${elegido.personaje || "Personaje"}`}</small>
+                            {deTemporada(por) && elegido.rango && <InsigniaRango rango={elegido.rango} tamano="1.3rem" conNombre />}
+                            <strong>{elegido.nombre || user?.displayName || user?.username}<Verificado activo={elegido.verificado} /></strong>
                             <span className="rk-datos">
                                 <span title="Nivel">{`Nv. ${elegido.nivel}`}</span>
                                 <span title="Victorias"><LuTrophy aria-hidden="true" />{formato(elegido.victorias ?? elegido.ganadas)}</span>
                                 <span title="Partidas"><LuGamepad2 aria-hidden="true" />{formato(elegido.partidas)}</span>
-                                {por !== "temporada" && <span title="Aciertos"><LuPercent aria-hidden="true" />{aciertos}</span>}
+                                {!deTemporada(por) && <span title="Aciertos"><LuPercent aria-hidden="true" />{aciertos}</span>}
                             </span>
                         </div>
                         <button type="button" className="ffp-btn ffp-btn-2" onClick={() => navigate(`/profile/${elegido.id}`)}>

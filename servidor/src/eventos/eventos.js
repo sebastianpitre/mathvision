@@ -18,8 +18,7 @@
 ========================================================= */
 
 import { pool, enTransaccion } from "../database/db.js";
-import { entregarRecompensa } from "../progreso/progreso.js";
-import { entregarCosmetico } from "../perfiles/cosmeticos.js";
+import { detallador, entregarPaquete } from "../recompensas/recompensas.js";
 import { errorConEstado } from "../http/ruta.js";
 
 export const TIPOS_MISION = {
@@ -78,29 +77,7 @@ export async function avanceMision(db, userId, evento, mision) {
 }
 
 /* Nombres e imágenes de lo que se gana (personaje, foto, marco). */
-async function detallarRecompensas(misiones) {
-    const personajes = new Set();
-    const cosmeticos = new Set();
-    for (const m of misiones) {
-        if (m.recompensa?.personaje_id) personajes.add(m.recompensa.personaje_id);
-        if (m.recompensa?.foto_id) cosmeticos.add(Number(m.recompensa.foto_id));
-        if (m.recompensa?.marco_id) cosmeticos.add(Number(m.recompensa.marco_id));
-    }
-    const [{ rows: ps }, { rows: cs }] = await Promise.all([
-        pool.query("SELECT id, name, thumbnail_path FROM characters WHERE id = ANY($1)", [[...personajes]]),
-        pool.query("SELECT id, nombre, ruta, tipo FROM cosmeticos WHERE id = ANY($1)", [[...cosmeticos]]),
-    ]);
-    const p = new Map(ps.map((x) => [x.id, x]));
-    const c = new Map(cs.map((x) => [x.id, x]));
-    return (r = {}) => ({
-        oro: Number(r.oro) || 0,
-        diamantes: Number(r.diamantes) || 0,
-        tickets: Number(r.tickets) || 0,
-        personaje: r.personaje_id && p.get(r.personaje_id) ? { id: r.personaje_id, nombre: p.get(r.personaje_id).name, foto: p.get(r.personaje_id).thumbnail_path } : null,
-        foto: r.foto_id && c.get(Number(r.foto_id)) ? { id: Number(r.foto_id), nombre: c.get(Number(r.foto_id)).nombre, ruta: c.get(Number(r.foto_id)).ruta } : null,
-        marco: r.marco_id && c.get(Number(r.marco_id)) ? { id: Number(r.marco_id), nombre: c.get(Number(r.marco_id)).nombre, ruta: c.get(Number(r.marco_id)).ruta } : null,
-    });
-}
+const detallarRecompensas = (misiones) => detallador(misiones.map((m) => m.recompensa));
 
 /* ---------------- Para el jugador ---------------- */
 
@@ -185,32 +162,7 @@ export async function reclamarMision(userId, misionId) {
         );
         if (!rowCount) throw errorConEstado("Ya reclamaste esta recompensa.");
 
-        const r = m.recompensa || {};
-        const entregado = { oro: 0, diamantes: 0, tickets: 0, personaje: null, foto: false, marco: false };
-        if (Number(r.tickets) > 0) {
-            await client.query("UPDATE player_profiles SET tickets = tickets + $2 WHERE user_id = $1", [userId, Number(r.tickets)]);
-            entregado.tickets = Number(r.tickets);
-        }
-        if (Number(r.oro) > 0 || Number(r.diamantes) > 0) {
-            await entregarRecompensa(client, userId, { oro: Number(r.oro) || 0, diamantes: Number(r.diamantes) || 0 });
-            entregado.oro = Number(r.oro) || 0;
-            entregado.diamantes = Number(r.diamantes) || 0;
-        }
-        if (r.personaje_id) {
-            const { rowCount: nuevo } = await client.query(
-                `
-                INSERT INTO personajes_jugador (user_id, character_id, moneda)
-                SELECT $1, id, 'evento' FROM characters WHERE id = $2
-                ON CONFLICT DO NOTHING
-                `,
-                [userId, r.personaje_id]
-            );
-            entregado.personaje = nuevo > 0 ? r.personaje_id : null;
-        }
-        if (r.foto_id) entregado.foto = await entregarCosmetico(client, userId, Number(r.foto_id), `evento:${m.evento_id}`);
-        if (r.marco_id) entregado.marco = await entregarCosmetico(client, userId, Number(r.marco_id), `evento:${m.evento_id}`);
-
-        return entregado;
+        return entregarPaquete(client, userId, m.recompensa || {}, { origen: `evento:${m.evento_id}`, monedaPersonaje: "evento" });
     });
 }
 

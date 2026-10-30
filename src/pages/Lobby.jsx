@@ -21,7 +21,6 @@ import {
     LuTrophy,
     LuGift,
     LuBadgeCheck,
-    LuTicket,
     LuUsers,
     LuVolume2,
     LuVolumeX,
@@ -51,6 +50,8 @@ import AnuncioEventos from "../components/juego/AnuncioEventos";
 import { api } from "../services/api";
 import Verificado from "../components/juego/Verificado";
 import Tiquete from "../components/juego/Tiquete";
+import Carrusel from "../components/juego/Carrusel";
+import BotonRuleta from "../components/juego/BotonRuleta";
 
 /* =========================================================
    LOBBY (diseño tipo Free Fire)
@@ -58,7 +59,8 @@ import Tiquete from "../components/juego/Tiquete";
    El personaje ocupa el centro de la pantalla y todo lo demás
    va pegado a los bordes:
      · arriba: perfil, oro y diamantes · logo y botones
-     · izquierda: juego destacado y menú (Tienda, Sala…)
+     · izquierda: carrusel de anuncios + ruleta GiraGamif, y
+       debajo el menú (Tienda, Sala…)
      · derecha: jugadores en línea para invitar (se pliega)
      · abajo: atajos · juego elegido y el botón INICIAR
    Todo se mide en rem, que depende del alto de la pantalla
@@ -219,7 +221,6 @@ export default function Lobby() {
         );
     };
 
-    const destacado = games.find((g) => g.id === "siglo") || games[0];
     const disponibles = jugadores.filter((p) => p.status !== "playing").length;
 
     return (
@@ -283,10 +284,11 @@ export default function Lobby() {
 
             {/* ================= IZQUIERDA ================= */}
             <nav className="ffl-menu" aria-label="Menú">
-                <button type="button" className="ffl-destacado" onClick={() => elegir(destacado)} aria-label={`Nuevo: ${destacado.name}. Elegir este juego`}>
-                    <img src={destacado.image} alt="" draggable="false" />
-                    <span className="ffl-destacado-tag" aria-hidden="true">Nuevo</span>
-                </button>
+                {/* Anuncios que elige el administrador · al lado, la ruleta GiraGamif */}
+                <div className="ffl-anuncios">
+                    <Carrusel alElegirJuego={elegir} />
+                    <BotonRuleta tiquetes={jugador.currencies.tickets || 0} onClick={() => navigate("/suerte")} />
+                </div>
 
                 {[
                     { texto: "Tienda", icono: LuShoppingCart, ruta: "/tienda" },
@@ -294,7 +296,6 @@ export default function Lobby() {
                     { texto: "Sala", icono: LuUsers, ruta: "/sala" },
                     { texto: "Ranking", icono: LuTrophy, ruta: "/ranking" },
                     { texto: "Eventos", icono: LuGift, ruta: "/eventos", cuenta: porReclamar },
-                    { texto: "GiraGamif", icono: LuTicket, ruta: "/suerte" },
                 ].map(({ texto, icono: Icono, ruta, cuenta }) => (
                     <button key={ruta} type="button" className="ffl-menu-btn" onClick={() => navigate(ruta)} aria-label={cuenta ? `${texto}: ${cuenta} para reclamar` : undefined}>
                         <Icono aria-hidden="true" />

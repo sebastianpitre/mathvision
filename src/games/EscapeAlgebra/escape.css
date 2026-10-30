@@ -47,3 +47,202 @@
 .ea-vidas { color: #f87171; }
 .ea-combo { color: #fb923c; }
 .ea-puntos { color: #facc15; }
+
+/* =========================================================
+   PANTALLA FINAL (compacta, en rem: cabe en el teléfono)
+========================================================= */
+.ea-fin {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 0.8rem;
+    overflow-y: auto;
+    background:
+        radial-gradient(circle at 30% 30%, rgba(34, 211, 238, 0.18), transparent 55%),
+        radial-gradient(circle at 75% 70%, rgba(168, 85, 247, 0.18), transparent 55%),
+        #070b14;
+    color: #f5f7fb;
+    font-family: var(--fuente-juego, system-ui);
+}
+
+.ea-fin-perdio {
+    background:
+        radial-gradient(circle at 30% 30%, rgba(248, 113, 113, 0.18), transparent 55%),
+        radial-gradient(circle at 75% 70%, rgba(251, 146, 60, 0.12), transparent 55%),
+        #070b14;
+}
+
+.ea-fin-caja {
+    width: min(46rem, 100%);
+    display: flex;
+    gap: 1.2rem;
+    padding: 1.1rem 1.3rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 1rem;
+    background: rgba(15, 23, 42, 0.9);
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.5);
+}
+
+.ea-fin-izq {
+    flex: 0 0 14rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.ea-fin-trofeo {
+    width: 4.6rem;
+    height: 4.6rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(250, 204, 21, 0.12);
+    color: #facc15;
+    font-size: 2.2rem;
+}
+
+.ea-fin-perdio .ea-fin-trofeo {
+    background: rgba(248, 113, 113, 0.12);
+    color: #f87171;
+}
+
+.ea-fin-estado {
+    margin: 0.6rem 0 0;
+    color: #22d3ee;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+}
+
+.ea-fin-perdio .ea-fin-estado {
+    color: #f87171;
+}
+
+.ea-fin-izq h1 {
+    margin: 0.2rem 0 0;
+    font-size: 1.9rem;
+    font-weight: 900;
+    line-height: 1.05;
+}
+
+.ea-fin-frase {
+    margin: 0.3rem 0 0;
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+
+.ea-fin-der {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.ea-fin-datos {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.45rem;
+}
+
+.ea-fin-datos li {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.6rem;
+    background: rgba(30, 41, 59, 0.8);
+}
+
+.ea-fin-datos small {
+    color: #64748b;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.ea-fin-datos strong {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.ea-fin-datos em {
+    color: #64748b;
+    font-size: 0.85rem;
+    font-style: normal;
+}
+
+.ea-c-cian { color: #22d3ee; }
+.ea-c-verde { color: #34d399; }
+.ea-c-morado { color: #c084fc; }
+.ea-c-rojo { color: #fca5a5; }
+
+.ea-fin-barra {
+    height: 0.5rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #1e293b;
+}
+
+.ea-fin-barra span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #06b6d4, #34d399);
+}
+
+.ea-fin-perdio .ea-fin-barra span {
+    background: linear-gradient(90deg, #ef4444, #fb923c);
+}
+
+.ea-fin-premio {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.6rem;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.ea-fin-premio > small {
+    color: #94a3b8;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.ea-fin-nota {
+    color: #94a3b8;
+    font-size: 0.8rem;
+}
+
+.ea-fin-botones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.ea-fin-botones .ffp-btn {
+    height: 2.8rem;
+    font-size: 0.95rem;
+}
+
+/* Teléfono vertical: una columna */
+@media (max-aspect-ratio: 1/1) {
+    .ea-fin-caja {
+        flex-direction: column;
+    }
+
+    .ea-fin-izq {
+        flex: none;
+    }
+}

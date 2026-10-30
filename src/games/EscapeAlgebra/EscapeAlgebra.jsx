@@ -11,8 +11,7 @@ import {
     FaHeart,
     FaBolt,
     FaTrophy,
-    FaRedo,
-    FaHome
+    FaRedo
 } from "react-icons/fa";
 
 import { useNavigate } from "react-router-dom";
@@ -694,685 +693,94 @@ export default function EscapeAlgebra() {
 
         const percentage =
             gameQuestions.length > 0
-                ? Math.round(
-                    (
-                        correctAnswers /
-                        gameQuestions.length
-                    ) * 100
-                )
+                ? Math.round((correctAnswers / gameQuestions.length) * 100)
                 : 0;
 
+        const passed = percentage >= 60;
 
-        const passed =
-            percentage >= 60;
-
-
+        // Pantalla final compacta: cabe completa en el teléfono acostado
+        // (antes era muy alta y se veía cortada).
         return (
-
-            <div className="
-                relative
-                flex
-                min-h-screen
-                items-center
-                justify-center
-                overflow-hidden
-                bg-slate-950
-                px-5
-                py-10
-                text-white
-            ">
-
-
-                {/* =========================================
-                    BACKGROUND
-                ========================================= */}
-
-                <motion.div
-                    animate={{
-                        scale: [
-                            1,
-                            1.3,
-                            1
-                        ],
-                        opacity: [
-                            0.15,
-                            0.3,
-                            0.15
-                        ]
-                    }}
-                    transition={{
-                        duration: 5,
-                        repeat: Infinity
-                    }}
-                    className={`
-                        absolute
-                        h-96
-                        w-96
-                        rounded-full
-                        blur-[120px]
-
-                        ${
-                            passed
-                                ? "bg-cyan-500/20"
-                                : "bg-red-500/20"
-                        }
-                    `}
-                />
-
-
-                {/* =========================================
-                    PARTICULAS
-                ========================================= */}
-
-                {passed && (
-
-                    <>
-
-                        <motion.div
-                            animate={{
-                                opacity: [
-                                    0,
-                                    1,
-                                    0
-                                ],
-                                scale: [
-                                    0.5,
-                                    1.5,
-                                    2
-                                ]
-                            }}
-                            transition={{
-                                duration: 2,
-                                repeat: Infinity
-                            }}
-                            className="
-                                absolute
-                                left-[15%]
-                                top-[20%]
-                                h-3
-                                w-3
-                                rounded-full
-                                bg-cyan-400
-                            "
-                        />
-
-
-                        <motion.div
-                            animate={{
-                                opacity: [
-                                    0,
-                                    1,
-                                    0
-                                ],
-                                scale: [
-                                    0.5,
-                                    1.5,
-                                    2
-                                ]
-                            }}
-                            transition={{
-                                duration: 2.5,
-                                delay: 0.5,
-                                repeat: Infinity
-                            }}
-                            className="
-                                absolute
-                                right-[15%]
-                                top-[30%]
-                                h-3
-                                w-3
-                                rounded-full
-                                bg-purple-400
-                            "
-                        />
-
-
-                        <motion.div
-                            animate={{
-                                opacity: [
-                                    0,
-                                    1,
-                                    0
-                                ],
-                                scale: [
-                                    0.5,
-                                    1.5,
-                                    2
-                                ]
-                            }}
-                            transition={{
-                                duration: 2.2,
-                                delay: 1,
-                                repeat: Infinity
-                            }}
-                            className="
-                                absolute
-                                bottom-[20%]
-                                left-[25%]
-                                h-3
-                                w-3
-                                rounded-full
-                                bg-yellow-400
-                            "
-                        />
-
-                    </>
-
-                )}
-
-
-                {/* =========================================
-                    CARD
-                ========================================= */}
-
-                <motion.div
-                    initial={{
-                        opacity: 0,
-                        scale: 0.7,
-                        y: 40
-                    }}
-                    animate={{
-                        opacity: 1,
-                        scale: 1,
-                        y: 0
-                    }}
-                    transition={{
-                        type: "spring",
-                        stiffness: 120,
-                        damping: 12
-                    }}
-                    className="
-                        relative
-                        z-10
-                        w-full
-                        max-w-xl
-                        rounded-[2rem]
-                        border
-                        border-slate-700
-                        bg-slate-900/90
-                        p-8
-                        text-center
-                        shadow-2xl
-                        backdrop-blur-xl
-                        md:p-12
-                    "
+            <div className={`ea-fin ${passed ? "ea-fin-gano" : "ea-fin-perdio"}`}>
+                <motion.section
+                    className="ea-fin-caja"
+                    initial={{ opacity: 0, scale: 0.85, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ type: "spring", stiffness: 140, damping: 14 }}
                 >
-
-
-                    {/* =====================================
-                        ICONO
-                    ===================================== */}
-
-                    <motion.div
-                        initial={{
-                            rotate: -20,
-                            scale: 0
-                        }}
-                        animate={{
-                            rotate: 0,
-                            scale: 1
-                        }}
-                        transition={{
-                            type: "spring",
-                            delay: 0.2
-                        }}
-                        className={`
-                            mx-auto
-                            mb-6
-                            flex
-                            h-28
-                            w-28
-                            items-center
-                            justify-center
-                            rounded-full
-
-                            ${
-                                passed
-                                    ? "bg-yellow-400/10 text-yellow-400"
-                                    : "bg-red-400/10 text-red-400"
-                            }
-                        `}
-                    >
-
-                        <motion.div
-                            animate={{
-                                rotate: passed
-                                    ? [
-                                        0,
-                                        -8,
-                                        8,
-                                        0
-                                    ]
-                                    : 0,
-
-                                scale: passed
-                                    ? [
-                                        1,
-                                        1.1,
-                                        1
-                                    ]
-                                    : 1
-                            }}
-                            transition={{
-                                duration: 1.5,
-                                repeat: Infinity
-                            }}
+                    <div className="ea-fin-izq">
+                        <motion.span
+                            className="ea-fin-trofeo"
+                            animate={passed ? { rotate: [0, -8, 8, 0], scale: [1, 1.08, 1] } : {}}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                            aria-hidden="true"
                         >
-
-                            <FaTrophy size={48} />
-
-                        </motion.div>
-
-                    </motion.div>
-
-
-                    {/* =====================================
-                        TITULO
-                    ===================================== */}
-
-                    <p className={`
-                        text-sm
-                        font-bold
-                        uppercase
-                        tracking-[0.3em]
-
-                        ${
-                            passed
-                                ? "text-cyan-400"
-                                : "text-red-400"
-                        }
-                    `}>
-
-                        {
-                            passed
-                                ? "Misión completada"
-                                : "Misión finalizada"
-                        }
-
-                    </p>
-
-
-                    <h1 className="
-                        mt-3
-                        text-4xl
-                        font-black
-                        md:text-5xl
-                    ">
-
-                        Escape Algebra
-
-                    </h1>
-
-
-                    <p className="
-                        mt-3
-                        text-slate-400
-                    ">
-
-                        {
-                            passed
-                                ? "Has conseguido escapar del laboratorio matemático."
-                                : "El desafío terminó. ¡Puedes intentarlo nuevamente!"
-                        }
-
-                    </p>
-
-
-                    {/* =====================================
-                        RESULTADO
-                    ===================================== */}
-
-                    <div
-                        className="
-                            mx-auto
-                            mt-6
-                            inline-flex
-                            items-center
-                            rounded-full
-                            border
-                            px-5
-                            py-2
-                            text-sm
-                            font-black
-                        "
-                        style={{
-                            borderColor:
-                                passed
-                                    ? "rgba(52,211,153,0.3)"
-                                    : "rgba(248,113,113,0.3)"
-                        }}
-                    >
-
-                        <span
-                            className={
-                                passed
-                                    ? "text-emerald-400"
-                                    : "text-red-400"
-                            }
-                        >
-
-                            {
-                                passed
-                                    ? "✓ DESAFÍO SUPERADO"
-                                    : "✕ DESAFÍO NO SUPERADO"
-                            }
-
-                        </span>
-
-                    </div>
-
-
-                    {/* =====================================
-                        PREMIO (lo calcula el servidor)
-                    ===================================== */}
-
-                    <div className="mt-6 flex flex-col items-center gap-2">
-                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                            Premio
+                            <FaTrophy />
+                        </motion.span>
+                        <p className="ea-fin-estado">{passed ? "Misión completada" : "Misión finalizada"}</p>
+                        <h1>Escape Álgebra</h1>
+                        <p className="ea-fin-frase">
+                            {passed
+                                ? "¡Escapaste del laboratorio matemático!"
+                                : "El desafío terminó. ¡Inténtalo otra vez!"}
                         </p>
-                        {premio === null ? (
-                            <p className="text-sm text-slate-400">Guardando tu partida…</p>
-                        ) : premio.error ? (
-                            <p className="text-sm text-red-300">No se pudo guardar el premio. Revisa tu conexión.</p>
-                        ) : (
-                            <>
-                                <Recompensas
-                                    xp={premio.recompensa.xp}
-                                    oro={premio.recompensa.oro}
-                                    grande
-                                />
-                                {premio.recompensa.subio_nivel && (
-                                    <p className="font-black text-emerald-300">
-                                        {`🎉 ¡Subiste al nivel ${premio.recompensa.nivel_nuevo}!`}
-                                    </p>
-                                )}
-                                {premio.limite_diario_alcanzado && (
-                                    <p className="text-sm text-slate-400">
-                                        Ya ganaste premios en Escape Álgebra varias veces hoy. ¡Vuelve mañana!
-                                    </p>
-                                )}
-                            </>
-                        )}
                     </div>
 
+                    <div className="ea-fin-der">
+                        <ul className="ea-fin-datos">
+                            <li>
+                                <small>Puntos</small>
+                                <strong className="ea-c-cian">{score}</strong>
+                            </li>
+                            <li>
+                                <small>Aciertos</small>
+                                <strong className="ea-c-verde">
+                                    {correctAnswers}
+                                    <em>{`/${gameQuestions.length}`}</em>
+                                </strong>
+                            </li>
+                            <li>
+                                <small>Precisión</small>
+                                <strong className="ea-c-morado">{`${percentage}%`}</strong>
+                            </li>
+                        </ul>
 
-                    {/* =====================================
-                        ESTADISTICAS
-                    ===================================== */}
-
-                    <div className="
-                        my-8
-                        grid
-                        grid-cols-3
-                        gap-3
-                    ">
-
-
-                        {/* XP */}
-
-                        <motion.div
-                            whileHover={{
-                                y: -5
-                            }}
-                            className="
-                                rounded-2xl
-                                border
-                                border-slate-800
-                                bg-slate-800/80
-                                p-4
-                            "
-                        >
-
-                            <p className="
-                                text-xs
-                                font-bold
-                                text-slate-500
-                            ">
-                                PUNTOS
-                            </p>
-
-                            <p className="
-                                mt-1
-                                text-2xl
-                                font-black
-                                text-cyan-400
-                            ">
-                                {score}
-                            </p>
-
-                        </motion.div>
-
-
-                        {/* ACIERTOS */}
-
-                        <motion.div
-                            whileHover={{
-                                y: -5
-                            }}
-                            className="
-                                rounded-2xl
-                                border
-                                border-slate-800
-                                bg-slate-800/80
-                                p-4
-                            "
-                        >
-
-                            <p className="
-                                text-xs
-                                font-bold
-                                text-slate-500
-                            ">
-                                Aciertos
-                            </p>
-
-                            <p className="
-                                mt-1
-                                text-2xl
-                                font-black
-                                text-emerald-400
-                            ">
-
-                                {correctAnswers}
-
-                                <span className="
-                                    text-sm
-                                    text-slate-500
-                                ">
-                                    /{gameQuestions.length}
-                                </span>
-
-                            </p>
-
-                        </motion.div>
-
-
-                        {/* PRECISION */}
-
-                        <motion.div
-                            whileHover={{
-                                y: -5
-                            }}
-                            className="
-                                rounded-2xl
-                                border
-                                border-slate-800
-                                bg-slate-800/80
-                                p-4
-                            "
-                        >
-
-                            <p className="
-                                text-xs
-                                font-bold
-                                text-slate-500
-                            ">
-                                Precisión
-                            </p>
-
-                            <p className="
-                                mt-1
-                                text-2xl
-                                font-black
-                                text-purple-400
-                            ">
-                                {percentage}%
-                            </p>
-
-                        </motion.div>
-
-                    </div>
-
-
-                    {/* =====================================
-                        PROGRESO
-                    ===================================== */}
-
-                    <div className="
-                        mb-8
-                    ">
-
-                        <div className="
-                            mb-2
-                            flex
-                            justify-between
-                            text-xs
-                            font-bold
-                        ">
-
-                            <span className="
-                                text-slate-500
-                            ">
-                                PROGRESO
-                            </span>
-
-                            <span className="
-                                text-cyan-400
-                            ">
-                                {percentage}%
-                            </span>
-
+                        <div className="ea-fin-barra" aria-hidden="true">
+                            <motion.span initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ duration: 1.1 }} />
                         </div>
 
-
-                        <div className="
-                            h-3
-                            overflow-hidden
-                            rounded-full
-                            bg-slate-800
-                        ">
-
-                            <motion.div
-                                initial={{
-                                    width: 0
-                                }}
-                                animate={{
-                                    width:
-                                        `${percentage}%`
-                                }}
-                                transition={{
-                                    duration: 1.2
-                                }}
-                                className={`
-                                    h-full
-                                    rounded-full
-
-                                    ${
-                                        passed
-                                            ? "bg-gradient-to-r from-cyan-500 to-emerald-400"
-                                            : "bg-gradient-to-r from-red-500 to-orange-400"
-                                    }
-                                `}
-                            />
-
+                        <div className="ea-fin-premio">
+                            <small>Premio</small>
+                            {premio === null ? (
+                                <span className="ea-fin-nota">Guardando tu partida…</span>
+                            ) : premio.error ? (
+                                <span className="ea-fin-nota ea-c-rojo">No se pudo guardar el premio. Revisa tu conexión.</span>
+                            ) : (
+                                <>
+                                    <Recompensas xp={premio.recompensa.xp} oro={premio.recompensa.oro} />
+                                    {premio.recompensa.subio_nivel && (
+                                        <span className="ea-fin-nota ea-c-verde">{`🎉 ¡Subiste al nivel ${premio.recompensa.nivel_nuevo}!`}</span>
+                                    )}
+                                    {premio.limite_diario_alcanzado && (
+                                        <span className="ea-fin-nota">Ya ganaste premios aquí varias veces hoy. ¡Vuelve mañana!</span>
+                                    )}
+                                </>
+                            )}
                         </div>
 
+                        <div className="ea-fin-botones">
+                            <button type="button" className="ffp-btn" onClick={restartGame}>
+                                <FaRedo aria-hidden="true" />
+                                Jugar de nuevo
+                            </button>
+                            <button type="button" className="ffp-btn ffp-btn-2" onClick={() => navigate("/lobby")}>
+                                Volver al lobby
+                            </button>
+                        </div>
                     </div>
-
-
-                    {/* =====================================
-                        BOTONES
-                    ===================================== */}
-
-                    <div className="
-                        grid
-                        gap-3
-                        md:grid-cols-2
-                    ">
-
-                        <motion.button
-                            whileHover={{
-                                scale: 1.03
-                            }}
-                            whileTap={{
-                                scale: 0.97
-                            }}
-                            onClick={
-                                restartGame
-                            }
-                            className="
-                                flex
-                                items-center
-                                justify-center
-                                gap-3
-                                rounded-xl
-                                bg-cyan-500
-                                py-4
-                                font-black
-                                text-slate-950
-                                transition
-                                hover:bg-cyan-400
-                            "
-                        >
-
-                            <FaRedo />
-
-                            JUGAR DE NUEVO
-
-                        </motion.button>
-
-
-                        <motion.button
-                            whileHover={{
-                                scale: 1.03
-                            }}
-                            whileTap={{
-                                scale: 0.97
-                            }}
-                            onClick={() =>
-                                navigate(
-                                    "/lobby"
-                                )
-                            }
-                            className="
-                                flex
-                                items-center
-                                justify-center
-                                gap-3
-                                rounded-xl
-                                border
-                                border-slate-700
-                                py-4
-                                font-black
-                                transition
-                                hover:bg-slate-800
-                            "
-                        >
-
-                            <FaHome />
-
-                            DASHBOARD
-
-                        </motion.button>
-
-                    </div>
-
-                </motion.div>
-
+                </motion.section>
             </div>
-
         );
-
     }
 
 

@@ -26,6 +26,7 @@ import sonidosRoutes from "./src/sonidos/sonidosRoutes.js";
 import { cargarReglasSiglo } from "./src/config/reglasSiglo.js";
 import eventosRoutes from "./src/eventos/eventosRoutes.js";
 import ruletaRoutes from "./src/ruleta/ruletaRoutes.js";
+import carruselRoutes from "./src/carrusel/carruselRoutes.js";
 import perfilesRoutes from "./src/perfiles/perfilesRoutes.js";
 import { revisarTemporadas, rangoJugador } from "./src/temporadas/temporadas.js";
 import { TriquiGame } from "./src/games/triqui/TriquiGame.js";
@@ -132,6 +133,7 @@ app.use("/api/reportes", reportesRoutes);
 app.use("/api/sonidos", sonidosRoutes);
 app.use("/api/eventos", eventosRoutes);
 app.use("/api/ruletas", ruletaRoutes);
+app.use("/api/carrusel", carruselRoutes);
 app.use("/api/perfiles", perfilesRoutes);
 
 /*
@@ -764,7 +766,7 @@ io.on(
                     player.verificado = Boolean(profile.verificado);
                     try {
                         const r = await rangoJugador(socket.userId);
-                        player.rango = { id: r.rango.id, nombre: r.rango.nombre };
+                        player.rango = { id: r.rango.id, nombre: r.rango.nombre, temporada: r.numero };
                     } catch {
                         player.rango = player.rango || null;
                     }

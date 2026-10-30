@@ -16,6 +16,9 @@
    POST   /eventos                 crear (con misiones)
    PUT    /eventos/:id             editar (con misiones)
    DELETE /eventos/:id
+
+   GET    /carrusel                anuncios del lobby, eventos y opciones
+   PUT    /carrusel                { config }
 ========================================================= */
 
 import express from "express";
@@ -30,20 +33,46 @@ import {
     cerrarTemporada,
     historialTemporadas,
     tablaTemporada,
+    numeroTemporada,
     RANGOS,
 } from "../temporadas/temporadas.js";
 import { listarEventosAdmin, guardarEvento, borrarEvento, TIPOS_MISION, JUEGOS_MISION } from "../eventos/eventos.js";
+import { configCarrusel, guardarCarrusel, PANTALLAS, FONDOS } from "../carrusel/carrusel.js";
 import { listarRuletasAdmin, guardarRuleta, borrarRuleta, regalarTickets, TIPOS_PREMIO } from "../ruleta/ruleta.js";
 
 const router = express.Router();
+
+/* ---------------- Carrusel del lobby ---------------- */
+
+router.get(
+    "/carrusel",
+    ruta(async (req, res) => {
+        const { rows: eventos } = await pool.query(
+            "SELECT id, titulo, imagen, inicio, fin, activo FROM eventos WHERE fin > NOW() - INTERVAL '30 days' ORDER BY fin DESC"
+        );
+        res.json({ success: true, config: await configCarrusel(), eventos, pantallas: PANTALLAS, fondos: FONDOS });
+    })
+);
+
+router.put(
+    "/carrusel",
+    ruta(async (req, res) => res.json({ success: true, config: await guardarCarrusel(req.body?.config) }))
+);
 
 /* ---------------- Temporadas ---------------- */
 
 router.get(
     "/temporadas",
     ruta(async (req, res) => {
-        const [actual, config, historial] = await Promise.all([temporadaAbierta(), configTemporadas(), historialTemporadas()]);
-        res.json({ success: true, actual, config, rangos: RANGOS, historial });
+        const [actual, config, historial, { rows: personajes }, { rows: cosmeticos }] = await Promise.all([
+            temporadaAbierta(),
+            configTemporadas(),
+            historialTemporadas(),
+            pool.query("SELECT id, name FROM characters ORDER BY orden, name"),
+            pool.query("SELECT id, tipo, nombre FROM cosmeticos ORDER BY tipo, nombre"),
+        ]);
+        const numero = await numeroTemporada(actual.id);
+        res.json({ success: true, actual: { ...actual, numero }, config, rangos: RANGOS, historial, personajes, cosmeticos });
     })
 );
 

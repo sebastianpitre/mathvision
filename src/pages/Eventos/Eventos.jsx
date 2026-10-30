@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { LuCheck, LuClock, LuGem, LuGift, LuLock } from "react-icons/lu";
+import { LuCheck, LuClock, LuGift, LuLock } from "react-icons/lu";
 
 import PantallaFF, { Pestanas } from "../../components/juego/PantallaFF";
-import FotoPerfil from "../../components/juego/FotoPerfil";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
 import { avisar } from "../../services/avisos";
 import { sonar } from "../../services/sonidos";
 
 import "./eventos.css";
-import Tiquete from "../../components/juego/Tiquete";
+import Premio from "../../components/juego/Premio";
 
 /* =========================================================
    EVENTOS (como los de Free Fire)
@@ -31,18 +30,6 @@ function cuenta(fin, desfase) {
 
 const fecha = (v) =>
     new Date(v).toLocaleString("es-CO", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
-
-/* Lo que se gana en una misión, con su imagen. */
-function Premio({ r, marcoDe }) {
-    const partes = [];
-    if (r.oro) partes.push(<span key="o" className="ev-premio-moneda"><span className="ffl-moneda-oro" aria-hidden="true" />{formato(r.oro)}</span>);
-    if (r.diamantes) partes.push(<span key="d" className="ev-premio-moneda"><LuGem aria-hidden="true" className="ev-gema" />{formato(r.diamantes)}</span>);
-    if (r.tickets) partes.push(<span key="t" className="ev-premio-moneda" title="Tiquetes para GiraGamif"><Tiquete tamano="1.1rem" />{formato(r.tickets)}</span>);
-    if (r.personaje) partes.push(<span key="p" className="ev-premio-img" title={`Personaje: ${r.personaje.nombre}`}>{r.personaje.foto ? <img src={r.personaje.foto} alt={r.personaje.nombre} /> : "🧍"}</span>);
-    if (r.foto) partes.push(<span key="f" className="ev-premio-img" title={`Foto de perfil: ${r.foto.nombre}`}><img src={r.foto.ruta} alt={r.foto.nombre} /></span>);
-    if (r.marco) partes.push(<span key="m" className="ev-premio-img ev-premio-marco" title={`Marco: ${r.marco.nombre}`}><FotoPerfil foto={marcoDe} marco={r.marco.ruta} alt={r.marco.nombre} /></span>);
-    return <span className="ev-premio">{partes}</span>;
-}
 
 export default function Eventos() {
     const { user, refreshUser } = useAuth();
@@ -159,7 +146,7 @@ export default function Eventos() {
                                         <em>{`${formato(m.avance)}/${formato(m.meta)}`}</em>
                                     </span>
                                 </div>
-                                <Premio r={m.recompensa} marcoDe={user?.avatar} />
+                                <Premio r={m.recompensa} marcoDe={user?.avatar} className="ev-premio-mision" />
                                 {m.reclamada ? (
                                     <span className="ev-estado-mision ev-obtenido">
                                         <LuCheck aria-hidden="true" />
