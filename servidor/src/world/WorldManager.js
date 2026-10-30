@@ -750,6 +750,9 @@ export class WorldManager {
                         admin:
                             Boolean(player.admin),
 
+                        verificado:
+                            Boolean(player.verificado),
+
                         rango:
                             player.rango || null,
 

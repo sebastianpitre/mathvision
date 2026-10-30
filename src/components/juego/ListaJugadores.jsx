@@ -3,7 +3,10 @@ import { LuGamepad2, LuPlus, LuRefreshCw } from "react-icons/lu";
 
 import { useJugadoresEnLinea, ESTADOS } from "../../hooks/useJugadoresEnLinea";
 import { useInvitar } from "../../hooks/useInvitar";
-import AssetImage from "../common/AssetImage";
+import FotoPerfil from "./FotoPerfil";
+import InsigniaRango from "./InsigniaRango";
+import NombreDeslizante from "./NombreDeslizante";
+import { LuBadgeCheck } from "react-icons/lu";
 
 /* =========================================================
    JUGADORES EN LÍNEA CON BOTÓN PARA INVITAR
@@ -40,13 +43,25 @@ export default function ListaJugadores({ excluir, bloqueado = false, titulo = "E
                         const jugando = p.status === "playing";
 
                         return (
-                            <li key={p.id} className="ffl-amigo">
-                                <button type="button" className="ffl-amigo-perfil" onClick={() => navigate(`/profile/${p.id}`)} aria-label={`${p.name}, ${estado.texto}`}>
+                            <li key={p.id} className={`ffl-amigo ffl-placa ${p.admin ? "ffl-placa-admin" : `ffl-placa-${p.rango?.id || "bronce"}`}`}>
+                                <button
+                                    type="button"
+                                    className="ffl-amigo-perfil"
+                                    onClick={() => navigate(`/profile/${p.id}`)}
+                                    aria-label={`${p.name}${p.admin || p.verificado ? ", verificado" : ""}, rango ${p.rango?.nombre || "Bronce"}, ${estado.texto}`}
+                                >
                                     <span className="ffl-amigo-foto">
-                                        <AssetImage src={p.avatar} type="player" alt="" />
+                                        <FotoPerfil foto={p.avatar} marco={p.marco} />
                                         <i className={`ffl-estado ffl-estado-${estado.tono}`} aria-hidden="true" />
+                                        {(p.admin || p.verificado) && <LuBadgeCheck className="ffl-verificado" aria-hidden="true" />}
                                     </span>
-                                    <span className="ffl-amigo-nombre">{p.name}</span>
+                                    <span className="ffl-amigo-datos">
+                                        <NombreDeslizante texto={p.name} className="ffl-amigo-nombre" />
+                                        <span className="ffl-amigo-rango">
+                                            <InsigniaRango rango={p.rango || { id: "bronce", nombre: "Bronce" }} tamano="0.8rem" />
+                                            {p.admin ? "Admin" : p.rango?.nombre || "Bronce"}
+                                        </span>
+                                    </span>
                                 </button>
                                 <button
                                     type="button"

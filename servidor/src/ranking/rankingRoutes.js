@@ -45,6 +45,7 @@ router.get(
                     p.display_name AS nombre,
                     p.avatar,
                     m.ruta AS marco,
+                    (u.verificado OR u.rol = 'admin') AS verificado,
                     p.level AS nivel,
                     p.xp,
                     COALESCE(s.games_played, 0) AS partidas,

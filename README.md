@@ -125,7 +125,9 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
 - **Personajes:** crear personajes nuevos subiendo su modelo `.vrm`/`.glb` (hasta 60 MB) y su
   foto; cambiar nombre, archivos, precio en oro y/o diamantes, nivel mínimo, mostrar u
   ocultar en la tienda, y borrarlos (quien lo usaba vuelve al personaje inicial).
-- **Jugadores:** buscar, cambiar nivel, oro y diamantes, **bloquear** la cuenta (no puede
+- **Jugadores:** buscar, **verificar** (chulo azul junto al nombre en todo el juego: lista
+  en línea, sala, perfil, ranking, SigloGamif y Triqui; los admin ya salen verificados),
+  cambiar nivel, oro y diamantes, **bloquear** la cuenta (no puede
   entrar ni jugar), **quitar o devolver la voz**, dar o quitar el rol de admin y regalar
   oro o diamantes. La columna **Reportes** muestra "sin revisar / total"; al tocarla se
   ven los motivos y quién reportó, y se pueden **marcar como revisados**. La casilla
@@ -369,6 +371,9 @@ una vista previa:
   esqueleto, y expórtalo a GLB con Blender.
 - Personajes VRM: **VRoid Hub** (revisa que permita descarga y uso), **Booth** (busca
   "VRM 無料") o créalos en **VRoid Studio** (gratis).
+- **Posición:** en el mismo lugar (regla 📏) hay dos barras para correr el modelo a los lados
+  y hacia arriba/abajo (±1 m, con flechas para ajustes finos y "Centrar"), por si se
+  hunde en el piso, flota o queda corrido. Se aplica en todo el juego.
 - **Tamaño:** si un modelo sale muy grande o muy pequeño, en el panel (al crearlo, o con el
   botón de la regla 📏 en su fila) toca **Ajustar solo** (lo mide y lo deja con la altura
   de los demás) o usa la barra, que va del 1 % al 10.000 %, el campo de porcentaje exacto

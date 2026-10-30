@@ -48,6 +48,7 @@ import InsigniaRango from "../components/juego/InsigniaRango";
 import NombreDeslizante from "../components/juego/NombreDeslizante";
 import AnuncioEventos from "../components/juego/AnuncioEventos";
 import { api } from "../services/api";
+import Verificado from "../components/juego/Verificado";
 
 /* =========================================================
    LOBBY (diseño tipo Free Fire)
@@ -233,7 +234,7 @@ export default function Lobby() {
                         <span className="ffl-nivel">{jugador.level}</span>
                     </span>
                     <span className="ffl-perfil-datos">
-                        <strong>{jugador.displayName}</strong>
+                        <strong>{jugador.displayName}<Verificado activo={user?.verificado} /></strong>
                         <span className="ffl-xp" title={`${jugador.experience.current} / ${jugador.experience.needed} XP`}>
                             <span style={{ width: `${jugador.experience.percentage}%` }} />
                         </span>
@@ -325,12 +326,12 @@ export default function Lobby() {
                                             type="button"
                                             className="ffl-amigo-perfil"
                                             onClick={() => navigate(`/profile/${p.id}`)}
-                                            aria-label={`${p.name}${p.admin ? ", administrador verificado" : ""}, rango ${p.rango?.nombre || "Bronce"}, ${estado.texto}`}
+                                            aria-label={`${p.name}${p.admin ? ", administrador verificado" : p.verificado ? ", verificado" : ""}, rango ${p.rango?.nombre || "Bronce"}, ${estado.texto}`}
                                         >
                                             <span className="ffl-amigo-foto">
                                                 <FotoPerfil foto={p.avatar} marco={p.marco} />
                                                 <i className={`ffl-estado ffl-estado-${estado.tono}`} aria-hidden="true" />
-                                                {p.admin && <LuBadgeCheck className="ffl-verificado" aria-hidden="true" />}
+                                                {(p.admin || p.verificado) && <LuBadgeCheck className="ffl-verificado" aria-hidden="true" />}
                                             </span>
                                             <span className="ffl-amigo-datos">
                                                 <NombreDeslizante texto={p.name} className="ffl-amigo-nombre" />

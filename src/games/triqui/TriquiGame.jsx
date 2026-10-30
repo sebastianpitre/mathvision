@@ -34,6 +34,7 @@ import { useVoz } from "../../hooks/useVoz";
 import { EMOJIS } from "../../data/emojis";
 
 import "./triqui.css";
+import Verificado from "../../components/juego/Verificado";
 
 /* =========================================================
    EMOJIS
@@ -1091,6 +1092,7 @@ function TriquiGame({ mode = "online", playerName } = {}) {
 
                                     <strong>
                                         {player.name ?? ""}
+                                        {!isLocal && <Verificado activo={player.verificado} />}
                                         {isMe && !isLocal && (
                                             <span className="triqui-you">TÚ</span>
                                         )}

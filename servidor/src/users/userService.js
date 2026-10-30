@@ -24,6 +24,7 @@ export async function getUserProfile(userId) {
             u.username,
             u.email,
             u.rol,
+            (u.verificado OR u.rol = 'admin') AS verificado,
             u.created_at,
             u.last_login,
 

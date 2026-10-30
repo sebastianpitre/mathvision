@@ -1,5 +1,5 @@
 import { Fragment, useState } from "react";
-import { LuCheck, LuFlag, LuGift, LuLock, LuLockOpen, LuMic, LuMicOff, LuPencil, LuSave, LuSearch, LuShieldCheck, LuX } from "react-icons/lu";
+import { LuBadgeCheck, LuCheck, LuFlag, LuGift, LuLock, LuLockOpen, LuMic, LuMicOff, LuPencil, LuSave, LuSearch, LuShieldCheck, LuX } from "react-icons/lu";
 
 import { api } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
@@ -22,6 +22,17 @@ export default function UsuariosAdmin() {
     const [aviso, setAviso] = useState({ texto: "", tono: "" });
     const [editando, setEditando] = useState(null); // { id, nivel, oro, diamantes }
     const [viendoReportes, setViendoReportes] = useState(null); // { id, lista }
+
+    async function cambiarVerificado(u) {
+        const verificar = !u.verificado;
+        try {
+            await api(`/admin/usuarios/${u.id}/verificado`, { metodo: "PUT", body: { verificado: verificar } });
+            setAviso({ texto: `"${u.username}" ${verificar ? "ahora está verificado ✔" : "ya no está verificado"}.`, tono: "ok" });
+            recargar();
+        } catch (e) {
+            setAviso({ texto: e.message, tono: "error" });
+        }
+    }
 
     async function cambiarVoz(u) {
         const bloquear = !u.voz_bloqueada;
@@ -183,6 +194,12 @@ export default function UsuariosAdmin() {
                                         {u.bloqueado && (
                                             <span className="lg-tag lg-tag-off" style={{ marginLeft: 6 }}>Bloqueado</span>
                                         )}
+                                        {u.verificado && (
+                                            <span className="lg-tag lg-tag-on" style={{ marginLeft: 6 }}>
+                                                <LuBadgeCheck aria-hidden="true" style={{ verticalAlign: "-2px", marginRight: 3 }} />
+                                                Verificado
+                                            </span>
+                                        )}
                                         {u.voz_bloqueada && (
                                             <span className="lg-tag lg-tag-off" style={{ marginLeft: 6 }}>Sin voz</span>
                                         )}
@@ -234,6 +251,16 @@ export default function UsuariosAdmin() {
                                                 disabled={u.id === user?.id}
                                             >
                                                 {u.bloqueado ? <LuLockOpen aria-hidden="true" /> : <LuLock aria-hidden="true" />}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="lb-icon-btn"
+                                                title={u.verificado ? "Quitar verificado" : "Verificar (chulo azul en todo el juego)"}
+                                                aria-label={`${u.verificado ? "Quitar verificado a" : "Verificar a"} ${u.username}`}
+                                                onClick={() => cambiarVerificado(u)}
+                                                style={u.verificado ? { color: "#1d9bf0", borderColor: "#1d9bf0" } : undefined}
+                                            >
+                                                <LuBadgeCheck aria-hidden="true" />
                                             </button>
                                             <button
                                                 type="button"

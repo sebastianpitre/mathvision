@@ -15,7 +15,7 @@ import Personaje3D from "../../components/juego/Personaje3D";
    Precio 0 en oro y en diamantes = gratis para todos.
 ========================================================= */
 
-const VACIO = { name: "", precio_oro: 300, precio_diamantes: 0, nivel_minimo: 1, activo: true, model_path: "", thumbnail_path: "", creditos: "", escala: 1 };
+const VACIO = { name: "", precio_oro: 300, precio_diamantes: 0, nivel_minimo: 1, activo: true, model_path: "", thumbnail_path: "", creditos: "", escala: 1, desplazar_x: 0, desplazar_y: 0 };
 
 /* Barra para hacer el modelo más pequeño o más grande (1 = 100 % = normal).
    Va de 1 % a 10.000 % en escala logarítmica: así se puede afinar
@@ -104,11 +104,49 @@ function BarraTamano({ valor, alCambiar, nombre, modelo }) {
     );
 }
 
+/* Correr el modelo a los lados y hacia arriba o abajo (en metros). */
+function BarraPosicion({ x, y, alCambiar, nombre }) {
+    const fila = (eje, valor, texto, ayuda) => (
+        <label className="lg-field" style={{ flex: "1 1 220px" }}>
+            <span>{`${texto}: ${valor > 0 ? "+" : ""}${Math.round((Number(valor) || 0) * 100)} cm`}</span>
+            <span className="lg-row" style={{ flexWrap: "nowrap", alignItems: "center", gap: 6 }}>
+                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar({ [eje]: Math.max(-2, Math.round(((Number(valor) || 0) - 0.02) * 100) / 100) })} aria-label={`${texto}: menos`}>
+                    {eje === "x" ? "←" : "↓"}
+                </button>
+                <input
+                    type="range"
+                    min={-1}
+                    max={1}
+                    step={0.01}
+                    value={Number(valor) || 0}
+                    onChange={(e) => alCambiar({ [eje]: Number(e.target.value) })}
+                    aria-label={`${texto} de ${nombre || "el personaje"}`}
+                    title={ayuda}
+                    style={{ flex: 1 }}
+                />
+                <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar({ [eje]: Math.min(2, Math.round(((Number(valor) || 0) + 0.02) * 100) / 100) })} aria-label={`${texto}: más`}>
+                    {eje === "x" ? "→" : "↑"}
+                </button>
+            </span>
+        </label>
+    );
+    return (
+        <div className="lg-tamano">
+            {fila("x", x, "A los lados", "Izquierda o derecha")}
+            {fila("y", y, "Arriba / abajo", "Súbelo si se hunde en el piso, bájalo si flota")}
+            <button type="button" className="lb-btn lb-btn-ghost lb-btn-sm" onClick={() => alCambiar({ x: 0, y: 0 })}>
+                Centrar
+            </button>
+        </div>
+    );
+}
+
 /* Vista previa 3D con una línea a la altura normal, para comparar. */
-function VistaTamano({ modelo, tamano }) {
+function VistaTamano({ modelo, tamano, x = 0, y = 0 }) {
     return (
         <div className="lg-vista" aria-label="Vista previa del modelo">
-            <Personaje3D modelo={modelo} tamano={tamano} />
+            <Personaje3D modelo={modelo} tamano={tamano} desplazar={{ x: Number(x) || 0, y: Number(y) || 0 }} />
+            <span className="lg-vista-centro" aria-hidden="true" />
             <span className="lg-vista-linea" aria-hidden="true">Altura normal</span>
         </div>
     );
@@ -205,6 +243,8 @@ export default function TiendaAdmin() {
                     thumbnail_path: p.thumbnail_path || undefined,
                     creditos: p.creditos || "",
                     escala: Number(p.escala) || 1,
+                    desplazar_x: Number(p.desplazar_x) || 0,
+                    desplazar_y: Number(p.desplazar_y) || 0,
                 },
             });
             setFilas((lista) => lista.map((x) => (x.id === p.id ? { ...x, cambiado: false } : x)));
@@ -241,6 +281,8 @@ export default function TiendaAdmin() {
                     nivel_minimo: Number(nuevo.nivel_minimo) || 1,
                     thumbnail_path: nuevo.thumbnail_path || undefined,
                     escala: Number(nuevo.escala) || 1,
+                    desplazar_x: Number(nuevo.desplazar_x) || 0,
+                    desplazar_y: Number(nuevo.desplazar_y) || 0,
                 },
             });
             cargarEscalas({ forzar: true });
@@ -314,8 +356,14 @@ export default function TiendaAdmin() {
                     </label>
                     {nuevo.model_path && (
                         <>
-                            <VistaTamano modelo={nuevo.model_path} tamano={nuevo.escala} />
+                            <VistaTamano modelo={nuevo.model_path} tamano={nuevo.escala} x={nuevo.desplazar_x} y={nuevo.desplazar_y} />
                             <BarraTamano valor={nuevo.escala} nombre={nuevo.name} modelo={nuevo.model_path} alCambiar={(v) => setNuevo((n) => ({ ...n, escala: v }))} />
+                            <BarraPosicion
+                                x={nuevo.desplazar_x}
+                                y={nuevo.desplazar_y}
+                                nombre={nuevo.name}
+                                alCambiar={(c) => setNuevo((n) => ({ ...n, ...("x" in c ? { desplazar_x: c.x } : {}), ...("y" in c ? { desplazar_y: c.y } : {}) }))}
+                            />
                         </>
                     )}
                     <div className="lg-row">
@@ -408,7 +456,7 @@ export default function TiendaAdmin() {
                                         <button
                                             type="button"
                                             className={`lb-icon-btn ${viendo === p.id ? "lb-icon-btn-activo" : ""}`}
-                                            title="Ver y cambiar tamaño"
+                                            title="Ver y cambiar tamaño y posición"
                                             aria-label={`Ver y cambiar el tamaño de ${p.name}`}
                                             aria-expanded={viendo === p.id}
                                             onClick={() => setViendo(viendo === p.id ? null : p.id)}
@@ -427,10 +475,19 @@ export default function TiendaAdmin() {
                                 <tr>
                                     <td colSpan={10}>
                                         <div className="lg-tamano-fila">
-                                            <VistaTamano modelo={p.model_path} tamano={Number(p.escala) || 1} />
+                                            <VistaTamano modelo={p.model_path} tamano={Number(p.escala) || 1} x={p.desplazar_x} y={p.desplazar_y} />
                                             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
-                                                <strong>{`Tamaño de ${p.name}`}</strong>
+                                                <strong>{`Tamaño y posición de ${p.name}`}</strong>
                                                 <BarraTamano valor={p.escala} nombre={p.name} modelo={p.model_path} alCambiar={(v) => cambiar(p.id, "escala", v)} />
+                                                <BarraPosicion
+                                                    x={p.desplazar_x}
+                                                    y={p.desplazar_y}
+                                                    nombre={p.name}
+                                                    alCambiar={(c) => {
+                                                        if ("x" in c) cambiar(p.id, "desplazar_x", c.x);
+                                                        if ("y" in c) cambiar(p.id, "desplazar_y", c.y);
+                                                    }}
+                                                />
                                                 <span className="lb-muted">Toca "Ajustar solo" o mueve la barra hasta que la cabeza quede cerca de la línea. Luego toca Guardar.</span>
                                                 <div>
                                                     <button type="button" className="lb-btn lb-btn-primary lb-btn-sm" disabled={!p.cambiado || guardando === p.id} onClick={() => guardar(p)}>

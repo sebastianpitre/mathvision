@@ -153,7 +153,7 @@ export class RoomManager {
         room.round = 0;
 
         for (const miembro of room.miembros.values()) {
-            room.players.set(miembro.socketId, new Player(miembro.socketId, miembro.nombre, miembro.userId));
+            room.players.set(miembro.socketId, new Player(miembro.socketId, miembro.nombre, miembro.userId, miembro.verificado));
             room.score.set(miembro.socketId, 0);
         }
     }
@@ -168,6 +168,7 @@ export class RoomManager {
                 nombre: m.nombre,
                 avatar: m.avatar,
                 marco: m.marco || null,
+                verificado: Boolean(m.verificado),
                 nivel: m.nivel,
                 modelo: m.modelo,
                 personaje: m.personaje,

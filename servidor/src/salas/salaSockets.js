@@ -101,6 +101,7 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
             nombre: String(perfil?.display_name || perfil?.username || socket.username || "Jugador").slice(0, 30),
             avatar: perfil?.avatar || null,
             marco: perfil?.marco || null,
+            verificado: Boolean(perfil?.verificado),
             nivel: perfil?.level || 1,
             modelo: perfil?.character_model_path || null,
             personaje: perfil?.character_name || null,
@@ -218,7 +219,7 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
     function iniciarSiglo(room) {
         const jugadores = [...room.miembros.values()]
             .sort((a, b) => a.entroEn - b.entroEn)
-            .map((m) => ({ userId: m.userId, nombre: m.nombre, avatar: m.avatar }));
+            .map((m) => ({ userId: m.userId, nombre: m.nombre, avatar: m.avatar, marco: m.marco, verificado: m.verificado }));
 
         const juego = new SigloGame({
             jugadores,

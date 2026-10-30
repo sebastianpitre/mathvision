@@ -759,6 +759,7 @@ io.on(
                     // Para la lista en línea: marco, rango de temporada y si es admin.
                     player.marco = profile.marco || null;
                     player.admin = profile.rol === "admin";
+                    player.verificado = Boolean(profile.verificado);
                     try {
                         const r = await rangoJugador(socket.userId);
                         player.rango = { id: r.rango.id, nombre: r.rango.nombre };

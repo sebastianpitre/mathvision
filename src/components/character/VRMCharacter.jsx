@@ -22,7 +22,7 @@ import {
 } from "../../context/AuthContext";
 
 import { adaptarModelo } from "./adaptarModelo";
-import { useEscala } from "../../services/escalas";
+import { useAjuste } from "../../services/escalas";
 
 
 /*
@@ -53,8 +53,10 @@ export default function VRMCharacter({
 
     url,
     scale = 1,
-    // Tamaño del modelo (1 = normal). Si no se pasa, se usa el del panel.
+    // Tamaño del modelo (1 = normal) y cuánto correrlo { x, y } en metros.
+    // Si no se pasan, se usan los del panel.
     tamano,
+    desplazar,
     position = [0, 0, 0],
     rotation = [0, Math.PI, 0]
 
@@ -65,8 +67,15 @@ export default function VRMCharacter({
     const characterUrl =
         url || user?.character_model_path || null;
 
-    const tamanoPanel = useEscala(characterUrl);
-    const tamanoFinal = tamano ?? tamanoPanel;
+    const ajuste = useAjuste(characterUrl);
+    const tamanoFinal = tamano ?? ajuste.escala;
+    const correr = desplazar ?? ajuste;
+    // El corrimiento se mide en metros del personaje, así que crece con la escala de la pantalla.
+    const posicionFinal = [
+        position[0] + (correr.x || 0) * scale,
+        position[1] + (correr.y || 0) * scale,
+        position[2],
+    ];
 
 
     /*
@@ -513,7 +522,7 @@ export default function VRMCharacter({
         <primitive
             object={vrm.objeto}
             scale={scale * tamanoFinal}
-            position={position}
+            position={posicionFinal}
             rotation={rotation}
             dispose={null}
         />

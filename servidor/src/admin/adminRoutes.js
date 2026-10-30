@@ -333,7 +333,9 @@ router.put(
                 model_path = COALESCE($8, model_path),
                 thumbnail_path = COALESCE($9, thumbnail_path),
                 creditos = $10,
-                escala = COALESCE($11, escala)
+                escala = COALESCE($11, escala),
+                desplazar_x = COALESCE($12, desplazar_x),
+                desplazar_y = COALESCE($13, desplazar_y)
             WHERE id = $1
             `,
             [
@@ -348,6 +350,8 @@ router.put(
                 datos.thumbnail_path ? rutaArchivo(datos.thumbnail_path, "foto") : null,
                 creditosDe(datos.creditos),
                 datos.escala === undefined ? null : escalaDe(datos.escala),
+                datos.desplazar_x === undefined ? null : desplazarDe(datos.desplazar_x),
+                datos.desplazar_y === undefined ? null : desplazarDe(datos.desplazar_y),
             ]
         );
 
@@ -371,7 +375,7 @@ router.get(
         const { rows } = await pool.query(
             `
             SELECT u.id, u.username, u.email, u.rol, u.created_at, u.last_login,
-                   u.bloqueado, u.voz_bloqueada, p.display_name, p.level, p.xp, p.coins, p.gems, p.avatar,
+                   u.bloqueado, u.voz_bloqueada, u.verificado, p.display_name, p.level, p.xp, p.coins, p.gems, p.avatar,
                    (SELECT COUNT(DISTINCT r.reportante_id)::int FROM reportes r
                      WHERE r.reportado_id = u.id AND r.revisado = FALSE) AS reportes_pendientes,
                    (SELECT COUNT(*)::int FROM reportes r WHERE r.reportado_id = u.id) AS reportes_total,
@@ -462,6 +466,12 @@ function escalaDe(valor) {
     return Number.isFinite(n) && n > 0 ? Math.min(100, Math.max(0.01, Math.round(n * 1000) / 1000)) : 1;
 }
 
+// Correr el modelo: de -2 a 2 metros (a los lados o arriba/abajo).
+function desplazarDe(valor) {
+    const n = Number(valor);
+    return Number.isFinite(n) ? Math.min(2, Math.max(-2, Math.round(n * 1000) / 1000)) : 0;
+}
+
 function slug(texto) {
     return String(texto || "")
         .normalize("NFD")
@@ -526,8 +536,9 @@ router.post(
         await pool.query(
             `
             INSERT INTO characters (id, name, model_path, thumbnail_path, is_default,
-                                    precio_oro, precio_diamantes, nivel_minimo, activo, orden, creditos, escala)
-            VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $9, $10, $11)
+                                    precio_oro, precio_diamantes, nivel_minimo, activo, orden, creditos, escala,
+                                    desplazar_x, desplazar_y)
+            VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             `,
             [
                 id,
@@ -541,6 +552,8 @@ router.post(
                 numero(datos.orden, -1000, 1000),
                 creditosDe(datos.creditos),
                 escalaDe(datos.escala ?? 1),
+                desplazarDe(datos.desplazar_x ?? 0),
+                desplazarDe(datos.desplazar_y ?? 0),
             ]
         );
 
@@ -665,6 +678,17 @@ router.put(
 /* =========================================================
    VOZ Y REPORTES
 ========================================================= */
+
+/* Verificado: chulo azul junto a su foto en todo el juego. */
+router.put(
+    "/usuarios/:id/verificado",
+    ruta(async (req, res) => {
+        const verificado = req.body?.verificado === true;
+        const { rowCount } = await pool.query("UPDATE users SET verificado = $2 WHERE id = $1", [idValido(req.params.id), verificado]);
+        if (!rowCount) throw errorConEstado("Usuario no encontrado.", 404);
+        res.json({ success: true, verificado });
+    })
+);
 
 router.put(
     "/usuarios/:id/voz",

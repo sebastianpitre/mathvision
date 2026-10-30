@@ -22,6 +22,7 @@ import games from "../../data/mock/games.json";
 
 import "./sala.css";
 import FotoPerfil from "../../components/juego/FotoPerfil";
+import Verificado from "../../components/juego/Verificado";
 
 /* =========================================================
    SALA MULTIJUGADOR (estilo Free Fire)
@@ -295,6 +296,7 @@ export default function Sala() {
                                 <strong>
                                     {m.esCreador && <LuCrown aria-label="Creador" className="sl-corona" />}
                                     {m.nombre}
+                                    <Verificado activo={m.verificado} />
                                     {String(m.userId) === miId && <span className="sl-tu"> (tú)</span>}
                                     <HablandoMarca activo={hablando?.userId === String(m.userId)} />
                                 </strong>
@@ -360,6 +362,7 @@ export default function Sala() {
                                     <span className="sl-etiqueta">
                                         {m.esCreador && <LuCrown aria-hidden="true" />}
                                         <strong>{m.nombre}</strong>
+                                        <Verificado activo={m.verificado} />
                                         <HablandoMarca activo={hablando?.userId === String(m.userId)} />
                                         {m.victorias > 0 && <small>{`🏆${m.victorias}`}</small>}
                                     </span>

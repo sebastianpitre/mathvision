@@ -1,14 +1,15 @@
 /* =========================================================
-   TAMAÑO DE CADA PERSONAJE
-   El administrador ajusta en el panel el tamaño de los
-   modelos que vienen muy grandes o muy pequeños. Aquí se
-   guarda { "ruta del modelo": tamaño } para aplicarlo en
+   TAMAÑO Y POSICIÓN DE CADA PERSONAJE
+   El administrador ajusta en el panel los modelos que vienen
+   muy grandes, muy pequeños o corridos. Aquí se guarda
+   { "ruta del modelo": { escala, x, y } } para aplicarlo en
    cualquier pantalla donde se vea el personaje.
 ========================================================= */
 
 import { useEffect, useState } from "react";
 
-let escalas = {};
+const NORMAL = { escala: 1, x: 0, y: 0 };
+let ajustes = {};
 let pedido = null;
 const oyentes = new Set();
 
@@ -18,7 +19,7 @@ export function cargarEscalas({ forzar = false } = {}) {
         .then((r) => (r.ok ? r.json() : null))
         .then((d) => {
             if (d?.escalas) {
-                escalas = d.escalas;
+                ajustes = d.escalas;
                 oyentes.forEach((fn) => fn());
             }
         })
@@ -31,11 +32,18 @@ export function cargarEscalas({ forzar = false } = {}) {
 // La sala agrega "#jugador-5" a la ruta para cargar copias separadas.
 const sinFragmento = (url) => String(url || "").split("#")[0];
 
-export function escalaDe(url) {
-    return escalas[sinFragmento(url)] ?? 1;
+export function ajusteDe(url) {
+    const a = ajustes[sinFragmento(url)];
+    if (a == null) return NORMAL;
+    if (typeof a === "number") return { ...NORMAL, escala: a }; // versión anterior del servidor
+    return { escala: a.escala ?? 1, x: a.x ?? 0, y: a.y ?? 0 };
 }
 
-export function useEscala(url) {
+export function escalaDe(url) {
+    return ajusteDe(url).escala;
+}
+
+export function useAjuste(url) {
     const [, setVersion] = useState(0);
     useEffect(() => {
         cargarEscalas();
@@ -43,5 +51,7 @@ export function useEscala(url) {
         oyentes.add(fn);
         return () => oyentes.delete(fn);
     }, []);
-    return escalaDe(url);
+    return ajusteDe(url);
 }
+
+export const useEscala = (url) => useAjuste(url).escala;

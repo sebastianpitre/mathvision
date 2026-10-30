@@ -3,7 +3,7 @@
    ---------------------------------------------------------
    GET  /api/tienda                lista con precios y lo que ya tengo
    POST /api/tienda/comprar        { personaje_id, moneda: "oro" | "diamantes" }
-   GET  /api/tienda/escalas        { "ruta del modelo": tamaño } (público)
+   GET  /api/tienda/escalas        { "ruta del modelo": { escala, x, y } } (público)
 
    Un personaje puede tener precio en oro, en diamantes o en
    ambos (el jugador elige con qué pagar). Además puede pedir
@@ -23,9 +23,17 @@ const router = express.Router();
 router.get(
     "/escalas",
     ruta(async (req, res) => {
-        const { rows } = await pool.query("SELECT model_path, escala FROM characters WHERE escala <> 1");
+        const { rows } = await pool.query(
+            "SELECT model_path, escala, desplazar_x, desplazar_y FROM characters WHERE escala <> 1 OR desplazar_x <> 0 OR desplazar_y <> 0"
+        );
         res.set("Cache-Control", "no-cache");
-        res.json({ success: true, escalas: Object.fromEntries(rows.map((r) => [r.model_path, Number(r.escala)])) });
+        res.json({
+            success: true,
+            // { ruta: { escala, x, y } } (x, y en metros: correr el modelo)
+            escalas: Object.fromEntries(
+                rows.map((r) => [r.model_path, { escala: Number(r.escala), x: Number(r.desplazar_x), y: Number(r.desplazar_y) }])
+            ),
+        });
     })
 );
 

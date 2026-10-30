@@ -17,6 +17,7 @@ import { AccionesJugador } from "../../components/juego/Reportar";
 import { useVoz } from "../../hooks/useVoz";
 
 import "./siglo.css";
+import Verificado from "../../components/juego/Verificado";
 
 /* =========================================================
    SIGLOGAMIF · PANTALLA DEL JUEGO
@@ -365,6 +366,7 @@ export default function Siglo() {
                                     <div className="sg-carta-nombre">
                                         <strong>
                                             {j.nombre}
+                                            <Verificado activo={j.verificado} />
                                             {j.userId === miId && <span className="sg-tu"> (tú)</span>}
                                             <HablandoMarca activo={hablando?.userId === j.userId} />
                                         </strong>

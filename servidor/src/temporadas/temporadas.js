@@ -234,6 +234,7 @@ export async function tablaTemporada(userId, { temporadaId = null, top = 50 } = 
         WITH tabla AS (
             SELECT u.id, p.display_name AS nombre, p.avatar, p.level AS nivel,
                    m.ruta AS marco, c.name AS personaje, c.model_path AS modelo,
+                   (u.verificado OR u.rol = 'admin') AS verificado,
                    tp.puntos, tp.partidas, tp.ganadas, tp.rango_final,
                    ROW_NUMBER() OVER (ORDER BY tp.puntos DESC, tp.ganadas DESC, tp.actualizado_en)::int AS posicion
             FROM temporada_puntos tp

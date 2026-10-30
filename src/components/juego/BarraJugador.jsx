@@ -4,6 +4,7 @@ import { LuGem, LuPlus } from "react-icons/lu";
 import { useAuth } from "../../context/AuthContext";
 import { jugadorDesdeUsuario } from "../../services/jugador";
 import FotoPerfil from "./FotoPerfil";
+import Verificado from "./Verificado";
 
 /* Perfil (foto, nivel, XP), oro y diamantes: arriba a la
    izquierda en todas las pantallas, como en Free Fire. */
@@ -24,7 +25,7 @@ export default function BarraJugador() {
                     <span className="ffl-nivel">{jugador.level}</span>
                 </span>
                 <span className="ffl-perfil-datos">
-                    <strong>{jugador.displayName}</strong>
+                    <strong>{jugador.displayName}<Verificado activo={user?.verificado} /></strong>
                     <span className="ffl-xp" title={`${jugador.experience.current} / ${jugador.experience.needed} XP`}>
                         <span style={{ width: `${jugador.experience.percentage}%` }} />
                     </span>

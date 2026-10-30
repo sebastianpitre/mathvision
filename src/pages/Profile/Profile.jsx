@@ -12,6 +12,7 @@ import icons from "../../data/mock/icons.json";
 import "./perfil.css";
 import FotoPerfil from "../../components/juego/FotoPerfil";
 import InsigniaRango from "../../components/juego/InsigniaRango";
+import Verificado from "../../components/juego/Verificado";
 
 /* =========================================================
    PERFIL (como el perfil de Free Fire)
@@ -157,7 +158,10 @@ export default function Profile() {
                             <FotoPerfil foto={perfil.avatar} marco={perfil.marco} alt={`Foto de ${nombre}`} />
                         </span>
                         <div className="pf-datos">
-                            <strong>{nombre}</strong>
+                            <strong>
+                                {nombre}
+                                <Verificado activo={perfil.verificado} />
+                            </strong>
                             <span className="pf-xp" title={`${perfil.xp_en_nivel || 0} / ${perfil.xp_para_subir || 100} XP`}>
                                 <span style={{ width: `${xp}%` }} />
                             </span>

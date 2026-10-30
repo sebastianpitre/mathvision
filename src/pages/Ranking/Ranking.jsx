@@ -11,6 +11,7 @@ import assets from "../../data/mock/assets.json";
 import "./ranking.css";
 import FotoPerfil from "../../components/juego/FotoPerfil";
 import InsigniaRango from "../../components/juego/InsigniaRango";
+import Verificado from "../../components/juego/Verificado";
 
 /* =========================================================
    RANKING DE LOS MEJORES
@@ -57,6 +58,7 @@ function Fila({ j, por, elegido, alElegir, soyYo }) {
                 <span className="rk-nombre">
                     <strong>
                         {j.nombre}
+                        <Verificado activo={j.verificado} />
                         {soyYo && <span className="rk-tu"> (tú)</span>}
                     </strong>
                     <small>{por === "temporada" ? `${j.rango?.nombre || "Bronce"} · ${formato(j.ganadas)} ganadas` : `Nv. ${j.nivel} · ${j.personaje || "Personaje"}`}</small>
@@ -162,7 +164,7 @@ export default function Ranking() {
                         <div className="rk-detalle-texto">
                             <small>{`#${elegido.posicion} · ${elegido.personaje || "Personaje"}`}</small>
                             {por === "temporada" && elegido.rango && <InsigniaRango rango={elegido.rango} tamano="1.3rem" conNombre />}
-                            <strong>{elegido.nombre}</strong>
+                            <strong>{elegido.nombre}<Verificado activo={elegido.verificado} /></strong>
                             <span className="rk-datos">
                                 <span title="Nivel">{`Nv. ${elegido.nivel}`}</span>
                                 <span title="Victorias"><LuTrophy aria-hidden="true" />{formato(elegido.victorias ?? elegido.ganadas)}</span>

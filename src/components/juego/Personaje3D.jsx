@@ -8,7 +8,7 @@ import LucesPersonaje from "../character/LucesPersonaje";
 
 /* Un personaje 3D que se puede girar con el dedo. La cámara
    queda a la altura del pecho para verlo de cuerpo entero. */
-export default function Personaje3D({ modelo, escala = 2.02, y = -1.72, cargando = true, className = "", tamano }) {
+export default function Personaje3D({ modelo, escala = 2.02, y = -1.72, cargando = true, className = "", tamano, desplazar }) {
     return (
         <div className={`ffp-3d ${className}`} aria-hidden="true">
             <ProtegerError respaldo={null}>
@@ -23,7 +23,7 @@ export default function Personaje3D({ modelo, escala = 2.02, y = -1.72, cargando
                             ) : null
                         }
                     >
-                        {modelo && <VRMCharacter key={modelo} url={modelo} scale={escala} tamano={tamano} position={[0, y, 0]} rotation={[0, 0, 0]} />}
+                        {modelo && <VRMCharacter key={modelo} url={modelo} scale={escala} tamano={tamano} desplazar={desplazar} position={[0, y, 0]} rotation={[0, 0, 0]} />}
                     </Suspense>
                     <OrbitControls
                         target={[0, 0.15, 0]}

@@ -30,6 +30,7 @@ function perfilPublico(user) {
         gems: user.gems,
         avatar: user.avatar,
         marco: user.marco,
+        verificado: user.verificado,
         character_id: user.character_id,
         character_name: user.character_name,
         character_model_path: user.character_model_path,

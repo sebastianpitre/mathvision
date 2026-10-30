@@ -1411,3 +1411,20 @@
 .ffl-avatar {
     position: relative;
 }
+
+/* ---------- Verificado ---------- */
+.vf {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    margin-left: 0.2em;
+    vertical-align: -0.12em;
+}
+
+.vf svg {
+    width: 1.05em;
+    height: 1.05em;
+    color: #fff;
+    fill: #1d9bf0;
+    filter: drop-shadow(0 0 0.1em rgba(0, 0, 0, 0.5));
+}
