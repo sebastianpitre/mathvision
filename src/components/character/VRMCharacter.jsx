@@ -57,6 +57,11 @@ export default function VRMCharacter({
     // Si no se pasan, se usan los del panel.
     tamano,
     desplazar,
+    // Tamaño máximo de las texturas (memoria). En la sala con muchos
+    // jugadores se usa 512.
+    texturaMax,
+    // Avisa cuando el modelo ya está listo (la sala carga uno a la vez).
+    alCargar,
     position = [0, 0, 0],
     rotation = [0, Math.PI, 0]
 
@@ -144,7 +149,12 @@ export default function VRMCharacter({
 
     // VRM 1.0, VRM 0.x o GLB: todos quedan con la misma forma
     // (ver adaptarModelo.js).
-    const vrm = useMemo(() => (gltf ? adaptarModelo(gltf) : null), [gltf]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const vrm = useMemo(() => (gltf ? adaptarModelo(gltf, texturaMax ? { texturaMax } : undefined) : null), [gltf]);
+
+    useEffect(() => {
+        if (vrm) alCargar?.();
+    }, [vrm, alCargar]);
 
 
     /*

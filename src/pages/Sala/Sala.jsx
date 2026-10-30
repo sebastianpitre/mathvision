@@ -50,22 +50,40 @@ function juegoConFoto(j) {
     return { id: j.id, name: j.nombre, image: g?.image, minPlayers: j.min, maxPlayers: j.max, ruta: j.ruta };
 }
 
+/* Si un modelo falla, igual se pasa al siguiente de la fila. */
+function Avisar({ alListo }) {
+    useEffect(() => {
+        alListo();
+    }, [alListo]);
+    return null;
+}
+
 /* Los personajes, repartidos a lo ancho del escenario. */
 function Escenario({ miembros, puestos }) {
     const { viewport } = useThree();
     const ancho = viewport.width;
     const escala = Math.min(1.7, ancho / puestos / 0.6);
 
+    /* Los personajes se cargan de a dos: cargar 8 modelos al mismo
+       tiempo llenaba la memoria del teléfono y la página se cerraba. */
+    const [listos, setListos] = useState(() => new Set());
+    const marcarListo = useCallback((id) => setListos((s) => (s.has(id) ? s : new Set(s).add(id))), []);
+    // De a dos a la vez: rápido y sin llenar la memoria.
+    const enCarga = new Set(miembros.filter((m) => !listos.has(m.userId)).slice(0, 2).map((m) => m.userId));
+    // Con muchos jugadores cada personaje se ve pequeño: texturas más livianas.
+    const texturaMax = miembros.length > 3 ? 512 : 1024;
+
     return (
         <>
             <LucesPersonaje calida />
             {miembros.map((m, i) => {
+                const turno = listos.has(m.userId) || enCarga.has(m.userId);
                 const x = -ancho / 2 + (ancho * (i + 0.5)) / puestos;
                 // Un modelo 3D solo se muestra una vez: cada jugador carga su copia.
                 const url = `${m.modelo || MODELO_POR_DEFECTO}#jugador-${m.userId}`;
 
                 return (
-                    <ProtegerError key={m.userId} respaldo={null}>
+                    <ProtegerError key={m.userId} respaldo={<Avisar alListo={() => marcarListo(m.userId)} />}>
                         <Suspense
                             fallback={
                                 <Html center position={[x, 0, 0]} style={{ pointerEvents: "none" }}>
@@ -73,7 +91,20 @@ function Escenario({ miembros, puestos }) {
                                 </Html>
                             }
                         >
-                            <VRMCharacter url={url} scale={escala} position={[x, -1.6, 0]} rotation={[0, 0, 0]} />
+                            {turno ? (
+                                <VRMCharacter
+                                    url={url}
+                                    scale={escala}
+                                    position={[x, -1.6, 0]}
+                                    rotation={[0, 0, 0]}
+                                    texturaMax={texturaMax}
+                                    alCargar={() => marcarListo(m.userId)}
+                                />
+                            ) : (
+                                <Html center position={[x, 0, 0]} style={{ pointerEvents: "none" }}>
+                                    <span className="ffp-cargando">En fila…</span>
+                                </Html>
+                            )}
                         </Suspense>
                     </ProtegerError>
                 );
@@ -341,7 +372,12 @@ export default function Sala() {
                 <div className="sl-escenario" role="img" aria-label={`Personajes: ${miembros.map((m) => m.nombre).join(", ")}`}>
                     <span className="ffp-plataforma sl-plataforma" aria-hidden="true" />
                     <ProtegerError respaldo={null}>
-                        <Canvas gl={{ alpha: true }} camera={{ position: [0, 0.1, 6.4], fov: 32 }} dpr={[1, 1.5]}>
+                        <Canvas
+                            gl={{ alpha: true, powerPreference: "high-performance" }}
+                            camera={{ position: [0, 0.1, 6.4], fov: 32 }}
+                            // Con muchos jugadores se dibuja a menor resolución (más fluido en el teléfono).
+                            dpr={miembros.length > 4 ? [1, 1.15] : [1, 1.5]}
+                        >
                             <Escenario miembros={miembros} puestos={totalPuestos} />
                         </Canvas>
                     </ProtegerError>

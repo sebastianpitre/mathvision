@@ -109,8 +109,45 @@ function espejar(hueso) {
  * tipo: "vrm1" | "vrm0" | "glb-animado" | "glb-quieto"
  * Se guarda en el gltf para no adaptarlo dos veces.
  */
-export function adaptarModelo(gltf) {
+/* Las texturas de muchos modelos vienen en 2048 o 4096 px: cada una
+   ocupa decenas de MB en la tarjeta de video y, con varios jugadores
+   en la sala, el navegador se queda sin memoria ("página dañada").
+   Se reducen a 1024 px (512 en la sala con muchos jugadores, donde
+   cada personaje se ve pequeño): en pantalla se ven igual. */
+const TEXTURA_MAX = 1024;
+
+function reducirTexturas(raiz, maximo = TEXTURA_MAX) {
+    const vistas = new Set();
+    raiz.traverse((o) => {
+        if (!o.material) return;
+        for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+            for (const valor of Object.values(m)) {
+                if (!valor?.isTexture || vistas.has(valor)) continue;
+                vistas.add(valor);
+                const img = valor.image;
+                const w = img?.width;
+                const h = img?.height;
+                if (!w || !h || Math.max(w, h) <= maximo) continue;
+                try {
+                    const f = maximo / Math.max(w, h);
+                    const lienzo = document.createElement("canvas");
+                    lienzo.width = Math.round(w * f);
+                    lienzo.height = Math.round(h * f);
+                    lienzo.getContext("2d").drawImage(img, 0, 0, lienzo.width, lienzo.height);
+                    img.close?.(); // libera el ImageBitmap original
+                    valor.image = lienzo;
+                    valor.needsUpdate = true;
+                } catch {
+                    // Si no se puede reducir, se deja como venía.
+                }
+            }
+        }
+    });
+}
+
+export function adaptarModelo(gltf, { texturaMax = TEXTURA_MAX } = {}) {
     if (gltf.userData.personaje) return gltf.userData.personaje;
+    if (typeof document !== "undefined") reducirTexturas(gltf.scene, texturaMax);
 
     const vrm = gltf.userData.vrm;
     let personaje;
@@ -222,3 +259,4 @@ export function tamanoAutomatico(alto) {
     if (Math.abs(t - 1) < 0.06) return 1;
     return Math.min(100, Math.max(0.01, Math.round(t * 1000) / 1000));
 }
+
