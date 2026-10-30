@@ -21,6 +21,7 @@ import {
     LuTrophy,
     LuGift,
     LuBadgeCheck,
+    LuTicket,
     LuUsers,
     LuVolume2,
     LuVolumeX,
@@ -49,6 +50,7 @@ import NombreDeslizante from "../components/juego/NombreDeslizante";
 import AnuncioEventos from "../components/juego/AnuncioEventos";
 import { api } from "../services/api";
 import Verificado from "../components/juego/Verificado";
+import Tiquete from "../components/juego/Tiquete";
 
 /* =========================================================
    LOBBY (diseño tipo Free Fire)
@@ -254,6 +256,11 @@ export default function Lobby() {
                         <span className="ffl-oculto"> diamantes</span>
                         <LuPlus aria-hidden="true" className="ffl-moneda-mas" />
                     </button>
+                    <button type="button" className="ffl-moneda ffl-moneda-tiquete" onClick={() => navigate("/suerte")} title="Tiquetes · ir a GiraGamif">
+                        <Tiquete />
+                        {formato.format(jugador.currencies.tickets || 0)}
+                        <span className="ffl-oculto"> tiquetes</span>
+                    </button>
                 </div>
 
                 <div className="ffl-arriba-der">
@@ -287,6 +294,7 @@ export default function Lobby() {
                     { texto: "Sala", icono: LuUsers, ruta: "/sala" },
                     { texto: "Ranking", icono: LuTrophy, ruta: "/ranking" },
                     { texto: "Eventos", icono: LuGift, ruta: "/eventos", cuenta: porReclamar },
+                    { texto: "GiraGamif", icono: LuTicket, ruta: "/suerte" },
                 ].map(({ texto, icono: Icono, ruta, cuenta }) => (
                     <button key={ruta} type="button" className="ffl-menu-btn" onClick={() => navigate(ruta)} aria-label={cuenta ? `${texto}: ${cuenta} para reclamar` : undefined}>
                         <Icono aria-hidden="true" />

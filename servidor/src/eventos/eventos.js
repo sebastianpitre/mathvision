@@ -3,7 +3,7 @@
    ---------------------------------------------------------
    El administrador crea eventos con fechas, una imagen de
    anuncio y misiones. Cada misión tiene su meta y su premio
-   (oro, diamantes, personaje, foto de perfil o marco).
+   (oro, diamantes, tiquetes 🎫, personaje, foto de perfil o marco).
 
    El avance se calcula con las partidas que el jugador
    terminó dentro de las fechas (tabla "partidas"), así no
@@ -95,6 +95,7 @@ async function detallarRecompensas(misiones) {
     return (r = {}) => ({
         oro: Number(r.oro) || 0,
         diamantes: Number(r.diamantes) || 0,
+        tickets: Number(r.tickets) || 0,
         personaje: r.personaje_id && p.get(r.personaje_id) ? { id: r.personaje_id, nombre: p.get(r.personaje_id).name, foto: p.get(r.personaje_id).thumbnail_path } : null,
         foto: r.foto_id && c.get(Number(r.foto_id)) ? { id: Number(r.foto_id), nombre: c.get(Number(r.foto_id)).nombre, ruta: c.get(Number(r.foto_id)).ruta } : null,
         marco: r.marco_id && c.get(Number(r.marco_id)) ? { id: Number(r.marco_id), nombre: c.get(Number(r.marco_id)).nombre, ruta: c.get(Number(r.marco_id)).ruta } : null,
@@ -185,7 +186,11 @@ export async function reclamarMision(userId, misionId) {
         if (!rowCount) throw errorConEstado("Ya reclamaste esta recompensa.");
 
         const r = m.recompensa || {};
-        const entregado = { oro: 0, diamantes: 0, personaje: null, foto: false, marco: false };
+        const entregado = { oro: 0, diamantes: 0, tickets: 0, personaje: null, foto: false, marco: false };
+        if (Number(r.tickets) > 0) {
+            await client.query("UPDATE player_profiles SET tickets = tickets + $2 WHERE user_id = $1", [userId, Number(r.tickets)]);
+            entregado.tickets = Number(r.tickets);
+        }
         if (Number(r.oro) > 0 || Number(r.diamantes) > 0) {
             await entregarRecompensa(client, userId, { oro: Number(r.oro) || 0, diamantes: Number(r.diamantes) || 0 });
             entregado.oro = Number(r.oro) || 0;
@@ -253,6 +258,7 @@ async function limpiarEvento(datos = {}) {
         const recompensa = {
             oro: Math.min(1000000, Math.max(0, Math.round(Number(r.oro) || 0))),
             diamantes: Math.min(100000, Math.max(0, Math.round(Number(r.diamantes) || 0))),
+            tickets: Math.min(10000, Math.max(0, Math.round(Number(r.tickets) || 0))),
             personaje_id: r.personaje_id ? String(r.personaje_id) : null,
             foto_id: r.foto_id ? Number(r.foto_id) : null,
             marco_id: r.marco_id ? Number(r.marco_id) : null,
@@ -260,7 +266,7 @@ async function limpiarEvento(datos = {}) {
         if (recompensa.personaje_id && !hayPersonaje.has(recompensa.personaje_id)) throw errorConEstado(`Misión ${n}: ese personaje no existe.`);
         if (recompensa.foto_id && tipoCosmetico.get(recompensa.foto_id) !== "foto") throw errorConEstado(`Misión ${n}: esa foto no existe.`);
         if (recompensa.marco_id && tipoCosmetico.get(recompensa.marco_id) !== "marco") throw errorConEstado(`Misión ${n}: ese marco no existe.`);
-        const algo = recompensa.oro || recompensa.diamantes || recompensa.personaje_id || recompensa.foto_id || recompensa.marco_id;
+        const algo = recompensa.oro || recompensa.diamantes || recompensa.tickets || recompensa.personaje_id || recompensa.foto_id || recompensa.marco_id;
         if (!algo) throw errorConEstado(`Misión ${n}: ponle una recompensa.`);
 
         return {

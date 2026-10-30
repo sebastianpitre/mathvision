@@ -1,0 +1,499 @@
+/* =========================================================
+   GIRAGAMIF (medidas en rem: escala con la pantalla)
+========================================================= */
+
+.su-estado {
+    margin: auto;
+    color: var(--suave);
+}
+
+.su-vacio {
+    margin: auto;
+    width: min(24rem, 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.2rem;
+    text-align: center;
+}
+
+.su-vacio h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    text-transform: uppercase;
+}
+
+.su-vacio p {
+    margin: 0;
+    color: var(--suave);
+}
+
+/* ---------- Escenario con la ruleta ---------- */
+.su-escenario {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+}
+
+.su-escenario::before {
+    content: "";
+    position: absolute;
+    width: min(90%, 30rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 207, 62, 0.35), transparent 65%);
+    filter: blur(0.6rem);
+    pointer-events: none;
+}
+
+.rl-ruleta {
+    position: relative;
+    /* Que quepa siempre: alto de la pantalla menos la barra de arriba. */
+    width: min(100%, 26rem, calc(100dvh - 5.4rem));
+    aspect-ratio: 1;
+}
+
+.rl-disco {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0.35rem #3b1d0a, 0 0 0 0.6rem #ffb321, 0 0.8rem 2rem rgba(0, 0, 0, 0.6);
+    will-change: transform;
+}
+
+.rl-girando {
+    transition: transform 5.2s cubic-bezier(0.12, 0.7, 0.08, 1);
+}
+
+.rl-fondo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Cada premio, girado hacia su espacio (de pie mirando hacia afuera) */
+.rl-espacio {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.rl-premio {
+    position: absolute;
+    left: 50%;
+    top: 7%;
+    width: 22%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.rl-premio-img {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 2px solid rgba(255, 246, 214, 0.9);
+    border-radius: 0.5rem;
+    background: rgba(0, 0, 0, 0.35);
+    box-shadow: 0 0.15rem 0.4rem rgba(0, 0, 0, 0.45);
+    font-size: 1.4rem;
+}
+
+.rl-premio-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rl-premio-texto {
+    max-width: 120%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-shadow: 0 1px 3px #000;
+}
+
+.rl-icono-oro {
+    width: 70%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff2a8, #f5b51b 55%, #b37400);
+    box-shadow: inset 0 0 0 3px rgba(120, 70, 0, 0.35);
+}
+
+.rl-icono-gema {
+    width: 72%;
+    height: 72%;
+    color: #67e8f9;
+    filter: drop-shadow(0 0 0.3rem rgba(103, 232, 249, 0.8));
+}
+
+.rl-icono-nada {
+    width: 60%;
+    height: 60%;
+    color: #e5e7eb;
+}
+
+.rl-premio-img .tq-icono {
+    width: 85%;
+    height: 85%;
+}
+
+.rl-icono-marco {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Centro y puntero */
+.rl-centro {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 24%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    display: grid;
+    place-content: center;
+    border: 0.25rem solid #ffd36b;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #4c1d95, #170833);
+    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.6), inset 0 0 0.6rem rgba(255, 211, 107, 0.4);
+    text-align: center;
+    line-height: 1;
+}
+
+.rl-centro span {
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+}
+
+.rl-centro b {
+    color: #ffcf3e;
+    font-size: 0.85rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+}
+
+.rl-puntero {
+    position: absolute;
+    left: 50%;
+    top: -0.9rem;
+    width: 2rem;
+    height: 2.4rem;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, #fff6d6, #ffb321 60%, #c2410c);
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+    filter: drop-shadow(0 0.15rem 0.3rem rgba(0, 0, 0, 0.6));
+}
+
+/* ---------- Lado derecho ---------- */
+.su-lado {
+    flex: 0 0 15rem;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    justify-content: center;
+}
+
+.su-cabeza h2 {
+    margin: 0;
+    font-size: 1.45rem;
+    line-height: 1.05;
+    text-transform: uppercase;
+    text-shadow: var(--sombra-texto);
+}
+
+.su-cabeza p {
+    margin: 0.2rem 0 0;
+    color: var(--suave);
+    font-size: 0.85rem;
+}
+
+.su-tiquetes {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid rgba(255, 207, 62, 0.6);
+    border-radius: 0.5rem;
+    background: linear-gradient(110deg, rgba(124, 58, 237, 0.55), rgba(15, 10, 30, 0.8));
+}
+
+.su-tiquetes span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+}
+
+.su-tiquetes strong {
+    color: #ffd36b;
+    font-size: 1.8rem;
+    font-weight: 900;
+}
+
+.su-tiquetes small {
+    color: var(--suave);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.su-girar {
+    position: relative;
+    width: 100%;
+    height: 3.4rem;
+    font-size: 1.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+}
+
+.su-girar:disabled {
+    filter: grayscale(0.8) brightness(0.7);
+    cursor: default;
+}
+
+.su-costo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.3rem;
+    background: rgba(0, 0, 0, 0.25);
+    font-size: 1rem;
+}
+
+.su-sin {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #fca5a5;
+    font-size: 0.8rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.su-ver {
+    width: 100%;
+}
+
+/* ---------- Modales ---------- */
+.su-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    padding: 0.6rem;
+    background: rgba(3, 6, 12, 0.72);
+}
+
+.su-modal {
+    width: 30rem;
+    max-width: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.8rem 1rem;
+    border: 2px solid rgba(255, 207, 62, 0.75);
+    border-radius: 0.7rem;
+    background: linear-gradient(160deg, #1d0f3a, #0b0f1a 60%);
+    color: #f5f7fb;
+    font-family: var(--fuente-juego);
+}
+
+.su-modal header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.su-modal h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    text-transform: uppercase;
+}
+
+.su-cerrar {
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 0.4rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    cursor: pointer;
+}
+
+.su-nota {
+    margin: 0;
+    color: var(--suave);
+    font-size: 0.82rem;
+}
+
+.su-modal ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.su-modal li {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.3rem 0.45rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.4rem;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.su-raro {
+    border-color: rgba(255, 207, 62, 0.8) !important;
+    background: linear-gradient(90deg, rgba(255, 207, 62, 0.18), rgba(255, 255, 255, 0.04)) !important;
+}
+
+.su-modal-img {
+    position: relative;
+    flex-shrink: 0;
+    width: 2.6rem;
+    height: 2.6rem;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 0.35rem;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.su-modal-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.su-modal-img .tq-icono {
+    width: 85%;
+    height: 85%;
+}
+
+.su-modal-nombre {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.su-modal-nombre strong {
+    font-size: 0.92rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.su-modal-nombre small {
+    color: #ffd36b;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.su-barra {
+    flex: 0 0 5rem;
+    height: 0.45rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.su-barra span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #a855f7, #ffcf3e);
+}
+
+.su-modal li b {
+    flex: 0 0 3.6rem;
+    color: #ffd36b;
+    font-size: 0.95rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Premio ganado */
+.su-ganado {
+    width: 22rem;
+    align-items: center;
+    text-align: center;
+    animation: su-premio 0.45s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.su-ganado h2 {
+    font-size: 1.2rem;
+    text-transform: none;
+}
+
+.su-ganado-img {
+    position: relative;
+    width: 6rem;
+    height: 6rem;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 3px solid #ffd36b;
+    border-radius: 0.8rem;
+    background: radial-gradient(circle, rgba(255, 207, 62, 0.35), rgba(0, 0, 0, 0.4));
+    box-shadow: 0 0 1.5rem rgba(255, 207, 62, 0.55);
+    font-size: 3rem;
+}
+
+.su-ganado-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.su-ganado-img .tq-icono {
+    width: 85%;
+    height: 85%;
+}
+
+.su-ganado-nada .su-ganado-img {
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: none;
+}
+
+.su-ganado-botones {
+    display: flex;
+    gap: 0.5rem;
+}
+
+@keyframes su-premio {
+    from { transform: scale(0.6); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .su-ganado { animation: none; }
+}

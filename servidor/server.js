@@ -25,6 +25,7 @@ import { ARCHIVOS_DIR, URL_ARCHIVOS, FRONTEND_DIR } from "./src/config/archivos.
 import sonidosRoutes from "./src/sonidos/sonidosRoutes.js";
 import { cargarReglasSiglo } from "./src/config/reglasSiglo.js";
 import eventosRoutes from "./src/eventos/eventosRoutes.js";
+import ruletaRoutes from "./src/ruleta/ruletaRoutes.js";
 import perfilesRoutes from "./src/perfiles/perfilesRoutes.js";
 import { revisarTemporadas, rangoJugador } from "./src/temporadas/temporadas.js";
 import { TriquiGame } from "./src/games/triqui/TriquiGame.js";
@@ -130,6 +131,7 @@ app.use("/api/ranking", rankingRoutes);
 app.use("/api/reportes", reportesRoutes);
 app.use("/api/sonidos", sonidosRoutes);
 app.use("/api/eventos", eventosRoutes);
+app.use("/api/ruletas", ruletaRoutes);
 app.use("/api/perfiles", perfilesRoutes);
 
 /*

@@ -10,6 +10,7 @@ import { avisar } from "../../services/avisos";
 import { sonar } from "../../services/sonidos";
 
 import "./eventos.css";
+import Tiquete from "../../components/juego/Tiquete";
 
 /* =========================================================
    EVENTOS (como los de Free Fire)
@@ -36,6 +37,7 @@ function Premio({ r, marcoDe }) {
     const partes = [];
     if (r.oro) partes.push(<span key="o" className="ev-premio-moneda"><span className="ffl-moneda-oro" aria-hidden="true" />{formato(r.oro)}</span>);
     if (r.diamantes) partes.push(<span key="d" className="ev-premio-moneda"><LuGem aria-hidden="true" className="ev-gema" />{formato(r.diamantes)}</span>);
+    if (r.tickets) partes.push(<span key="t" className="ev-premio-moneda" title="Tiquetes para GiraGamif"><Tiquete tamano="1.1rem" />{formato(r.tickets)}</span>);
     if (r.personaje) partes.push(<span key="p" className="ev-premio-img" title={`Personaje: ${r.personaje.nombre}`}>{r.personaje.foto ? <img src={r.personaje.foto} alt={r.personaje.nombre} /> : "🧍"}</span>);
     if (r.foto) partes.push(<span key="f" className="ev-premio-img" title={`Foto de perfil: ${r.foto.nombre}`}><img src={r.foto.ruta} alt={r.foto.nombre} /></span>);
     if (r.marco) partes.push(<span key="m" className="ev-premio-img ev-premio-marco" title={`Marco: ${r.marco.nombre}`}><FotoPerfil foto={marcoDe} marco={r.marco.ruta} alt={r.marco.nombre} /></span>);
@@ -84,6 +86,7 @@ export default function Eventos() {
             const cosas = [
                 r.entregado.oro && `${formato(r.entregado.oro)} de oro`,
                 r.entregado.diamantes && `${formato(r.entregado.diamantes)} 💎`,
+                r.entregado.tickets && `${formato(r.entregado.tickets)} 🎫`,
                 r.entregado.personaje && "un personaje nuevo",
                 r.entregado.foto && "una foto de perfil",
                 r.entregado.marco && "un marco",

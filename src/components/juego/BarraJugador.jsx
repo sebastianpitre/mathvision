@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { jugadorDesdeUsuario } from "../../services/jugador";
 import FotoPerfil from "./FotoPerfil";
 import Verificado from "./Verificado";
+import Tiquete from "./Tiquete";
 
 /* Perfil (foto, nivel, XP), oro y diamantes: arriba a la
    izquierda en todas las pantallas, como en Free Fire. */
@@ -44,6 +45,11 @@ export default function BarraJugador() {
                     {formato.format(jugador.currencies.gems)}
                     <span className="ffl-oculto"> diamantes</span>
                     <LuPlus aria-hidden="true" className="ffl-moneda-mas" />
+                </button>
+                <button type="button" className="ffl-moneda ffl-moneda-tiquete" onClick={() => navigate("/suerte")} title="Tiquetes · ir a GiraGamif">
+                    <Tiquete />
+                    {formato.format(jugador.currencies.tickets || 0)}
+                    <span className="ffl-oculto"> tiquetes</span>
                 </button>
             </div>
         </>

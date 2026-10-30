@@ -33,6 +33,7 @@ import {
     RANGOS,
 } from "../temporadas/temporadas.js";
 import { listarEventosAdmin, guardarEvento, borrarEvento, TIPOS_MISION, JUEGOS_MISION } from "../eventos/eventos.js";
+import { listarRuletasAdmin, guardarRuleta, borrarRuleta, regalarTickets, TIPOS_PREMIO } from "../ruleta/ruleta.js";
 
 const router = express.Router();
 
@@ -169,6 +170,45 @@ router.delete(
     "/eventos/:id",
     ruta(async (req, res) => {
         await borrarEvento(Number(req.params.id) || 0);
+        res.json({ success: true });
+    })
+);
+
+/* ---------------- GiraGamif (ruleta) ---------------- */
+
+router.get(
+    "/ruletas",
+    ruta(async (req, res) => {
+        const [{ rows: personajes }, { rows: cosmeticos }] = await Promise.all([
+            pool.query("SELECT id, name, thumbnail_path FROM characters ORDER BY orden, name"),
+            pool.query("SELECT id, tipo, nombre, ruta FROM cosmeticos ORDER BY tipo, nombre"),
+        ]);
+        res.json({ success: true, ruletas: await listarRuletasAdmin(), tipos: TIPOS_PREMIO, personajes, cosmeticos });
+    })
+);
+
+router.post(
+    "/ruletas",
+    ruta(async (req, res) => res.status(201).json({ success: true, id: await guardarRuleta(null, req.body) }))
+);
+
+router.put(
+    "/ruletas/:id",
+    ruta(async (req, res) => res.json({ success: true, id: await guardarRuleta(Number(req.params.id) || 0, req.body) }))
+);
+
+router.delete(
+    "/ruletas/:id",
+    ruta(async (req, res) => {
+        await borrarRuleta(Number(req.params.id) || 0);
+        res.json({ success: true });
+    })
+);
+
+router.post(
+    "/usuarios/:id/tickets",
+    ruta(async (req, res) => {
+        await regalarTickets(Number(req.params.id) || 0, req.body?.cantidad);
         res.json({ success: true });
     })
 );

@@ -159,6 +159,14 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   reclamado), duplicar y borrar, y se ve cuántos reclamaron cada misión.
 - **Fotos y marcos:** fotos de perfil y marcos (PNG con el centro transparente) para dar en
   los eventos. "Exclusivo" = solo quien lo gana; si no, cualquiera lo puede usar.
+- **GiraGamif (ruleta de la suerte):** crea ruletas con hasta 12 premios (oro, diamantes,
+  tiquetes, personaje, foto de perfil, marco o "Sigue intentando") y el % de suerte de
+  cada uno (deben sumar 100 %; el botón "Ajustar al 100 %" reparte lo que falte). Cada
+  giro cuesta tiquetes 🎫 (1 por defecto). Si sale un personaje, foto o marco que el
+  jugador ya tiene, recibe el oro que pongas. Fechas opcionales, editar, duplicar, borrar
+  y ver cuántas veces salió cada premio (y el % real). Los tiquetes se ganan en las
+  misiones de los **Eventos** (recompensa "Tiquetes") y también se pueden regalar desde
+  **Jugadores**.
 - **Voz y reportes:** activar o apagar la voz para todos, segundos máximos por turno
   (5 por defecto), espera para volver a hablar (3) y cuántos reportes sin revisar de
   jugadores distintos quitan la voz (3).
@@ -206,6 +214,9 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
 - **Eventos** (botón en el lobby con el número de premios por reclamar, o menú flotante):
   el anuncio con su cuenta regresiva y las misiones con su barra de progreso y el botón
   **Reclamar**. El avance se calcula con las partidas que termina entre las fechas.
+- **GiraGamif** (botón en el lobby o tocando los tiquetes 🎫 de arriba): ruleta redonda con
+  la foto de cada premio. "Girar" gasta tiquetes y la ruleta se detiene en el premio que
+  eligió el servidor; "Premios y suerte" muestra cada premio con su porcentaje.
 - **Ranking → Temporada:** tabla de la temporada con el rango de cada uno, cuánto falta
   para el siguiente rango y cuándo termina.
 - **Perfil:** muestra el rango de la temporada. En "Foto de perfil" aparecen también las

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LuChartColumn, LuGift, LuCalendarDays, LuLayers, LuMedal, LuMic, LuMusic, LuSquareUser, LuShieldCheck, LuShirt, LuUsers, LuArrowLeft } from "react-icons/lu";
+import { LuChartColumn, LuGift, LuCalendarDays, LuLayers, LuMedal, LuMic, LuMusic, LuSquareUser, LuShieldCheck, LuShirt, LuUsers, LuArrowLeft, LuTicket } from "react-icons/lu";
 
 import { useAuth } from "../../context/AuthContext";
 import Resumen from "./Resumen";
@@ -13,6 +13,7 @@ import SonidosAdmin from "./SonidosAdmin";
 import TemporadasAdmin from "./TemporadasAdmin";
 import EventosAdmin from "./EventosAdmin";
 import PerfilesAdmin from "./PerfilesAdmin";
+import RuletaAdmin from "./RuletaAdmin";
 
 import "../../styles/ludo.css";
 import "./admin.css";
@@ -34,6 +35,7 @@ const PESTANAS = [
     { id: "temporadas", label: "Temporadas", icon: LuMedal, Componente: TemporadasAdmin },
     { id: "eventos", label: "Eventos", icon: LuCalendarDays, Componente: EventosAdmin },
     { id: "perfiles", label: "Fotos y marcos", icon: LuSquareUser, Componente: PerfilesAdmin },
+    { id: "ruleta", label: "GiraGamif", icon: LuTicket, Componente: RuletaAdmin },
 ];
 
 function pestanaInicial() {

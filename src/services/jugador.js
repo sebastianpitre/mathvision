@@ -27,6 +27,7 @@ export function jugadorDesdeUsuario(user) {
         currencies: {
             coins: Number(user.coins) || 0,
             gems: Number(user.gems) || 0,
+            tickets: Number(user.tickets) || 0,
         },
         statistics: {
             wins: Number(user.games_won) || 0,

@@ -33,6 +33,7 @@ export async function getUserProfile(userId) {
             p.xp,
             p.coins,
             p.gems,
+            p.tickets,
             p.character_id,
             p.avatar,
             p.marco_id,

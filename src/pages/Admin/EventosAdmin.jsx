@@ -13,7 +13,7 @@ import { aEntrada, deEntrada, fechaLarga } from "./fechas";
    progreso y reclama cuando la cumple.
 ========================================================= */
 
-const MISION_VACIA = { tipo: "jugar", juego: "", meta: 5, texto: "", desde: "", hasta: "", recompensa: { oro: 100, diamantes: 0, personaje_id: "", foto_id: "", marco_id: "" } };
+const MISION_VACIA = { tipo: "jugar", juego: "", meta: 5, texto: "", desde: "", hasta: "", recompensa: { oro: 100, diamantes: 0, tickets: 0, personaje_id: "", foto_id: "", marco_id: "" } };
 
 function eventoVacio() {
     const inicio = new Date();
@@ -51,6 +51,7 @@ function aFormulario(e, copia = false) {
             recompensa: {
                 oro: m.recompensa?.oro || 0,
                 diamantes: m.recompensa?.diamantes || 0,
+                tickets: m.recompensa?.tickets || 0,
                 personaje_id: m.recompensa?.personaje_id || "",
                 foto_id: m.recompensa?.foto_id || "",
                 marco_id: m.recompensa?.marco_id || "",
@@ -101,6 +102,7 @@ function Formulario({ inicial, catalogo, alGuardar, alCancelar, alError }) {
                     recompensa: {
                         oro: Number(m.recompensa.oro) || 0,
                         diamantes: Number(m.recompensa.diamantes) || 0,
+                        tickets: Number(m.recompensa.tickets) || 0,
                         personaje_id: m.recompensa.personaje_id || null,
                         foto_id: m.recompensa.foto_id ? Number(m.recompensa.foto_id) : null,
                         marco_id: m.recompensa.marco_id ? Number(m.recompensa.marco_id) : null,
@@ -226,6 +228,10 @@ function Formulario({ inicial, catalogo, alGuardar, alCancelar, alError }) {
                         <label className="lg-field">
                             <span>Diamantes</span>
                             <input className="lg-input" style={{ width: 90 }} type="number" min={0} value={m.recompensa.diamantes} onChange={(e) => cambiarPremio(i, { diamantes: e.target.value })} />
+                        </label>
+                        <label className="lg-field">
+                            <span>Tiquetes 🎫</span>
+                            <input className="lg-input" style={{ width: 90 }} type="number" min={0} value={m.recompensa.tickets} onChange={(e) => cambiarPremio(i, { tickets: e.target.value })} />
                         </label>
                         <label className="lg-field">
                             <span>Personaje</span>

@@ -120,12 +120,17 @@ export default function UsuariosAdmin() {
         if (oro === null) return;
         const diamantes = window.prompt("¿Y cuántos diamantes?", "0");
         if (diamantes === null) return;
+        const tickets = window.prompt("¿Y cuántos tiquetes 🎫 para GiraGamif?", "0");
+        if (tickets === null) return;
 
         try {
-            await api(`/admin/usuarios/${u.id}/regalo`, {
-                metodo: "POST",
-                body: { oro: Number(oro) || 0, diamantes: Number(diamantes) || 0 },
-            });
+            if ((Number(oro) || 0) + (Number(diamantes) || 0) > 0) {
+                await api(`/admin/usuarios/${u.id}/regalo`, {
+                    metodo: "POST",
+                    body: { oro: Number(oro) || 0, diamantes: Number(diamantes) || 0 },
+                });
+            }
+            if (Number(tickets) > 0) await api(`/admin/usuarios/${u.id}/tickets`, { metodo: "POST", body: { cantidad: Number(tickets) } });
             setAviso({ texto: `Regalo entregado a "${u.username}".`, tono: "ok" });
             recargar();
         } catch (e) {
@@ -272,7 +277,7 @@ export default function UsuariosAdmin() {
                                             >
                                                 {u.voz_bloqueada ? <LuMicOff aria-hidden="true" /> : <LuMic aria-hidden="true" />}
                                             </button>
-                                            <button type="button" className="lb-icon-btn" title="Regalar oro o diamantes" aria-label={`Regalar a ${u.username}`} onClick={() => regalar(u)}>
+                                            <button type="button" className="lb-icon-btn" title="Regalar oro, diamantes o tiquetes" aria-label={`Regalar a ${u.username}`} onClick={() => regalar(u)}>
                                                 <LuGift aria-hidden="true" />
                                             </button>
                                             <button
