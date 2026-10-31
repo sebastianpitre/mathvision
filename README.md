@@ -388,9 +388,11 @@ hasta la **META** (abajo), en una pista de **15 filas × 6 columnas**.
   número… salvo con el **poder de atravesar paredes**: pasa de la columna 6 a la 1 (o al
   revés) y gasta un uso. Mientras lo tienes, las paredes de la pista se ven **verdes y
   gruesas**; cuando se acaban los usos vuelven a la normalidad.
-- **Casillas al azar en cada partida** (filas 2 a 14): ❓ preguntas (~25 %) y trampas con
+- **Casillas al azar en cada partida** (filas 2 a 14): ❓ preguntas (~40 %) y trampas con
   flecha y número (~15 %; la mayoría hacia atrás, algunas azules ayudan).
-  - ❓ **Acierta** → avanza 1 a 3 filas o gana el poder de paredes (1 o 2 usos).
+  - ❓ **Acierta** → avanza 1 a 3 filas, gana el poder de paredes (1 o 2 usos) o, de vez en
+    cuando (~12 % de los aciertos), el **EMPUJÓN 💥**: toca enseguida una ficha rival y
+    retrocede 3 filas (15 s para elegir; si no, se empuja la rival más adelantada).
   - ❓ **Falla o no responde** (20 s) → retrocede 1 o 2 filas y sale el **profesor** con
     la explicación; la partida sigue mientras la lees.
 - **Caer sobre otro jugador:** te quedas tú y su ficha se va a la casilla de donde venías.
@@ -399,6 +401,11 @@ hasta la **META** (abajo), en una pista de **15 filas × 6 columnas**.
   jugador pierde el turno hasta que la zona vuelva a alcanzarlo. Se ve una ventana de 10
   filas alrededor de la zona y a un lado el mapa de toda la pista.
 - **Gana** el primero que llega a la meta o el único que queda con fichas en la zona.
+  Antes de la ventana final se ve unos segundos la ficha ganadora con 👑 y el aviso.
+- **Para que se entienda qué pasó:** cada paso va por separado con una pausa (primero
+  la ficha llega, luego la trampa o la pregunta) y sobre la ficha sale 2 s lo que pasó
+  (🎲2 ↓, ⚠️ ↑2, ⚡ ↘1, 🟩 ¡Pared!, ✅ +2, ❌ −1, 💥 −3, 🔄 ¡Cambio!). La zona se mueve
+  después de que la ficha llegó.
 - Tema de las preguntas, premios, temporada y misiones igual que en InvasiónGamif.
 
 ## 7. Estructura

@@ -15,9 +15,11 @@
    del carril 6 al 1 (o del 1 al 6) y gasta una carga.
 
    CASILLAS (al azar en cada partida, filas 1 a 13):
-     ❓ pregunta: acierta → avanza 1 a 3 filas o gana el poder
-        de atravesar paredes (1 o 2 usos). Falla o se acaba el
-        tiempo → retrocede 1 a 3 filas (y ve la explicación).
+     ❓ pregunta (~40 %): acierta → avanza 1 a 3 filas, gana el
+        poder de atravesar paredes (1 o 2 usos) o, de vez en
+        cuando, el EMPUJÓN: toca una ficha rival y la hace
+        retroceder 3 filas. Falla o se acaba el tiempo →
+        retrocede 1 o 2 filas (y ve la explicación).
      Trampas: flecha + número, mueven esa cantidad en esa
         dirección (casi todas hacia atrás; algunas ayudan).
 
@@ -29,7 +31,13 @@
    fuera, el jugador pierde el turno (hasta que la zona vuelva).
 
    GANA: el primero que llega a la meta, o el único que queda
-   con fichas dentro de la zona.
+   con fichas dentro de la zona. Antes de la ventana final hay
+   una pausa con la ficha ganadora coronada.
+
+   RITMO: cada movimiento se muestra solo (con una etiqueta de
+   lo que pasó) y hay una pausa antes del siguiente paso, para
+   que se entienda: primero la ficha, luego la trampa, luego
+   la zona.
 ========================================================= */
 
 export const FILAS = 15;
@@ -38,7 +46,11 @@ export const META = FILAS - 1;
 export const ALTO_ZONA = 6;
 export const SEGUNDOS_TURNO = 20;
 export const SEGUNDOS_PREGUNTA = 20;
-const PAUSA_MS = 900; // para que se vea el movimiento antes del siguiente turno
+const PAUSA_MS = 1300; // entre un paso y el siguiente, para que se vea qué pasó
+const CELEBRACION_MS = 2800; // ficha coronada antes de la ventana final
+const PROB_EMPUJE = 0.12; // de los aciertos, cuántos dan el empujón (poco, pero sale)
+export const FILAS_EMPUJE = 3;
+const SEGUNDOS_EMPUJE = 15;
 const MAX_PODER = 3;
 const GRACIA_MS = 800;
 
@@ -71,6 +83,14 @@ export const COLORES = [
     { id: "rosado", nombre: "Rosado", hex: "#ec4899" },
 ];
 
+// Flechas para las etiquetas que salen sobre la ficha (como se ven en la pista).
+const FLECHA = { 1: "↘", 2: "↓", 3: "→", 4: "←", 5: "↑", 6: "↙" };
+function FLECHA_DIR([df, dc]) {
+    if (!dc) return df < 0 ? "↑" : "↓";
+    if (df < 0) return dc > 0 ? "↗" : "↖";
+    return dc > 0 ? "↘" : "↙";
+}
+
 const entre = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 function mezclar(lista) {
@@ -89,14 +109,14 @@ function elegirPeso(lista) {
     return lista[0];
 }
 
-/* Tablero al azar: ~25 % preguntas y ~15 % trampas (filas 1 a 13). */
+/* Tablero al azar: ~40 % preguntas y ~15 % trampas (filas 1 a 13). */
 export function armarTablero() {
     const casillas = Array.from({ length: FILAS }, () => Array(CARRILES).fill(null));
     for (let f = 1; f < META; f++) {
         for (let c = 0; c < CARRILES; c++) {
             const r = Math.random();
-            if (r < 0.25) casillas[f][c] = { tipo: "pregunta" };
-            else if (r < 0.4) {
+            if (r < 0.4) casillas[f][c] = { tipo: "pregunta" };
+            else if (r < 0.55) {
                 const t = elegirPeso(TRAMPAS);
                 casillas[f][c] = { tipo: "trampa", d: t.d, n: entre(1, 2) };
             }
@@ -146,6 +166,8 @@ export class ZonaGame {
         this.dado = null;
         this.opciones = null; // [{ ficha, fila, carril, atraviesa }] o null por ficha
         this.pregunta = null; // { userId, ficha, pregunta, orden, correcta, hasta, timer }
+        this.empuje = null; // { userId, hasta, timer }: debe tocar una ficha rival
+        this.celebracion = null; // { tipo, ganadores, ficha: { userId, i } }
         this.finEn = null;
 
         this.fase = "jugando"; // jugando | terminada
@@ -208,6 +230,7 @@ export class ZonaGame {
     destruir() {
         clearTimeout(this.timer);
         clearTimeout(this.pregunta?.timer);
+        clearTimeout(this.empuje?.timer);
         this.timer = null;
     }
 
@@ -302,6 +325,13 @@ export class ZonaGame {
         return { success: true };
     }
 
+    /* Después de una pausa: revisa si ganó y, si no, sigue el turno. */
+    seguir() {
+        this.programar(PAUSA_MS, () => {
+            if (!this.revisarGanador()) this.siguienteTurno();
+        });
+    }
+
     mover(userId, fichaIndice) {
         if (this.fase !== "jugando") return { success: false, message: "La partida terminó." };
         if (this.turno !== String(userId)) return { success: false, message: "No es tu turno." };
@@ -312,35 +342,36 @@ export class ZonaGame {
 
         const j = this.jugador(userId);
         clearTimeout(this.timer);
-        const ficha = j.fichas[op.ficha];
+        let etiqueta = `🎲${this.dado} ${FLECHA[this.dado]}`;
         if (op.atraviesa) {
             j.poder -= 1;
+            etiqueta = "🟩 ¡Pared!";
             this.evento(`${j.nombre} atravesó la pared 🟩.`, "poder", { quien: j.userId });
         }
-        this.llevar(j, op.ficha, op.fila, op.carril, "dado");
+        this.llevar(j, op.ficha, op.fila, op.carril, "dado", etiqueta);
         this.opciones = null;
-
-        if (this.revisarGanador()) return { success: true };
-
-        // ¿Qué hay en la casilla?
-        const casilla = this.casillas[ficha.fila][ficha.carril];
-        if (casilla?.tipo === "trampa") {
-            this.aplicarTrampa(j, op.ficha, casilla);
-            if (this.revisarGanador()) return { success: true };
-        } else if (casilla?.tipo === "pregunta") {
-            if (this.abrirPregunta(j, op.ficha)) {
-                this.avisar();
-                return { success: true };
-            }
-        }
-
         this.avisar();
-        this.programar(PAUSA_MS, () => this.siguienteTurno());
+        // Primero se ve la ficha llegar; después lo que hay en la casilla.
+        this.programar(PAUSA_MS, () => this.alCaer(j, op.ficha));
         return { success: true };
     }
 
+    alCaer(j, i) {
+        if (this.fase !== "jugando") return;
+        if (this.revisarGanador()) return;
+        const ficha = j.fichas[i];
+        const casilla = this.casillas[ficha.fila][ficha.carril];
+        if (casilla?.tipo === "trampa") {
+            this.aplicarTrampa(j, i, casilla);
+            this.avisar();
+            return this.seguir();
+        }
+        if (casilla?.tipo === "pregunta" && this.abrirPregunta(j, i)) return this.avisar();
+        this.siguienteTurno();
+    }
+
     /* Mueve la ficha; si cae sobre fichas de otros, ellas se van a donde estaba. */
-    llevar(j, i, fila, carril, motivo) {
+    llevar(j, i, fila, carril, motivo, etiqueta = null) {
         const ficha = j.fichas[i];
         const desde = { fila: ficha.fila, carril: ficha.carril };
         ficha.fila = Math.max(0, Math.min(META, fila));
@@ -359,7 +390,7 @@ export class ZonaGame {
                 });
             }
         }
-        this.ultimo = { userId: j.userId, ficha: i, desde, hasta: { fila: ficha.fila, carril: ficha.carril }, motivo, en: Date.now(), cambiados };
+        this.ultimo = { userId: j.userId, ficha: i, desde, hasta: { fila: ficha.fila, carril: ficha.carril }, motivo, etiqueta, en: Date.now(), cambiados };
         if (cambiados.length) {
             const nombres = [...new Set(cambiados.map((c) => this.jugador(c.userId).nombre))];
             this.evento(`${j.nombre} cayó sobre ${nombres.join(" y ")}: cambian de lugar.`, "cambio", { quien: j.userId });
@@ -371,7 +402,7 @@ export class ZonaGame {
         const fila = f.fila + trampa.d[0] * trampa.n;
         const carril = Math.max(0, Math.min(CARRILES - 1, f.carril + trampa.d[1] * trampa.n));
         const buena = trampa.d[0] > 0;
-        this.llevar(j, i, fila, carril, "trampa");
+        this.llevar(j, i, fila, carril, buena ? "atajo" : "trampa", `${buena ? "⚡" : "⚠️"} ${FLECHA_DIR(trampa.d)}${trampa.n}`);
         this.evento(
             buena ? `${j.nombre} cayó en un atajo: avanza ${trampa.n}.` : `${j.nombre} cayó en una trampa: retrocede ${trampa.n}.`,
             buena ? "atajo" : "trampa",
@@ -431,6 +462,7 @@ export class ZonaGame {
         if (!p || this.fase !== "jugando") return;
         clearTimeout(p.timer);
         this.pregunta = null;
+        let esperarEmpuje = false;
 
         const j = this.jugador(p.userId);
         const acerto = !agotado && opcion === p.correcta;
@@ -448,36 +480,98 @@ export class ZonaGame {
             const f = j.fichas[p.ficha];
             if (acerto) {
                 j.aciertos += 1;
-                if (Math.random() < 0.6 || j.poder >= MAX_PODER) {
-                    const n = entre(1, 3);
-                    this.llevar(j, p.ficha, f.fila + n, f.carril, "pregunta");
-                    resultado.premio = { tipo: "avanzar", n };
-                    this.evento(`${j.nombre} acertó: avanza ${n}.`, "acierto", { quien: j.userId });
-                } else {
+                const suerte = Math.random();
+                const rivales = this.fichasRivales(j.userId);
+                if (suerte < PROB_EMPUJE && rivales.length) {
+                    resultado.premio = { tipo: "empuje", n: FILAS_EMPUJE };
+                    this.abrirEmpuje(j);
+                    esperarEmpuje = true;
+                } else if (suerte < PROB_EMPUJE + 0.3 && j.poder < MAX_PODER) {
                     const n = Math.min(MAX_PODER - j.poder, entre(1, 2));
                     j.poder += n;
                     resultado.premio = { tipo: "poder", n };
+                    this.ultimo = { userId: j.userId, ficha: p.ficha, desde: { ...f }, hasta: { ...f }, motivo: "poder", etiqueta: `🟩 Paredes ×${n}`, en: Date.now(), cambiados: [] };
                     this.evento(`${j.nombre} acertó: puede atravesar paredes ${n === 1 ? "1 vez" : `${n} veces`} 🟩.`, "poder", { quien: j.userId });
+                } else {
+                    const n = entre(1, 3);
+                    this.llevar(j, p.ficha, f.fila + n, f.carril, "pregunta", `✅ +${n}`);
+                    resultado.premio = { tipo: "avanzar", n };
+                    this.evento(`${j.nombre} acertó: avanza ${n}.`, "acierto", { quien: j.userId });
                 }
             } else {
                 j.errores += 1;
                 const n = entre(1, 2);
-                this.llevar(j, p.ficha, f.fila - n, f.carril, "pregunta");
+                this.llevar(j, p.ficha, f.fila - n, f.carril, "pregunta", `❌ −${n}`);
                 resultado.retrocede = n;
                 this.evento(`${j.nombre} ${agotado ? "no respondió" : "falló"}: retrocede ${n}.`, "fallo", { quien: j.userId });
             }
             this.onResultado(j.userId, resultado);
         }
 
-        if (this.revisarGanador()) return;
         this.avisar();
-        this.programar(PAUSA_MS, () => this.siguienteTurno());
+        if (!esperarEmpuje) this.seguir();
+    }
+
+    /* ---------------- Empujón (poder de las ❓) ---------------- */
+
+    fichasRivales(userId) {
+        const lista = [];
+        for (const o of this.activos()) {
+            if (o.userId === String(userId)) continue;
+            o.fichas.forEach((f, i) => f.fila > 0 && f.fila < META && lista.push({ userId: o.userId, ficha: i, fila: f.fila }));
+        }
+        return lista;
+    }
+
+    abrirEmpuje(j) {
+        const hasta = Date.now() + SEGUNDOS_EMPUJE * 1000;
+        this.empuje = {
+            userId: j.userId,
+            hasta,
+            timer: setTimeout(() => {
+                try {
+                    // No eligió: se empuja la ficha rival más adelantada.
+                    const r = this.fichasRivales(j.userId).sort((a, b) => b.fila - a.fila)[0];
+                    if (r) this.empujar(j.userId, r.userId, r.ficha);
+                    else this.cancelarEmpuje();
+                } catch (error) {
+                    console.error("❌ ZonaGamif (empujón):", error);
+                }
+            }, SEGUNDOS_EMPUJE * 1000 + GRACIA_MS),
+        };
+        this.finEn = hasta;
+        this.evento(`${j.nombre} acertó y ganó un ¡EMPUJÓN! 💥 Elige a quién hacer retroceder.`, "empuje", { quien: j.userId });
+    }
+
+    cancelarEmpuje() {
+        clearTimeout(this.empuje?.timer);
+        this.empuje = null;
+        this.avisar();
+        this.seguir();
+    }
+
+    empujar(userId, objetivoId, fichaIndice) {
+        if (this.fase !== "jugando" || this.empuje?.userId !== String(userId)) return { success: false, message: "No tienes un empujón." };
+        const otro = this.jugador(objetivoId);
+        const k = Number(fichaIndice);
+        const f = otro?.fichas[k];
+        if (!otro || otro.salio || otro.userId === String(userId) || !f) return { success: false, message: "Elige una ficha de otro jugador." };
+        if (f.fila === 0) return { success: false, message: "Esa ficha está en la salida: no puede retroceder." };
+
+        clearTimeout(this.empuje.timer);
+        this.empuje = null;
+        const yo = this.jugador(userId);
+        this.llevar(otro, k, f.fila - FILAS_EMPUJE, f.carril, "empuje", `💥 −${FILAS_EMPUJE}`);
+        this.evento(`${yo.nombre} empujó a ${otro.nombre}: retrocede ${FILAS_EMPUJE} 💥.`, "trampa", { quien: yo.userId, victima: otro.userId });
+        this.avisar();
+        this.seguir();
+        return { success: true };
     }
 
     /* ---------------- Tiempo agotado ---------------- */
 
     turnoAutomatico() {
-        if (this.fase !== "jugando" || !this.turno || this.pregunta) return;
+        if (this.fase !== "jugando" || !this.turno || this.pregunta || this.empuje) return;
         const j = this.jugador(this.turno);
         this.evento(`Se acabó el tiempo de ${j.nombre}.`, "tiempo", { quien: j.userId });
         if (this.dado === null) {
@@ -496,6 +590,11 @@ export class ZonaGame {
         if (!j || j.salio || this.fase === "terminada") return;
         j.salio = true;
         this.evento(`${j.nombre} salió.`, "salio", { quien: j.userId });
+        if (this.fase !== "jugando") return this.avisar(); // ya se está celebrando
+        if (this.empuje?.userId === j.userId) {
+            clearTimeout(this.empuje.timer);
+            this.empuje = null;
+        }
 
         if (this.pregunta?.userId === j.userId) {
             clearTimeout(this.pregunta.timer);
@@ -519,17 +618,34 @@ export class ZonaGame {
         const enMeta = activos.find((j) => j.fichas.some((f) => f.fila === META));
         if (enMeta) {
             this.evento(`¡${enMeta.nombre} llegó a la meta! 🏁`, "meta", { quien: enMeta.userId });
-            this.terminar({ tipo: "meta", ganadores: [enMeta.userId] });
+            this.celebrar({ tipo: "meta", ganadores: [enMeta.userId] }, enMeta.fichas.findIndex((f) => f.fila === META));
             return true;
         }
         const conZona = activos.filter((j) => j.fichas.some((f) => this.enZona(f)));
         if (activos.length <= 1 || conZona.length === 1 || forzar) {
             const ganador = conZona[0] || activos[0];
             if (ganador) this.evento(`¡${ganador.nombre} quedó solo en la zona!`, "meta", { quien: ganador.userId });
-            this.terminar({ tipo: activos.length <= 1 ? "ultimo" : "zona", ganadores: ganador ? [ganador.userId] : [] });
+            const mejor = ganador ? (ganador.fichas[0].fila >= ganador.fichas[1].fila ? 0 : 1) : 0;
+            this.celebrar({ tipo: activos.length <= 1 ? "ultimo" : "zona", ganadores: ganador ? [ganador.userId] : [] }, mejor);
             return true;
         }
         return false;
+    }
+
+    /* Pausa con la ficha ganadora coronada antes de la ventana final. */
+    celebrar(resultado, ficha) {
+        clearTimeout(this.timer);
+        clearTimeout(this.pregunta?.timer);
+        clearTimeout(this.empuje?.timer);
+        this.pregunta = null;
+        this.empuje = null;
+        this.fase = "celebrando";
+        this.turno = null;
+        this.opciones = null;
+        this.finEn = null;
+        this.celebracion = { ...resultado, ficha: resultado.ganadores[0] ? { userId: resultado.ganadores[0], i: ficha } : null };
+        this.avisar();
+        this.programar(CELEBRACION_MS, () => this.terminar(resultado));
     }
 
     terminar({ tipo, ganadores }) {
@@ -581,6 +697,8 @@ export class ZonaGame {
             dado: this.dado,
             opciones: this.opciones,
             respondiendo: this.pregunta ? this.pregunta.userId : null,
+            empuje: this.empuje ? { userId: this.empuje.userId, hasta: this.empuje.hasta, filas: FILAS_EMPUJE } : null,
+            celebracion: this.celebracion,
             ultimo: this.ultimo,
             jugadores: this.orden.map((i) => {
                 const j = this.jugadores[i];

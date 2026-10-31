@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { LuArrowLeft, LuClock, LuDices, LuFlag, LuPlay, LuTrophy, LuVolume2, LuVolumeX } from "react-icons/lu";
+import { LuArrowLeft, LuClock, LuCrown, LuDices, LuFlag, LuPlay, LuTrophy, LuVolume2, LuVolumeX } from "react-icons/lu";
 
 import { useAuth } from "../../context/AuthContext";
 import { socket } from "../../services/socket";
@@ -66,6 +66,12 @@ const TITULO_RESULTADO = {
     ultimo: "¡Último en pie!",
 };
 
+const TEXTO_CELEBRACION = {
+    meta: (n) => `🏁 ¡${n} llegó a la meta!`,
+    zona: (n) => `👑 ¡${n} quedó solo en la zona!`,
+    ultimo: (n) => `👑 ¡${n} es el último en pie!`,
+};
+
 const reloj = (s) => (s === null ? "--" : `${s} s`);
 
 export default function Zona() {
@@ -86,12 +92,17 @@ export default function Zona() {
     const [error, setError] = useState("");
     const [tirando, setTirando] = useState(false);
     const [ahora, setAhora] = useState(() => Date.now());
+    // La zona se mueve un momento DESPUÉS de que la ficha llega (para que se entienda).
+    const [zonaVista, setZonaVista] = useState(null);
+    // Etiquetas que salen sobre las fichas ("🎲2 ↓", "⚠️ ↑2", "🟩 ¡Pared!"…)
+    const [etiquetas, setEtiquetas] = useState([]);
 
     const desfase = useRef(0);
     const errorTimer = useRef(null);
     const avisoTimer = useRef(null);
     const anterior = useRef(null);
     const faseRef = useRef(null);
+    const zonaVistaRef = useRef(false);
 
     const mostrarError = useCallback((message) => {
         clearTimeout(errorTimer.current);
@@ -130,7 +141,13 @@ export default function Zona() {
             if (r.acerto) {
                 sonar("correcto");
                 clearTimeout(avisoTimer.current);
-                setAviso(r.premio?.tipo === "poder" ? `¡Atraviesa paredes ×${r.premio.n}! 🟩` : `¡Correcto! Avanzas ${r.premio?.n || 1}`);
+                setAviso(
+                    r.premio?.tipo === "poder"
+                        ? `¡Atraviesa paredes ×${r.premio.n}! 🟩`
+                        : r.premio?.tipo === "empuje"
+                            ? "¡EMPUJÓN! 💥 Toca una ficha rival"
+                            : `¡Correcto! Avanzas ${r.premio?.n || 1}`
+                );
                 avisoTimer.current = setTimeout(() => setAviso(null), 1800);
             } else {
                 sonar("incorrecto");
@@ -176,11 +193,34 @@ export default function Zona() {
         return () => clearInterval(t);
     }, []);
 
+    const zonaDesde = partida?.zona?.desde;
+    const zonaHasta = partida?.zona?.hasta;
+    useEffect(() => {
+        if (zonaDesde === undefined) return;
+        const nueva = { desde: zonaDesde, hasta: zonaHasta };
+        // La primera vez se pone de una; después espera a que termine de moverse la ficha.
+        const t = setTimeout(() => setZonaVista(nueva), zonaVistaRef.current ? 750 : 0);
+        zonaVistaRef.current = true;
+        return () => clearTimeout(t);
+    }, [zonaDesde, zonaHasta]);
+
+    const ultimo = partida?.ultimo;
+    useEffect(() => {
+        if (!ultimo?.en || !ultimo.etiqueta) return;
+        const nuevas = [{ id: `${ultimo.en}`, texto: ultimo.etiqueta, userId: ultimo.userId, ficha: ultimo.ficha, tipo: ultimo.motivo }];
+        for (const c of ultimo.cambiados || []) nuevas.push({ id: `${ultimo.en}-${c.userId}-${c.ficha}`, texto: "🔄 ¡Cambio!", userId: c.userId, ficha: c.ficha, tipo: "cambio" });
+        setEtiquetas((e) => [...e.filter((x) => !nuevas.some((n) => n.userId === x.userId && n.ficha === x.ficha)), ...nuevas]);
+        const ids = new Set(nuevas.map((n) => n.id));
+        const t = setTimeout(() => setEtiquetas((e) => e.filter((x) => !ids.has(x.id))), 2200);
+        return () => clearTimeout(t);
+    }, [ultimo]);
+
     /* ---------------- Datos ---------------- */
 
     const porId = useMemo(() => new Map((partida?.jugadores || []).map((j) => [j.userId, j])), [partida]);
     const yo = porId.get(miId) || null;
-    const miTurno = Boolean(partida && partida.turno === miId && partida.fase === "jugando");
+    const miTurno = Boolean(partida && partida.turno === miId && partida.fase === "jugando" && !partida.empuje);
+    const miEmpuje = Boolean(partida?.empuje && partida.empuje.userId === miId && partida.fase === "jugando");
     const servidorAhora = ahora + desfase.current;
     const restante = partida?.finEn ? Math.max(0, Math.ceil((partida.finEn - servidorAhora) / 1000)) : null;
     const restaPregunta = pregunta ? Math.max(0, (pregunta.hasta - servidorAhora) / 1000) : 0;
@@ -202,9 +242,10 @@ export default function Zona() {
         if (nuevos.some((e) => e.tipo === "trampa" && e.quien === miId)) sonar("eliminado");
         if (partida.ultimo?.en !== antes.ultimo?.en && partida.ultimo?.cambiados?.some((c) => c.userId === miId)) sonar("invadido");
         if (partida.turno === miId && antes.turno !== miId) sonar("turno");
-        if (partida.fase === "terminada" && antes.fase !== "terminada") {
-            sonar(partida.resultado?.ganadores.includes(miId) ? "ganar" : "perder");
+        if (partida.fase === "celebrando" && antes.fase === "jugando") {
+            sonar(partida.celebracion?.ganadores.includes(miId) ? "ganar" : "perder");
         }
+        if (partida.ultimo?.en !== antes.ultimo?.en && partida.ultimo?.motivo === "empuje" && partida.ultimo.userId === miId) sonar("invadido");
     }, [partida, miId]);
 
     const avisoTiempo = (miTurno && partida?.dado === null && restante === 5) || (pregunta && Math.ceil(restaPregunta) === 5);
@@ -219,6 +260,7 @@ export default function Zona() {
         socket.emit("zona:tirar");
     };
     const mover = (ficha) => socket.emit("zona:mover", { ficha });
+    const empujar = (userId, ficha) => socket.emit("zona:empujar", { userId, ficha });
     const responder = (k) => {
         if (elegida !== null) return;
         setElegida(k);
@@ -254,13 +296,16 @@ export default function Zona() {
         );
     }
 
-    const { zona, meta, carriles } = partida;
+    const { meta, carriles } = partida;
+    const zona = zonaVista || partida.zona;
     // Ventana que se ve: desde una fila antes de la zona, 10 filas.
     const inicio = Math.max(0, Math.min(zona.desde - 1, partida.filas - VISIBLES));
     const filasVista = Array.from({ length: VISIBLES }, (_, k) => inicio + k);
     const turnoDe = porId.get(partida.turno);
     const opciones = miTurno ? partida.opciones || [] : [];
     const conPoder = (yo?.poder || 0) > 0;
+    const celebrada = partida.celebracion?.ficha;
+    const esObjetivo = (f) => miEmpuje && f.userId !== miId && f.fila > 0 && f.fila < meta;
 
     // Fichas que se ven, agrupadas por casilla para repartirlas dentro.
     const fichas = [];
@@ -268,7 +313,7 @@ export default function Zona() {
     for (const j of partida.jugadores) {
         if (j.salio) continue;
         j.fichas.forEach((f, i) => {
-            const ficha = { ...f, userId: j.userId, i, color: j.color.hex, nombre: j.nombre };
+            const ficha = { ...f, enZona: f.fila >= zona.desde, userId: j.userId, i, color: j.color.hex, nombre: j.nombre };
             if (f.fila < inicio) fuera.push(ficha);
             else fichas.push(ficha);
         });
@@ -293,7 +338,7 @@ export default function Zona() {
                     </p>
                     <ol>
                         {ranking.map((j) => {
-                            const enZona = j.fichas.some((f) => f.enZona);
+                            const enZona = j.fichas.some((f) => f.fila >= zona.desde);
                             return (
                                 <li
                                     key={j.userId}
@@ -416,6 +461,8 @@ export default function Zona() {
                                 const dy = muchas ? (Math.floor(k / 2) - (Math.ceil(grupo.length / 2) - 1) / 2) * 0.42 : 0;
                                 const mia = f.userId === miId;
                                 const puede = mia && opciones[f.i];
+                                const objetivo = esObjetivo(f);
+                                const corona = celebrada && celebrada.userId === f.userId && celebrada.i === f.i;
                                 return (
                                     <button
                                         key={`${f.userId}-${f.i}`}
@@ -426,18 +473,37 @@ export default function Zona() {
                                             mia && "zn-ficha-mia",
                                             !f.enZona && "zn-ficha-fuera",
                                             puede && "zn-ficha-puede",
+                                            objetivo && "zn-ficha-objetivo",
+                                            corona && "zn-ficha-corona",
                                         ].filter(Boolean).join(" ")}
                                         style={{
                                             "--c": f.color,
                                             left: `calc(${(100 * (f.carril + 0.5)) / carriles}% + ${dx} * var(--celda))`,
                                             top: `calc(${(100 * (f.fila - inicio + 0.5)) / VISIBLES}% + ${dy} * var(--celda))`,
                                         }}
-                                        onClick={() => puede && mover(f.i)}
-                                        disabled={!puede}
-                                        aria-label={`${mia ? "Tu" : `${f.nombre}:`} ficha ${f.i + 1}, fila ${f.fila + 1}${puede ? ". Mover" : ""}`}
+                                        onClick={() => (objetivo ? empujar(f.userId, f.i) : puede && mover(f.i))}
+                                        disabled={!puede && !objetivo}
+                                        aria-label={`${mia ? "Tu" : `${f.nombre}:`} ficha ${f.i + 1}, fila ${f.fila + 1}${puede ? ". Mover" : objetivo ? ". Empujar" : ""}`}
                                     >
                                         {f.i + 1}
+                                        {corona && <LuCrown className="zn-corona" aria-hidden="true" />}
                                     </button>
+                                );
+                            })}
+
+                            {/* Lo que acaba de pasar, sobre la ficha */}
+                            {etiquetas.map((e) => {
+                                const f = porId.get(e.userId)?.fichas[e.ficha];
+                                if (!f || f.fila < inicio || f.fila >= inicio + VISIBLES) return null;
+                                return (
+                                    <span
+                                        key={e.id}
+                                        className={`zn-etiqueta zn-etiqueta-${e.tipo}`}
+                                        style={{ left: `${(100 * (f.carril + 0.5)) / carriles}%`, top: `${(100 * (f.fila - inicio + 0.5)) / VISIBLES}%` }}
+                                        role="status"
+                                    >
+                                        {e.texto}
+                                    </span>
                                 );
                             })}
                         </div>
@@ -475,7 +541,29 @@ export default function Zona() {
 
                     <section className="zn-accion ffp-panel" aria-live="polite">
                         <Dado valor={partida.dado} girando={tirando} />
-                        {miTurno && partida.dado === null ? (
+                        {miEmpuje ? (
+                            <>
+                                <strong className="zn-accion-titulo zn-empuje-titulo">{`💥 ¡EMPUJÓN! Toca una ficha rival (−${partida.empuje.filas})`}</strong>
+                                <div className="zn-empuje-lista">
+                                    {partida.jugadores
+                                        .filter((j) => j.userId !== miId && !j.salio)
+                                        .flatMap((j) =>
+                                            j.fichas.map((f, i) =>
+                                                f.fila > 0 && f.fila < meta ? (
+                                                    <button key={`${j.userId}-${i}`} type="button" className="zn-elegir-btn zn-empuje-btn" onClick={() => empujar(j.userId, i)}>
+                                                        <span className="zn-ficha-mini" style={{ "--c": j.color.hex }}>{i + 1}</span>
+                                                        {`${j.nombre.slice(0, 8)} · F${f.fila + 1}`}
+                                                    </button>
+                                                ) : null
+                                            )
+                                        )}
+                                </div>
+                            </>
+                        ) : partida.fase === "celebrando" && partida.celebracion ? (
+                            <strong className="zn-accion-titulo zn-celebra-texto">
+                                {(TEXTO_CELEBRACION[partida.celebracion.tipo] || TEXTO_CELEBRACION.zona)(nombre(partida.celebracion.ganadores[0]))}
+                            </strong>
+                        ) : miTurno && partida.dado === null ? (
                             <>
                                 <strong className="zn-accion-titulo">¡Es tu turno!</strong>
                                 <button type="button" className="ffp-btn zn-tirar" onClick={tirar} disabled={tirando}>
@@ -499,7 +587,9 @@ export default function Zona() {
                             <strong className="zn-accion-titulo zn-suave">
                                 {partida.fase === "terminada"
                                     ? "Partida terminada"
-                                    : partida.respondiendo
+                                    : partida.empuje
+                                        ? `${nombre(partida.empuje.userId)} va a empujar a alguien 💥`
+                                        : partida.respondiendo
                                         ? `${nombre(partida.respondiendo)} responde ❓`
                                         : turnoDe
                                             ? `Turno de ${turnoDe.nombre}`
@@ -582,6 +672,23 @@ export default function Zona() {
                             alCerrar={() => setResultado(null)}
                         />
                     </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* ================= ¡GANÓ! (antes de la ventana final) ================= */}
+            <AnimatePresence>
+                {partida.fase === "celebrando" && partida.celebracion && (
+                    <motion.p
+                        className="zn-celebra"
+                        role="status"
+                        initial={{ scale: 0.3, opacity: 0, y: -20 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 260, damping: 16 }}
+                        style={{ "--c": porId.get(partida.celebracion.ganadores[0])?.color.hex || "#ffcf3e" }}
+                    >
+                        {(TEXTO_CELEBRACION[partida.celebracion.tipo] || TEXTO_CELEBRACION.zona)(nombre(partida.celebracion.ganadores[0]))}
+                    </motion.p>
                 )}
             </AnimatePresence>
 

@@ -25,6 +25,7 @@
      invasion:salir
 
      zona:estado | zona:tirar | zona:mover { ficha: 0|1 } | zona:responder { opcion } | zona:salir
+     zona:empujar { userId, ficha }  usar el empujón sobre una ficha rival
 
    Servidor → navegador
      sala:estado { sala }       cada cambio de la sala (o sala: null)
@@ -647,5 +648,6 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
     socket.on("zona:tirar", accionZona((p) => p.tirar(yo())));
     socket.on("zona:mover", accionZona((p, { ficha }) => p.mover(yo(), ficha)));
     socket.on("zona:responder", accionZona((p, { opcion }) => p.responder(yo(), opcion)));
+    socket.on("zona:empujar", accionZona((p, { userId, ficha }) => p.empujar(yo(), userId, ficha)));
     socket.on("zona:salir", accionZona((p) => p.abandonar(yo())));
 }
