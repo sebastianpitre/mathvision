@@ -289,25 +289,13 @@
     filter: drop-shadow(0 0.4cqw 0.8cqw rgba(0, 0, 0, 0.45));
 }
 
-/* Mientras espera: los brazos se mueven un poco (respira / se prepara). */
+/* Los brazos ya vienen animados (braceo); al patear se van hacia adelante. */
 .pn-brazos-img {
     transform-origin: 50% 100%;
-    animation: pn-brazos-espera 1.6s ease-in-out infinite alternate;
 }
 
-@keyframes pn-brazos-espera {
-    from { transform: translateY(0) rotate(0deg); }
-    to { transform: translateY(-2.5%) rotate(-0.6deg); }
-}
-
-/* Al patear: carrera y braceo hacia adelante. */
 .pn-brazos-patea .pn-brazos-img {
-    animation: pn-brazos-carrera 0.3s ease-in-out 3, pn-brazos-patada 0.5s 0.9s ease-out forwards;
-}
-
-@keyframes pn-brazos-carrera {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    50% { transform: translate(-1.5%, -4%) rotate(1.5deg); }
+    animation: pn-brazos-patada 0.5s 0.9s ease-out forwards;
 }
 
 @keyframes pn-brazos-patada {
