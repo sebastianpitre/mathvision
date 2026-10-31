@@ -441,8 +441,10 @@ termina antes.
 
 Si alguien no elige a tiempo, se elige al azar. Sonidos en *Panel → Sonidos* ("Se prepara
 para patear", "¡Gol!", "Atajada", "Abucheo"); los de fábrica son de ejemplo, se pueden
-subir otros. Los brazos de primera persona son de ejemplo: `BrazosPateador` en
-`src/games/penal/Escena.jsx` acepta una imagen (`imagen="/img/penal/brazos.png"`).
+subir otros. El arte (jugadores, arqueros, guantes, brazos y balón) está en
+`public/img/penal/` como WebP animado: rojo para el primero de la tanda y azul para el
+segundo (`ARTE` en `src/games/penal/Escena.jsx`). Al final, junto al marcador, sale el
+personaje 3D del ganador (el del lobby).
 
 ## 7. Estructura
 

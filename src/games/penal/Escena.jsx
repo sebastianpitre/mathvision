@@ -147,12 +147,14 @@ export function FondoArquero() {
 }
 
 /* ---------- Jugadores ---------- */
-/* Imágenes del juego (animadas). Faltan el arquero azul y los guantes rojos:
-   por ahora se usan el arquero rojo y los guantes azules para los dos. */
+/* Imágenes del juego (rojo = primero de la tanda, azul = segundo).
+   Los brazos vienen del tamaño del escenario (16:9): cada brazo ya
+   está en su lugar. */
 export const ARTE = {
-    arquero: { rojo: "/img/penal/arquero-rojo.webp", azul: "/img/penal/arquero-rojo.webp" },
+    arquero: { rojo: "/img/penal/arquero-rojo.webp", azul: "/img/penal/arquero-azul.webp" },
     jugador: { rojo: "/img/penal/jugador-rojo.webp", azul: "/img/penal/jugador-azul.webp" },
-    guantes: { rojo: "/img/penal/guantes.webp", azul: "/img/penal/guantes.webp" },
+    guantes: { rojo: "/img/penal/guantes-rojo.webp", azul: "/img/penal/guantes-azul.webp" },
+    brazos: { rojo: "/img/penal/brazos-rojo.webp", azul: "/img/penal/brazos-azul.webp" },
 };
 
 export function DibujoArquero({ equipo = "rojo" }) {
@@ -164,20 +166,13 @@ export function DibujoPateador({ equipo = "rojo" }) {
 }
 
 export function Balon() {
-    return (
-        <svg viewBox="0 0 100 100" className="pn-balon-svg" aria-hidden="true">
-            <circle cx="50" cy="50" r="47" fill="#f8fafc" stroke="#111827" strokeWidth="3" />
-            <polygon points="50,30 66,42 60,61 40,61 34,42" fill="#111827" />
-            <path d="M50 30 L50 4 M66 42 L90 32 M60 61 L76 84 M40 61 L24 84 M34 42 L10 32" stroke="#111827" strokeWidth="3" />
-            <ellipse cx="34" cy="28" rx="12" ry="7" fill="rgba(255,255,255,.7)" />
-        </svg>
-    );
+    return <img className="pn-balon-svg" src="/img/penal/balon.webp" alt="" draggable="false" />;
 }
 
 /* ---------- Primera persona ---------- */
-/* Brazos del que patea (de ejemplo: se cambian por la imagen que llegue). */
-export function BrazosPateador({ color = "#ef4444", imagen }) {
-    if (imagen) return <img className="pn-brazos-img" src={imagen} alt="" draggable="false" />;
+/* Brazos del que patea en primera persona (del color de su equipo). */
+export function BrazosPateador({ equipo = "rojo", color = "#ef4444" }) {
+    if (ARTE.brazos[equipo]) return <img className="pn-brazos-img" src={ARTE.brazos[equipo]} alt="" draggable="false" />;
     const brazo = (lado) => (
         <svg viewBox="0 0 300 300" className={`pn-brazo pn-brazo-${lado}`} aria-hidden="true">
             <path d="M40 300 C60 230 110 170 170 130" stroke={color} strokeWidth="78" strokeLinecap="round" fill="none" />

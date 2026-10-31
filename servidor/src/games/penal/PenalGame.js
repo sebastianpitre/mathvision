@@ -59,6 +59,7 @@ export class PenalGame {
             avatar: j.avatar || null,
             marco: j.marco || null,
             verificado: Boolean(j.verificado),
+            modelo: j.modelo || null, // su personaje 3D (para la pantalla del ganador)
             tiros: [], // "gol" | "atajada" | "afuera"
             aciertos: 0,
             errores: 0,
@@ -367,6 +368,7 @@ export class PenalGame {
                 avatar: j.avatar,
                 marco: j.marco,
                 verificado: j.verificado,
+                modelo: j.modelo,
                 tiros: j.tiros,
                 goles: this.goles(j),
                 aciertos: j.aciertos,

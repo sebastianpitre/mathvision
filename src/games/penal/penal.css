@@ -276,12 +276,21 @@
     transform: scaleX(-1) translate(-8%, -4%) rotate(-10deg);
 }
 
+/* Imagen de brazos: mide lo mismo que el escenario y va pegada abajo. */
 .pn-brazos-img {
     position: absolute;
-    left: 50%;
+    left: 0;
     bottom: 0;
-    height: 100%;
-    transform: translateX(-50%);
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+    user-select: none;
+    transition: transform 0.35s;
+    filter: drop-shadow(0 0.4cqw 0.8cqw rgba(0, 0, 0, 0.45));
+}
+
+.pn-brazos-patea .pn-brazos-img {
+    transform: translateY(4%) scale(1.04);
 }
 
 .pn-guantes {
@@ -672,6 +681,7 @@
 
 .pn-final {
     width: min(34rem, 100%);
+    max-height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -718,4 +728,83 @@
     .pn-balon-vuela .pn-balon-svg {
         animation: none;
     }
+}
+
+/* ---------- Pantalla de resultado con el personaje del ganador ---------- */
+.pn-final-con-ganador {
+    width: min(48rem, 100%);
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.8rem;
+}
+
+.pn-final-datos {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+}
+
+.pn-ganador {
+    position: relative;
+    flex: 0 0 14rem;
+    min-height: 17rem;
+    overflow: hidden;
+    border: 2px solid var(--oro);
+    border-radius: 0.7rem;
+    background:
+        radial-gradient(ellipse at 50% 85%, color-mix(in srgb, var(--c) 55%, transparent), transparent 60%),
+        linear-gradient(180deg, #1f2937, #0b1020);
+}
+
+.pn-ganador-luz {
+    position: absolute;
+    inset: -20% 15% 30%;
+    background: conic-gradient(from 180deg, transparent, rgba(255, 207, 62, 0.35), transparent 30%, rgba(255, 207, 62, 0.25), transparent 60%);
+    filter: blur(6px);
+    animation: pn-luz 6s linear infinite;
+}
+
+@keyframes pn-luz {
+    to { transform: rotate(360deg); }
+}
+
+.pn-ganador-3d {
+    position: absolute !important;
+    inset: 0 0 2.4rem;
+}
+
+.pn-ganador-nombre {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 0.35rem 0.5rem;
+    background: linear-gradient(90deg, rgba(255, 207, 62, 0.95), rgba(245, 158, 11, 0.95));
+    color: #1f2937;
+    text-align: center;
+    line-height: 1.1;
+}
+
+.pn-ganador-nombre small {
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.pn-ganador-nombre strong {
+    overflow: hidden;
+    font-size: 1rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pn-ganador-luz { animation: none; }
 }

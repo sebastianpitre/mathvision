@@ -14,6 +14,7 @@ import { useSonido } from "../../hooks/useSonido";
 import BotonHablar from "../../components/juego/BotonHablar";
 import { useVoz } from "../../hooks/useVoz";
 import Profesor from "../invasion/Profesor";
+import Personaje3D from "../../components/juego/Personaje3D";
 import { Balon, BrazosPateador, DibujoArquero, DibujoPateador, FondoArquero, FondoPateador, GuantesArquero } from "./Escena";
 
 import "./penal.css";
@@ -45,6 +46,7 @@ const TEXTO_LADO = { izquierda: "Izquierda", centro: "Centro", derecha: "Derecha
 const ESPEJO = { izquierda: "derecha", centro: "centro", derecha: "izquierda" };
 
 const COLORES = ["#ef4444", "#3b82f6"];
+const MODELO_POR_DEFECTO = "/models/characters/Adan2.vrm";
 const EQUIPOS = ["rojo", "azul"]; // el primero de la tanda es rojo y el segundo azul
 
 function Marcador({ partida, miId, emojis }) {
@@ -264,6 +266,7 @@ export default function Penal() {
     else if (partida.fase === "pregunta") aviso = soyPateador ? "Responde para patear" : `${nombre(partida.pateador)} responde para patear…`;
     else if (partida.fase === "tiro") aviso = momento === "silbato" ? "🎵 ¡Se prepara para patear!" : null;
 
+    const ganadorFinal = partida.fase === "terminada" ? porId.get(partida.resultado?.ganadores?.[0]) : null;
     const letrero = tiro && momento === "final" ? { gol: "¡GOOOL!", atajada: "¡ATAJADA!", afuera: "¡AFUERA!" }[tiro.resultado] : null;
 
     return (
@@ -312,7 +315,7 @@ export default function Penal() {
                         </div>
                     ) : (
                         <div className={`pn-primera ${tiro && soyPateador ? "pn-brazos-patea" : ""}`}>
-                            <BrazosPateador color={(soyPateador ? pateador : porId.get(miId) || pateador)?.color} />
+                            <BrazosPateador equipo={pateador?.equipo} color={pateador?.color} />
                         </div>
                     )}
 
@@ -409,7 +412,18 @@ export default function Penal() {
 
             {partida.fase === "terminada" && (
                 <div className="pn-capa">
-                    <section className="pn-final ffp-panel" aria-label="Resultado">
+                    <section className={`pn-final ffp-panel ${ganadorFinal ? "pn-final-con-ganador" : ""}`} aria-label="Resultado">
+                        {ganadorFinal && (
+                            <div className="pn-ganador" style={{ "--c": ganadorFinal.color }}>
+                                <span className="pn-ganador-luz" aria-hidden="true" />
+                                <Personaje3D modelo={ganadorFinal.modelo || MODELO_POR_DEFECTO} className="pn-ganador-3d" />
+                                <span className="pn-ganador-nombre">
+                                    <small>🏆 Ganador</small>
+                                    <strong>{ganadorFinal.nombre}</strong>
+                                </span>
+                            </div>
+                        )}
+                        <div className="pn-final-datos">
                         <h1>{partida.resultado?.ganadores.includes(miId) ? "¡Ganaste la tanda! 🏆" : partida.resultado?.ganadores.length ? `Ganó ${nombre(partida.resultado.ganadores[0])}` : "Tanda terminada"}</h1>
                         <Marcador partida={partida} miId={miId} emojis={{}} />
                         <div className="pn-final-premio">
@@ -435,6 +449,7 @@ export default function Penal() {
                             <button type="button" className="ffp-btn ffp-btn-2" onClick={() => navigate("/sala")}>
                                 Volver a la sala
                             </button>
+                        </div>
                         </div>
                     </section>
                 </div>

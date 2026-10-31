@@ -277,7 +277,7 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
     const jugadoresDeSala = (room) =>
         [...room.miembros.values()]
             .sort((a, b) => a.entroEn - b.entroEn)
-            .map((m) => ({ userId: m.userId, nombre: m.nombre, avatar: m.avatar, marco: m.marco, verificado: m.verificado }));
+            .map((m) => ({ userId: m.userId, nombre: m.nombre, avatar: m.avatar, marco: m.marco, verificado: m.verificado, modelo: m.modelo || null }));
 
     /* Preguntas del tema elegido en la sala (InvasiónGamif y ZonaGamif). */
     async function preguntasDeSala(room) {
