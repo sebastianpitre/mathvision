@@ -480,7 +480,7 @@ export async function registrarPartidaSimple(userId, { juego, aciertos, total })
 // Los premios (y el máximo de partidas premiadas al día) los
 // configura el administrador: ver src/config/premios.js.
 
-export async function registrarResultadoMultijugador(juego, resultados) {
+export async function registrarResultadoMultijugador(juego, resultados, { sinTemporada = false } = {}) {
     const tabla = (await obtenerPremios())[juego];
     if (!tabla) throw new Error(`Juego multijugador desconocido: ${juego}`);
 
@@ -504,7 +504,8 @@ export async function registrarResultadoMultijugador(juego, resultados) {
             }
 
             const recompensa = await entregarRecompensa(client, userId, { xp, oro, diamantes });
-            const temporada = limiteDiario ? null : await sumarPuntosTemporada(client, userId, resultado);
+            // Contra la máquina no se suman puntos de temporada (el ranking es entre personas).
+            const temporada = limiteDiario || sinTemporada ? null : await sumarPuntosTemporada(client, userId, resultado);
 
             await sumarEstadisticas(client, userId, {
                 jugadas: 1,

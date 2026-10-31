@@ -28,6 +28,7 @@ export const JUEGOS_SALA = {
         descripcion: "Responde rápido y pinta el tablero con tu color.",
         min: 2,
         max: 6,
+        maquina: true, // se puede jugar contra la máquina 🤖
         ruta: "/games/invasion",
     },
     zona: {
@@ -36,6 +37,7 @@ export const JUEGOS_SALA = {
         descripcion: "Carrera con 2 fichas: llega a la meta sin quedarte fuera de la zona.",
         min: 2,
         max: 6,
+        maquina: true,
         ruta: "/games/zona",
     },
 };
@@ -67,7 +69,8 @@ export function motivoNoIniciar(juegoId, cantidad) {
 
     if (cantidad < juego.min) {
         const faltan = juego.min - cantidad;
-        return `Falta${faltan === 1 ? "" : "n"} ${faltan} jugador${faltan === 1 ? "" : "es"} para ${juego.nombre}.`;
+        const base = `Falta${faltan === 1 ? "" : "n"} ${faltan} jugador${faltan === 1 ? "" : "es"} para ${juego.nombre}.`;
+        return juego.maquina ? `${base} Invita o agrega una máquina 🤖.` : base;
     }
 
     if (cantidad > juego.max) {

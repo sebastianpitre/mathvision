@@ -91,7 +91,7 @@
 }
 
 .zn-jugadores ol {
-    flex: 1;
+    flex: 0 1 auto;
     min-height: 0;
     overflow-y: auto;
     margin: 0;
@@ -230,11 +230,13 @@
 }
 
 .zn-pista {
-    --celda: calc(100cqh / 10);
+    --celda: calc(100cqh / var(--filas));
     --pared: rgba(255, 255, 255, 0.18);
     position: relative;
+    flex: 1;
     height: 100%;
-    max-width: calc(100cqw - 1.6rem);
+    min-width: 0;
+    max-width: 40rem; /* ancho: la pista ocupa todo el centro */
     display: grid;
     grid-template-columns: repeat(var(--carriles), minmax(0, 1fr));
     grid-template-rows: repeat(var(--filas), minmax(0, 1fr));
@@ -1086,4 +1088,205 @@
     .zn-ficha-corona {
         animation: none;
     }
+}
+
+/* ---------- Cómo jugar ---------- */
+.zn-titulo-fila {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.3rem;
+}
+
+.zn-btn-ayuda {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.45rem;
+    border: 1px solid rgba(74, 222, 128, 0.7);
+    border-radius: 0.4rem;
+    background: rgba(22, 163, 74, 0.2);
+    color: #bbf7d0;
+    font-size: 0.66rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.zn-btn-ayuda svg {
+    width: 0.95rem;
+    height: 0.95rem;
+}
+
+.zn-ayuda {
+    width: min(42rem, 100%);
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.8rem 1rem;
+    border: 2px solid rgba(74, 222, 128, 0.75);
+    border-radius: 0.8rem;
+    background: linear-gradient(160deg, #0f2a1d, #070a14 70%);
+}
+
+.zn-ayuda header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.zn-ayuda h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+}
+
+.zn-ayuda h2 span {
+    margin-left: 0.3rem;
+    color: #fff;
+}
+
+.zn-ayuda h2 b {
+    color: #4ade80;
+}
+
+.zn-ayuda-cerrar {
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 0.4rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    cursor: pointer;
+}
+
+.zn-ayuda-cuerpo {
+    min-height: 0;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: 0.45rem;
+}
+
+.zn-ayuda article {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.zn-ayuda h3 {
+    margin: 0 0 0.2rem;
+    font-size: 0.9rem;
+}
+
+.zn-ayuda p {
+    margin: 0;
+    color: var(--suave);
+    font-size: 0.76rem;
+    line-height: 1.35;
+}
+
+.zn-ayuda p b {
+    color: #fff;
+}
+
+.zn-ayuda-dado {
+    margin: 0.3rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.15rem;
+}
+
+.zn-ayuda-dado li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid var(--linea);
+    border-radius: 0.25rem;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.zn-ayuda-dado b {
+    color: var(--suave);
+    font-size: 0.6rem;
+}
+
+.zn-ayuda-roja {
+    color: #fca5a5;
+    font-weight: 800;
+}
+
+.zn-ayuda-azul {
+    color: #7dd3fc;
+    font-weight: 800;
+}
+
+.zn-ayuda-listo {
+    align-self: center;
+    min-width: 10rem;
+}
+
+/* ---------- Consejos (espacio libre de la izquierda) ---------- */
+.zn-consejos {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.35rem;
+}
+
+.zn-comentario {
+    margin: 0;
+    padding: 0.4rem 0.5rem;
+    border-left: 0.25rem solid #facc15;
+    border-radius: 0.35rem;
+    background: rgba(250, 204, 21, 0.12);
+    color: #fef9c3;
+    font-size: 0.72rem;
+    line-height: 1.3;
+}
+
+.zn-comentario-mal {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.14);
+    color: #fecaca;
+}
+
+.zn-comentario-bien {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.14);
+    color: #bbf7d0;
+}
+
+.zn-tip {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0.45rem 0.5rem;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 0.4rem;
+    color: var(--suave);
+    font-size: 0.7rem;
+    line-height: 1.3;
+    animation: zn-tip 0.5s ease-out;
+}
+
+.zn-tip svg {
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+    color: #facc15;
+}
+
+@keyframes zn-tip {
+    from { opacity: 0; transform: translateY(0.4rem); }
 }

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { LuArrowLeft, LuClock, LuCrown, LuDices, LuFlag, LuPlay, LuTrophy, LuVolume2, LuVolumeX } from "react-icons/lu";
+import { LuArrowLeft, LuCircleHelp, LuClock, LuCrown, LuDices, LuFlag, LuPlay, LuTrophy, LuVolume2, LuVolumeX } from "react-icons/lu";
 
 import { useAuth } from "../../context/AuthContext";
 import { socket } from "../../services/socket";
@@ -16,6 +16,7 @@ import { AccionesJugador } from "../../components/juego/Reportar";
 import Verificado from "../../components/juego/Verificado";
 import { useVoz } from "../../hooks/useVoz";
 import Profesor from "../invasion/Profesor";
+import { Consejos, Instrucciones, useInstrucciones } from "./Ayuda";
 
 import "./zona.css";
 
@@ -27,7 +28,7 @@ import "./zona.css";
    a dónde llegaría cada ficha y toca la que quieras mover.
 ========================================================= */
 
-const VISIBLES = 10; // filas que se ven a la vez
+const VISIBLES = 8; // filas que se ven a la vez (la zona y 2 más adelante): casillas más grandes
 const OPCION = ["A", "B", "C", "D", "E", "F"];
 
 // Cara del dado → flecha (igual que el dibujo del tablero)
@@ -103,6 +104,7 @@ export default function Zona() {
     const anterior = useRef(null);
     const faseRef = useRef(null);
     const zonaVistaRef = useRef(false);
+    const ayuda = useInstrucciones();
 
     const mostrarError = useCallback((message) => {
         clearTimeout(errorTimer.current);
@@ -298,8 +300,8 @@ export default function Zona() {
 
     const { meta, carriles } = partida;
     const zona = zonaVista || partida.zona;
-    // Ventana que se ve: desde una fila antes de la zona, 10 filas.
-    const inicio = Math.max(0, Math.min(zona.desde - 1, partida.filas - VISIBLES));
+    // Ventana que se ve: desde el inicio de la zona, 8 filas (lo de atrás sale en "Atrás").
+    const inicio = Math.max(0, Math.min(zona.desde, partida.filas - VISIBLES));
     const filasVista = Array.from({ length: VISIBLES }, (_, k) => inicio + k);
     const turnoDe = porId.get(partida.turno);
     const opciones = miTurno ? partida.opciones || [] : [];
@@ -332,10 +334,16 @@ export default function Zona() {
             <main className="zn-main">
                 {/* ================= JUGADORES ================= */}
                 <aside className="zn-jugadores ffp-panel" aria-label="Jugadores">
-                    <p className="zn-titulo">
-                        <strong>ZONA<span>GAMIF</span></strong>
-                        <small>{partida.tema}</small>
-                    </p>
+                    <div className="zn-titulo-fila">
+                        <p className="zn-titulo">
+                            <strong>ZONA<span>GAMIF</span></strong>
+                            <small>{partida.tema}</small>
+                        </p>
+                        <button type="button" className="zn-btn-ayuda" onClick={ayuda.abrir} aria-label="Cómo jugar" title="Cómo jugar">
+                            <LuCircleHelp aria-hidden="true" />
+                            <span>Cómo jugar</span>
+                        </button>
+                    </div>
                     <ol>
                         {ranking.map((j) => {
                             const enZona = j.fichas.some((f) => f.fila >= zona.desde);
@@ -370,11 +378,12 @@ export default function Zona() {
                                             {victoriasDe(j.userId) > 0 && <span className="zn-victorias"><LuTrophy aria-hidden="true" />{victoriasDe(j.userId)}</span>}
                                         </small>
                                     </span>
-                                    {j.userId !== miId && <AccionesJugador userId={j.userId} nombre={j.nombre} contexto="zona" className="zn-acciones" />}
+                                    {j.userId !== miId && !j.userId.startsWith("bot:") && <AccionesJugador userId={j.userId} nombre={j.nombre} contexto="zona" className="zn-acciones" />}
                                 </li>
                             );
                         })}
                     </ol>
+                    <Consejos partida={partida} yo={yo} zona={zona} />
                 </aside>
 
                 {/* ================= PISTA ================= */}
@@ -392,7 +401,7 @@ export default function Zona() {
                     <div className="zn-pista-fila">
                         <div
                             className={`zn-pista ${conPoder ? "zn-pista-poder" : ""}`}
-                            style={{ "--filas": VISIBLES, "--carriles": carriles, aspectRatio: `${carriles} / ${VISIBLES}` }}
+                            style={{ "--filas": VISIBLES, "--carriles": carriles }}
                             aria-label={conPoder ? `Puedes atravesar las paredes ${yo.poder} veces` : undefined}
                         >
                             {filasVista.map((fila) => {
@@ -751,6 +760,8 @@ export default function Zona() {
                     </section>
                 </div>
             )}
+
+            {ayuda.abierta && <Instrucciones alCerrar={ayuda.cerrar} />}
 
             {error && <p className="zn-error" role="alert">{error}</p>}
         </div>

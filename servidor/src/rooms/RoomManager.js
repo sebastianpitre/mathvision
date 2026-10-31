@@ -120,7 +120,9 @@ export class RoomManager {
 
         room.miembros.delete(String(userId));
 
-        if (room.miembros.size === 0) {
+        // Si solo quedan máquinas 🤖, la sala se cierra.
+        const personas = [...room.miembros.values()].filter((m) => !m.esBot);
+        if (personas.length === 0) {
             room.currentGame?.clearTurnTimer?.();
             room.currentGame?.destruir?.();
             this.rooms.delete(room.code);
@@ -128,7 +130,7 @@ export class RoomManager {
         }
 
         if (room.hostUserId === String(userId)) {
-            const siguiente = [...room.miembros.values()].sort((a, b) => a.entroEn - b.entroEn)[0];
+            const siguiente = personas.sort((a, b) => a.entroEn - b.entroEn)[0];
             room.hostUserId = siguiente.userId;
         }
 
@@ -173,6 +175,7 @@ export class RoomManager {
                 modelo: m.modelo,
                 personaje: m.personaje,
                 conectado: m.conectado,
+                esBot: Boolean(m.esBot),
                 esCreador: m.userId === room.hostUserId,
                 victorias: room.victorias?.[room.juego]?.get(m.userId) || 0,
             }));

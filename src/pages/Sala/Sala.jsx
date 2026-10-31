@@ -2,7 +2,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
-import { LuCheck, LuCopy, LuCrown, LuDoorOpen, LuLogIn, LuPlus, LuSettings2, LuShare2, LuTrophy, LuUserPlus, LuUserX, LuWifiOff, LuX } from "react-icons/lu";
+import { LuBot, LuCheck, LuCopy, LuCrown, LuDoorOpen, LuLogIn, LuPlus, LuSettings2, LuShare2, LuTrophy, LuUserPlus, LuUserX, LuWifiOff, LuX } from "react-icons/lu";
 
 import PantallaFF from "../../components/juego/PantallaFF";
 import ElegirJuego, { textoJugadores } from "../../components/juego/ElegirJuego";
@@ -252,6 +252,9 @@ export default function Sala() {
     const puedeSacar = soyCreador && sala.estado === "sala";
     const alguienDesconectado = miembros.some((m) => !m.conectado);
     const puedeCambiarJuego = soyCreador && sala.estado === "sala";
+    // Máquina 🤖: solo en los juegos que la admiten, y si hay puesto libre.
+    const datosJuego = (sala.juegos || []).find((j) => j.id === sala.juego);
+    const puedeMaquina = soyCreador && sala.estado === "sala" && datosJuego?.maquina && miembros.length < Math.min(datosJuego.max, maximo);
 
     const copiarCodigo = async () => {
         try {
@@ -335,7 +338,7 @@ export default function Sala() {
                                     <HablandoMarca activo={hablando?.userId === String(m.userId)} />
                                 </strong>
                                 <small>
-                                    {m.conectado ? `Nv. ${m.nivel}` : "Reconectando…"}
+                                    {m.esBot ? "Máquina 🤖" : m.conectado ? `Nv. ${m.nivel}` : "Reconectando…"}
                                     {m.victorias > 0 && (
                                         <span className="sl-victorias" title="Partidas ganadas en esta sala">
                                             <LuTrophy aria-hidden="true" />
@@ -345,8 +348,13 @@ export default function Sala() {
                                 </small>
                             </span>
                             {!m.conectado && <LuWifiOff aria-hidden="true" className="sl-off" />}
-                            {String(m.userId) !== miId && porSacar !== m.userId && <AccionesJugador userId={m.userId} nombre={m.nombre} contexto="sala" />}
-                            {puedeSacar && String(m.userId) !== miId &&
+                            {String(m.userId) !== miId && !m.esBot && porSacar !== m.userId && <AccionesJugador userId={m.userId} nombre={m.nombre} contexto="sala" />}
+                            {puedeSacar && m.esBot && (
+                                <button type="button" className="ffl-icono ffl-icono-chico sl-sacar" onClick={() => sacar(m.userId)} aria-label={`Quitar a ${m.nombre}`} title="Quitar máquina">
+                                    <LuX aria-hidden="true" />
+                                </button>
+                            )}
+                            {puedeSacar && !m.esBot && String(m.userId) !== miId &&
                                 (porSacar === m.userId ? (
                                     <span className="sl-sacar-confirmar">
                                         <button type="button" className="sl-btn-sacar" onClick={() => sacar(m.userId)}>
@@ -364,6 +372,12 @@ export default function Sala() {
                         </li>
                     ))}
                 </ul>
+                {puedeMaquina && (
+                    <button type="button" className="ffp-btn sl-maquina" onClick={() => socket.emit("sala:agregarMaquina")} title="Jugar contra la computadora">
+                        <LuBot aria-hidden="true" />
+                        Agregar máquina
+                    </button>
+                )}
                 <button type="button" className="ffp-btn ffp-btn-2 sl-salir" onClick={salir}>
                     <LuDoorOpen aria-hidden="true" />
                     Salir de la sala

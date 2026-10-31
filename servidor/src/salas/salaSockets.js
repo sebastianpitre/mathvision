@@ -8,7 +8,8 @@
      sala:salir                 sale de la sala
      sala:elegirJuego { juego } solo el creador
      sala:iniciar               solo el creador, si alcanzan los jugadores
-     sala:expulsar { userId }   solo el creador, antes de iniciar
+     sala:expulsar { userId }   solo el creador, antes de iniciar (también saca máquinas)
+     sala:agregarMaquina        solo el creador: una máquina 🤖 en un puesto libre
 
      siglo:estado | siglo:votar { segundos } | siglo:tirar
      siglo:elegir { opcion: "unidad" | "decena", numero? (joker 0–6) }
@@ -52,7 +53,8 @@ import { reglasSiglo } from "../config/reglasSiglo.js";
 import { InvasionGame } from "../games/invasion/InvasionGame.js";
 import { cargarPreguntas, temasInvasion } from "../games/invasion/preguntasInvasion.js";
 import { ZonaGame } from "../games/zona/ZonaGame.js";
-import { JUEGOS_SALA, motivoNoIniciar, EMOJIS, PAUSA_EMOJI_MS } from "./juegos.js";
+import { crearMaquina, esBot, MaquinasZona, MaquinasInvasion } from "../games/bots/maquinas.js";
+import { JUEGOS_SALA, MAX_JUGADORES_SALA, motivoNoIniciar, EMOJIS, PAUSA_EMOJI_MS } from "./juegos.js";
 
 /*
  * ¿Puede este socket mandar este emoji ahora? (de la lista y
@@ -218,7 +220,9 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
     --------------------------------------------------------- */
 
     function entregarPremios(room, juego, resultados) {
-        registrarResultadoMultijugador(juego, resultados)
+        // Las máquinas no reciben premios; si hubo máquinas, no cuenta para el ranking.
+        const conMaquinas = [...room.miembros.values()].some((m) => m.esBot) || resultados.some((r) => esBot(r.userId));
+        registrarResultadoMultijugador(juego, resultados.filter((r) => !esBot(r.userId)), { sinTemporada: conMaquinas })
             .then((premios) => {
                 for (const premio of premios) {
                     const s = socketDe(room.miembros.get(String(premio.userId)));
@@ -286,15 +290,20 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
     async function iniciarInvasion(room) {
         const jugadores = jugadoresDeSala(room);
         const preguntas = await preguntasDeSala(room);
+        let maquinas = null;
 
         const juego = new InvasionGame({
             jugadores,
             preguntas,
             creador: room.hostUserId,
             tema: room.temaInvasion?.nombre || "Mezcla de temas",
-            onCambio: (estado) => io.to(room.code).emit("invasion:estado", estado),
+            onCambio: (estado) => {
+                io.to(room.code).emit("invasion:estado", estado);
+                maquinas?.alCambiar();
+            },
             onFin: (resultado, partida) => {
                 room.estado = "sala";
+                maquinas?.parar();
                 roomManager.sumarVictoria(room, "invasion", resultado.tipo === "empate" ? [] : resultado.ganadores);
                 entregarPremios(room, "invasion", partida.resultadosPremios());
                 estadoMundo(room, "available");
@@ -303,6 +312,9 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
         });
         // Se acabó el tiempo de una pregunta: solo lo sabe quien la tenía.
         juego.onResultado = (userId, resultado) => socketDe(room.miembros.get(String(userId)))?.emit("invasion:resultado", resultado);
+
+        const bots = jugadores.filter((j) => esBot(j.userId)).map((j) => j.userId);
+        if (bots.length) maquinas = new MaquinasInvasion(juego, bots, () => room.currentGame === juego);
 
         room.currentGame = juego;
         juego.iniciar();
@@ -315,22 +327,30 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
     async function iniciarZona(room) {
         const preguntas = await preguntasDeSala(room);
         const privado = (evento) => (userId, datos) => socketDe(room.miembros.get(String(userId)))?.emit(evento, datos);
+        let maquinas = null;
 
         const juego = new ZonaGame({
             jugadores: jugadoresDeSala(room),
             preguntas,
             tema: room.temaInvasion?.nombre || "Mezcla de temas",
-            onCambio: (estado) => io.to(room.code).emit("zona:estado", estado),
-            onPregunta: privado("zona:pregunta"),
+            onCambio: (estado) => {
+                io.to(room.code).emit("zona:estado", estado);
+                maquinas?.alCambiar();
+            },
+            onPregunta: (userId, datos) => (esBot(userId) ? maquinas?.alPregunta(String(userId)) : privado("zona:pregunta")(userId, datos)),
             onResultado: privado("zona:resultado"),
             onFin: (resultado, partida) => {
                 room.estado = "sala";
+                maquinas?.parar();
                 roomManager.sumarVictoria(room, "zona", resultado.ganadores);
                 entregarPremios(room, "zona", partida.resultadosPremios());
                 estadoMundo(room, "available");
                 emitirSala(room);
             },
         });
+
+        const bots = [...room.miembros.values()].filter((m) => m.esBot).map((m) => m.userId);
+        if (bots.length) maquinas = new MaquinasZona(juego, bots, () => room.currentGame === juego);
 
         room.currentGame = juego;
         juego.iniciar();
@@ -455,6 +475,20 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
         ayudas.emitirSala(room);
     });
 
+    socket.on("sala:agregarMaquina", () => {
+        const room = miSala();
+        if (!room) return error("No estás en una sala.");
+        if (room.hostUserId !== yo()) return error("Solo el creador agrega máquinas.");
+        if (room.estado !== "sala") return error("Espera a que termine la partida.");
+        const juego = JUEGOS_SALA[room.juego];
+        if (!juego?.maquina) return error("La máquina 🤖 juega ZonaGamif e InvasiónGamif. Elige uno de esos.");
+        if (room.miembros.size >= Math.min(juego.max, MAX_JUGADORES_SALA)) return error(`${juego.nombre} admite máximo ${juego.max} jugadores.`);
+
+        const maquina = crearMaquina(room);
+        room.miembros.set(maquina.userId, maquina);
+        ayudas.emitirSala(room);
+    });
+
     socket.on("sala:tema", async ({ nivelId } = {}) => {
         const room = miSala();
         if (!room) return error("No estás en una sala.");
@@ -479,6 +513,10 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
 
         const motivo = motivoNoIniciar(room.juego, room.miembros.size);
         if (motivo) return error(motivo);
+
+        if ([...room.miembros.values()].some((m) => m.esBot) && !JUEGOS_SALA[room.juego]?.maquina) {
+            return error("La máquina 🤖 solo juega ZonaGamif e InvasiónGamif. Sácala de la sala o elige uno de esos.");
+        }
 
         const ausente = [...room.miembros.values()].find((m) => !m.conectado);
         if (ausente) return error(`Esperando a que ${ausente.nombre} se vuelva a conectar.`);

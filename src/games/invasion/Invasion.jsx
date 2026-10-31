@@ -338,7 +338,7 @@ export default function Invasion() {
                                     </span>
                                 </span>
                                 <b className="iv-cuenta" aria-label={`${j.casillas} casillas`}>{j.casillas}</b>
-                                {j.userId !== miId && <AccionesJugador userId={j.userId} nombre={j.nombre} contexto="invasion" className="iv-acciones" />}
+                                {j.userId !== miId && !j.userId.startsWith("bot:") && <AccionesJugador userId={j.userId} nombre={j.nombre} contexto="invasion" className="iv-acciones" />}
                             </li>
                         ))}
                     </ol>

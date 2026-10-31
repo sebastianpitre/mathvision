@@ -375,6 +375,16 @@ Responder rápido y pintar el tablero con tu color (de 2 a 6 jugadores, **sin tu
 - La respuesta correcta nunca llega al navegador antes de responder: el servidor decide.
 - Música propia en *Sonidos* (InvasiónGamif) y el sonido "Te invaden una casilla".
 
+### Jugar contra la máquina 🤖
+
+En **ZonaGamif** e **InvasiónGamif** el creador de la sala puede tocar **Agregar máquina**
+(una por puesto libre; se quitan con la ✕). Las máquinas juegan solas en el servidor:
+mueven con cabeza (avanzan, esquivan trampas, buscan las ❓, caen sobre rivales y empujan
+al más adelantado) y responden bien 8 de cada 10 preguntas. No reciben premios y, si en
+la partida hubo máquinas, no se suman puntos de temporada (el ranking es entre personas);
+el oro y el XP sí se ganan, con el mismo límite diario. Si solo quedan máquinas, la sala
+se cierra.
+
 ### ZonaGamif
 
 Carrera por turnos de 2 a 6 jugadores con **2 fichas** cada uno, desde la salida (arriba)
@@ -398,8 +408,12 @@ hasta la **META** (abajo), en una pista de **15 filas × 6 columnas**.
 - **Caer sobre otro jugador:** te quedas tú y su ficha se va a la casilla de donde venías.
 - **Zona:** las 6 filas desde la ficha más adelantada hacia atrás (marco verde). Lo de
   más atrás queda con niebla: esas fichas no se mueven y, si las dos están fuera, el
-  jugador pierde el turno hasta que la zona vuelva a alcanzarlo. Se ve una ventana de 10
-  filas alrededor de la zona y a un lado el mapa de toda la pista.
+  jugador pierde el turno hasta que la zona vuelva a alcanzarlo. La pista ocupa todo el
+  ancho del centro y se ven 8 filas (la zona y 2 más); lo de atrás sale en "Atrás" y a un
+  lado está el mapa de toda la pista.
+- **Cómo jugar:** botón junto al nombre del juego (sale solo la primera vez). A la
+  izquierda, debajo de los jugadores, salen comentarios sobre tu partida (ficha fuera de
+  la zona, trampa debajo, rival cerca de la meta, poder 🟩) y consejos que van cambiando.
 - **Gana** el primero que llega a la meta o el único que queda con fichas en la zona.
   Antes de la ventana final se ve unos segundos la ficha ganadora con 👑 y el aviso.
 - **Para que se entienda qué pasó:** cada paso va por separado con una pausa (primero
