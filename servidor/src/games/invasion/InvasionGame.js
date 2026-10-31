@@ -1,8 +1,9 @@
 /* =========================================================
    INVASIÓNGAMIF
    ---------------------------------------------------------
-   De 2 a 6 jugadores, cada uno con su color. Tablero según
-   cuántos son: 2 → 6×6 · 3 o 4 → 8×8 · 5 o 6 → 10×10.
+   De 2 a 6 jugadores, cada uno con su color. Tablero pequeño
+   para que se peleen las casillas: 2 → 4×4 · 3 o 4 → 5×5 ·
+   5 o 6 → 6×6.
 
    1. Votación (15 s): todos votan el tiempo para responder
       (10, 15 o 20 s) y lo que dura la partida (2, 3 o 5 min).
@@ -44,9 +45,9 @@ export const COLORES = [
 ];
 
 export function tamanoPara(cantidad) {
-    if (cantidad <= 2) return 6;
-    if (cantidad <= 4) return 8;
-    return 10;
+    if (cantidad <= 2) return 4;
+    if (cantidad <= 4) return 5;
+    return 6;
 }
 
 function mezclar(lista) {

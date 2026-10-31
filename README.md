@@ -350,7 +350,8 @@ Responder rápido y pintar el tablero con tu color (de 2 a 6 jugadores, **sin tu
 
 - **En la sala**, al elegir InvasiónGamif aparece **Tema**: el creador elige un nivel de
   *Niveles y preguntas* o "Mezcla de temas" (preguntas de todos los niveles activos).
-- **Tablero según los jugadores:** 2 → 6×6 · 3 o 4 → 8×8 · 5 o 6 → 10×10. Cada uno tiene
+- **Tablero según los jugadores** (pequeño, para que se peleen las casillas): 2 → 4×4 ·
+  3 o 4 → 5×5 · 5 o 6 → 6×6. Cada uno tiene
   un color (rojo, azul, verde, naranja, morado, rosado).
 - **Votación al empezar (15 s):** todos votan el tiempo para responder (10, 15 o 20 s) y
   lo que dura la partida (2, 3 o 5 min). Gana lo más votado; si hay empate decide el voto
