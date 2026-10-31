@@ -1,3 +1,5 @@
+import "./profesor.css";
+
 /* =========================================================
    PROFESOR GAMIF: sale flotando cuando fallas y te explica
    en un globo por qué la respuesta correcta es esa.
@@ -65,8 +67,9 @@ export function DibujoProfesor({ className = "" }) {
 /*
  * resultado: { acerto, agotado, textoCorrecto, explicacion }
  * restante: segundos que faltan para poder tocar otra casilla
+ * pie: texto de abajo (si no, el de InvasiónGamif con los segundos)
  */
-export default function Profesor({ resultado, restante, alCerrar }) {
+export default function Profesor({ resultado, restante = 0, pie, alCerrar }) {
     const explicacion =
         resultado.explicacion ||
         `La respuesta correcta era «${resultado.textoCorrecto}». ¡Repásala y la próxima es tuya!`;
@@ -80,7 +83,7 @@ export default function Profesor({ resultado, restante, alCerrar }) {
                 </p>
                 <p id="pf-texto" className="pf-texto">{explicacion}</p>
                 <div className="pf-pie">
-                    <small>{restante > 0 ? `Puedes volver a invadir en ${restante} s` : "¡Ya puedes volver a invadir!"}</small>
+                    <small>{pie || (restante > 0 ? `Puedes volver a invadir en ${restante} s` : "¡Ya puedes volver a invadir!")}</small>
                     <button type="button" className="ffp-btn pf-listo" onClick={alCerrar}>
                         Entendido
                     </button>

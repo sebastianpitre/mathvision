@@ -15,6 +15,7 @@ const JUEGOS = [
     { id: "triqui", nombre: "Triqui Matemático" },
     { id: "siglo", nombre: "SigloGamif" },
     { id: "invasion", nombre: "InvasiónGamif" },
+    { id: "zona", nombre: "ZonaGamif" },
 ];
 
 const CASOS = [

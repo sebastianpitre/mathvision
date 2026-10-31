@@ -24,6 +24,8 @@
      invasion:responder { opcion }
      invasion:salir
 
+     zona:estado | zona:tirar | zona:mover { ficha: 0|1 } | zona:responder { opcion } | zona:salir
+
    Servidor → navegador
      sala:estado { sala }       cada cambio de la sala (o sala: null)
      sala:error  { message }
@@ -37,6 +39,7 @@
      invasion:estado { …partida } · invasion:error { message }
      invasion:pregunta { celda, texto, opciones, hasta, segundos }  solo a quien tocó
      invasion:resultado { acerto, correcta, explicacion, … }        solo a quien respondió
+     zona:estado · zona:error · zona:pregunta · zona:resultado (como en InvasiónGamif)
      game:reward  { resultado, recompensa }   premio al terminar
 ========================================================= */
 
@@ -47,6 +50,7 @@ import { SigloGame } from "../games/siglo/SigloGame.js";
 import { reglasSiglo } from "../config/reglasSiglo.js";
 import { InvasionGame } from "../games/invasion/InvasionGame.js";
 import { cargarPreguntas, temasInvasion } from "../games/invasion/preguntasInvasion.js";
+import { ZonaGame } from "../games/zona/ZonaGame.js";
 import { JUEGOS_SALA, motivoNoIniciar, EMOJIS, PAUSA_EMOJI_MS } from "./juegos.js";
 
 /*
@@ -150,7 +154,7 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
         esperas.delete(String(userId));
 
         if (room.estado === "jugando") {
-            if (room.currentGame?.tipo === "siglo" || room.currentGame?.tipo === "invasion") room.currentGame.abandonar(userId);
+            if (["siglo", "invasion", "zona"].includes(room.currentGame?.tipo)) room.currentGame.abandonar(userId);
             else cortarTriqui(room, `${miembro?.nombre || "Un jugador"} ${motivo}.`);
         }
 
@@ -263,18 +267,24 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
        INICIAR INVASIÓNGAMIF (carga las preguntas primero)
     --------------------------------------------------------- */
 
-    async function iniciarInvasion(room) {
-        const jugadores = [...room.miembros.values()]
+    const jugadoresDeSala = (room) =>
+        [...room.miembros.values()]
             .sort((a, b) => a.entroEn - b.entroEn)
             .map((m) => ({ userId: m.userId, nombre: m.nombre, avatar: m.avatar, marco: m.marco, verificado: m.verificado }));
 
-        let preguntas;
+    /* Preguntas del tema elegido en la sala (InvasiónGamif y ZonaGamif). */
+    async function preguntasDeSala(room) {
         try {
-            preguntas = await cargarPreguntas(room.temaInvasion?.id || null);
+            return await cargarPreguntas(room.temaInvasion?.id || null);
         } catch (error) {
-            console.error("❌ Preguntas de InvasiónGamif:", error.message);
-            preguntas = await cargarPreguntas(null).catch(() => []);
+            console.error("❌ Preguntas de la sala:", error.message);
+            return cargarPreguntas(null).catch(() => []);
         }
+    }
+
+    async function iniciarInvasion(room) {
+        const jugadores = jugadoresDeSala(room);
+        const preguntas = await preguntasDeSala(room);
 
         const juego = new InvasionGame({
             jugadores,
@@ -297,7 +307,36 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
         juego.iniciar();
     }
 
+    /* ---------------------------------------------------------
+       INICIAR ZONAGAMIF
+    --------------------------------------------------------- */
+
+    async function iniciarZona(room) {
+        const preguntas = await preguntasDeSala(room);
+        const privado = (evento) => (userId, datos) => socketDe(room.miembros.get(String(userId)))?.emit(evento, datos);
+
+        const juego = new ZonaGame({
+            jugadores: jugadoresDeSala(room),
+            preguntas,
+            tema: room.temaInvasion?.nombre || "Mezcla de temas",
+            onCambio: (estado) => io.to(room.code).emit("zona:estado", estado),
+            onPregunta: privado("zona:pregunta"),
+            onResultado: privado("zona:resultado"),
+            onFin: (resultado, partida) => {
+                room.estado = "sala";
+                roomManager.sumarVictoria(room, "zona", resultado.ganadores);
+                entregarPremios(room, "zona", partida.resultadosPremios());
+                estadoMundo(room, "available");
+                emitirSala(room);
+            },
+        });
+
+        room.currentGame = juego;
+        juego.iniciar();
+    }
+
     const ayudas = {
+        iniciarZona,
         iniciarInvasion,
         esperas,
         emitirSala,
@@ -367,6 +406,11 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
             socket.emit("invasion:estado", room.currentGame.toJSON());
             const abierta = room.currentGame.preguntaAbierta(yo());
             if (abierta) socket.emit("invasion:pregunta", abierta);
+        }
+        if (room.estado === "jugando" && room.currentGame?.tipo === "zona") {
+            socket.emit("zona:estado", room.currentGame.toJSON());
+            const abierta = room.currentGame.preguntaAbierta(yo());
+            if (abierta) socket.emit("zona:pregunta", abierta);
         }
     });
 
@@ -451,6 +495,8 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
             ayudas.iniciarSiglo(room);
         } else if (room.juego === "invasion") {
             await ayudas.iniciarInvasion(room);
+        } else if (room.juego === "zona") {
+            await ayudas.iniciarZona(room);
         }
 
         ayudas.estadoMundo(room, "playing");
@@ -577,4 +623,29 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
         })
     );
     socket.on("invasion:salir", accionInvasion((p) => p.abandonar(yo())));
+
+    /* ---------------- ZONAGAMIF ---------------- */
+
+    const partidaZona = () => {
+        const room = miSala();
+        return room?.currentGame?.tipo === "zona" ? room.currentGame : null;
+    };
+
+    const accionZona = (accion) => (datos) => {
+        const partida = partidaZona();
+        if (!partida) return socket.emit("zona:error", { message: "No hay una partida de ZonaGamif activa." });
+        const r = accion(partida, datos || {});
+        if (r && r.success === false) socket.emit("zona:error", { message: r.message });
+    };
+
+    socket.on("zona:estado", () => {
+        const partida = partidaZona();
+        socket.emit("zona:estado", partida ? partida.toJSON() : null);
+        const abierta = partida?.preguntaAbierta(yo());
+        if (abierta) socket.emit("zona:pregunta", abierta);
+    });
+    socket.on("zona:tirar", accionZona((p) => p.tirar(yo())));
+    socket.on("zona:mover", accionZona((p, { ficha }) => p.mover(yo(), ficha)));
+    socket.on("zona:responder", accionZona((p, { opcion }) => p.responder(yo(), opcion)));
+    socket.on("zona:salir", accionZona((p) => p.abandonar(yo())));
 }

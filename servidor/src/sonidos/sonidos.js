@@ -21,6 +21,7 @@ export const MOMENTOS = [
     { clave: "musica_preguntas", nombre: "Juego de preguntas", grupo: "musica", defecto: "/sounds/MathMillonario/fondo-millonario.mp3", volumen: 35 },
     { clave: "musica_escape", nombre: "Escape del Álgebra", grupo: "musica", defecto: null, volumen: 30 },
     { clave: "musica_invasion", nombre: "InvasiónGamif", grupo: "musica", defecto: null, volumen: 30 },
+    { clave: "musica_zona", nombre: "ZonaGamif", grupo: "musica", defecto: null, volumen: 30 },
 
     { clave: "clic", nombre: "Clic de los botones", grupo: "general", defecto: "/sounds/click.mp3", volumen: 35 },
     { clave: "iniciar", nombre: "Iniciar partida", grupo: "general", defecto: "/sounds/unlock.mp3", volumen: 80 },

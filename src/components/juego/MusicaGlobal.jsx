@@ -10,6 +10,7 @@ function pantallaDe(ruta) {
     if (ruta.startsWith("/games/triqui") || ruta.startsWith("/triqui-local")) return "triqui";
     if (ruta.startsWith("/games/siglo")) return "siglo";
     if (ruta.startsWith("/games/invasion")) return "invasion";
+    if (ruta.startsWith("/games/zona")) return "zona";
     if (/^\/games\/preguntas\/.+/.test(ruta)) return "preguntas";
     if (ruta.startsWith("/games/escape-algebra")) return "escape";
     return "lobby";

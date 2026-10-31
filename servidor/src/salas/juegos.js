@@ -30,6 +30,14 @@ export const JUEGOS_SALA = {
         max: 6,
         ruta: "/games/invasion",
     },
+    zona: {
+        id: "zona",
+        nombre: "ZonaGamif",
+        descripcion: "Carrera con 2 fichas: llega a la meta sin quedarte fuera de la zona.",
+        min: 2,
+        max: 6,
+        ruta: "/games/zona",
+    },
 };
 
 export const MAX_JUGADORES_SALA = 8;

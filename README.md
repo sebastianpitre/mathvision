@@ -132,7 +132,7 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   oro o diamantes. La columna **Reportes** muestra "sin revisar / total"; al tocarla se
   ven los motivos y quién reportó, y se pueden **marcar como revisados**. La casilla
   "Más reportados primero" ordena la lista.
-- **Premios y reglas:** XP y oro de Triqui, SigloGamif e InvasiónGamif según gane, empate o pierda, partidas
+- **Premios y reglas:** XP y oro de Triqui, SigloGamif, InvasiónGamif y ZonaGamif según gane, empate o pierda, partidas
   premiadas al día y los diamantes extra por ¡SIGLO!. Abajo, el poder 🔄 de SigloGamif
   (activarlo y cuántos segundos dura).
 - **Sonidos:** la biblioteca de música y efectos. Se suben archivos mp3, ogg, wav o m4a
@@ -288,7 +288,7 @@ más grande.
 
 ---
 
-## 6. Salas multijugador, SigloGamif e InvasiónGamif
+## 6. Salas multijugador, SigloGamif, InvasiónGamif y ZonaGamif
 
 Todos los juegos de 2 o más jugadores pasan por una **sala** (`/sala`):
 
@@ -297,7 +297,7 @@ Todos los juegos de 2 o más jugadores pasan por una **sala** (`/sala`):
 - Se entra por **invitación** o con el **código** de 5 letras. Máximo 8 jugadores.
 - Se ven los **personajes 3D** de todos los que están.
 - El **creador** elige el juego (botón *Cambiar*) e inicia. *Iniciar* solo se activa si la cantidad de
-  jugadores sirve (Triqui: 2 · SigloGamif: 2 a 8 · InvasiónGamif: 2 a 6). Si el creador se va, el siguiente
+  jugadores sirve (Triqui: 2 · SigloGamif: 2 a 8 · InvasiónGamif y ZonaGamif: 2 a 6). Si el creador se va, el siguiente
   pasa a serlo.
 - El creador puede **sacar** a alguien antes de iniciar. Esa persona ya no puede volver
   con el código; solo si el creador la vuelve a invitar.
@@ -370,6 +370,32 @@ Responder rápido y pintar el tablero con tu color (de 2 a 6 jugadores, **sin tu
   respondidas y acertadas). El creador puede *Jugar otra vez* desde el final.
 - La respuesta correcta nunca llega al navegador antes de responder: el servidor decide.
 - Música propia en *Sonidos* (InvasiónGamif) y el sonido "Te invaden una casilla".
+
+### ZonaGamif
+
+Carrera por turnos de 2 a 6 jugadores con **2 fichas** cada uno, desde la salida (arriba)
+hasta la **META** (abajo), en una pista de **15 filas × 6 columnas**.
+
+- **Dado:** cada cara mueve la ficha 1 casilla: 1 ↘ · 2 ↓ · 3 → · 4 ← · 5 ↑ (retrocede) ·
+  6 ↙. En tu turno tiras, ves a dónde llegaría cada ficha (círculo punteado) y tocas la
+  que quieras mover. Si ninguna puede, pierdes el turno. 20 s por turno; si se acaban, el
+  juego mueve la ficha que más avanza.
+- **Paredes:** si una flecha saca la ficha por un lado, esa ficha no puede usar ese
+  número… salvo con el **poder de atravesar paredes**: pasa de la columna 6 a la 1 (o al
+  revés) y gasta un uso. Mientras lo tienes, las paredes de la pista se ven **verdes y
+  gruesas**; cuando se acaban los usos vuelven a la normalidad.
+- **Casillas al azar en cada partida** (filas 2 a 14): ❓ preguntas (~25 %) y trampas con
+  flecha y número (~15 %; la mayoría hacia atrás, algunas azules ayudan).
+  - ❓ **Acierta** → avanza 1 a 3 filas o gana el poder de paredes (1 o 2 usos).
+  - ❓ **Falla o no responde** (20 s) → retrocede 1 o 2 filas y sale el **profesor** con
+    la explicación; la partida sigue mientras la lees.
+- **Caer sobre otro jugador:** te quedas tú y su ficha se va a la casilla de donde venías.
+- **Zona:** las 6 filas desde la ficha más adelantada hacia atrás (marco verde). Lo de
+  más atrás queda con niebla: esas fichas no se mueven y, si las dos están fuera, el
+  jugador pierde el turno hasta que la zona vuelva a alcanzarlo. Se ve una ventana de 10
+  filas alrededor de la zona y a un lado el mapa de toda la pista.
+- **Gana** el primero que llega a la meta o el único que queda con fichas en la zona.
+- Tema de las preguntas, premios, temporada y misiones igual que en InvasiónGamif.
 
 ## 7. Estructura
 

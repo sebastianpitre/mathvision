@@ -436,7 +436,7 @@ export default function Sala() {
                         )}
                     </button>
 
-                    {sala.juego === "invasion" && (
+                    {(sala.juego === "invasion" || sala.juego === "zona") && (
                         <button
                             type="button"
                             className="sl-tema"

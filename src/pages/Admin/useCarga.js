@@ -50,6 +50,7 @@ export const NOMBRE_JUEGO = {
     "escape-algebra": "Escape Álgebra",
     siglo: "SigloGamif",
     invasion: "InvasiónGamif",
+    zona: "ZonaGamif",
 };
 
 export const NOMBRE_RESULTADO = {

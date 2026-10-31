@@ -15,7 +15,7 @@ import { ruta, errorConEstado } from "../http/ruta.js";
 import { MOTIVOS_REPORTE, olvidarPermisoVoz } from "./voz.js";
 
 const router = express.Router();
-const CONTEXTOS = ["sala", "siglo", "triqui", "invasion", "perfil"];
+const CONTEXTOS = ["sala", "siglo", "triqui", "invasion", "zona", "perfil"];
 
 router.get("/motivos", requireAuth, (req, res) => {
     res.json({ success: true, motivos: Object.entries(MOTIVOS_REPORTE).map(([id, texto]) => ({ id, texto })) });

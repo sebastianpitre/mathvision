@@ -41,6 +41,20 @@
     "sala": "invasion"
   },
   {
+    "id": "zona",
+    "name": "ZonaGamif",
+    "shortName": "Zona",
+    "description": "Carrera con 2 fichas: llega a la meta sin quedarte fuera de la zona.",
+    "icon": "🏁",
+    "image": "/img/Zona/portada.jpg",
+    "minPlayers": 2,
+    "maxPlayers": 6,
+    "status": "available",
+    "route": "/sala",
+    "color": "#22c55e",
+    "sala": "zona"
+  },
+  {
     "id": "triqui-matematico",
     "name": "Triqui Matemático",
     "shortName": "Triqui",

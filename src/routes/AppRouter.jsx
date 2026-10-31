@@ -28,6 +28,7 @@ const Eventos = lazy(() => import("../pages/Eventos/Eventos"));
 const Suerte = lazy(() => import("../pages/Suerte/Suerte"));
 const Siglo = lazy(() => import("../games/siglo/Siglo"));
 const Invasion = lazy(() => import("../games/invasion/Invasion"));
+const Zona = lazy(() => import("../games/zona/Zona"));
 const Ranking = lazy(() => import("../pages/Ranking/Ranking"));
 
 function Cargando() {
@@ -135,6 +136,7 @@ function AppRouter() {
                 <Route path="/games/triqui" element={<Privada><TriquiGame /></Privada>} />
                 <Route path="/games/siglo" element={<Privada><Siglo /></Privada>} />
                 <Route path="/games/invasion" element={<Privada><Invasion /></Privada>} />
+                <Route path="/games/zona" element={<Privada><Zona /></Privada>} />
                 <Route path="/sala" element={<Privada><Sala /></Privada>} />
                 <Route path="/sala/:codigo" element={<Privada><Sala /></Privada>} />
                 <Route path="/ranking" element={<Privada><Ranking /></Privada>} />

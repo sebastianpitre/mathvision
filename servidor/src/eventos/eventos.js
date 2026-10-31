@@ -34,6 +34,7 @@ export const JUEGOS_MISION = {
     triqui: "Triqui",
     siglo: "SigloGamif",
     invasion: "InvasiónGamif",
+    zona: "ZonaGamif",
     "escape-algebra": "Escape del Álgebra",
 };
 
