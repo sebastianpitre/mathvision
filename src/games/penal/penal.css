@@ -70,6 +70,15 @@
     transform: translateX(-50%);
 }
 
+.pn-figura-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+    user-select: none;
+    filter: drop-shadow(0 0.5cqw 0.6cqw rgba(0, 0, 0, 0.5));
+}
+
 .pn-figura-svg {
     display: block;
     width: 100%;
@@ -80,8 +89,8 @@
 /* Arquero en el arco (vista del que patea) */
 .pn-arquero {
     left: 50%;
-    top: 26.5%;
-    width: 8.5%;
+    top: 24%;
+    width: 10%;
     transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.3, 1);
     animation: pn-balanceo 1.4s ease-in-out infinite alternate;
 }
@@ -108,9 +117,9 @@
 
 /* El que patea (vista del arquero) */
 .pn-pateador {
-    left: 46%;
-    top: 37%;
-    width: 6.5%;
+    left: 45%;
+    top: 35%;
+    width: 7%;
     transition: left 0.8s ease-in, transform 0.3s;
 }
 
@@ -281,22 +290,15 @@
     transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 
-.pn-guante {
+.pn-guantes-img {
     position: absolute;
-    bottom: -12%;
-    width: 17%;
+    left: 50%;
+    bottom: -4%;
+    width: 64%;
     height: auto;
+    transform: translateX(-50%);
     filter: drop-shadow(0 0.4cqw 0.8cqw rgba(0, 0, 0, 0.5));
-}
-
-.pn-guante-izq {
-    left: 22%;
-    transform: rotate(-12deg);
-}
-
-.pn-guante-der {
-    right: 22%;
-    transform: scaleX(-1) rotate(-12deg);
+    pointer-events: none;
 }
 
 .pn-guantes-izquierda .pn-guantes {

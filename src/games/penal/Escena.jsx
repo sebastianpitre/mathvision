@@ -147,42 +147,20 @@ export function FondoArquero() {
 }
 
 /* ---------- Jugadores ---------- */
-export function DibujoArquero({ color = "#facc15" }) {
-    return (
-        <svg viewBox="0 0 120 160" className="pn-figura-svg" aria-hidden="true">
-            <ellipse cx="60" cy="156" rx="34" ry="5" fill="rgba(0,0,0,.35)" />
-            {/* brazos abiertos */}
-            <path d="M30 62 L6 40" stroke={color} strokeWidth="13" strokeLinecap="round" />
-            <path d="M90 62 L114 40" stroke={color} strokeWidth="13" strokeLinecap="round" />
-            <circle cx="6" cy="38" r="9" fill="#e5e7eb" stroke="#111" strokeWidth="2" />
-            <circle cx="114" cy="38" r="9" fill="#e5e7eb" stroke="#111" strokeWidth="2" />
-            {/* cuerpo */}
-            <rect x="30" y="50" width="60" height="58" rx="14" fill={color} />
-            <text x="60" y="88" textAnchor="middle" fontSize="24" fontWeight="900" fill="rgba(0,0,0,.45)" fontFamily="system-ui">1</text>
-            <rect x="32" y="104" width="56" height="20" rx="6" fill="#111827" />
-            <path d="M42 124 L38 152" stroke="#f1c27d" strokeWidth="11" strokeLinecap="round" />
-            <path d="M78 124 L82 152" stroke="#f1c27d" strokeWidth="11" strokeLinecap="round" />
-            <circle cx="60" cy="32" r="18" fill="#f1c27d" />
-            <path d="M42 28 Q60 6 78 28 Q70 18 60 20 Q50 18 42 28 Z" fill="#3f2a1d" />
-        </svg>
-    );
+/* Imágenes del juego (animadas). Faltan el arquero azul y los guantes rojos:
+   por ahora se usan el arquero rojo y los guantes azules para los dos. */
+export const ARTE = {
+    arquero: { rojo: "/img/penal/arquero-rojo.webp", azul: "/img/penal/arquero-rojo.webp" },
+    jugador: { rojo: "/img/penal/jugador-rojo.webp", azul: "/img/penal/jugador-azul.webp" },
+    guantes: { rojo: "/img/penal/guantes.webp", azul: "/img/penal/guantes.webp" },
+};
+
+export function DibujoArquero({ equipo = "rojo" }) {
+    return <img className="pn-figura-img" src={ARTE.arquero[equipo]} alt="" draggable="false" />;
 }
 
-export function DibujoPateador({ color = "#ef4444" }) {
-    return (
-        <svg viewBox="0 0 120 200" className="pn-figura-svg" aria-hidden="true">
-            <ellipse cx="60" cy="196" rx="32" ry="5" fill="rgba(0,0,0,.35)" />
-            <path d="M34 78 L18 120" stroke={color} strokeWidth="12" strokeLinecap="round" />
-            <path d="M86 78 L102 120" stroke={color} strokeWidth="12" strokeLinecap="round" />
-            <rect x="32" y="62" width="56" height="70" rx="14" fill={color} />
-            <text x="60" y="108" textAnchor="middle" fontSize="26" fontWeight="900" fill="rgba(255,255,255,.75)" fontFamily="system-ui">10</text>
-            <rect x="34" y="128" width="52" height="24" rx="6" fill="#f8fafc" />
-            <path d="M46 150 L42 190" stroke="#f1c27d" strokeWidth="12" strokeLinecap="round" />
-            <path d="M74 150 L80 190" stroke="#f1c27d" strokeWidth="12" strokeLinecap="round" />
-            <circle cx="60" cy="40" r="20" fill="#f1c27d" />
-            <path d="M40 36 Q60 10 80 36 Q72 24 60 26 Q48 24 40 36 Z" fill="#111827" />
-        </svg>
-    );
+export function DibujoPateador({ equipo = "rojo" }) {
+    return <img className="pn-figura-img" src={ARTE.jugador[equipo]} alt="" draggable="false" />;
 }
 
 export function Balon() {
@@ -219,22 +197,10 @@ export function BrazosPateador({ color = "#ef4444", imagen }) {
 }
 
 /* Guantes del arquero en primera persona. */
-export function GuantesArquero({ color = "#22c55e" }) {
-    const guante = (lado) => (
-        <svg viewBox="0 0 260 320" className={`pn-guante pn-guante-${lado}`} aria-hidden="true">
-            <path d="M70 320 C80 260 90 220 100 200" stroke={color} strokeWidth="70" strokeLinecap="round" fill="none" />
-            <rect x="52" y="60" width="150" height="160" rx="50" fill="#f8fafc" stroke="#0f172a" strokeWidth="6" />
-            {[0, 1, 2, 3].map((d) => (
-                <rect key={d} x={58 + d * 36} y={8 + Math.abs(1.5 - d) * 10} width="32" height="90" rx="16" fill="#f8fafc" stroke="#0f172a" strokeWidth="6" />
-            ))}
-            <rect x="52" y="150" width="150" height="40" rx="12" fill={color} />
-            <text x="127" y="178" textAnchor="middle" fontSize="22" fontWeight="900" fill="#fff" fontFamily="system-ui">GAMIF</text>
-        </svg>
-    );
+export function GuantesArquero({ equipo = "azul" }) {
     return (
         <div className="pn-guantes" aria-hidden="true">
-            {guante("izq")}
-            {guante("der")}
+            <img className="pn-guantes-img" src={ARTE.guantes[equipo]} alt="" draggable="false" />
         </div>
     );
 }

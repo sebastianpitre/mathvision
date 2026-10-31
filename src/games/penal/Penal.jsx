@@ -45,6 +45,7 @@ const TEXTO_LADO = { izquierda: "Izquierda", centro: "Centro", derecha: "Derecha
 const ESPEJO = { izquierda: "derecha", centro: "centro", derecha: "izquierda" };
 
 const COLORES = ["#ef4444", "#3b82f6"];
+const EQUIPOS = ["rojo", "azul"]; // el primero de la tanda es rojo y el segundo azul
 
 function Marcador({ partida, miId, emojis }) {
     return (
@@ -190,7 +191,7 @@ export default function Penal() {
 
     /* ---------------- Datos ---------------- */
 
-    const porId = useMemo(() => new Map((partida?.jugadores || []).map((j, n) => [j.userId, { ...j, color: COLORES[n] }])), [partida]);
+    const porId = useMemo(() => new Map((partida?.jugadores || []).map((j, n) => [j.userId, { ...j, color: COLORES[n], equipo: EQUIPOS[n] }])), [partida]);
     const servidorAhora = ahora + desfase.current;
     const restante = partida?.finEn ? Math.max(0, Math.ceil((partida.finEn - servidorAhora) / 1000)) : null;
     const restaPregunta = pregunta ? Math.max(0, (pregunta.hasta - servidorAhora) / 1000) : 0;
@@ -274,11 +275,11 @@ export default function Penal() {
                     {/* Rival: el arquero en el arco, o el que patea frente a ti */}
                     {vistaArquero ? (
                         <div className={`pn-figura pn-pateador ${momento === "silbato" ? "pn-pateador-corre" : ""} ${momento && momento !== "silbato" ? "pn-pateador-patea" : ""}`}>
-                            <DibujoPateador color={pateador?.color} />
+                            <DibujoPateador equipo={pateador?.equipo} />
                         </div>
                     ) : (
                         <div className={`pn-figura pn-arquero ${salto ? `pn-salto-${salto}` : ""}`}>
-                            <DibujoArquero color={arquero?.color} />
+                            <DibujoArquero equipo={arquero?.equipo} />
                         </div>
                     )}
 
@@ -307,7 +308,7 @@ export default function Penal() {
                     {/* Primera persona */}
                     {vistaArquero ? (
                         <div className={`pn-primera ${salto ? `pn-guantes-${ESPEJO[salto]}` : ""}`}>
-                            <GuantesArquero color={arquero?.color} />
+                            <GuantesArquero equipo={arquero?.equipo} />
                         </div>
                     ) : (
                         <div className={`pn-primera ${tiro && soyPateador ? "pn-brazos-patea" : ""}`}>
