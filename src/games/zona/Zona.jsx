@@ -587,7 +587,7 @@ export default function Zona() {
                                     {[0, 1].map((i) => (
                                         <button key={i} type="button" className="zn-elegir-btn" onClick={() => mover(i)} disabled={!opciones[i]}>
                                             <span className="zn-ficha-mini" style={{ "--c": yo.color.hex }}>{i + 1}</span>
-                                            {opciones[i] ? `Fila ${opciones[i].fila + 1}${opciones[i].atraviesa ? " 🟩" : ""}` : "No puede"}
+                                            {opciones[i] ? `Fila ${opciones[i].fila + 1}${opciones[i].atraviesa ? " 🟩" : opciones[i].rebota ? " 🔁" : ""}` : "No puede"}
                                         </button>
                                     ))}
                                 </div>

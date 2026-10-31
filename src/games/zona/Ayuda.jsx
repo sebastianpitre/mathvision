@@ -19,6 +19,7 @@ const TIPS = [
     "Si caes donde está un rival, te quedas tú y él se va a donde venías.",
     "Con 🟩 puedes salir por un lado de la pista y entrar por el otro.",
     "El 5 (↑) retrocede: a veces es mejor usarlo con la ficha de atrás.",
+    "Si una flecha te saca por un lado, rebotas 🔁 hacia el otro: nunca te quedas atascado.",
     "Si te quedas solo dentro de la zona, ganas aunque no llegues a la meta.",
     "Lee la explicación del profesor: la misma pregunta puede volver a salir.",
 ];
@@ -58,7 +59,7 @@ export function Instrucciones({ alCerrar }) {
                     </article>
                     <article>
                         <h3>🎲 El dado</h3>
-                        <p>Cada número mueve 1 casilla en su dirección. Tienes 2 fichas: tú eliges cuál mover.</p>
+                        <p>Cada número mueve 1 casilla en su dirección. Tienes 2 fichas: tú eliges cuál mover. Si chocas con una pared, rebotas 🔁 hacia el otro lado.</p>
                         <ul className="zn-ayuda-dado">
                             {FLECHAS.map(([n, f]) => (
                                 <li key={n}>
@@ -74,7 +75,7 @@ export function Instrucciones({ alCerrar }) {
                     </article>
                     <article>
                         <h3>❓ Preguntas</h3>
-                        <p>Acierta y avanza 1 a 3, gana el poder de <b>paredes 🟩</b> (sales por un lado y entras por el otro) o un <b>empujón 💥</b> (haces retroceder 3 a un rival). Si fallas, retrocedes y el profesor te explica.</p>
+                        <p>Acierta y avanza 1 a 3, gana el poder de <b>paredes 🟩</b> (sales por un lado y entras por el otro) o un <b>empujón 💥</b> (haces retroceder 3 a un rival). Si fallas, retrocedes 1 y el profesor te explica. ¡Casi todas las casillas tienen pregunta!</p>
                     </article>
                     <article>
                         <h3>⚠️ Trampas y atajos</h3>

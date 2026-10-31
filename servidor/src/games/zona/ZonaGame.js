@@ -10,18 +10,20 @@
        3 → carril +1              4 ← carril −1
        5 ↑ retrocede              6 ↙ (avanza y carril −1)
    El jugador ve a dónde llegaría cada ficha y elige cuál mover.
-   Si una ficha se saldría por un lado (pared), no puede usar ese
-   número… salvo que tenga el PODER de atravesar paredes: pasa
-   del carril 6 al 1 (o del 1 al 6) y gasta una carga.
+   Si una ficha se saldría por un lado (pared), REBOTA y va hacia
+   el otro lado; en la salida el ↑ rebota y baja. Con el PODER de
+   atravesar paredes, en vez de rebotar pasa del carril 6 al 1
+   (o del 1 al 6) y gasta una carga. Así nadie queda atascado en
+   una esquina.
 
    CASILLAS (al azar en cada partida, filas 1 a 13):
-     ❓ pregunta (~40 %): acierta → avanza 1 a 3 filas, gana el
+     ❓ pregunta (~75 %): acierta → avanza 1 a 3 filas, gana el
         poder de atravesar paredes (1 o 2 usos) o, de vez en
         cuando, el EMPUJÓN: toca una ficha rival y la hace
         retroceder 3 filas. Falla o se acaba el tiempo →
-        retrocede 1 o 2 filas (y ve la explicación).
-     Trampas: flecha + número, mueven esa cantidad en esa
-        dirección (casi todas hacia atrás; algunas ayudan).
+        retrocede 1 fila (y ve la explicación).
+     Trampas (~8 %): flecha + número, mueven esa cantidad en esa
+        dirección (más o menos la mitad son atajos que ayudan).
 
    CAER SOBRE OTRO JUGADOR: te quedas tú y sus fichas se van a
    la casilla de donde venías.
@@ -66,10 +68,10 @@ export const CARAS = {
 
 // Trampas: dirección [filas, carriles] y cuántas casillas.
 const TRAMPAS = [
-    { d: [-1, 0], peso: 4 },
-    { d: [-1, 1], peso: 2 },
-    { d: [-1, -1], peso: 2 },
-    { d: [1, 0], peso: 1 }, // ayudan, para que valga la pena arriesgar
+    { d: [-1, 0], peso: 3 },
+    { d: [-1, 1], peso: 1 },
+    { d: [-1, -1], peso: 1 },
+    { d: [1, 0], peso: 2 }, // atajos: ayudan, para que no todo sea retroceder
     { d: [1, 1], peso: 1 },
     { d: [1, -1], peso: 1 },
 ];
@@ -109,14 +111,14 @@ function elegirPeso(lista) {
     return lista[0];
 }
 
-/* Tablero al azar: ~40 % preguntas y ~15 % trampas (filas 1 a 13). */
+/* Tablero al azar: ~75 % preguntas y ~8 % trampas (filas 1 a 13). */
 export function armarTablero() {
     const casillas = Array.from({ length: FILAS }, () => Array(CARRILES).fill(null));
     for (let f = 1; f < META; f++) {
         for (let c = 0; c < CARRILES; c++) {
             const r = Math.random();
-            if (r < 0.4) casillas[f][c] = { tipo: "pregunta" };
-            else if (r < 0.55) {
+            if (r < 0.75) casillas[f][c] = { tipo: "pregunta" };
+            else if (r < 0.83) {
                 const t = elegirPeso(TRAMPAS);
                 casillas[f][c] = { tipo: "trampa", d: t.d, n: entre(1, 2) };
             }
@@ -293,15 +295,28 @@ export class ZonaGame {
             const fila = f.fila + df;
             let carril = f.carril + dc;
             let atraviesa = false;
-            if (fila < 0) return null;
-            if (carril < 0 || carril >= CARRILES) {
-                if (j.poder <= 0) return null;
-                carril = (carril + CARRILES) % CARRILES;
-                atraviesa = true;
+            let rebota = false;
+            let filaFinal = fila;
+            // En la salida, el ↑ rebota y baja (para no quedarse atascado en la esquina).
+            if (filaFinal < 0) {
+                filaFinal = f.fila + 1;
+                rebota = true;
             }
+            if (carril < 0 || carril >= CARRILES) {
+                if (j.poder > 0) {
+                    // Con 🟩 atraviesa la pared y sale por el otro lado.
+                    carril = (carril + CARRILES) % CARRILES;
+                    atraviesa = true;
+                } else {
+                    // Sin poder, rebota en la pared: va hacia el otro lado.
+                    carril = f.carril - dc;
+                    rebota = true;
+                }
+            }
+            const fila2 = filaFinal;
             const otra = j.fichas[1 - i];
-            if (otra.fila === Math.min(fila, META) && otra.carril === carril && fila < META) return null; // no sobre su otra ficha
-            return { ficha: i, fila: Math.min(fila, META), carril, atraviesa };
+            if (otra.fila === Math.min(fila2, META) && otra.carril === carril && fila2 < META) return null; // no sobre su otra ficha
+            return { ficha: i, fila: Math.min(fila2, META), carril, atraviesa, rebota };
         });
     }
 
@@ -343,6 +358,7 @@ export class ZonaGame {
         const j = this.jugador(userId);
         clearTimeout(this.timer);
         let etiqueta = `🎲${this.dado} ${FLECHA[this.dado]}`;
+        if (op.rebota) etiqueta = `🔁 Rebote ${FLECHA[this.dado]}`;
         if (op.atraviesa) {
             j.poder -= 1;
             etiqueta = "🟩 ¡Pared!";
@@ -500,7 +516,7 @@ export class ZonaGame {
                 }
             } else {
                 j.errores += 1;
-                const n = entre(1, 2);
+                const n = 1; // fallar solo retrocede 1 (para que no sea todo el tiempo para atrás)
                 this.llevar(j, p.ficha, f.fila - n, f.carril, "pregunta", `❌ −${n}`);
                 resultado.retrocede = n;
                 this.evento(`${j.nombre} ${agotado ? "no respondió" : "falló"}: retrocede ${n}.`, "fallo", { quien: j.userId });

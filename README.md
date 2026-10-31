@@ -394,16 +394,17 @@ hasta la **META** (abajo), en una pista de **15 filas × 6 columnas**.
   6 ↙. En tu turno tiras, ves a dónde llegaría cada ficha (círculo punteado) y tocas la
   que quieras mover. Si ninguna puede, pierdes el turno. 20 s por turno; si se acaban, el
   juego mueve la ficha que más avanza.
-- **Paredes:** si una flecha saca la ficha por un lado, esa ficha no puede usar ese
-  número… salvo con el **poder de atravesar paredes**: pasa de la columna 6 a la 1 (o al
+- **Paredes:** si una flecha saca la ficha por un lado, **rebota 🔁** hacia el otro lado (y
+  en la salida el ↑ rebota y baja), así nadie queda atascado en una esquina. Con el
+  **poder de atravesar paredes**, en vez de rebotar: pasa de la columna 6 a la 1 (o al
   revés) y gasta un uso. Mientras lo tienes, las paredes de la pista se ven **verdes y
   gruesas**; cuando se acaban los usos vuelven a la normalidad.
-- **Casillas al azar en cada partida** (filas 2 a 14): ❓ preguntas (~40 %) y trampas con
-  flecha y número (~15 %; la mayoría hacia atrás, algunas azules ayudan).
+- **Casillas al azar en cada partida** (filas 2 a 14): ❓ preguntas (~75 %, casi todo) y
+  trampas con flecha y número (~8 %; la mitad son atajos azules que ayudan).
   - ❓ **Acierta** → avanza 1 a 3 filas, gana el poder de paredes (1 o 2 usos) o, de vez en
     cuando (~12 % de los aciertos), el **EMPUJÓN 💥**: toca enseguida una ficha rival y
     retrocede 3 filas (15 s para elegir; si no, se empuja la rival más adelantada).
-  - ❓ **Falla o no responde** (20 s) → retrocede 1 o 2 filas y sale el **profesor** con
+  - ❓ **Falla o no responde** (20 s) → retrocede 1 fila y sale el **profesor** con
     la explicación; la partida sigue mientras la lees.
 - **Caer sobre otro jugador:** te quedas tú y su ficha se va a la casilla de donde venías.
 - **Zona:** las 6 filas desde la ficha más adelantada hacia atrás (marco verde). Lo de
