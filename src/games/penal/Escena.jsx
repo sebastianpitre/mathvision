@@ -149,12 +149,13 @@ export function FondoArquero() {
 /* ---------- Jugadores ---------- */
 /* Imágenes del juego (rojo = primero de la tanda, azul = segundo).
    Los brazos vienen del tamaño del escenario (16:9): cada brazo ya
-   está en su lugar. */
+   está en su lugar. Si se cambia una imagen, se cambia también su
+   nombre (-v2, -v3…): el navegador guarda las imágenes 7 días. */
 export const ARTE = {
-    arquero: { rojo: "/img/penal/arquero-rojo.webp", azul: "/img/penal/arquero-azul.webp" },
+    arquero: { rojo: "/img/penal/arquero-rojo-v2.webp", azul: "/img/penal/arquero-azul-v2.webp" },
     jugador: { rojo: "/img/penal/jugador-rojo.webp", azul: "/img/penal/jugador-azul.webp" },
     guantes: { rojo: "/img/penal/guantes-rojo.webp", azul: "/img/penal/guantes-azul.webp" },
-    brazos: { rojo: "/img/penal/brazos-rojo.webp", azul: "/img/penal/brazos-azul.webp" },
+    brazos: { rojo: "/img/penal/brazos-rojo-v2.webp", azul: "/img/penal/brazos-azul-v2.webp" },
 };
 
 export function DibujoArquero({ equipo = "rojo" }) {

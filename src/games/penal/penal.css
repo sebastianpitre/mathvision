@@ -89,7 +89,7 @@
 /* Arquero en el arco (vista del que patea) */
 .pn-arquero {
     left: 50%;
-    top: 24%;
+    top: 27.5%; /* los pies sobre la línea del arco */
     width: 10%;
     transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.3, 1);
     animation: pn-balanceo 1.4s ease-in-out infinite alternate;
