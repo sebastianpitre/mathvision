@@ -37,7 +37,7 @@ const PESTANAS = [
     { id: "eventos", label: "Eventos", icon: LuCalendarDays, Componente: EventosAdmin },
     { id: "perfiles", label: "Fotos y marcos", icon: LuSquareUser, Componente: PerfilesAdmin },
     { id: "ruleta", label: "GiraGamif", icon: LuTicket, Componente: RuletaAdmin },
-    { id: "anuncios", label: "Anuncios del lobby", icon: LuMegaphone, Componente: CarruselAdmin },
+    { id: "anuncios", label: "Lobby: fondo y anuncios", icon: LuMegaphone, Componente: CarruselAdmin },
 ];
 
 function pestanaInicial() {

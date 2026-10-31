@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { LuX } from "react-icons/lu";
 
-import assets from "../../data/mock/assets.json";
+import { useFondoLobby } from "../../hooks/useFondoLobby";
 import BarraJugador from "./BarraJugador";
 
 /* =========================================================
@@ -12,10 +12,11 @@ import BarraJugador from "./BarraJugador";
 
 export default function PantallaFF({ titulo, alCerrar, volverA = "/lobby", fondo, className = "", extraArriba, children }) {
     const navigate = useNavigate();
+    const fondoLobby = useFondoLobby();
 
     return (
         <div className={`ffp ${className}`}>
-            <div className="ffl-fondo ffp-fondo" style={{ backgroundImage: `url(${fondo || assets.backgrounds.lobby})` }} aria-hidden="true" />
+            <div className="ffl-fondo ffp-fondo" style={{ backgroundImage: `url(${fondo || fondoLobby})` }} aria-hidden="true" />
 
             <header className="ffp-arriba">
                 <BarraJugador />

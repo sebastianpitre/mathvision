@@ -38,7 +38,6 @@ import { alCambiarSilencio, cambiarSilencio, estaSilenciado } from "../services/
 import { avisar } from "../services/avisos";
 
 import games from "../data/mock/games.json";
-import assets from "../data/mock/assets.json";
 
 import ProtegerError from "../components/common/ProtegerError";
 import VRMCharacter from "../components/character/VRMCharacter";
@@ -51,6 +50,7 @@ import { api } from "../services/api";
 import Verificado from "../components/juego/Verificado";
 import Tiquete from "../components/juego/Tiquete";
 import Carrusel from "../components/juego/Carrusel";
+import { useFondoLobby } from "../hooks/useFondoLobby";
 import BotonRuleta from "../components/juego/BotonRuleta";
 
 /* =========================================================
@@ -161,6 +161,7 @@ export default function Lobby() {
     const navigate = useNavigate();
     const { user } = useAuth();
     const jugador = jugadorDesdeUsuario(user);
+    const fondoLobby = useFondoLobby();
 
     const { jugadores, actualizar, actualizando } = useJugadoresEnLinea();
     const { invitar, espera } = useInvitar();
@@ -227,7 +228,7 @@ export default function Lobby() {
 
     return (
         <div className="ffl">
-            <div className="ffl-fondo" style={{ backgroundImage: `url(${assets.backgrounds.lobby})` }} aria-hidden="true" />
+            <div className="ffl-fondo" style={{ backgroundImage: `url(${fondoLobby})` }} aria-hidden="true" />
             <Escena modelo={jugador.characterModel} />
             <h1 className="ffl-oculto">LudoGamif</h1>
 

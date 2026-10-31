@@ -19,6 +19,8 @@
 
    GET    /carrusel                anuncios del lobby, eventos y opciones
    PUT    /carrusel                { config }
+   GET    /fondo-lobby             fondo actual y los que trae el juego
+   PUT    /fondo-lobby             { ruta }
 ========================================================= */
 
 import express from "express";
@@ -38,6 +40,7 @@ import {
 } from "../temporadas/temporadas.js";
 import { listarEventosAdmin, guardarEvento, borrarEvento, TIPOS_MISION, JUEGOS_MISION } from "../eventos/eventos.js";
 import { configCarrusel, guardarCarrusel, PANTALLAS, FONDOS } from "../carrusel/carrusel.js";
+import { fondoLobby, guardarFondoLobby, FONDOS_LISTOS } from "../config/fondoLobby.js";
 import { listarRuletasAdmin, guardarRuleta, borrarRuleta, regalarTickets, TIPOS_PREMIO } from "../ruleta/ruleta.js";
 
 const router = express.Router();
@@ -57,6 +60,16 @@ router.get(
 router.put(
     "/carrusel",
     ruta(async (req, res) => res.json({ success: true, config: await guardarCarrusel(req.body?.config) }))
+);
+
+router.get(
+    "/fondo-lobby",
+    ruta(async (req, res) => res.json({ success: true, ...(await fondoLobby()), listos: FONDOS_LISTOS }))
+);
+
+router.put(
+    "/fondo-lobby",
+    ruta(async (req, res) => res.json({ success: true, ...(await guardarFondoLobby(req.body?.ruta)) }))
 );
 
 /* ---------------- Temporadas ---------------- */

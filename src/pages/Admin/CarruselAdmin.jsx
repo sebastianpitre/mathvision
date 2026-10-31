@@ -6,6 +6,7 @@ import { useCarga } from "./useCarga";
 import { subirArchivo } from "./subirArchivo";
 import games from "../../data/mock/games.json";
 import { Diapositiva } from "../../components/juego/Carrusel";
+import FondoLobbyAdmin from "./FondoLobbyAdmin";
 
 /* =========================================================
    ANUNCIOS DEL LOBBY (carrusel de arriba a la izquierda)
@@ -197,6 +198,8 @@ export default function CarruselAdmin() {
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--lb-gap)" }}>
+            <FondoLobbyAdmin />
+
             <div>
                 <h2 className="lg-card-title">Anuncios del lobby</h2>
                 <p className="lb-muted">

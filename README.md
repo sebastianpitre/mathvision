@@ -169,7 +169,11 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   y ver cuántas veces salió cada premio (y el % real). Los tiquetes se ganan en las
   misiones de los **Eventos** (recompensa "Tiquetes") y también se pueden regalar desde
   **Jugadores**.
-- **Anuncios del lobby:** el carrusel de arriba a la izquierda. Cada anuncio muestra un
+- **Lobby: fondo y anuncios → Fondo del lobby:** elige uno de los fondos que trae el juego
+  (Normal, Halloween 🎃) o sube una imagen horizontal propia (hasta 3 MB). Se ve en el
+  lobby, la tienda, la sala, el ranking y el inicio de sesión. Al actualizar queda puesto
+  el de Halloween (migración 012); si ya habías elegido uno, no se cambia.
+- **Lobby: fondo y anuncios → Anuncios:** el carrusel de arriba a la izquierda. Cada anuncio muestra un
   juego (al tocarlo queda elegido), un evento (sale solo mientras dure y abre ese evento)
   o una pantalla (GiraGamif, Tienda, Ranking, Sala, Personajes, Perfil). Puede llevar foto
   propia o un fondo de color con título y texto pequeño, y una etiqueta ("Nuevo"). Se

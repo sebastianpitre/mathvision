@@ -3,7 +3,7 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { LuLogIn, LuUserPlus } from "react-icons/lu";
 
 import { useAuth } from "../context/AuthContext";
-import assets from "../data/mock/assets.json";
+import { useFondoLobby } from "../hooks/useFondoLobby";
 
 import "../styles/ludo.css";
 
@@ -17,6 +17,7 @@ export default function Login() {
     const navigate = useNavigate();
     const location = useLocation();
     const { loading, isAuthenticated, login, register } = useAuth();
+    const fondoLobby = useFondoLobby();
 
     const destino = location.state?.volverA || "/lobby";
 
@@ -59,7 +60,7 @@ export default function Login() {
 
     return (
         <div className="lg" style={{ display: "grid", placeItems: "center", padding: 12 }}>
-            <div className="lb-bg" aria-hidden="true" style={{ backgroundImage: `url(${assets.backgrounds.lobby})` }} />
+            <div className="lb-bg" aria-hidden="true" style={{ backgroundImage: `url(${fondoLobby})` }} />
 
             <main className="lb-card lg-tarjeta-centrada login-tarjeta">
                 <div className="login-marca">
