@@ -33,6 +33,7 @@ export const JUEGOS_MISION = {
     preguntas: "Ludo Millonario",
     triqui: "Triqui",
     siglo: "SigloGamif",
+    invasion: "InvasiónGamif",
     "escape-algebra": "Escape del Álgebra",
 };
 

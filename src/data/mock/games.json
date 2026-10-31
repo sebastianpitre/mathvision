@@ -27,6 +27,20 @@
     "sala": "siglo"
   },
   {
+    "id": "invasion",
+    "name": "InvasiónGamif",
+    "shortName": "Invasión",
+    "description": "Responde rápido y pinta el tablero con tu color.",
+    "icon": "🟥",
+    "image": "/img/Invasion/portada.jpg",
+    "minPlayers": 2,
+    "maxPlayers": 6,
+    "status": "available",
+    "route": "/sala",
+    "color": "#ef4444",
+    "sala": "invasion"
+  },
+  {
     "id": "triqui-matematico",
     "name": "Triqui Matemático",
     "shortName": "Triqui",

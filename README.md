@@ -132,7 +132,7 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   oro o diamantes. La columna **Reportes** muestra "sin revisar / total"; al tocarla se
   ven los motivos y quién reportó, y se pueden **marcar como revisados**. La casilla
   "Más reportados primero" ordena la lista.
-- **Premios y reglas:** XP y oro de Triqui y SigloGamif según gane, empate o pierda, partidas
+- **Premios y reglas:** XP y oro de Triqui, SigloGamif e InvasiónGamif según gane, empate o pierda, partidas
   premiadas al día y los diamantes extra por ¡SIGLO!. Abajo, el poder 🔄 de SigloGamif
   (activarlo y cuántos segundos dura).
 - **Sonidos:** la biblioteca de música y efectos. Se suben archivos mp3, ogg, wav o m4a
@@ -288,7 +288,7 @@ más grande.
 
 ---
 
-## 6. Salas multijugador y SigloGamif
+## 6. Salas multijugador, SigloGamif e InvasiónGamif
 
 Todos los juegos de 2 o más jugadores pasan por una **sala** (`/sala`):
 
@@ -297,7 +297,7 @@ Todos los juegos de 2 o más jugadores pasan por una **sala** (`/sala`):
 - Se entra por **invitación** o con el **código** de 5 letras. Máximo 8 jugadores.
 - Se ven los **personajes 3D** de todos los que están.
 - El **creador** elige el juego (botón *Cambiar*) e inicia. *Iniciar* solo se activa si la cantidad de
-  jugadores sirve (Triqui: 2 · SigloGamif: 2 a 8). Si el creador se va, el siguiente
+  jugadores sirve (Triqui: 2 · SigloGamif: 2 a 8 · InvasiónGamif: 2 a 6). Si el creador se va, el siguiente
   pasa a serlo.
 - El creador puede **sacar** a alguien antes de iniciar. Esa persona ya no puede volver
   con el código; solo si el creador la vuelve a invitar.
@@ -343,6 +343,32 @@ Para agregar otro juego a las salas: `servidor/src/salas/juegos.js` (cuántos
 jugadores admite) y su inicio en `servidor/src/salas/salaSockets.js`.
 
 ---
+
+### InvasiónGamif
+
+Responder rápido y pintar el tablero con tu color (de 2 a 6 jugadores, **sin turnos**).
+
+- **En la sala**, al elegir InvasiónGamif aparece **Tema**: el creador elige un nivel de
+  *Niveles y preguntas* o "Mezcla de temas" (preguntas de todos los niveles activos).
+- **Tablero según los jugadores:** 2 → 6×6 · 3 o 4 → 8×8 · 5 o 6 → 10×10. Cada uno tiene
+  un color (rojo, azul, verde, naranja, morado, rosado).
+- **Votación al empezar (15 s):** todos votan el tiempo para responder (10, 15 o 20 s) y
+  lo que dura la partida (2, 3 o 5 min). Gana lo más votado; si hay empate decide el voto
+  del creador. Sin votos: 15 s y 3 min.
+- **Jugar:** cualquiera toca una casilla vacía o de otro color (las suyas no se pueden
+  tocar). Mientras la responde queda **apartada** con un candado de su color y nadie más
+  la puede tocar. Sale la pregunta con su reloj:
+  - **Acierta** → la casilla queda de su color (si era de otro, se la **invade**).
+  - **Falla o se acaba el tiempo** → la casilla queda como estaba, sale el **profesor**
+    flotando con la respuesta correcta y la **explicación** de la pregunta (el campo
+    *explicación* del banco; si no tiene, dice cuál era la correcta) y espera **3 s**
+    para tocar otra.
+- **Fin:** al acabarse el tiempo gana quien tenga más casillas (empate si hay varios en el
+  primer lugar). Si se van todos menos uno, gana el que queda. Premios en
+  *Premios y reglas*, puntos de temporada y misiones de eventos (cuentan las preguntas
+  respondidas y acertadas). El creador puede *Jugar otra vez* desde el final.
+- La respuesta correcta nunca llega al navegador antes de responder: el servidor decide.
+- Música propia en *Sonidos* (InvasiónGamif) y el sonido "Te invaden una casilla".
 
 ## 7. Estructura
 

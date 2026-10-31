@@ -27,6 +27,7 @@ const Sala = lazy(() => import("../pages/Sala/Sala"));
 const Eventos = lazy(() => import("../pages/Eventos/Eventos"));
 const Suerte = lazy(() => import("../pages/Suerte/Suerte"));
 const Siglo = lazy(() => import("../games/siglo/Siglo"));
+const Invasion = lazy(() => import("../games/invasion/Invasion"));
 const Ranking = lazy(() => import("../pages/Ranking/Ranking"));
 
 function Cargando() {
@@ -133,6 +134,7 @@ function AppRouter() {
                 <Route path="/games/escape-algebra" element={<Privada><EscapeAlgebra /></Privada>} />
                 <Route path="/games/triqui" element={<Privada><TriquiGame /></Privada>} />
                 <Route path="/games/siglo" element={<Privada><Siglo /></Privada>} />
+                <Route path="/games/invasion" element={<Privada><Invasion /></Privada>} />
                 <Route path="/sala" element={<Privada><Sala /></Privada>} />
                 <Route path="/sala/:codigo" element={<Privada><Sala /></Privada>} />
                 <Route path="/ranking" element={<Privada><Ranking /></Privada>} />

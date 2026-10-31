@@ -20,6 +20,7 @@ export const MOMENTOS = [
     { clave: "musica_triqui", nombre: "Triqui", grupo: "musica", defecto: "/sounds/triqui/retro.mp3", volumen: 25 },
     { clave: "musica_preguntas", nombre: "Juego de preguntas", grupo: "musica", defecto: "/sounds/MathMillonario/fondo-millonario.mp3", volumen: 35 },
     { clave: "musica_escape", nombre: "Escape del Álgebra", grupo: "musica", defecto: null, volumen: 30 },
+    { clave: "musica_invasion", nombre: "InvasiónGamif", grupo: "musica", defecto: null, volumen: 30 },
 
     { clave: "clic", nombre: "Clic de los botones", grupo: "general", defecto: "/sounds/click.mp3", volumen: 35 },
     { clave: "iniciar", nombre: "Iniciar partida", grupo: "general", defecto: "/sounds/unlock.mp3", volumen: 80 },
@@ -42,6 +43,7 @@ export const MOMENTOS = [
     { clave: "comodin", nombre: "Usar un comodín", grupo: "juego", defecto: "/sounds/lifeline.mp3", volumen: 80 },
     { clave: "retirarse", nombre: "Retirarse", grupo: "juego", defecto: "/sounds/retire.mp3", volumen: 80 },
     { clave: "desbloquear", nombre: "Desbloquear (Escape)", grupo: "juego", defecto: "/sounds/unlock.mp3", volumen: 80 },
+    { clave: "invadido", nombre: "Te invaden una casilla (InvasiónGamif)", grupo: "juego", defecto: "/sounds/warning.mp3", volumen: 45 },
 ];
 
 const POR_CLAVE = new Map(MOMENTOS.map((m) => [m.clave, m]));

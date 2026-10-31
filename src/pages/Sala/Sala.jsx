@@ -6,6 +6,7 @@ import { LuCheck, LuCopy, LuCrown, LuDoorOpen, LuLogIn, LuPlus, LuSettings2, LuS
 
 import PantallaFF from "../../components/juego/PantallaFF";
 import ElegirJuego, { textoJugadores } from "../../components/juego/ElegirJuego";
+import ElegirTema from "./ElegirTema";
 import ListaJugadores from "../../components/juego/ListaJugadores";
 import ProtegerError from "../../components/common/ProtegerError";
 import VRMCharacter from "../../components/character/VRMCharacter";
@@ -126,6 +127,8 @@ export default function Sala() {
     const [copiado, setCopiado] = useState(false);
     const [porSacar, setPorSacar] = useState(null);
     const [eligiendoJuego, setEligiendoJuego] = useState(false);
+    const [eligiendoTema, setEligiendoTema] = useState(false);
+    const cerrarTema = useCallback(() => setEligiendoTema(false), []);
     const emojis = useEmojisSala();
 
     const crearAlEntrar = useRef(Boolean(location.state?.crear));
@@ -433,6 +436,19 @@ export default function Sala() {
                         )}
                     </button>
 
+                    {sala.juego === "invasion" && (
+                        <button
+                            type="button"
+                            className="sl-tema"
+                            onClick={() => puedeCambiarJuego && setEligiendoTema(true)}
+                            disabled={!puedeCambiarJuego}
+                            aria-label={`Tema: ${sala.temaInvasion?.nombre || "Mezcla de temas"}${puedeCambiarJuego ? ". Cambiar" : ""}`}
+                        >
+                            <small>Tema</small>
+                            <strong>{sala.temaInvasion?.nombre || "Mezcla de temas"}</strong>
+                        </button>
+                    )}
+
                     {sala.estado === "jugando" ? (
                         <button type="button" className="ffl-iniciar sl-iniciar" onClick={() => juego && navigate(juego.ruta)}>
                             Volver
@@ -456,6 +472,17 @@ export default function Sala() {
             <aside className="sl-invitar" aria-label="Invitar jugadores">
                 <ListaJugadores excluir={enSala} bloqueado={llena || sala.estado !== "sala"} titulo="Invitar" />
             </aside>
+
+            {eligiendoTema && (
+                <ElegirTema
+                    elegidoId={sala.temaInvasion?.id || null}
+                    alElegir={(nivelId) => {
+                        socket.emit("sala:tema", { nivelId });
+                        setEligiendoTema(false);
+                    }}
+                    alCerrar={cerrarTema}
+                />
+            )}
 
             {eligiendoJuego && (
                 <ElegirJuego

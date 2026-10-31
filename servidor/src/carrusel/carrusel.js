@@ -34,7 +34,10 @@ const MAX_ANUNCIOS = 12;
 const POR_DEFECTO = {
     segundos: 5,
     auto_eventos: true,
-    anuncios: [{ tipo: "juego", juego_id: "siglo", etiqueta: "Nuevo", titulo: "", subtitulo: "", imagen: "", fondo: "morado" }],
+    anuncios: [
+        { tipo: "juego", juego_id: "invasion", etiqueta: "Nuevo", titulo: "", subtitulo: "", imagen: "", fondo: "rojo" },
+        { tipo: "juego", juego_id: "siglo", etiqueta: "", titulo: "", subtitulo: "", imagen: "", fondo: "morado" },
+    ],
 };
 
 const texto = (v, max) => String(v ?? "").trim().slice(0, max);

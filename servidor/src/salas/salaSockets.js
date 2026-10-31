@@ -18,6 +18,12 @@
      siglo:poderUsar { objetivo, numero }  ponerle un número (0 a 29) a otro
      siglo:salir
 
+     sala:tema { nivelId|null }   InvasiónGamif: tema de las preguntas (creador)
+     invasion:estado | invasion:votar { respuesta?, duracion? }
+     invasion:tocar { celda }     aparta la casilla y pide su pregunta
+     invasion:responder { opcion }
+     invasion:salir
+
    Servidor → navegador
      sala:estado { sala }       cada cambio de la sala (o sala: null)
      sala:error  { message }
@@ -28,6 +34,9 @@
      sala:emoji { userId, nombre, emoji, en }
      siglo:estado { …partida }  cada cambio de SigloGamif
      siglo:error  { message }
+     invasion:estado { …partida } · invasion:error { message }
+     invasion:pregunta { celda, texto, opciones, hasta, segundos }  solo a quien tocó
+     invasion:resultado { acerto, correcta, explicacion, … }        solo a quien respondió
      game:reward  { resultado, recompensa }   premio al terminar
 ========================================================= */
 
@@ -36,6 +45,8 @@ import { registrarResultadoMultijugador } from "../partidas/partidasService.js";
 import { gastarDiamantes, devolverDiamantes } from "../progreso/progreso.js";
 import { SigloGame } from "../games/siglo/SigloGame.js";
 import { reglasSiglo } from "../config/reglasSiglo.js";
+import { InvasionGame } from "../games/invasion/InvasionGame.js";
+import { cargarPreguntas, temasInvasion } from "../games/invasion/preguntasInvasion.js";
 import { JUEGOS_SALA, motivoNoIniciar, EMOJIS, PAUSA_EMOJI_MS } from "./juegos.js";
 
 /*
@@ -139,7 +150,7 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
         esperas.delete(String(userId));
 
         if (room.estado === "jugando") {
-            if (room.currentGame?.tipo === "siglo") room.currentGame.abandonar(userId);
+            if (room.currentGame?.tipo === "siglo" || room.currentGame?.tipo === "invasion") room.currentGame.abandonar(userId);
             else cortarTriqui(room, `${miembro?.nombre || "Un jugador"} ${motivo}.`);
         }
 
@@ -248,7 +259,46 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
         juego.iniciar();
     }
 
+    /* ---------------------------------------------------------
+       INICIAR INVASIÓNGAMIF (carga las preguntas primero)
+    --------------------------------------------------------- */
+
+    async function iniciarInvasion(room) {
+        const jugadores = [...room.miembros.values()]
+            .sort((a, b) => a.entroEn - b.entroEn)
+            .map((m) => ({ userId: m.userId, nombre: m.nombre, avatar: m.avatar, marco: m.marco, verificado: m.verificado }));
+
+        let preguntas;
+        try {
+            preguntas = await cargarPreguntas(room.temaInvasion?.id || null);
+        } catch (error) {
+            console.error("❌ Preguntas de InvasiónGamif:", error.message);
+            preguntas = await cargarPreguntas(null).catch(() => []);
+        }
+
+        const juego = new InvasionGame({
+            jugadores,
+            preguntas,
+            creador: room.hostUserId,
+            tema: room.temaInvasion?.nombre || "Mezcla de temas",
+            onCambio: (estado) => io.to(room.code).emit("invasion:estado", estado),
+            onFin: (resultado, partida) => {
+                room.estado = "sala";
+                roomManager.sumarVictoria(room, "invasion", resultado.tipo === "empate" ? [] : resultado.ganadores);
+                entregarPremios(room, "invasion", partida.resultadosPremios());
+                estadoMundo(room, "available");
+                emitirSala(room);
+            },
+        });
+        // Se acabó el tiempo de una pregunta: solo lo sabe quien la tenía.
+        juego.onResultado = (userId, resultado) => socketDe(room.miembros.get(String(userId)))?.emit("invasion:resultado", resultado);
+
+        room.currentGame = juego;
+        juego.iniciar();
+    }
+
     const ayudas = {
+        iniciarInvasion,
         esperas,
         emitirSala,
         actualizarMundo,
@@ -313,6 +363,11 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
         if (room.estado === "jugando" && room.currentGame?.tipo === "siglo") {
             socket.emit("siglo:estado", room.currentGame.toJSON());
         }
+        if (room.estado === "jugando" && room.currentGame?.tipo === "invasion") {
+            socket.emit("invasion:estado", room.currentGame.toJSON());
+            const abierta = room.currentGame.preguntaAbierta(yo());
+            if (abierta) socket.emit("invasion:pregunta", abierta);
+        }
     });
 
     socket.on("sala:salir", () => {
@@ -355,7 +410,23 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
         ayudas.emitirSala(room);
     });
 
-    socket.on("sala:iniciar", () => {
+    socket.on("sala:tema", async ({ nivelId } = {}) => {
+        const room = miSala();
+        if (!room) return error("No estás en una sala.");
+        if (room.hostUserId !== yo()) return error("Solo el creador de la sala elige el tema.");
+        if (room.estado !== "sala") return error("Espera a que termine la partida.");
+
+        if (!nivelId) {
+            room.temaInvasion = null;
+        } else {
+            const tema = (await temasInvasion()).find((t) => t.id === Number(nivelId));
+            if (!tema) return error("Ese tema no existe o no tiene preguntas.");
+            room.temaInvasion = { id: tema.id, nombre: tema.nombre };
+        }
+        ayudas.emitirSala(room);
+    });
+
+    socket.on("sala:iniciar", async () => {
         const room = miSala();
         if (!room) return error("No estás en una sala.");
         if (room.hostUserId !== yo()) return error("Solo el creador de la sala inicia la partida.");
@@ -378,6 +449,8 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
             emitRoomState(room);
         } else if (room.juego === "siglo") {
             ayudas.iniciarSiglo(room);
+        } else if (room.juego === "invasion") {
+            await ayudas.iniciarInvasion(room);
         }
 
         ayudas.estadoMundo(room, "playing");
@@ -464,4 +537,44 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
         socket.emit("progreso:actualizar", { diamantes: quedan });
     });
     socket.on("siglo:salir", accionSiglo((p) => p.abandonar(yo())));
+
+    /* ---------------- INVASIÓNGAMIF ---------------- */
+
+    const partidaInvasion = () => {
+        const room = miSala();
+        return room?.currentGame?.tipo === "invasion" ? room.currentGame : null;
+    };
+
+    const accionInvasion = (accion) => (datos) => {
+        const partida = partidaInvasion();
+        if (!partida) return socket.emit("invasion:error", { message: "No hay una partida de InvasiónGamif activa." });
+        const r = accion(partida, datos || {});
+        if (r && r.success === false) socket.emit("invasion:error", { message: r.message, esperaHasta: r.esperaHasta });
+        return r;
+    };
+
+    socket.on("invasion:estado", () => {
+        const partida = partidaInvasion();
+        socket.emit("invasion:estado", partida ? partida.toJSON() : null);
+        const abierta = partida?.preguntaAbierta(yo());
+        if (abierta) socket.emit("invasion:pregunta", abierta);
+    });
+    socket.on("invasion:votar", accionInvasion((p, d) => p.votar(yo(), { respuesta: d.respuesta, duracion: d.duracion })));
+    socket.on(
+        "invasion:tocar",
+        accionInvasion((p, { celda }) => {
+            const r = p.tocar(yo(), celda);
+            if (r.success) socket.emit("invasion:pregunta", r.pregunta);
+            return r;
+        })
+    );
+    socket.on(
+        "invasion:responder",
+        accionInvasion((p, { opcion }) => {
+            const r = p.responder(yo(), opcion);
+            if (r.success) socket.emit("invasion:resultado", r.resultado);
+            return r;
+        })
+    );
+    socket.on("invasion:salir", accionInvasion((p) => p.abandonar(yo())));
 }

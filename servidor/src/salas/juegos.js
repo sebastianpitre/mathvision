@@ -22,6 +22,14 @@ export const JUEGOS_SALA = {
         max: 8,
         ruta: "/games/siglo",
     },
+    invasion: {
+        id: "invasion",
+        nombre: "InvasiónGamif",
+        descripcion: "Responde rápido y pinta el tablero con tu color.",
+        min: 2,
+        max: 6,
+        ruta: "/games/invasion",
+    },
 };
 
 export const MAX_JUGADORES_SALA = 8;

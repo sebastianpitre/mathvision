@@ -461,3 +461,162 @@
     width: 1.45rem;
     height: 1.45rem;
 }
+
+/* ---------- Tema de InvasiónGamif ---------- */
+.sl-tema {
+    flex: 0 0 9rem;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.1rem;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--linea);
+    border-left: 3px solid #ef4444;
+    border-radius: 0.4rem;
+    background: var(--panel-fuerte);
+    color: var(--texto);
+    text-align: left;
+    cursor: pointer;
+}
+
+.sl-tema:disabled {
+    cursor: default;
+}
+
+.sl-tema:not(:disabled):hover,
+.sl-tema:focus-visible {
+    border-color: var(--oro);
+    outline: none;
+}
+
+.sl-tema small {
+    color: var(--suave);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+}
+
+.sl-tema strong {
+    overflow: hidden;
+    font-size: 0.82rem;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sl-tema-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    padding: 0.6rem;
+    background: rgba(3, 6, 12, 0.72);
+}
+
+.sl-tema-modal {
+    width: 28rem;
+    max-width: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.8rem 1rem;
+    border: 2px solid rgba(255, 207, 62, 0.75);
+    border-radius: 0.7rem;
+    background: linear-gradient(160deg, #1b1236, #0b0f1a 60%);
+    color: #f5f7fb;
+    font-family: var(--fuente-juego);
+}
+
+.sl-tema-modal header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sl-tema-modal h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    text-transform: uppercase;
+}
+
+.sl-tema-cerrar {
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 0.4rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    cursor: pointer;
+}
+
+.sl-tema-modal ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.sl-tema-opcion {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.4rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sl-tema-opcion svg {
+    flex-shrink: 0;
+    width: 1.2rem;
+    height: 1.2rem;
+    color: var(--oro);
+}
+
+.sl-tema-opcion span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.sl-tema-opcion small {
+    color: var(--suave);
+    font-size: 0.72rem;
+}
+
+.sl-tema-opcion:hover,
+.sl-tema-opcion:focus-visible {
+    border-color: var(--oro);
+    outline: none;
+}
+
+.sl-tema-elegido {
+    border-color: var(--oro);
+    background: rgba(255, 207, 62, 0.15);
+}
+
+.sl-tema-nota {
+    color: var(--suave);
+    font-size: 0.85rem;
+}
+
+/* Con el tema al lado, el botón de iniciar se encoge un poco. */
+.sl-inicio:has(.sl-tema) .sl-iniciar,
+.sl-inicio:has(.sl-tema) .sl-esperando {
+    flex-basis: 9.5rem;
+}
+
+.sl-inicio:has(.sl-tema) .sl-tema {
+    flex-basis: 8rem;
+}

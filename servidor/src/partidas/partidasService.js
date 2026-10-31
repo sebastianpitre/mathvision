@@ -474,7 +474,7 @@ export async function registrarPartidaSimple(userId, { juego, aciertos, total })
 /* ---------------------------------------------------------
    JUEGOS MULTIJUGADOR DE LAS SALAS (Triqui, SigloGamif)
    Se llama desde el servidor de sockets cuando termina una
-   partida. resultados = [{ userId, resultado, siglo? }]
+   partida. resultados = [{ userId, resultado, siglo?, aciertos?, errores? }]
 --------------------------------------------------------- */
 
 // Los premios (y el máximo de partidas premiadas al día) los
@@ -486,7 +486,7 @@ export async function registrarResultadoMultijugador(juego, resultados) {
 
     const premios = [];
 
-    for (const { userId, resultado, siglo } of resultados) {
+    for (const { userId, resultado, siglo, aciertos = 0, errores = 0 } of resultados) {
         if (!userId || !tabla[resultado]) continue;
 
         const premio = await enTransaccion(async (client) => {
@@ -515,10 +515,10 @@ export async function registrarResultadoMultijugador(juego, resultados) {
             await client.query(
                 `
                 INSERT INTO partidas (user_id, juego, estado, resultado, xp_ganada, oro_ganado,
-                                      diamantes_ganados, gano, terminada_en)
-                VALUES ($1, $2, 'terminada', $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
+                                      diamantes_ganados, gano, aciertos, errores, terminada_en)
+                VALUES ($1, $2, 'terminada', $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)
                 `,
-                [userId, juego, resultado, xp, oro, diamantes, resultado === "ganada"]
+                [userId, juego, resultado, xp, oro, diamantes, resultado === "ganada", Number(aciertos) || 0, Number(errores) || 0]
             );
 
             return { ...recompensa, limite_diario_alcanzado: limiteDiario, temporada };

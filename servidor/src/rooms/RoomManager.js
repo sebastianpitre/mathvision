@@ -186,6 +186,7 @@ export class RoomManager {
             miembros,
             motivoNoIniciar: motivoNoIniciar(room.juego, miembros.length),
             juegos: Object.values(JUEGOS_SALA),
+            temaInvasion: room.temaInvasion || null,
 
             // Compatibilidad con el Triqui
             players: [...room.players.values()].map((p) => p.toJSON()),

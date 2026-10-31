@@ -49,6 +49,7 @@ export const NOMBRE_JUEGO = {
     triqui: "Triqui",
     "escape-algebra": "Escape Álgebra",
     siglo: "SigloGamif",
+    invasion: "InvasiónGamif",
 };
 
 export const NOMBRE_RESULTADO = {

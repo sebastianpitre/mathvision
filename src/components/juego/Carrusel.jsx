@@ -16,7 +16,7 @@ import "./carrusel.css";
 ========================================================= */
 
 // Mientras carga (o si el servidor no responde) sale el juego destacado de siempre.
-const RESPALDO = { segundos: 5, anuncios: [{ clave: "r", tipo: "juego", juego_id: "siglo", etiqueta: "Nuevo", solo_imagen: true }] };
+const RESPALDO = { segundos: 5, anuncios: [{ clave: "r", tipo: "juego", juego_id: "invasion", etiqueta: "Nuevo", solo_imagen: true }] };
 
 const ICONOS = { juego: LuGamepad2, evento: LuCalendarDays, pantalla: LuSparkles };
 
