@@ -1,0 +1,719 @@
+/* =========================================================
+   PENALGAMIF ⚽ (escenario 16:9 que cabe en la pantalla)
+========================================================= */
+
+.pn {
+    background: radial-gradient(circle at 50% 30%, #1e2a5a, #070a18 70%);
+}
+
+.pn-centrado {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: fit-content;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1.2rem;
+    color: var(--suave);
+    text-align: center;
+}
+
+.pn-centrado h1 {
+    margin: 0;
+    color: var(--texto);
+    font-size: 1.4rem;
+}
+
+.pn-suave {
+    color: var(--suave);
+}
+
+/* ---------- Escenario ---------- */
+.pn-escenario-caja {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+}
+
+.pn-escenario {
+    position: relative;
+    width: min(100vw, calc(100dvh * 16 / 9));
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    container-type: inline-size;
+}
+
+.pn-fondo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.pn-temblor {
+    animation: pn-temblor 0.5s ease-in-out 2;
+}
+
+@keyframes pn-temblor {
+    25% { transform: translate(0.4%, -0.3%); }
+    50% { transform: translate(-0.4%, 0.3%); }
+    75% { transform: translate(0.3%, 0.2%); }
+}
+
+.pn-figura {
+    position: absolute;
+    transform: translateX(-50%);
+}
+
+.pn-figura-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0.5cqw 0.6cqw rgba(0, 0, 0, 0.5));
+}
+
+/* Arquero en el arco (vista del que patea) */
+.pn-arquero {
+    left: 50%;
+    top: 26.5%;
+    width: 8.5%;
+    transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.3, 1);
+    animation: pn-balanceo 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes pn-balanceo {
+    from { margin-left: -0.6%; }
+    to { margin-left: 0.6%; }
+}
+
+.pn-salto-izquierda {
+    animation: none;
+    transform: translateX(-160%) translateY(18%) rotate(-72deg);
+}
+
+.pn-salto-derecha {
+    animation: none;
+    transform: translateX(60%) translateY(18%) rotate(72deg);
+}
+
+.pn-salto-centro {
+    animation: none;
+    transform: translateX(-50%) translateY(-22%);
+}
+
+/* El que patea (vista del arquero) */
+.pn-pateador {
+    left: 46%;
+    top: 37%;
+    width: 6.5%;
+    transition: left 0.8s ease-in, transform 0.3s;
+}
+
+.pn-pateador-corre {
+    left: 48.5%;
+}
+
+.pn-pateador-patea {
+    left: 49%;
+    transform: translateX(-50%) rotate(8deg);
+}
+
+/* Balón */
+.pn-balon {
+    position: absolute;
+    z-index: 3;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+}
+
+.pn-balon-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0.4cqw 0.5cqw rgba(0, 0, 0, 0.5));
+}
+
+.pn-balon-vuela {
+    transition: left 0.7s cubic-bezier(0.25, 0.6, 0.35, 1), top 0.7s cubic-bezier(0.15, 0.8, 0.4, 1), width 0.7s ease-out;
+}
+
+.pn-balon-vuela .pn-balon-svg {
+    animation: pn-gira 0.35s linear infinite;
+}
+
+@keyframes pn-gira {
+    to { transform: rotate(360deg); }
+}
+
+.pn-balon-atajado {
+    animation: pn-rebote 0.6s ease-out forwards;
+}
+
+@keyframes pn-rebote {
+    to { transform: translate(-50%, 60%) scale(0.9); }
+}
+
+/* Zonas para elegir */
+.pn-zonas {
+    position: absolute;
+    z-index: 4;
+    left: 35%;
+    top: 24.5%;
+    width: 30%;
+    height: 24%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4%;
+}
+
+.pn-zonas-arquero {
+    left: 6%;
+    top: 14%;
+    width: 88%;
+    height: 50%;
+    gap: 1%;
+}
+
+.pn-zona {
+    display: grid;
+    place-items: end center;
+    padding: 0 0 0.8cqw;
+    border: 0.25cqw dashed rgba(255, 255, 255, 0.85);
+    border-radius: 0.8cqw;
+    background: rgba(255, 207, 62, 0.16);
+    color: #fff;
+    cursor: pointer;
+    animation: pn-zona 0.9s ease-in-out infinite alternate;
+}
+
+.pn-zona span {
+    padding: 0.2cqw 0.8cqw;
+    border-radius: 0.5cqw;
+    background: rgba(0, 0, 0, 0.6);
+    font-size: max(0.75rem, 1.4cqw);
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.pn-zona:hover,
+.pn-zona:focus-visible {
+    border-style: solid;
+    border-color: var(--oro);
+    background: rgba(255, 207, 62, 0.38);
+    outline: none;
+}
+
+@keyframes pn-zona {
+    to { background: rgba(255, 207, 62, 0.28); }
+}
+
+.pn-mi-eleccion {
+    position: absolute;
+    z-index: 4;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%);
+    padding: 0.3cqw 1cqw;
+    border-radius: 0.6cqw;
+    background: rgba(0, 0, 0, 0.65);
+    font-size: max(0.75rem, 1.3cqw);
+    font-weight: 800;
+}
+
+/* Primera persona */
+.pn-primera {
+    position: absolute;
+    z-index: 5;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 40%;
+    pointer-events: none;
+}
+
+.pn-brazos {
+    position: absolute;
+    inset: 0;
+}
+
+.pn-brazo {
+    position: absolute;
+    bottom: -6%;
+    width: 30%;
+    height: auto;
+    transition: transform 0.4s;
+    filter: drop-shadow(0 0.4cqw 0.8cqw rgba(0, 0, 0, 0.5));
+}
+
+.pn-brazo-izq {
+    left: 2%;
+}
+
+.pn-brazo-der {
+    right: 2%;
+    transform: scaleX(-1);
+}
+
+.pn-brazos-patea .pn-brazo-izq {
+    transform: translate(-8%, 6%) rotate(-12deg);
+}
+
+.pn-brazos-patea .pn-brazo-der {
+    transform: scaleX(-1) translate(-8%, -4%) rotate(-10deg);
+}
+
+.pn-brazos-img {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    height: 100%;
+    transform: translateX(-50%);
+}
+
+.pn-guantes {
+    position: absolute;
+    inset: 0;
+    transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.pn-guante {
+    position: absolute;
+    bottom: -12%;
+    width: 17%;
+    height: auto;
+    filter: drop-shadow(0 0.4cqw 0.8cqw rgba(0, 0, 0, 0.5));
+}
+
+.pn-guante-izq {
+    left: 22%;
+    transform: rotate(-12deg);
+}
+
+.pn-guante-der {
+    right: 22%;
+    transform: scaleX(-1) rotate(-12deg);
+}
+
+.pn-guantes-izquierda .pn-guantes {
+    transform: translate(-28%, -40%) rotate(-18deg);
+}
+
+.pn-guantes-derecha .pn-guantes {
+    transform: translate(28%, -40%) rotate(18deg);
+}
+
+.pn-guantes-centro .pn-guantes {
+    transform: translateY(-55%);
+}
+
+/* Letrero */
+.pn-letrero {
+    position: absolute;
+    z-index: 6;
+    inset: 0;
+    margin: auto;
+    width: fit-content;
+    height: fit-content;
+    padding: 0.6cqw 3cqw;
+    border: 0.4cqw solid #fff;
+    border-radius: 1.2cqw;
+    font-size: max(2rem, 7cqw);
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: 0.04em;
+    text-shadow: 0 0.4cqw 0 rgba(0, 0, 0, 0.35);
+}
+
+.pn-letrero-gol {
+    background: linear-gradient(135deg, #16a34a, #facc15);
+    box-shadow: 0 0 4cqw rgba(250, 204, 21, 0.8);
+}
+
+.pn-letrero-atajada {
+    background: linear-gradient(135deg, #1d4ed8, #38bdf8);
+}
+
+.pn-letrero-afuera {
+    background: linear-gradient(135deg, #7f1d1d, #ef4444);
+}
+
+/* ---------- Arriba ---------- */
+.pn-arriba {
+    position: absolute;
+    z-index: 20;
+    top: max(0.4rem, env(safe-area-inset-top));
+    left: var(--borde);
+    right: var(--borde-der);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.pn-controles {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.pn-reloj {
+    height: 2.3rem;
+    min-width: 3.6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.4rem;
+    background: var(--panel-fuerte);
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.pn-reloj-urgente {
+    border-color: #ef4444;
+    color: #fca5a5;
+}
+
+.pn-marcador {
+    display: flex;
+    align-items: stretch;
+    gap: 0.3rem;
+}
+
+.pn-equipo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.45rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0.45rem;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--c) 40%, #0b1026), rgba(8, 12, 24, 0.9));
+}
+
+.pn-equipo-1 {
+    flex-direction: row-reverse;
+    text-align: right;
+}
+
+.pn-equipo-patea {
+    border-color: var(--oro);
+    box-shadow: 0 0 0.6rem rgba(255, 207, 62, 0.55);
+}
+
+.pn-emoji {
+    position: absolute;
+    top: 100%;
+    left: 1rem;
+}
+
+.pn-foto {
+    flex: 0 0 1.8rem;
+    width: 1.8rem;
+    height: 1.8rem;
+    overflow: hidden;
+    border: 2px solid var(--c);
+    border-radius: 0.35rem;
+    background: #111;
+}
+
+.pn-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pn-equipo-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.pn-equipo-texto strong {
+    max-width: 8rem;
+    overflow: hidden;
+    font-size: 0.75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pn-tiros {
+    display: flex;
+    gap: 0.15rem;
+}
+
+.pn-equipo-1 .pn-tiros {
+    justify-content: flex-end;
+}
+
+.pn-tiro {
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.pn-tiro-gol {
+    border-color: #4ade80;
+    background: #22c55e;
+}
+
+.pn-tiro-atajada,
+.pn-tiro-afuera {
+    border-color: #f87171;
+    background: radial-gradient(circle, #ef4444 35%, transparent 40%);
+}
+
+.pn-goles {
+    min-width: 1.6rem;
+    font-size: 1.6rem;
+    font-weight: 900;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.pn-aviso {
+    position: absolute;
+    z-index: 15;
+    top: 3.6rem;
+    left: 50%;
+    margin: 0;
+    padding: 0.3rem 0.9rem;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.7);
+    font-size: 0.9rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.pn-aviso-tuyo {
+    border: 2px solid var(--oro);
+    color: var(--oro);
+    animation: pn-latido 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes pn-latido {
+    to { transform: translateX(-50%) scale(1.05); }
+}
+
+.pn-rol {
+    position: absolute;
+    z-index: 15;
+    left: var(--borde);
+    bottom: 0.5rem;
+    margin: 0;
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.4rem;
+    background: rgba(0, 0, 0, 0.6);
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.pn-rol:empty {
+    display: none;
+}
+
+/* ---------- Pregunta ---------- */
+.pn-capa {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: grid;
+    place-items: center;
+    padding: 0.6rem;
+    background: rgba(2, 4, 12, 0.6);
+    backdrop-filter: blur(2px);
+}
+
+.pn-pregunta {
+    width: min(36rem, 100%);
+    max-height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.8rem 1rem;
+    border: 2px solid #4ade80;
+    border-radius: 0.9rem;
+    background: radial-gradient(circle at 100% 0%, rgba(74, 222, 128, 0.25), transparent 45%), linear-gradient(160deg, #0f2a1d, #070b16);
+    box-shadow: 0 0 2rem rgba(74, 222, 128, 0.35);
+}
+
+.pn-pregunta-cabeza {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pn-pregunta-chip {
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    background: #4ade80;
+    color: #052e16;
+    font-size: 0.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.pn-pregunta-reloj {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 1.3rem;
+    font-weight: 900;
+}
+
+.pn-urgente {
+    color: #f87171;
+}
+
+.pn-pregunta-barra {
+    height: 0.4rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.pn-pregunta-barra span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444, #facc15, #22c55e);
+    transition: width 0.25s linear;
+}
+
+.pn-pregunta h2 {
+    margin: 0.2rem 0;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.pn-opciones {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.pn-opciones-4 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.pn-opcion {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.7rem;
+    padding: 0.35rem 0.6rem;
+    border: 2px solid rgba(255, 255, 255, 0.18);
+    border-radius: 0.55rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+
+.pn-opcion b {
+    flex: 0 0 1.7rem;
+    height: 1.7rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #4ade80;
+    color: #052e16;
+}
+
+.pn-opcion:not(:disabled):hover {
+    border-color: #4ade80;
+}
+
+.pn-opcion-elegida {
+    border-color: var(--oro);
+    background: rgba(255, 207, 62, 0.2);
+}
+
+.pn-profesor-capa {
+    position: fixed;
+    right: var(--borde-der);
+    bottom: 0.4rem;
+    z-index: 42;
+    width: min(27rem, calc(100% - 1.2rem));
+}
+
+/* ---------- Final ---------- */
+.pn-celebra {
+    position: fixed;
+    z-index: 45;
+    top: 40%;
+    left: 0;
+    right: 0;
+    width: fit-content;
+    margin: 0 auto;
+    padding: 0.6rem 1.4rem;
+    border: 3px solid var(--oro);
+    border-radius: 0.9rem;
+    background: linear-gradient(90deg, #14532d, #111827);
+    font-size: 1.5rem;
+    font-weight: 900;
+    white-space: nowrap;
+    box-shadow: 0 0 2rem rgba(255, 207, 62, 0.5);
+}
+
+.pn-final {
+    width: min(34rem, 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 1rem 1.2rem;
+    border: 2px solid rgba(74, 222, 128, 0.7);
+    border-radius: 0.8rem;
+    background: linear-gradient(160deg, #0f2a1d, #070a14 70%);
+    text-align: center;
+}
+
+.pn-final h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.pn-final-premio,
+.pn-final-botones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.pn-error {
+    position: fixed;
+    left: 50%;
+    top: 3.6rem;
+    z-index: 60;
+    margin: 0;
+    padding: 0.4rem 0.9rem;
+    transform: translateX(-50%);
+    border-radius: 0.4rem;
+    background: rgba(185, 28, 28, 0.95);
+    font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pn-arquero,
+    .pn-zona,
+    .pn-aviso-tuyo,
+    .pn-temblor,
+    .pn-balon-vuela .pn-balon-svg {
+        animation: none;
+    }
+}

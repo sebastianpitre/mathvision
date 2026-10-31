@@ -15,7 +15,7 @@
 import { META } from "../zona/ZonaGame.js";
 
 export const PREFIJO_BOT = "bot:";
-export const JUEGOS_CON_MAQUINA = ["zona", "invasion"];
+export const JUEGOS_CON_MAQUINA = ["zona", "invasion", "penal"];
 export const PRECISION = 0.8; // 8 de cada 10 preguntas bien
 
 const NOMBRES = ["Robi", "Byte", "Chispa", "Tuerca", "Pixel", "Lógica", "Volti", "Cifra"];
@@ -211,6 +211,33 @@ export class MaquinasInvasion extends Maquinas {
             const a = g.jugador(id)?.activa;
             if (a) g.responder(id, respuestaDe(a.correcta, a.orden.length));
             this.siguiente(id);
+        });
+    }
+}
+
+/* ---------------------------------------------------------
+   PENALGAMIF ⚽
+--------------------------------------------------------- */
+
+export class MaquinasPenal extends Maquinas {
+    alCambiar() {
+        const g = this.juego;
+        const lados = ["izquierda", "centro", "derecha"];
+        const azar = () => lados[Math.floor(Math.random() * lados.length)];
+        if (g.fase === "apuntar" && this.ids.includes(g.pateador.userId)) {
+            const id = g.pateador.userId;
+            this.programar(id, entre(1200, 2600), () => g.fase === "apuntar" && g.pateador.userId === id && g.apuntar(id, azar()));
+        } else if (g.fase === "atajar" && this.ids.includes(g.arquero.userId)) {
+            const id = g.arquero.userId;
+            this.programar(id, entre(900, 2200), () => g.fase === "atajar" && g.arquero.userId === id && g.atajar(id, azar()));
+        }
+    }
+
+    alPregunta(id) {
+        const g = this.juego;
+        this.programar(`p${id}`, entre(2500, 6000), () => {
+            if (g.fase !== "pregunta" || g.pateador.userId !== id || !g.pregunta) return;
+            g.responder(id, respuestaDe(g.pregunta.correcta, g.pregunta.orden.length));
         });
     }
 }

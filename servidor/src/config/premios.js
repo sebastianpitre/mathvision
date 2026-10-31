@@ -1,5 +1,5 @@
 /* =========================================================
-   PREMIOS DE LOS JUEGOS MULTIJUGADOR (Triqui, SigloGamif, InvasiónGamif y ZonaGamif)
+   PREMIOS DE LOS JUEGOS MULTIJUGADOR (Triqui, SigloGamif, InvasiónGamif, ZonaGamif y PenalGamif)
    ---------------------------------------------------------
    El administrador los cambia desde el panel; se guardan en
    la tabla config_juego. Si no hay nada guardado, se usan
@@ -31,6 +31,12 @@ export const PREMIOS_POR_DEFECTO = {
         max_diarias: 15,
     },
     zona: {
+        ganada: { xp: 40, oro: 20 },
+        empate: { xp: 20, oro: 8 },
+        perdida: { xp: 10, oro: 0 },
+        max_diarias: 15,
+    },
+    penal: {
         ganada: { xp: 40, oro: 20 },
         empate: { xp: 20, oro: 8 },
         perdida: { xp: 10, oro: 0 },

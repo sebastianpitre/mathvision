@@ -22,6 +22,7 @@ export const MOMENTOS = [
     { clave: "musica_escape", nombre: "Escape del Álgebra", grupo: "musica", defecto: null, volumen: 30 },
     { clave: "musica_invasion", nombre: "InvasiónGamif", grupo: "musica", defecto: null, volumen: 30 },
     { clave: "musica_zona", nombre: "ZonaGamif", grupo: "musica", defecto: null, volumen: 30 },
+    { clave: "musica_penal", nombre: "PenalGamif", grupo: "musica", defecto: null, volumen: 25 },
 
     { clave: "clic", nombre: "Clic de los botones", grupo: "general", defecto: "/sounds/click.mp3", volumen: 35 },
     { clave: "iniciar", nombre: "Iniciar partida", grupo: "general", defecto: "/sounds/unlock.mp3", volumen: 80 },
@@ -45,6 +46,10 @@ export const MOMENTOS = [
     { clave: "retirarse", nombre: "Retirarse", grupo: "juego", defecto: "/sounds/retire.mp3", volumen: 80 },
     { clave: "desbloquear", nombre: "Desbloquear (Escape)", grupo: "juego", defecto: "/sounds/unlock.mp3", volumen: 80 },
     { clave: "invadido", nombre: "Te invaden una casilla (InvasiónGamif)", grupo: "juego", defecto: "/sounds/warning.mp3", volumen: 45 },
+    { clave: "preparar_tiro", nombre: "Se prepara para patear (PenalGamif)", grupo: "juego", defecto: "/sounds/penal/silbato.mp3", volumen: 70 },
+    { clave: "gol", nombre: "¡Gol! (PenalGamif)", grupo: "juego", defecto: "/sounds/penal/gol.mp3", volumen: 85 },
+    { clave: "atajada", nombre: "Atajada (PenalGamif)", grupo: "juego", defecto: "/sounds/penal/atajada.mp3", volumen: 75 },
+    { clave: "abucheo", nombre: "Abucheo: balón afuera (PenalGamif)", grupo: "juego", defecto: "/sounds/penal/abucheo.mp3", volumen: 75 },
 ];
 
 const POR_CLAVE = new Map(MOMENTOS.map((m) => [m.clave, m]));

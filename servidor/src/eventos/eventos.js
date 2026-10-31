@@ -35,6 +35,7 @@ export const JUEGOS_MISION = {
     siglo: "SigloGamif",
     invasion: "InvasiónGamif",
     zona: "ZonaGamif",
+    penal: "PenalGamif",
     "escape-algebra": "Escape del Álgebra",
 };
 

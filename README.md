@@ -292,7 +292,7 @@ más grande.
 
 ---
 
-## 6. Salas multijugador, SigloGamif, InvasiónGamif y ZonaGamif
+## 6. Salas multijugador, SigloGamif, InvasiónGamif, ZonaGamif y PenalGamif
 
 Todos los juegos de 2 o más jugadores pasan por una **sala** (`/sala`):
 
@@ -377,7 +377,7 @@ Responder rápido y pintar el tablero con tu color (de 2 a 6 jugadores, **sin tu
 
 ### Jugar contra la máquina 🤖
 
-En **ZonaGamif** e **InvasiónGamif** el creador de la sala puede tocar **Agregar máquina**
+En **ZonaGamif**, **InvasiónGamif** y **PenalGamif** el creador de la sala puede tocar **Agregar máquina**
 (una por puesto libre; se quitan con la ✕). Las máquinas juegan solas en el servidor:
 mueven con cabeza (avanzan, esquivan trampas, buscan las ❓, caen sobre rivales y empujan
 al más adelantado) y responden bien 8 de cada 10 preguntas. No reciben premios y, si en
@@ -422,6 +422,27 @@ hasta la **META** (abajo), en una pista de **15 filas × 6 columnas**.
   (🎲2 ↓, ⚠️ ↑2, ⚡ ↘1, 🟩 ¡Pared!, ✅ +2, ❌ −1, 💥 −3, 🔄 ¡Cambio!). La zona se mueve
   después de que la ficha llegó.
 - Tema de las preguntas, premios, temporada y misiones igual que en InvasiónGamif.
+
+### PenalGamif ⚽
+
+Tanda de penales **1 contra 1** (o contra la máquina 🤖). Se turnan: uno patea y el otro
+ataja, después al revés. **5 penales cada uno**; si quedan iguales, **muerte súbita** (un
+penal cada uno hasta que uno meta y el otro no). Si uno ya no puede alcanzar al otro, se
+termina antes.
+
+1. **Apuntar (15 s):** el que patea ve el arco con el arquero y sus brazos abajo, en
+   primera persona, y toca **izquierda, centro o derecha**.
+2. **Atajar (10 s):** al arquero le sale "¡Ya eligió!" (no dónde). Desde el arco ve al que
+   va a patear, con sus guantes abajo, y elige hacia dónde tirarse.
+3. **Pregunta (20 s):** solo el que patea. Si falla o no responde, el balón se va
+   **afuera** (abucheo) y el profesor le explica.
+4. **Tiro:** silbato ("se prepara"), el balón vuela y sale el letrero: mismo lado que el
+   arquero → **¡ATAJADA!**; si no → **¡GOOOL!** (sonido de gol).
+
+Si alguien no elige a tiempo, se elige al azar. Sonidos en *Panel → Sonidos* ("Se prepara
+para patear", "¡Gol!", "Atajada", "Abucheo"); los de fábrica son de ejemplo, se pueden
+subir otros. Los brazos de primera persona son de ejemplo: `BrazosPateador` en
+`src/games/penal/Escena.jsx` acepta una imagen (`imagen="/img/penal/brazos.png"`).
 
 ## 7. Estructura
 

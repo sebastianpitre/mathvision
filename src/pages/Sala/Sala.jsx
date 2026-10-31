@@ -450,7 +450,7 @@ export default function Sala() {
                         )}
                     </button>
 
-                    {(sala.juego === "invasion" || sala.juego === "zona") && (
+                    {["invasion", "zona", "penal"].includes(sala.juego) && (
                         <button
                             type="button"
                             className="sl-tema"

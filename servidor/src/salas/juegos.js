@@ -40,6 +40,15 @@ export const JUEGOS_SALA = {
         maquina: true,
         ruta: "/games/zona",
     },
+    penal: {
+        id: "penal",
+        nombre: "PenalGamif",
+        descripcion: "Tanda de penales 1 contra 1: responde y patea.",
+        min: 2,
+        max: 2,
+        maquina: true,
+        ruta: "/games/penal",
+    },
 };
 
 export const MAX_JUGADORES_SALA = 8;

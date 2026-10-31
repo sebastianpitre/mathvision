@@ -55,6 +55,20 @@
     "sala": "zona"
   },
   {
+    "id": "penal",
+    "name": "PenalGamif",
+    "shortName": "Penales",
+    "description": "Tanda de penales 1 contra 1: responde y patea.",
+    "icon": "⚽",
+    "image": "/img/Penal/portada.jpg",
+    "minPlayers": 2,
+    "maxPlayers": 2,
+    "status": "available",
+    "route": "/sala",
+    "color": "#16a34a",
+    "sala": "penal"
+  },
+  {
     "id": "triqui-matematico",
     "name": "Triqui Matemático",
     "shortName": "Triqui",

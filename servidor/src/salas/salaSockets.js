@@ -27,6 +27,7 @@
 
      zona:estado | zona:tirar | zona:mover { ficha: 0|1 } | zona:responder { opcion } | zona:salir
      zona:empujar { userId, ficha }  usar el empujón sobre una ficha rival
+     penal:estado | penal:apuntar { lado } | penal:atajar { lado } | penal:responder { opcion } | penal:salir
 
    Servidor → navegador
      sala:estado { sala }       cada cambio de la sala (o sala: null)
@@ -53,7 +54,8 @@ import { reglasSiglo } from "../config/reglasSiglo.js";
 import { InvasionGame } from "../games/invasion/InvasionGame.js";
 import { cargarPreguntas, temasInvasion } from "../games/invasion/preguntasInvasion.js";
 import { ZonaGame } from "../games/zona/ZonaGame.js";
-import { crearMaquina, esBot, MaquinasZona, MaquinasInvasion } from "../games/bots/maquinas.js";
+import { crearMaquina, esBot, MaquinasZona, MaquinasInvasion, MaquinasPenal } from "../games/bots/maquinas.js";
+import { PenalGame } from "../games/penal/PenalGame.js";
 import { JUEGOS_SALA, MAX_JUGADORES_SALA, motivoNoIniciar, EMOJIS, PAUSA_EMOJI_MS } from "./juegos.js";
 
 /*
@@ -157,7 +159,7 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
         esperas.delete(String(userId));
 
         if (room.estado === "jugando") {
-            if (["siglo", "invasion", "zona"].includes(room.currentGame?.tipo)) room.currentGame.abandonar(userId);
+            if (["siglo", "invasion", "zona", "penal"].includes(room.currentGame?.tipo)) room.currentGame.abandonar(userId);
             else cortarTriqui(room, `${miembro?.nombre || "Un jugador"} ${motivo}.`);
         }
 
@@ -356,7 +358,44 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
         juego.iniciar();
     }
 
+    /* ---------------------------------------------------------
+       INICIAR PENALGAMIF ⚽
+    --------------------------------------------------------- */
+
+    async function iniciarPenal(room) {
+        const preguntas = await preguntasDeSala(room);
+        const privado = (evento) => (userId, datos) => socketDe(room.miembros.get(String(userId)))?.emit(evento, datos);
+        let maquinas = null;
+
+        const juego = new PenalGame({
+            jugadores: jugadoresDeSala(room),
+            preguntas,
+            tema: room.temaInvasion?.nombre || "Mezcla de temas",
+            onCambio: (estado) => {
+                io.to(room.code).emit("penal:estado", estado);
+                maquinas?.alCambiar();
+            },
+            onPregunta: (userId, datos) => (esBot(userId) ? maquinas?.alPregunta(String(userId)) : privado("penal:pregunta")(userId, datos)),
+            onResultado: privado("penal:resultado"),
+            onFin: (resultado, partida) => {
+                room.estado = "sala";
+                maquinas?.parar();
+                roomManager.sumarVictoria(room, "penal", resultado.ganadores);
+                entregarPremios(room, "penal", partida.resultadosPremios());
+                estadoMundo(room, "available");
+                emitirSala(room);
+            },
+        });
+
+        const bots = [...room.miembros.values()].filter((m) => m.esBot).map((m) => m.userId);
+        if (bots.length) maquinas = new MaquinasPenal(juego, bots, () => room.currentGame === juego);
+
+        room.currentGame = juego;
+        juego.iniciar();
+    }
+
     const ayudas = {
+        iniciarPenal,
         iniciarZona,
         iniciarInvasion,
         esperas,
@@ -427,6 +466,11 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
             socket.emit("invasion:estado", room.currentGame.toJSON());
             const abierta = room.currentGame.preguntaAbierta(yo());
             if (abierta) socket.emit("invasion:pregunta", abierta);
+        }
+        if (room.estado === "jugando" && room.currentGame?.tipo === "penal") {
+            socket.emit("penal:estado", room.currentGame.toJSON());
+            const abierta = room.currentGame.preguntaAbierta(yo());
+            if (abierta) socket.emit("penal:pregunta", abierta);
         }
         if (room.estado === "jugando" && room.currentGame?.tipo === "zona") {
             socket.emit("zona:estado", room.currentGame.toJSON());
@@ -536,6 +580,8 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
             await ayudas.iniciarInvasion(room);
         } else if (room.juego === "zona") {
             await ayudas.iniciarZona(room);
+        } else if (room.juego === "penal") {
+            await ayudas.iniciarPenal(room);
         }
 
         ayudas.estadoMundo(room, "playing");
@@ -688,4 +734,29 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
     socket.on("zona:responder", accionZona((p, { opcion }) => p.responder(yo(), opcion)));
     socket.on("zona:empujar", accionZona((p, { userId, ficha }) => p.empujar(yo(), userId, ficha)));
     socket.on("zona:salir", accionZona((p) => p.abandonar(yo())));
+
+    /* ---------------- PENALGAMIF ⚽ ---------------- */
+
+    const partidaPenal = () => {
+        const room = miSala();
+        return room?.currentGame?.tipo === "penal" ? room.currentGame : null;
+    };
+
+    const accionPenal = (accion) => (datos) => {
+        const partida = partidaPenal();
+        if (!partida) return socket.emit("penal:error", { message: "No hay una tanda de penales activa." });
+        const r = accion(partida, datos || {});
+        if (r && r.success === false) socket.emit("penal:error", { message: r.message });
+    };
+
+    socket.on("penal:estado", () => {
+        const partida = partidaPenal();
+        socket.emit("penal:estado", partida ? partida.toJSON() : null);
+        const abierta = partida?.preguntaAbierta(yo());
+        if (abierta) socket.emit("penal:pregunta", abierta);
+    });
+    socket.on("penal:apuntar", accionPenal((p, { lado }) => p.apuntar(yo(), lado)));
+    socket.on("penal:atajar", accionPenal((p, { lado }) => p.atajar(yo(), lado)));
+    socket.on("penal:responder", accionPenal((p, { opcion }) => p.responder(yo(), opcion)));
+    socket.on("penal:salir", accionPenal((p) => p.abandonar(yo())));
 }

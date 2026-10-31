@@ -16,6 +16,7 @@ const JUEGOS = [
     { id: "siglo", nombre: "SigloGamif" },
     { id: "invasion", nombre: "InvasiónGamif" },
     { id: "zona", nombre: "ZonaGamif" },
+    { id: "penal", nombre: "PenalGamif" },
 ];
 
 const CASOS = [

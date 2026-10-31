@@ -51,6 +51,7 @@ export const NOMBRE_JUEGO = {
     siglo: "SigloGamif",
     invasion: "InvasiónGamif",
     zona: "ZonaGamif",
+    penal: "PenalGamif",
 };
 
 export const NOMBRE_RESULTADO = {
