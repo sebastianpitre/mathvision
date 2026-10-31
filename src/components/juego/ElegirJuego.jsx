@@ -25,7 +25,7 @@ export default function ElegirJuego({ juegos, elegidoId, alElegir, alCerrar, cab
                         <LuX aria-hidden="true" />
                     </button>
                 </header>
-                <ul className="ffl-modos" style={{ gridTemplateColumns: `repeat(${Math.min(4, juegos.length)}, 10rem)` }}>
+                <ul className="ffl-modos">
                     {juegos.map((g) => {
                         const sirve = cabe ? cabe(g) : true;
                         return (
@@ -37,7 +37,9 @@ export default function ElegirJuego({ juegos, elegidoId, alElegir, alCerrar, cab
                                     aria-pressed={g.id === elegidoId}
                                     autoFocus={g.id === elegidoId}
                                 >
-                                    <img src={g.image} alt="" loading="lazy" draggable="false" />
+                                    <span className="ffl-modo-foto" style={{ "--foto": `url("${g.image}")` }}>
+                                        <img src={g.image} alt="" loading="lazy" draggable="false" />
+                                    </span>
                                     <span className="ffl-modo-texto">
                                         <strong>{g.name}</strong>
                                         <small className={sirve ? "" : "ffl-modo-no"}>

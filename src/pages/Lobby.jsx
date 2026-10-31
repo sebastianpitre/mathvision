@@ -138,7 +138,9 @@ function ElegirJuego({ elegido, onElegir, onCerrar }) {
                                 aria-pressed={g.id === elegido.id}
                                 autoFocus={g.id === elegido.id}
                             >
-                                <img src={g.image} alt="" loading="lazy" draggable="false" />
+                                <span className="ffl-modo-foto" style={{ "--foto": `url("${g.image}")` }}>
+                                    <img src={g.image} alt="" loading="lazy" draggable="false" />
+                                </span>
                                 <span className="ffl-modo-texto">
                                     <strong>{g.name}</strong>
                                     <small>

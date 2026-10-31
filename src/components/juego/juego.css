@@ -878,9 +878,9 @@
 }
 
 .ffl-modal {
-    width: fit-content;
-    max-width: 100%;
+    width: min(40rem, 100%);
     max-height: 100%;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
@@ -891,6 +891,7 @@
 }
 
 .ffl-modal-cabeza {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -904,49 +905,77 @@
     letter-spacing: 0.04em;
 }
 
+/* Tarjetas horizontales; si no caben, la lista hace scroll por dentro. */
 .ffl-modos {
+    flex: 1;
+    min-height: 0;
     margin: 0;
-    padding: 0;
+    padding: 0.15rem 0.3rem 0.15rem 0.15rem;
     list-style: none;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+    align-content: start;
     gap: 0.6rem;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
 }
 
 .ffl-modo {
     position: relative;
     width: 100%;
-    aspect-ratio: 0.78;
+    display: flex;
+    flex-direction: column;
     padding: 0;
     overflow: hidden;
     border: 2px solid var(--linea);
     border-radius: 0.5rem;
     background: #111;
+    color: var(--texto);
     text-align: left;
 }
 
-.ffl-modo img {
+/* Foto completa en 16:9 (las verticales se ven enteras sobre su propia foto borrosa) */
+.ffl-modo-foto {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #000;
+}
+
+.ffl-modo-foto::before {
+    content: "";
+    position: absolute;
+    inset: -10%;
+    background: var(--foto) center / cover;
+    filter: blur(10px) brightness(0.55);
+}
+
+.ffl-modo-foto img {
+    position: relative;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .ffl-modo-texto {
-    position: absolute;
-    inset: auto 0 0 0;
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
-    padding: 1.4rem 0.5rem 0.45rem;
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0.92), transparent);
+    padding: 0.4rem 0.5rem 0.45rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent);
     line-height: 1.05;
 }
 
 .ffl-modo-texto strong {
-    font-size: 1.05rem;
+    overflow: hidden;
+    font-size: 0.95rem;
     font-weight: 700;
+    text-overflow: ellipsis;
     text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .ffl-modo-texto small {
@@ -954,7 +983,7 @@
     align-items: center;
     gap: 0.25rem;
     color: var(--suave);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
 }
 
 .ffl-modo-texto small svg {
