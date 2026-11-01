@@ -8,7 +8,7 @@ import { clone as clonarEsqueleto } from "three/examples/jsm/utils/SkeletonUtils
 
 import ProtegerError from "../../components/common/ProtegerError";
 import juegosLista from "../../data/mock/games.json";
-import { materialDe, materialPared, palitosDe, partesDe } from "./piezas.js";
+import { alturaBaranda, materialDe, materialPared, palitosDe, partesDe } from "./piezas.js";
 
 /* =========================================================
    MUNDO 3D · EL ESCENARIO
@@ -189,22 +189,26 @@ function Caja({ w, h, d, m, posicion, sombra = true }) {
     );
 }
 
-/* Baranda: palitos parados y un pasamanos acostado arriba. */
+/* Baranda: palitos parados y un pasamanos arriba (inclinada: el pasamanos sube). */
 function Baranda({ o, m }) {
     const g = o.grueso || 0.06;
     const xs = palitosDe(o);
     const b = m.baldosa || 2;
+    const y0 = alturaBaranda(o, -o.ancho / 2);
+    const y1 = alturaBaranda(o, o.ancho / 2);
+    const largo = Math.hypot(o.ancho, y1 - y0) + g;
+    const angulo = Math.atan2(y1 - y0, o.ancho);
     return (
         <>
             {xs.map((x) => (
-                <mesh key={x} position={[x, (o.alto - g) / 2, 0]} castShadow>
+                <mesh key={x} position={[x, alturaBaranda(o, x) + (o.alto - g) / 2, 0]} castShadow>
                     <cylinderGeometry args={[g / 2, g / 2, o.alto - g, 8]} />
                     <Material color={m.color} textura={m.textura} transparente={m.transparente} repetirX={1} repetirY={o.alto / b} />
                 </mesh>
             ))}
-            <mesh position={[0, o.alto - g * 0.6, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-                <cylinderGeometry args={[g * 0.75, g * 0.75, o.ancho + g, 10]} />
-                <Material color={m.color} textura={m.textura} transparente={m.transparente} repetirX={1} repetirY={o.ancho / b} />
+            <mesh position={[0, (y0 + y1) / 2 + o.alto - g * 0.6, 0]} rotation={[0, 0, angulo - Math.PI / 2]} castShadow>
+                <cylinderGeometry args={[g * 0.75, g * 0.75, largo, 10]} />
+                <Material color={m.color} textura={m.textura} transparente={m.transparente} repetirX={1} repetirY={largo / b} />
             </mesh>
         </>
     );

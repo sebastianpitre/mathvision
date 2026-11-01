@@ -42,6 +42,10 @@ import { subirArchivo } from "../subirArchivo";
 import { Cielo, Luces, Objetos, Suelo } from "../../Mundo/Escena";
 import { NOMBRES_PARED, palitosDe, partesDe } from "../../Mundo/piezas.js";
 import {
+    cajaDe,
+    guiasPara,
+    lineasGuia,
+    pasoRegla,
     ICONO_TIPO,
     LIMITE,
     NOMBRE_TIPO,
@@ -289,6 +293,20 @@ function PanelObjeto({ o, doc, juegos, alCambiar, alNuevaTextura, alError, limit
                 </button>
             </div>
 
+            {o.fijo && (
+                <div className="ed-fijo-aviso" role="status">
+                    <LuLock aria-hidden="true" />
+                    <div>
+                        <strong>Objeto fijo</strong>
+                        <small>Desbloquéalo primero para cambiarlo.</small>
+                    </div>
+                    <button type="button" className="ed-btn ed-btn-chico ed-btn-primario" onClick={() => alCambiar({ fijo: false })}>
+                        <LuLockOpen aria-hidden="true" /> Desbloquear
+                    </button>
+                </div>
+            )}
+
+            <fieldset className="ed-fieldset" disabled={o.fijo}>
             <label className="ed-campo">
                 <span>Nombre (opcional)</span>
                 <input value={o.nombre || ""} maxLength={40} placeholder={`Ej: ${o.tipo === "circulo" ? "Puerta salón 101" : "Salón 101"}`} onChange={(e) => alCambiar({ nombre: e.target.value })} />
@@ -358,7 +376,11 @@ function PanelObjeto({ o, doc, juegos, alCambiar, alNuevaTextura, alError, limit
                         <Numero etiqueta="Inclinar" valor={o.incl || 0} min={-80} max={80} paso={5} sufijo="°" alCambiar={c("incl")} />
                         <input type="range" min={-80} max={80} step={1} value={o.incl || 0} onChange={(e) => alCambiar({ incl: Number(e.target.value) })} aria-label="Inclinar" />
                     </div>
-                    <p className="ed-ayuda">Positivo: sube hacia la flecha. Hasta 50° se camina por encima (rampa) y por debajo se pasa si cabe.</p>
+                    <p className="ed-ayuda">
+                        {o.tipo === "baranda"
+                            ? "Para escaleras: los palitos siguen parados y el pasamanos sube. Positivo: sube hacia la derecha; negativo, hacia la izquierda."
+                            : "Positivo: sube hacia la flecha. Hasta 50° se camina por encima (rampa) y por debajo se pasa si cabe."}
+                    </p>
                 </>
             )}
 
@@ -502,6 +524,7 @@ function PanelObjeto({ o, doc, juegos, alCambiar, alNuevaTextura, alError, limit
                     )}
                 </>
             )}
+            </fieldset>
         </div>
     );
 }
@@ -856,7 +879,7 @@ function Figura({ o, materiales, modelos, elegido, escala, porId }) {
         const tele = o.funcion === "teletransporte";
         const destino = tele && o.destino ? porId.get(o.destino) : null;
         return (
-            <g data-id={o.id} className="ed-figura" style={o.fijo && !elegido ? { pointerEvents: "none" } : undefined}>
+            <g data-id={o.id} className="ed-figura">
                 {destino && <line x1={o.x} y1={o.z} x2={destino.x} y2={destino.z} stroke={o.color} strokeWidth={1.5 / escala} strokeDasharray={`${6 / escala} ${4 / escala}`} pointerEvents="none" />}
                 <circle data-id={o.id} cx={o.x} cy={o.z} r={o.ancho / 2} fill={o.color} fillOpacity={0.22} stroke={elegido ? "#38bdf8" : o.color} strokeWidth={(elegido ? 3 : 2) / escala} />
                 {!tele && (
@@ -876,7 +899,7 @@ function Figura({ o, materiales, modelos, elegido, escala, porId }) {
 
     if (o.tipo === "columna" || o.tipo === "arbol") {
         return (
-            <g data-id={o.id} className="ed-figura" style={o.fijo && !elegido ? { pointerEvents: "none" } : undefined}>
+            <g data-id={o.id} className="ed-figura">
                 <circle data-id={o.id} cx={o.x} cy={o.z} r={o.tipo === "arbol" ? o.ancho / 2 : o.ancho / 2} fill={o.tipo === "arbol" && !m ? "#3f8f3a" : relleno} fillOpacity={o.tipo === "arbol" ? 0.75 : 1} stroke={borde} strokeWidth={ancho} />
                 {o.tipo === "arbol" && <circle cx={o.x} cy={o.z} r={o.ancho * 0.1} fill="#6b4a2f" pointerEvents="none" />}
             </g>
@@ -885,7 +908,7 @@ function Figura({ o, materiales, modelos, elegido, escala, porId }) {
 
     if (o.tipo === "baranda") {
         return (
-            <g data-id={o.id} className="ed-figura" transform={t} style={o.fijo && !elegido ? { pointerEvents: "none" } : undefined}>
+            <g data-id={o.id} className="ed-figura" transform={t}>
                 <rect data-id={o.id} x={-o.ancho / 2} y={-Math.max(0.3, 6 / escala) / 2} width={o.ancho} height={Math.max(0.3, 6 / escala)} fill="transparent" />
                 <line x1={-o.ancho / 2} y1={0} x2={o.ancho / 2} y2={0} stroke={elegido ? "#38bdf8" : relleno} strokeWidth={Math.max(o.grueso || 0.06, 2.5 / escala)} pointerEvents="none" />
                 {palitosDe(o).map((x) => (
@@ -897,7 +920,7 @@ function Figura({ o, materiales, modelos, elegido, escala, porId }) {
     if (o.tipo === "modelo") {
         const m3 = modelos.find((x) => x.id === o.modelo);
         return (
-            <g data-id={o.id} className="ed-figura" transform={t} style={o.fijo && !elegido ? { pointerEvents: "none" } : undefined}>
+            <g data-id={o.id} className="ed-figura" transform={t}>
                 <rect data-id={o.id} x={-o.ancho / 2} y={-o.largo / 2} width={o.ancho} height={o.largo} fill="#c084fc" fillOpacity={0.35} stroke={borde} strokeWidth={ancho} strokeDasharray={`${4 / escala} ${3 / escala}`} />
                 {escala > 6 && (
                     <text x={0} y={0} fontSize={letra * 0.9} textAnchor="middle" className="ed-etiqueta" pointerEvents="none" transform={`rotate(${o.rot || 0})`}>
@@ -912,7 +935,7 @@ function Figura({ o, materiales, modelos, elegido, escala, porId }) {
     const inclinada = Math.abs(o.incl || 0) > 2;
     const largo = Math.max(o.largo, 0.15);
     return (
-        <g data-id={o.id} className="ed-figura" transform={t} style={o.fijo && !elegido ? { pointerEvents: "none" } : undefined}>
+        <g data-id={o.id} className="ed-figura" transform={t}>
             {partes ? (
                 <>
                     {o.tipo === "salon" && <rect data-id={o.id} x={-o.ancho / 2} y={-o.largo / 2} width={o.ancho} height={o.largo} fill={relleno} fillOpacity={0.12} />}
@@ -1014,6 +1037,51 @@ function Vista3D({ doc, sel, alCerrar }) {
     );
 }
 
+/* ---------------- Reglas (como en Illustrator) ---------------- */
+function Reglas({ vista, tam, paso, cursor, sel }) {
+    const G = 20; // grosor de la regla en px
+    const sx = (x) => (x - vista.cx) * vista.escala + tam.w / 2;
+    const sy = (z) => (z - vista.cz) * vista.escala + tam.h / 2;
+    const marcas = (desde, hasta) => {
+        const lista = [];
+        const ini = Math.ceil(desde / paso) * paso;
+        for (let v = ini; v <= hasta && lista.length < 400; v += paso) lista.push(Math.round(v * 100) / 100);
+        return lista;
+    };
+    const xs = marcas(vista.cx - tam.w / 2 / vista.escala, vista.cx + tam.w / 2 / vista.escala);
+    const zs = marcas(vista.cz - tam.h / 2 / vista.escala, vista.cz + tam.h / 2 / vista.escala);
+    const fino = paso / 5;
+    return (
+        <>
+            <svg className="ed-regla ed-regla-x" width={tam.w} height={G} aria-hidden="true">
+                {sel && <rect x={sx(sel.x0)} y={0} width={Math.max(1, (sel.x1 - sel.x0) * vista.escala)} height={G} className="ed-regla-sel" />}
+                {fino * vista.escala >= 7 &&
+                    marcas(vista.cx - tam.w / 2 / vista.escala, vista.cx + tam.w / 2 / vista.escala)
+                        .flatMap((v) => [1, 2, 3, 4].map((k) => v + k * fino))
+                        .map((v) => <line key={`f${v}`} x1={sx(v)} y1={G - 4} x2={sx(v)} y2={G} />)}
+                {xs.map((v) => (
+                    <g key={v}>
+                        <line x1={sx(v)} y1={G - 9} x2={sx(v)} y2={G} />
+                        <text x={sx(v) + 3} y={10}>{v}</text>
+                    </g>
+                ))}
+                {cursor && <line className="ed-regla-cursor" x1={sx(cursor.x)} y1={0} x2={sx(cursor.x)} y2={G} />}
+            </svg>
+            <svg className="ed-regla ed-regla-z" width={G} height={tam.h} aria-hidden="true">
+                {sel && <rect x={0} y={sy(sel.z0)} width={G} height={Math.max(1, (sel.z1 - sel.z0) * vista.escala)} className="ed-regla-sel" />}
+                {zs.map((v) => (
+                    <g key={v}>
+                        <line x1={G - 9} y1={sy(v)} x2={G} y2={sy(v)} />
+                        <text x={2} y={sy(v) - 3} transform={`rotate(-90 ${2} ${sy(v) - 3})`}>{v}</text>
+                    </g>
+                ))}
+                {cursor && <line className="ed-regla-cursor" x1={0} y1={sy(cursor.z)} x2={G} y2={sy(cursor.z)} />}
+            </svg>
+            <span className="ed-regla-esquina" aria-hidden="true">m</span>
+        </>
+    );
+}
+
 /* =========================================================
    EDITOR
 ========================================================= */
@@ -1040,6 +1108,10 @@ export default function EditorMundo() {
     const svg = useRef(null);
     const accion = useRef(null); // arrastre en curso
     const [arrastrando, setArrastrando] = useState(false);
+    const [guias, setGuias] = useState([]); // líneas de alineación mientras se mueve o se pone algo
+    const [fantasma, setFantasma] = useState(null); // la pieza que se va a poner, bajo el mouse
+    const [cursorMundo, setCursorMundo] = useState(null);
+    const [medida, setMedida] = useState(null); // texto junto al mouse: posición o tamaño
     const vistaRef = useRef(vista);
     vistaRef.current = vista;
 
@@ -1083,6 +1155,13 @@ export default function EditorMundo() {
     }, [h.sinGuardar]);
 
     const objeto = doc?.objetos.find((o) => o.id === sel) || null;
+    useEffect(() => {
+        if (!herramienta || herramienta === "mano") {
+            setFantasma(null);
+            setGuias([]);
+            setMedida(null);
+        }
+    }, [herramienta]);
     // Al elegir un objeto se abren sus opciones en el panel derecho; al soltarlo, vuelve.
     useEffect(() => {
         if (sel) setPanel("objeto");
@@ -1220,7 +1299,7 @@ export default function EditorMundo() {
                 e.preventDefault();
                 duplicar();
             } else if (e.key === "Delete" || e.key === "Backspace") {
-                if (sel) {
+                if (sel && !doc.objetos.find((x) => x.id === sel)?.fijo) {
                     e.preventDefault();
                     borrar();
                 }
@@ -1262,6 +1341,30 @@ export default function EditorMundo() {
         };
     }, [borrar, cambiarSel, doc, duplicar, girar90, guardar, h, herramienta, sel, verProps, zoom, alternarFijo, setVerProps]);
 
+    /* La pieza que pone la herramienta elegida. */
+    const piezaDe = (clave) => {
+        let pieza = PIEZAS.find((x) => x.clave === clave);
+        if (clave?.startsWith("modelo:")) {
+            // Uno de "mis objetos": con su tamaño original.
+            const m = (doc.modelos || []).find((x) => x.id === clave.slice(7));
+            if (!m) return null;
+            pieza = { clave, tipo: "modelo", nombre: m.nombre, icono: "📦", prefijo: "M", modelo: m.id, solido: true, ancho: m.ancho, alto: m.alto, largo: m.largo, color: "#ffffff" };
+        }
+        return pieza || null;
+    };
+
+    /* Encaja en bordes y centros de lo que está cerca (Alt = libre). Devuelve la posición y las guías. */
+    const alinear = (o, x, z, libre) => {
+        if (libre) return { x, z, lineas: [] };
+        const otros = doc.objetos.filter((q) => q.id !== o.id);
+        const umbral = 7 / vistaRef.current.escala;
+        const g = guiasPara({ ...o, x, z }, otros, umbral);
+        const nx = g.dx != null ? x + g.dx : redondear(x, 0.25);
+        const nz = g.dz != null ? z + g.dz : redondear(z, 0.25);
+        const final = { ...o, x: Math.round(nx * 100) / 100, z: Math.round(nz * 100) / 100 };
+        return { x: final.x, z: final.z, lineas: g.dx != null || g.dz != null ? lineasGuia(final, otros) : [] };
+    };
+
     /* Ratón en el mapa */
     const alBajar = (e) => {
         const pan = e.button === 2 || e.button === 1 || herramienta === "mano" || espacio;
@@ -1278,14 +1381,13 @@ export default function EditorMundo() {
             return;
         }
         if (herramienta && herramienta !== "mano") {
-            let pieza = PIEZAS.find((x) => x.clave === herramienta);
-            if (herramienta.startsWith("modelo:")) {
-                // Uno de "mis objetos": con su tamaño original.
-                const m = (doc.modelos || []).find((x) => x.id === herramienta.slice(7));
-                if (!m) return setHerramienta(null);
-                pieza = { clave: herramienta, tipo: "modelo", nombre: m.nombre, icono: "📦", prefijo: "M", modelo: m.id, solido: true, ancho: m.ancho, alto: m.alto, largo: m.largo, color: "#ffffff" };
-            }
-            const nuevo = crearPieza(pieza, doc.objetos, redondear(p.x, 0.5), redondear(p.z, 0.5));
+            const pieza = piezaDe(herramienta);
+            if (!pieza) return setHerramienta(null);
+            const base = crearPieza(pieza, doc.objetos, p.x, p.z);
+            const en = alinear(base, p.x, p.z, e.altKey);
+            const nuevo = { ...base, x: limitar(en.x, -LIMITE, LIMITE), z: limitar(en.z, -LIMITE, LIMITE) };
+            setFantasma(null);
+            setGuias([]);
             cambiar((d) => (d.objetos.push(nuevo), d));
             setSel(nuevo.id);
             if (!e.shiftKey) setHerramienta(null); // con Shift se ponen varias seguidas
@@ -1307,7 +1409,22 @@ export default function EditorMundo() {
 
     const alMover = (e) => {
         const a = accion.current;
-        if (!a) return;
+        const p0 = aMundoDesde(e.clientX, e.clientY);
+        setCursorMundo(p0);
+        if (!a) {
+            // Poniendo una pieza: se ve dónde quedará y con quién se alinea.
+            if (herramienta && herramienta !== "mano" && !espacio) {
+                const pieza = piezaDe(herramienta);
+                if (pieza) {
+                    const f = crearPieza(pieza, doc.objetos, p0.x, p0.z);
+                    const en = alinear(f, p0.x, p0.z, e.altKey);
+                    setFantasma({ ...f, x: en.x, z: en.z });
+                    setGuias(en.lineas);
+                    setMedida({ texto: `X ${en.x.toFixed(2)} · Z ${en.z.toFixed(2)}`, sx: e.clientX, sy: e.clientY });
+                }
+            }
+            return;
+        }
         if (!arrastrando) setArrastrando(true);
         if (a.tipo === "pan") {
             setVista({ ...a.v, cx: a.v.cx - (e.clientX - a.x) / a.v.escala, cz: a.v.cz - (e.clientY - a.y) / a.v.escala });
@@ -1317,10 +1434,14 @@ export default function EditorMundo() {
         const paso = e.altKey ? 0.01 : 0.25;
         if (a.tipo === "mover") {
             a.movio = true;
+            const actual = doc.objetos.find((x) => x.id === a.id);
+            const en = alinear(actual, p.x - a.dx, p.z - a.dz, e.altKey);
+            setGuias(en.lineas);
+            setMedida({ texto: `X ${en.x.toFixed(2)} · Z ${en.z.toFixed(2)}`, sx: e.clientX, sy: e.clientY });
             cambiar((d) => {
                 const o = d.objetos.find((x) => x.id === a.id);
-                o.x = limitar(redondear(p.x - a.dx, paso), -LIMITE, LIMITE);
-                o.z = limitar(redondear(p.z - a.dz, paso), -LIMITE, LIMITE);
+                o.x = limitar(en.x, -LIMITE, LIMITE);
+                o.z = limitar(en.z, -LIMITE, LIMITE);
                 return d;
             }, false);
             return;
@@ -1331,21 +1452,26 @@ export default function EditorMundo() {
             ang = -ang;
             if (!e.shiftKey) ang = Math.round(ang / 15) * 15;
             a.movio = true;
+            setMedida({ texto: `${((Math.round(ang) % 360) + 360) % 360}°`, sx: e.clientX, sy: e.clientY });
             cambiarSel({ rot: ((Math.round(ang) % 360) + 360) % 360 }, false);
             return;
         }
         const { lx, lz } = aLocal(o, p.x, p.z);
         a.movio = true;
         if (a.tipo === "radio") {
-            cambiarSel({ ancho: limitar(redondear(Math.abs(lx) * 2, paso), 0.2, 60) }, false);
+            const nuevo = limitar(redondear(Math.abs(lx) * 2, paso), 0.2, 60);
+            setMedida({ texto: `⌀ ${nuevo.toFixed(2)} m`, sx: e.clientX, sy: e.clientY });
+            cambiarSel({ ancho: nuevo }, false);
         } else if (a.tipo === "ancho") {
             // El borde de la izquierda queda quieto.
             const nuevo = limitar(redondear(lx + o.ancho / 2, paso), 0.1, 60);
             const c = aMundo(o, (nuevo - o.ancho) / 2, 0);
+            setMedida({ texto: `Ancho ${nuevo.toFixed(2)} m`, sx: e.clientX, sy: e.clientY });
             cambiarSel({ ancho: nuevo, x: c.x, z: c.z }, false);
         } else if (a.tipo === "largo") {
             const nuevo = limitar(redondear(lz + o.largo / 2, paso), 0.05, 60);
             const c = aMundo(o, 0, (nuevo - o.largo) / 2);
+            setMedida({ texto: `Largo ${nuevo.toFixed(2)} m`, sx: e.clientX, sy: e.clientY });
             cambiarSel({ largo: nuevo, x: c.x, z: c.z }, false);
         }
     };
@@ -1354,6 +1480,8 @@ export default function EditorMundo() {
         const a = accion.current;
         accion.current = null;
         setArrastrando(false);
+        setGuias([]);
+        if (!herramienta) setMedida(null);
         if (a && a.antes && a.movio) h.marcar(a.antes);
     };
 
@@ -1376,6 +1504,7 @@ export default function EditorMundo() {
     if (!doc) return <div className="ed ed-centro">Cargando el mundo…</div>;
 
     /* Barra de acciones encima del elegido */
+    const pasoR = pasoRegla(vista.escala);
     let barra = null;
     if (objeto) {
         const r = radioDe(objeto);
@@ -1464,6 +1593,14 @@ export default function EditorMundo() {
                         onPointerMove={alMover}
                         onPointerUp={alSoltar}
                         onPointerCancel={alSoltar}
+                        onPointerLeave={() => {
+                            setFantasma(null);
+                            setCursorMundo(null);
+                            if (!accion.current) {
+                                setGuias([]);
+                                setMedida(null);
+                            }
+                        }}
                         onContextMenu={(e) => e.preventDefault()}
                     >
                         <defs>
@@ -1504,6 +1641,22 @@ export default function EditorMundo() {
                                 <Figura key={o.id} o={o} materiales={doc.materiales || []} modelos={doc.modelos || []} elegido={o.id === sel} escala={vista.escala} porId={porId} />
                             ))}
 
+                            {/* la pieza que se va a poner, transparente */}
+                            {fantasma && herramienta && (
+                                <g className="ed-fantasma" pointerEvents="none">
+                                    <Figura o={fantasma} materiales={doc.materiales || []} modelos={doc.modelos || []} elegido={false} escala={vista.escala} porId={porId} />
+                                </g>
+                            )}
+
+                            {/* guías de alineación (bordes y centros que coinciden) */}
+                            {guias.map((g, i) =>
+                                g.eje === "x" ? (
+                                    <line key={i} className={`ed-guia ${g.centro ? "ed-guia-centro" : ""}`} x1={g.v} y1={g.desde - 1.5} x2={g.v} y2={g.hasta + 1.5} strokeWidth={1 / vista.escala} strokeDasharray={g.centro ? `${4 / vista.escala} ${3 / vista.escala}` : undefined} />
+                                ) : (
+                                    <line key={i} className={`ed-guia ${g.centro ? "ed-guia-centro" : ""}`} x1={g.desde - 1.5} y1={g.v} x2={g.hasta + 1.5} y2={g.v} strokeWidth={1 / vista.escala} strokeDasharray={g.centro ? `${4 / vista.escala} ${3 / vista.escala}` : undefined} />
+                                )
+                            )}
+
                             {/* agarraderas del elegido */}
                             {objeto && !objeto.fijo && (
                                 <g className="ed-manijas">
@@ -1537,16 +1690,22 @@ export default function EditorMundo() {
                             <span className="ed-barra-nombre">
                                 {ICONO_TIPO[objeto.tipo]} <code>{objeto.id}</code>
                             </span>
-                            <button type="button" onClick={() => alternarFijo(objeto.id)} title={objeto.fijo ? "Fijo: toca para soltar (L)" : "Fijar para no moverlo por accidente (L)"} className={objeto.fijo ? "ed-on" : ""}>
+                            <button
+                                type="button"
+                                onClick={() => alternarFijo(objeto.id)}
+                                title={objeto.fijo ? "Fijo: toca para desbloquear (L)" : "Fijar para no moverlo por accidente (L)"}
+                                className={objeto.fijo ? "ed-candado-fijo" : ""}
+                            >
                                 {objeto.fijo ? <LuLock aria-hidden="true" /> : <LuLockOpen aria-hidden="true" />}
+                                {objeto.fijo && <span>Desbloquear</span>}
                             </button>
                             <button type="button" onClick={girar90} title="Girar 90° (R)" disabled={objeto.fijo}>
                                 <LuRotateCw aria-hidden="true" />
                             </button>
-                            <button type="button" onClick={duplicar} title="Duplicar (Ctrl+D)">
+                            <button type="button" onClick={duplicar} title="Duplicar (Ctrl+D)" disabled={objeto.fijo}>
                                 <LuCopy aria-hidden="true" />
                             </button>
-                            <button type="button" onClick={borrar} title="Eliminar (Supr)" className="ed-peligro">
+                            <button type="button" onClick={borrar} title="Eliminar (Supr)" className="ed-peligro" disabled={objeto.fijo}>
                                 <LuTrash2 aria-hidden="true" />
                             </button>
                             <button type="button" onClick={() => setPanel("objeto")} title="Opciones: posición, tamaño, textura… (panel derecho)" className={verProps ? "ed-on" : ""}>
@@ -1563,6 +1722,15 @@ export default function EditorMundo() {
                     {!piezaActiva && !objeto && (
                         <div className="ed-pista ed-pista-suave">Clic: elegir · arrastrar: mover · clic derecho o espacio: desplazar · rueda: zoom</div>
                     )}
+
+                    {/* Reglas arriba y a la izquierda, con la marca del mouse */}
+                    <Reglas vista={vista} tam={tam} paso={pasoR} cursor={cursorMundo} sel={objeto ? cajaDe(objeto) : null} />
+                    {medida && (arrastrando || herramienta) && (
+                        <span className="ed-medida" style={{ left: medida.sx - (caja.current?.getBoundingClientRect().left || 0) + 14, top: medida.sy - (caja.current?.getBoundingClientRect().top || 0) + 16 }}>
+                            {medida.texto}
+                        </span>
+                    )}
+                    {cursorMundo && <span className="ed-coordenadas">{`X ${cursorMundo.x.toFixed(2)} · Z ${cursorMundo.z.toFixed(2)} m${guias.length ? " · ✦ alineado" : ""}`}</span>}
 
                     {ver3d && <Vista3D doc={doc} sel={sel} alCerrar={() => setVer3d(false)} />}
 

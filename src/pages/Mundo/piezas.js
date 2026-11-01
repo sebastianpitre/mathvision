@@ -7,7 +7,7 @@
      coordenadas del objeto (antes de girarlo).
 ========================================================= */
 
-export const TIPOS_SIN_INCLINAR = ["columna", "arbol", "circulo", "salon", "escalera", "baranda"];
+export const TIPOS_SIN_INCLINAR = ["columna", "arbol", "circulo", "salon", "escalera"];
 export const NOMBRES_PARED = ["Fondo", "Frente", "Izquierda", "Derecha"];
 
 /* Color, foto y tamaño de la foto que lleva un objeto (o el suelo). */
@@ -69,6 +69,14 @@ export function partesDe(o) {
         return partes;
     }
     return null;
+}
+
+/* Baranda inclinada (para escaleras): los palitos siguen parados y el
+   pasamanos sube. "incl" positivo: sube hacia la derecha (+x). */
+export function alturaBaranda(o, x) {
+    const t = Math.tan(((o.incl || 0) * Math.PI) / 180);
+    // La punta baja queda en la altura del objeto y desde ahí sube.
+    return t >= 0 ? (x + o.ancho / 2) * t : (x - o.ancho / 2) * t;
 }
 
 /* Baranda: palitos cada "separacion" metros y un pasamanos arriba. */

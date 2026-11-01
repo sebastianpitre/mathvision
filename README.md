@@ -192,14 +192,22 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
       tamaño, girar, **inclinar** (hasta 50° se camina por encima y por debajo se pasa si
       cabe), textura y nombre. Cada número tiene botones **− / +** (Shift = de 10 en 10).
       Las agarraderas cambian el tamaño y el círculo azul lo gira.
-    - **Fijar** (candado, tecla L): el objeto ya no se mueve ni se elige en el mapa por
-      accidente; se suelta desde su barra o desde la **Lista**.
+    - **Fijar** (candado, tecla L): el objeto se puede elegir pero ya no se mueve ni se
+      cambia. Al elegirlo sale el candado dorado **Desbloquear** flotando en su barra, y en
+      el panel derecho un aviso "desbloquéalo primero" con los campos bloqueados.
+    - **Guías inteligentes** (como Illustrator): al poner o mover un objeto se ve la pieza
+      transparente bajo el cursor, líneas rosadas cuando un borde coincide con otro objeto
+      (celestes punteadas si coinciden los centros) y se pega suave a esa línea; si no hay
+      nada cerca se pega a la cuadrícula de 0,25 m. **Alt** = mover libre, sin pegarse.
+      **Reglas** arriba e izquierda con la marca del cursor y del objeto elegido; cerca del
+      cursor sale la medida (posición, tamaño o ángulo) y abajo a la derecha las coordenadas.
     - **Mis objetos:** sube modelos **.glb** (sillas, mesas, tableros…; gratis en
       sketchfab.com o poly.pizza), se miden solos y se ponen las veces que quieras. Cada
       uno se mueve, gira y cambia de tamaño (con "mantener proporción" y "tamaño
       original"); "sólido" decide si se atraviesa.
     - **Baranda:** palitos parados y un pasamanos; al alargarla salen más palitos. Se
-      elige la separación, el grosor y la altura.
+      elige la separación, el grosor y la altura. Se puede **inclinar** para escaleras: los
+      palitos siguen parados y el pasamanos sube.
     - **Salón con paredes distintas:** marca qué paredes (fondo, frente, izquierda,
       derecha) llevan otro color o textura; las demás siguen con la del salón.
     - Cada objeto tiene un **ID** visible (S1, P2, C3, T1…) para reconocerlo.

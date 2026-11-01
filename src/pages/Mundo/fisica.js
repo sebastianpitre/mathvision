@@ -9,7 +9,7 @@
    · Gravedad y salto.
 ========================================================= */
 
-import { partesDe } from "./piezas.js";
+import { alturaBaranda, partesDe } from "./piezas.js";
 
 export const RADIO = 0.35;
 export let LIMITE = 58;
@@ -58,7 +58,13 @@ export function formasDe(objetos = []) {
             }
             continue;
         }
-        const d = o.tipo === "baranda" ? Math.max(o.grueso || 0.06, 0.15) : Math.max(o.largo, 0.1);
+        if (o.tipo === "baranda") {
+            // Inclinada o no: una caja delgada desde la punta baja hasta el pasamanos más alto.
+            const sube = Math.max(alturaBaranda(o, -o.ancho / 2), alturaBaranda(o, o.ancho / 2));
+            formas.push({ x: o.x, z: o.z, hx: o.ancho / 2, hz: Math.max(o.grueso || 0.06, 0.15) / 2, cos, sin, abajo: base, techo: base + sube + o.alto });
+            continue;
+        }
+        const d = Math.max(o.largo, 0.1);
         const a = -(o.incl || 0) * RAD; // positivo: sube hacia el frente (+z del objeto)
         if (Math.abs(o.incl || 0) > 2) {
             const pie = Math.abs((d / 2) * Math.cos(a)) + Math.abs((o.alto / 2) * Math.sin(a));
