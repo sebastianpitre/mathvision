@@ -52,6 +52,7 @@ export const NOMBRE_JUEGO = {
     invasion: "InvasiónGamif",
     zona: "ZonaGamif",
     penal: "PenalGamif",
+    mundo: "Mundo 3D",
 };
 
 export const NOMBRE_RESULTADO = {

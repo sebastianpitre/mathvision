@@ -6,8 +6,11 @@
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
+    -webkit-touch-callout: none;
     touch-action: none;
     color: #fff;
+    background: #0b1020;
+    font-family: inherit;
 }
 
 .mu-aviso {
@@ -16,9 +19,24 @@
     align-items: center;
     justify-content: center;
     gap: 0.8rem;
-    background: #0b1020;
     text-align: center;
     padding: 1rem;
+    background: radial-gradient(circle at 50% 35%, #1e3a8a, #0b1020 70%);
+}
+
+.mu-cargando {
+    width: 2.6rem;
+    height: 2.6rem;
+    border: 0.3rem solid rgba(255, 255, 255, 0.2);
+    border-top-color: #ffcf3e;
+    border-radius: 50%;
+    animation: mu-girar 0.9s linear infinite;
+}
+
+@keyframes mu-girar {
+    to {
+        transform: rotate(1turn);
+    }
 }
 
 .mu-escena {
@@ -30,14 +48,43 @@
     touch-action: none;
 }
 
+/* Viñeta suave para que se vea de juego */
+.mu::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 62%, rgba(0, 0, 0, 0.28) 100%);
+}
+
+.mu-luz-noche::after {
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 20, 0.45) 100%);
+}
+
+/* ---------- Vidrio (todos los botones) ---------- */
+.mu-chip,
+.mu-icono,
+.mu-accion,
+.mu-lista,
+.mu-escribir form,
+.mu-elegir {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: linear-gradient(180deg, rgba(20, 26, 44, 0.62), rgba(10, 14, 26, 0.72));
+    box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #fff;
+}
+
+/* ---------- Arriba ---------- */
 .mu-arriba {
     position: absolute;
+    z-index: 5;
     top: max(0.6rem, env(safe-area-inset-top));
     right: max(0.6rem, env(safe-area-inset-right));
     left: max(0.6rem, env(safe-area-inset-left));
     display: flex;
-    justify-content: flex-end;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.45rem;
     pointer-events: none;
 }
@@ -46,8 +93,8 @@
     pointer-events: auto;
 }
 
-.mu-arriba > .mu-chip:first-child {
-    margin-right: auto;
+.mu-espacio {
+    flex: 1;
 }
 
 .mu-chip {
@@ -56,13 +103,11 @@
     gap: 0.35rem;
     height: 2.3rem;
     padding: 0 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 0.45rem;
-    background: rgba(10, 14, 24, 0.55);
+    border-radius: 0.6rem;
     font-weight: 800;
     font-size: 0.85rem;
     text-transform: uppercase;
-    backdrop-filter: blur(4px);
+    letter-spacing: 0.02em;
 }
 
 .mu-chip svg,
@@ -72,7 +117,6 @@
 }
 
 .mu-chip-btn {
-    color: #fff;
     cursor: pointer;
 }
 
@@ -82,66 +126,438 @@
     display: grid;
     place-items: center;
     padding: 0;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 0.45rem;
-    background: rgba(10, 14, 24, 0.55);
-    color: #fff;
+    border-radius: 0.6rem;
     cursor: pointer;
 }
 
+@media (max-width: 900px) {
+    .mu-ocultar-movil {
+        display: none;
+    }
+}
+
+/* ---------- Minimapa ---------- */
+.mu-mapa {
+    width: 6.5rem;
+    height: 6.5rem;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0.3rem 0.6rem rgba(0, 0, 0, 0.35));
+    pointer-events: none !important;
+}
+
+.mu-mapa-fondo {
+    fill: rgba(10, 14, 26, 0.6);
+    stroke: rgba(255, 255, 255, 0.55);
+    stroke-width: 1.5;
+}
+
+.mu-mapa-obj {
+    fill: rgba(255, 255, 255, 0.55);
+}
+
+.mu-mapa-arbol {
+    fill: rgba(74, 222, 128, 0.7);
+}
+
+.mu-mapa-otro {
+    fill: #38bdf8;
+    stroke: #fff;
+    stroke-width: 0.8;
+}
+
+.mu-mapa-yo {
+    fill: #ffcf3e;
+    stroke: #2a1c00;
+    stroke-width: 0.8;
+}
+
+/* ---------- Nombre, globo y "hablando" encima del jugador ---------- */
+.mu-cabeza {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    transform: translateY(-50%);
+}
+
 .mu-nombre {
-    display: block;
-    padding: 0.1rem 0.45rem;
-    border-radius: 0.3rem;
-    background: rgba(0, 0, 0, 0.5);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.12rem 0.5rem;
+    border-radius: 99rem;
+    background: rgba(8, 12, 24, 0.62);
     color: #fff;
     font-size: 0.85rem;
     font-weight: 800;
     white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .mu-nombre-yo {
-    background: rgba(255, 196, 0, 0.85);
+    background: linear-gradient(180deg, #ffe45c, #f2a900);
     color: #2a1c00;
+    text-shadow: none;
 }
 
-/* Joystick */
+.mu-globo {
+    position: relative;
+    width: max-content;
+    max-width: 14rem;
+    margin: 0 0 0.35rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 0.9rem;
+    background: #fff;
+    color: #111827;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    box-shadow: 0 0.3rem 0.8rem rgba(0, 0, 0, 0.3);
+    animation: mu-globo 6s ease forwards;
+}
+
+.mu-globo::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -0.45rem;
+    border: 0.5rem solid transparent;
+    border-top-color: #fff;
+    border-bottom: 0;
+    transform: translateX(-50%);
+}
+
+@keyframes mu-globo {
+    0% {
+        opacity: 0;
+        transform: translateY(0.4rem) scale(0.7);
+    }
+    6% {
+        opacity: 1;
+        transform: translateY(0) scale(1.05);
+    }
+    10% {
+        transform: scale(1);
+    }
+    85% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-0.4rem);
+    }
+}
+
+.mu-ondas {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 0.1rem;
+    height: 0.8rem;
+}
+
+.mu-ondas i {
+    width: 0.16rem;
+    height: 100%;
+    border-radius: 1rem;
+    background: #4ade80;
+    animation: mu-onda 0.7s ease-in-out infinite;
+}
+
+.mu-ondas i:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.mu-ondas i:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes mu-onda {
+    0%,
+    100% {
+        transform: scaleY(0.3);
+    }
+    50% {
+        transform: scaleY(1);
+    }
+}
+
+/* ---------- Joystick ---------- */
 .mu-joy {
     position: absolute;
+    z-index: 4;
     left: calc(max(1.4rem, env(safe-area-inset-left)) + 2.6rem);
     bottom: max(1.2rem, env(safe-area-inset-bottom));
-    width: 7rem;
-    height: 7rem;
+    width: 7.4rem;
+    height: 7.4rem;
     display: grid;
     place-items: center;
-    border: 2px solid rgba(255, 255, 255, 0.45);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     border-radius: 50%;
-    background: rgba(10, 14, 24, 0.28);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.08), rgba(10, 14, 26, 0.35) 70%);
+    box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.25);
     touch-action: none;
+    transition: border-color 0.2s;
+}
+
+.mu-joy-activo {
+    border-color: rgba(255, 207, 62, 0.8);
 }
 
 .mu-joy-punto {
-    width: 2.9rem;
-    height: 2.9rem;
+    width: 3rem;
+    height: 3rem;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.85);
-    box-shadow: 0 0.2rem 0.6rem rgba(0, 0, 0, 0.35);
+    background: radial-gradient(circle at 35% 30%, #fff, #d6dbe6);
+    box-shadow: 0 0.25rem 0.7rem rgba(0, 0, 0, 0.4);
     pointer-events: none;
 }
 
-.mu-ayuda {
+/* ---------- Botones de acción (derecha) ---------- */
+.mu-acciones {
     position: absolute;
-    right: max(0.8rem, env(safe-area-inset-right));
-    bottom: max(0.6rem, env(safe-area-inset-bottom));
-    margin: 0;
-    padding: 0.2rem 0.5rem;
-    border-radius: 0.3rem;
-    background: rgba(0, 0, 0, 0.35);
-    font-size: 0.75rem;
-    pointer-events: none;
+    z-index: 4;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    grid-template-areas:
+        "chat  hola  mic"
+        ".     correr saltar";
+    align-items: end;
+    justify-items: center;
+    gap: 0.5rem;
 }
 
-/* Elegir personaje */
+.mu-accion {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.05rem;
+    width: 3.6rem;
+    height: 3.6rem;
+    padding: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    touch-action: none;
+    transition: transform 0.1s ease, background 0.2s;
+}
+
+.mu-accion:active {
+    transform: scale(0.92);
+}
+
+.mu-accion svg {
+    width: 1.4rem;
+    height: 1.4rem;
+}
+
+.mu-accion small {
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.mu-chica {
+    width: 2.8rem;
+    height: 2.8rem;
+}
+
+.mu-acciones > :nth-child(1) {
+    grid-area: chat;
+}
+
+.mu-acciones > :nth-child(2) {
+    grid-area: hola;
+}
+
+.mu-acciones > :nth-child(3) {
+    grid-area: mic;
+}
+
+.mu-acciones > :nth-child(4) {
+    grid-area: correr;
+}
+
+.mu-acciones > :nth-child(5) {
+    grid-area: saltar;
+}
+
+.mu-saltar {
+    width: 4.6rem;
+    height: 4.6rem;
+    background: linear-gradient(180deg, #ffe45c, #f2a900);
+    color: #2a1c00;
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.mu-saltar svg {
+    width: 1.9rem;
+    height: 1.9rem;
+}
+
+.mu-correr-on {
+    background: linear-gradient(180deg, #38bdf8, #2563eb);
+    border-color: #bae6fd;
+    box-shadow: 0 0 1rem rgba(56, 189, 248, 0.7);
+}
+
+.mu-mic-on {
+    background: linear-gradient(180deg, #4ade80, #16a34a);
+    border-color: #bbf7d0;
+    box-shadow: 0 0 0 0.3rem rgba(74, 222, 128, 0.3), 0 0 1.2rem rgba(74, 222, 128, 0.7);
+    animation: mu-latido 1s ease-in-out infinite;
+}
+
+@keyframes mu-latido {
+    50% {
+        box-shadow: 0 0 0 0.55rem rgba(74, 222, 128, 0.15), 0 0 1.4rem rgba(74, 222, 128, 0.8);
+    }
+}
+
+/* ---------- Escribir ---------- */
+.mu-escribir {
+    position: absolute;
+    z-index: 15;
+    left: 50%;
+    bottom: max(0.8rem, env(safe-area-inset-bottom));
+    width: min(34rem, calc(100% - 1.2rem));
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    touch-action: auto;
+    user-select: text;
+}
+
+.mu-frases {
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.mu-frases button {
+    flex-shrink: 0;
+    padding: 0.35rem 0.7rem;
+    border: 0;
+    border-radius: 99rem;
+    background: rgba(255, 255, 255, 0.92);
+    color: #111827;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.25);
+}
+
+.mu-escribir form {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem;
+    border-radius: 0.8rem;
+}
+
+.mu-escribir input {
+    flex: 1;
+    min-width: 0;
+    height: 2.4rem;
+    padding: 0 0.7rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: #111827;
+    font-size: 1rem;
+    outline: none;
+}
+
+.mu-enviar {
+    width: 2.4rem;
+    height: 2.4rem;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 0.5rem;
+    background: linear-gradient(180deg, #ffe45c, #f2a900);
+    color: #2a1c00;
+    cursor: pointer;
+}
+
+.mu-enviar svg {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+/* ---------- Lista de jugadores ---------- */
+.mu-lista {
+    position: absolute;
+    z-index: 6;
+    top: calc(max(0.6rem, env(safe-area-inset-top)) + 7rem);
+    left: max(0.6rem, env(safe-area-inset-left));
+    width: min(17rem, calc(100% - 1.2rem));
+    max-height: calc(100% - 9rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.6rem;
+    border-radius: 0.8rem;
+    touch-action: auto;
+}
+
+.mu-lista h3 {
+    margin: 0;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: #ffcf3e;
+}
+
+.mu-lista ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    overflow-y: auto;
+}
+
+.mu-lista li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    padding: 0.25rem 0.35rem;
+    border-radius: 0.4rem;
+    background: rgba(255, 255, 255, 0.06);
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.mu-lista li em {
+    color: #ffcf3e;
+    font-style: normal;
+}
+
+.mu-lista-mic {
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-right: 0.2rem;
+    color: #4ade80;
+    vertical-align: -0.1rem;
+}
+
+.mu-lista p {
+    margin: 0;
+    font-size: 0.72rem;
+    color: #c7cede;
+}
+
+/* ---------- Elegir personaje ---------- */
 .mu-capa {
     position: absolute;
     inset: 0;
@@ -149,19 +565,18 @@
     display: grid;
     place-items: center;
     padding: 1rem;
-    background: rgba(5, 8, 16, 0.6);
+    background: rgba(5, 8, 16, 0.55);
+    touch-action: auto;
 }
 
 .mu-elegir {
-    width: min(36rem, 100%);
+    width: min(38rem, 100%);
     max-height: 100%;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
-    padding: 0.8rem;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 0.5rem;
-    background: rgba(10, 14, 24, 0.92);
+    padding: 0.9rem;
+    border-radius: 0.9rem;
 }
 
 .mu-elegir header {
@@ -192,13 +607,18 @@
     flex-direction: column;
     align-items: center;
     gap: 0.3rem;
-    padding: 0.4rem;
+    padding: 0.45rem;
     border: 2px solid transparent;
-    border-radius: 0.4rem;
-    background: rgba(255, 255, 255, 0.08);
+    border-radius: 0.6rem;
+    background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04));
     color: #fff;
-    font-weight: 700;
+    font-weight: 800;
     cursor: pointer;
+    transition: transform 0.12s ease;
+}
+
+.mu-ficha:hover {
+    transform: translateY(-2px);
 }
 
 .mu-ficha img,
@@ -210,5 +630,5 @@
 
 .mu-ficha-actual {
     border-color: #ffcf3e;
-    background: rgba(255, 207, 62, 0.15);
+    background: radial-gradient(circle at 50% 30%, rgba(255, 207, 62, 0.35), rgba(255, 207, 62, 0.08));
 }

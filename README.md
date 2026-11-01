@@ -177,9 +177,20 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   para cambiarla (queda fija ✨), "Sortear el resto otra vez" vuelve a sortear las que no
   son fijas, y "Regalar Élite a" se lo da a un jugador (usuario o ID). Se ve cuántos
   jugadores tiene y cuántos son Élite. Si hay varios activos, sale el que empezó de último.
-- **Mundo 3D:** colores del cielo y del suelo, y qué personajes se pueden usar al
-  caminar. Solo sirven modelos **.glb** (pesan menos que los .vrm); se suben en
-  "Personajes" y aquí se marcan. Caben 40 jugadores a la vez.
+- **Mundo 3D:** aquí se diseña el colegio.
+  - **Cielo:** un color, un degradado (arriba y horizonte) o una **foto 360°**: panorámica
+    "equirectangular" 2:1 (por ejemplo 4096×2048) en JPG, hasta 8 MB. Gratis en
+    polyhaven.com/hdris (descargar JPG), o tomada con el celular en modo 360°.
+  - **Suelo:** color o una **foto que se repite** (cuadrada y "seamless/tileable",
+    1024 o 2048 px, JPG) y cuántos metros mide cada repetición. Gratis en ambientcg.com o
+    polyhaven.com/textures (el archivo "Color"), o una foto del piso real tomada de frente.
+  - **Luz:** día, tarde o noche (color del sol y sombras).
+  - **Objetos:** pared, caja, plataforma (para brincar encima), columna, árbol y cuadro o
+    mural con foto. Se elige la pieza y se toca el mapa; se arrastran, se giran, se
+    duplican y cada uno puede llevar color o foto como textura. "Salón 10×8" pone 4
+    paredes con puerta. Hay **vista 3D** para revisar antes de guardar.
+  - **Personajes:** solo modelos **.glb** (pesan menos que los .vrm). Caben 40 jugadores.
+  - Al guardar, los que están adentro ven el cambio al instante.
 - **Lobby: fondo y anuncios → Fondo del lobby:** elige uno de los fondos que trae el juego
   (Normal, Halloween 🎃) o sube una imagen horizontal propia (hasta 3 MB). Se ve en el
   lobby, la tienda, la sala, el ranking y el inicio de sesión. Al actualizar queda puesto
@@ -244,11 +255,18 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
   puede girar), el marco puesto sobre tu foto o la foto de perfil. Si ya llegaste a ese
   nivel, tocarlo lo reclama; también está **Reclamar todo**. La fila Élite se desbloquea
   con diamantes (pide confirmar) o la regala el administrador.
-- **Mundo 3D** (botón abajo en el lobby o menú flotante): un lobby para caminar con
-  todos los que estén adentro, cada uno con su nombre encima. La primera vez se elige
-  personaje (se puede cambiar con "Personaje"). Celular: joystick abajo a la izquierda y
-  arrastrar la pantalla para girar la cámara. PC: W A S D o flechas, arrastrar con el
-  mouse; Esc sale. Por ahora es un suelo y un cielo: ahí se irá construyendo el colegio.
+- **Mundo 3D** (botón abajo en el lobby o menú flotante): un lobby para caminar con todos.
+  Celular: joystick a la izquierda y botones **Brincar**, **Correr**, **Hablar** (mantener),
+  **Saludar** y **Escribir**; arrastrar la pantalla gira la cámara. PC: W A S D, Shift
+  corre, Espacio brinca, mantener V habla, H saluda, Enter escribe, Esc sale.
+  - Los mensajes salen en un **globo encima del jugador** por 6 segundos y desaparecen:
+    **no se guardan en ningún lado** (no hay historial). Se tapan groserías, enlaces y
+    teléfonos, y no se puede escribir seguido.
+  - La **voz se oye solo cerca** (22 m), más bajito mientras más lejos; usa las mismas
+    reglas de "Voz y reportes" (segundos, espera, quitar la voz). Encima de quien habla
+    salen ondas verdes.
+  - En la lista de jugadores se puede silenciar o reportar a alguien.
+  - Las paredes y objetos no se atraviesan; a las plataformas se sube brincando.
 - **Carrusel de anuncios** (arriba a la izquierda del lobby, debajo del nombre): pasa
   solo, se puede deslizar o tocar los puntitos, y al tocarlo lleva a lo anunciado.
 - **GiraGamif** (la ruletita que gira al lado del carrusel, con el número de tiquetes, o

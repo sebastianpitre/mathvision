@@ -37,6 +37,17 @@ export const TIPOS_ARCHIVO = {
             (b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP"),
         texto: "una imagen .png, .jpg o .webp",
     },
+    // Texturas del Mundo 3D (suelo, paredes, cielo 360°): pueden ser más grandes.
+    textura: {
+        carpeta: "texturas",
+        extensiones: [".png", ".jpg", ".jpeg", ".webp"],
+        maxBytes: 8 * 1024 * 1024,
+        firma: (b) =>
+            (b[0] === 0x89 && b.toString("ascii", 1, 4) === "PNG") ||
+            (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) ||
+            (b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP"),
+        texto: "una imagen .png, .jpg o .webp",
+    },
     sonido: {
         carpeta: "sonidos",
         extensiones: [".mp3", ".ogg", ".wav", ".m4a"],

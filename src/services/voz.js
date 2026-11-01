@@ -14,7 +14,7 @@ import { estaSilenciado } from "./sonido";
 export const TASA = 16000;
 
 let contexto = null;
-function ctx() {
+export function ctx() {
     if (!contexto) {
         const Clase = window.AudioContext || window.webkitAudioContext;
         if (!Clase) return null;
