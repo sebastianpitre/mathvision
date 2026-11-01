@@ -177,6 +177,9 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   para cambiarla (queda fija ✨), "Sortear el resto otra vez" vuelve a sortear las que no
   son fijas, y "Regalar Élite a" se lo da a un jugador (usuario o ID). Se ve cuántos
   jugadores tiene y cuántos son Élite. Si hay varios activos, sale el que empezó de último.
+- **Mundo 3D:** colores del cielo y del suelo, y qué personajes se pueden usar al
+  caminar. Solo sirven modelos **.glb** (pesan menos que los .vrm); se suben en
+  "Personajes" y aquí se marcan. Caben 40 jugadores a la vez.
 - **Lobby: fondo y anuncios → Fondo del lobby:** elige uno de los fondos que trae el juego
   (Normal, Halloween 🎃) o sube una imagen horizontal propia (hasta 3 MB). Se ve en el
   lobby, la tienda, la sala, el ranking y el inicio de sesión. Al actualizar queda puesto
@@ -241,6 +244,11 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
   puede girar), el marco puesto sobre tu foto o la foto de perfil. Si ya llegaste a ese
   nivel, tocarlo lo reclama; también está **Reclamar todo**. La fila Élite se desbloquea
   con diamantes (pide confirmar) o la regala el administrador.
+- **Mundo 3D** (botón abajo en el lobby o menú flotante): un lobby para caminar con
+  todos los que estén adentro, cada uno con su nombre encima. La primera vez se elige
+  personaje (se puede cambiar con "Personaje"). Celular: joystick abajo a la izquierda y
+  arrastrar la pantalla para girar la cámara. PC: W A S D o flechas, arrastrar con el
+  mouse; Esc sale. Por ahora es un suelo y un cielo: ahí se irá construyendo el colegio.
 - **Carrusel de anuncios** (arriba a la izquierda del lobby, debajo del nombre): pasa
   solo, se puede deslizar o tocar los puntitos, y al tocarlo lleva a lo anunciado.
 - **GiraGamif** (la ruletita que gira al lado del carrusel, con el número de tiquetes, o

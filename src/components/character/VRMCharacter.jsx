@@ -62,6 +62,9 @@ export default function VRMCharacter({
     texturaMax,
     // Avisa cuando el modelo ya está listo (la sala carga uno a la vez).
     alCargar,
+    // Mundo 3D: ref con cuánto camina (0 quieto … 1 caminando).
+    // Con esto da pasos de verdad y no saluda solo.
+    andar,
     position = [0, 0, 0],
     rotation = [0, Math.PI, 0]
 
@@ -304,7 +307,10 @@ export default function VRMCharacter({
         let walkBlend = 1;
         let raise = 0;
 
-        if (gesture.active) {
+        if (andar) {
+            gesture.active = false;
+            walkBlend = Math.max(0, Math.min(1, andar.current || 0));
+        } else if (gesture.active) {
 
             const t = gesture.t;
 
@@ -328,7 +334,8 @@ export default function VRMCharacter({
          * =============================================
          */
 
-        const walkSpeed = 1.8;
+        // En el mundo los pasos van al ritmo del jugador.
+        const walkSpeed = andar ? 7.5 : 1.8;
         const walk = time * walkSpeed;
 
         // El signo se aplica ANTES de la forma asimétrica.
@@ -339,7 +346,7 @@ export default function VRMCharacter({
         const rightForwardPhase = Math.sin(walk + Math.PI) * FORWARD_SIGN;
 
         // Paso asimétrico: adelante recorre más que atrás.
-        const shape = (s) => (s > 0 ? s * 0 : s * 0.65);
+        const shape = andar ? (s) => s * 0.75 : (s) => (s > 0 ? s * 0 : s * 0.65);
 
         const leftStep = shape(leftForwardPhase) * walkBlend;
         const rightStep = shape(rightForwardPhase) * walkBlend;

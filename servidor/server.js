@@ -21,6 +21,8 @@ import { estaBloqueado, MENSAJE_BLOQUEADO } from "./src/auth/bloqueo.js";
 import rankingRoutes from "./src/ranking/rankingRoutes.js";
 import reportesRoutes from "./src/voz/reportesRoutes.js";
 import { crearVoz } from "./src/voz/vozSockets.js";
+import { crearMundo } from "./src/mundo/mundoSockets.js";
+import mundoRoutes from "./src/mundo/mundoRoutes.js";
 import { ARCHIVOS_DIR, URL_ARCHIVOS, FRONTEND_DIR } from "./src/config/archivos.js";
 import sonidosRoutes from "./src/sonidos/sonidosRoutes.js";
 import { cargarReglasSiglo } from "./src/config/reglasSiglo.js";
@@ -137,6 +139,7 @@ app.use("/api/ruletas", ruletaRoutes);
 app.use("/api/carrusel", carruselRoutes);
 app.use("/api/perfiles", perfilesRoutes);
 app.use("/api/pase", paseRoutes);
+app.use("/api/mundo", mundoRoutes);
 
 /*
  * Modelos 3D y fotos subidos desde el panel. Cada archivo
@@ -270,6 +273,7 @@ const ayudasSala =
 
 /* Voz en la sala (walkie-talkie). Ver src/voz/. */
 const voz = crearVoz({ io, roomManager });
+const mundo3d = crearMundo({ io });
 ayudasSala.alSalirDeVoz = voz.cortar;
 
 const PORT = config.PORT;
@@ -868,6 +872,7 @@ io.on(
         ================================================= */
 
         voz.registrar(socket);
+        mundo3d.registrar(socket); // Mundo 3D para caminar (src/mundo)
 
         registrarInvitaciones(socket, {
             io,

@@ -26,6 +26,7 @@ const Admin = lazy(() => import("../pages/Admin/Admin"));
 const Sala = lazy(() => import("../pages/Sala/Sala"));
 const Eventos = lazy(() => import("../pages/Eventos/Eventos"));
 const Pase = lazy(() => import("../pages/Pase/Pase"));
+const Mundo = lazy(() => import("../pages/Mundo/Mundo"));
 const Suerte = lazy(() => import("../pages/Suerte/Suerte"));
 const Siglo = lazy(() => import("../games/siglo/Siglo"));
 const Invasion = lazy(() => import("../games/invasion/Invasion"));
@@ -145,6 +146,7 @@ function AppRouter() {
                 <Route path="/ranking" element={<Privada><Ranking /></Privada>} />
                 <Route path="/eventos" element={<Privada><Eventos /></Privada>} />
                 <Route path="/pase" element={<Privada><Pase /></Privada>} />
+                <Route path="/mundo" element={<Privada><Mundo /></Privada>} />
                 <Route path="/suerte" element={<Privada><Suerte /></Privada>} />
                 <Route path="/triqui-local" element={<TriquiGame mode="local" />} />
 

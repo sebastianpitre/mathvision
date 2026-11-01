@@ -1,0 +1,214 @@
+/* Mundo 3D. Medidas en rem: escala con la pantalla. */
+
+.mu {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    color: #fff;
+}
+
+.mu-aviso {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    background: #0b1020;
+    text-align: center;
+    padding: 1rem;
+}
+
+.mu-escena {
+    position: absolute;
+    inset: 0;
+}
+
+.mu-escena canvas {
+    touch-action: none;
+}
+
+.mu-arriba {
+    position: absolute;
+    top: max(0.6rem, env(safe-area-inset-top));
+    right: max(0.6rem, env(safe-area-inset-right));
+    left: max(0.6rem, env(safe-area-inset-left));
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.45rem;
+    pointer-events: none;
+}
+
+.mu-arriba > * {
+    pointer-events: auto;
+}
+
+.mu-arriba > .mu-chip:first-child {
+    margin-right: auto;
+}
+
+.mu-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 2.3rem;
+    padding: 0 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 0.45rem;
+    background: rgba(10, 14, 24, 0.55);
+    font-weight: 800;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
+}
+
+.mu-chip svg,
+.mu-icono svg {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.mu-chip-btn {
+    color: #fff;
+    cursor: pointer;
+}
+
+.mu-icono {
+    width: 2.3rem;
+    height: 2.3rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 0.45rem;
+    background: rgba(10, 14, 24, 0.55);
+    color: #fff;
+    cursor: pointer;
+}
+
+.mu-nombre {
+    display: block;
+    padding: 0.1rem 0.45rem;
+    border-radius: 0.3rem;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.mu-nombre-yo {
+    background: rgba(255, 196, 0, 0.85);
+    color: #2a1c00;
+}
+
+/* Joystick */
+.mu-joy {
+    position: absolute;
+    left: calc(max(1.4rem, env(safe-area-inset-left)) + 2.6rem);
+    bottom: max(1.2rem, env(safe-area-inset-bottom));
+    width: 7rem;
+    height: 7rem;
+    display: grid;
+    place-items: center;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-radius: 50%;
+    background: rgba(10, 14, 24, 0.28);
+    touch-action: none;
+}
+
+.mu-joy-punto {
+    width: 2.9rem;
+    height: 2.9rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0.2rem 0.6rem rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+}
+
+.mu-ayuda {
+    position: absolute;
+    right: max(0.8rem, env(safe-area-inset-right));
+    bottom: max(0.6rem, env(safe-area-inset-bottom));
+    margin: 0;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.3rem;
+    background: rgba(0, 0, 0, 0.35);
+    font-size: 0.75rem;
+    pointer-events: none;
+}
+
+/* Elegir personaje */
+.mu-capa {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgba(5, 8, 16, 0.6);
+}
+
+.mu-elegir {
+    width: min(36rem, 100%);
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 0.5rem;
+    background: rgba(10, 14, 24, 0.92);
+}
+
+.mu-elegir header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mu-elegir h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+}
+
+.mu-elegir ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+    gap: 0.5rem;
+    overflow-y: auto;
+}
+
+.mu-ficha {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem;
+    border: 2px solid transparent;
+    border-radius: 0.4rem;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.mu-ficha img,
+.mu-ficha svg {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+}
+
+.mu-ficha-actual {
+    border-color: #ffcf3e;
+    background: rgba(255, 207, 62, 0.15);
+}

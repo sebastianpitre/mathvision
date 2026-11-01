@@ -4,6 +4,7 @@ import {
     LuExpand,
     LuGift,
     LuCrown,
+    LuGlobe,
     LuTicket,
     LuHouse,
     LuLogOut,
@@ -205,6 +206,7 @@ export default function MenuFlotante() {
         { id: "ranking", texto: "Ranking", icono: LuTrophy, accion: () => ir("/ranking") },
         { id: "eventos", texto: "Eventos", icono: LuGift, accion: () => ir("/eventos") },
         { id: "pase", texto: "Pase Élite", icono: LuCrown, accion: () => ir("/pase") },
+        { id: "mundo", texto: "Mundo 3D", icono: LuGlobe, accion: () => ir("/mundo") },
         { id: "suerte", texto: "GiraGamif", icono: LuTicket, accion: () => ir("/suerte") },
         esAdmin && { id: "panel", texto: "Panel", icono: LuShieldCheck, accion: () => ir("/admin") },
         {

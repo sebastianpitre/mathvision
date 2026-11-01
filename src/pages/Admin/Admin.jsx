@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LuChartColumn, LuGift, LuCalendarDays, LuLayers, LuMedal, LuMic, LuMusic, LuSquareUser, LuShieldCheck, LuShirt, LuUsers, LuArrowLeft, LuTicket, LuMegaphone, LuCrown } from "react-icons/lu";
+import { LuChartColumn, LuGift, LuCalendarDays, LuLayers, LuMedal, LuMic, LuMusic, LuSquareUser, LuShieldCheck, LuShirt, LuUsers, LuArrowLeft, LuTicket, LuMegaphone, LuCrown, LuGlobe } from "react-icons/lu";
 
 import { useAuth } from "../../context/AuthContext";
 import Resumen from "./Resumen";
@@ -16,6 +16,7 @@ import PerfilesAdmin from "./PerfilesAdmin";
 import RuletaAdmin from "./RuletaAdmin";
 import CarruselAdmin from "./CarruselAdmin";
 import PaseAdmin from "./PaseAdmin";
+import MundoAdmin from "./MundoAdmin";
 
 import "../../styles/ludo.css";
 import "./admin.css";
@@ -37,6 +38,7 @@ const PESTANAS = [
     { id: "temporadas", label: "Temporadas", icon: LuMedal, Componente: TemporadasAdmin },
     { id: "eventos", label: "Eventos", icon: LuCalendarDays, Componente: EventosAdmin },
     { id: "pase", label: "Pase Élite", icon: LuCrown, Componente: PaseAdmin },
+    { id: "mundo", label: "Mundo 3D", icon: LuGlobe, Componente: MundoAdmin },
     { id: "perfiles", label: "Fotos y marcos", icon: LuSquareUser, Componente: PerfilesAdmin },
     { id: "ruleta", label: "GiraGamif", icon: LuTicket, Componente: RuletaAdmin },
     { id: "anuncios", label: "Lobby: fondo y anuncios", icon: LuMegaphone, Componente: CarruselAdmin },

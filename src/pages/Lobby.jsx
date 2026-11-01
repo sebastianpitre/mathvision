@@ -21,6 +21,7 @@ import {
     LuTrophy,
     LuGift,
     LuCrown,
+    LuGlobe,
     LuBadgeCheck,
     LuUsers,
     LuVolume2,
@@ -430,6 +431,10 @@ export default function Lobby() {
                 >
                     <LuSmartphone aria-hidden="true" />
                     <span>Triqui local</span>
+                </button>
+                <button type="button" className="ffl-barra-btn ffl-barra-mundo" onClick={() => navigate("/mundo")}>
+                    <LuGlobe aria-hidden="true" />
+                    <span>Mundo 3D</span>
                 </button>
             </nav>
 

@@ -29,11 +29,15 @@
    POST   /pases/:id/rellenar      volver a sortear las casillas que no son mayores
    POST   /pases/:id/regalar       { usuario } regalar la fila élite
    DELETE /pases/:id
+
+   GET    /mundo                   colores y personajes del Mundo 3D (y todos los personajes)
+   PUT    /mundo                   { cielo, suelo, personajes }
 ========================================================= */
 
 import express from "express";
 
 import { pool } from "../database/db.js";
+import { configMundo, guardarConfigMundo, esGlb } from "../mundo/mundo.js";
 import { borrarPase, cambiarPremio, crearPase, editarPase, listarPasesAdmin, regalarElite, rellenarPase } from "../pase/pase.js";
 import { ruta, errorConEstado } from "../http/ruta.js";
 import {
@@ -310,6 +314,21 @@ router.post(
 router.delete(
     "/pases/:id",
     ruta(async (req, res) => res.json({ success: true, ...(await borrarPase(idDe(req))) }))
+);
+
+/* ---------------- Mundo 3D ---------------- */
+
+router.get(
+    "/mundo",
+    ruta(async (req, res) => {
+        const { rows } = await pool.query("SELECT id, name, model_path, thumbnail_path FROM characters ORDER BY orden, name");
+        res.json({ success: true, config: await configMundo(), personajes: rows.map((p) => ({ ...p, glb: esGlb(p.model_path) })) });
+    })
+);
+
+router.put(
+    "/mundo",
+    ruta(async (req, res) => res.json({ success: true, config: await guardarConfigMundo(req.body || {}) }))
 );
 
 export default router;
