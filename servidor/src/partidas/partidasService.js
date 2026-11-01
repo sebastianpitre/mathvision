@@ -16,6 +16,7 @@ import {
 import { getUserProfile } from "../users/userService.js";
 import { obtenerPremios } from "../config/premios.js";
 import { sumarPuntosTemporada } from "../temporadas/temporadas.js";
+import { sumarExpPase } from "../pase/pase.js";
 
 export class ErrorJuego extends Error {
     constructor(mensaje, status = 400) {
@@ -155,6 +156,8 @@ async function terminarPartida(client, partida, nivel, resultado) {
 
     // Puntos de temporada (no cuentan las partidas que pasan el límite diario).
     const temporada = limiteDiario ? null : await sumarPuntosTemporada(client, partida.user_id, gano ? "ganada" : "perdida");
+    // EXP del Pase Élite (tampoco cuentan las del límite diario).
+    const pase = limiteDiario ? null : await sumarExpPase(client, partida.user_id, gano);
 
     await sumarEstadisticas(client, partida.user_id, {
         jugadas: 1,
@@ -192,6 +195,7 @@ async function terminarPartida(client, partida, nivel, resultado) {
         limite_diario_alcanzado: limiteDiario,
         recompensa,
         temporada,
+        pase,
     };
 }
 
@@ -438,6 +442,7 @@ export async function registrarPartidaSimple(userId, { juego, aciertos, total })
         const recompensa = await entregarRecompensa(client, userId, { xp, oro });
         const gano = totalSeguro > 0 && aciertosSeguros === totalSeguro;
         const temporada = limiteDiario ? null : await sumarPuntosTemporada(client, userId, gano ? "ganada" : "perdida");
+        const pase = limiteDiario ? null : await sumarExpPase(client, userId, gano);
 
         await sumarEstadisticas(client, userId, {
             jugadas: 1,
@@ -467,7 +472,7 @@ export async function registrarPartidaSimple(userId, { juego, aciertos, total })
             ]
         );
 
-        return { recompensa, limite_diario_alcanzado: limiteDiario, temporada };
+        return { recompensa, limite_diario_alcanzado: limiteDiario, temporada, pase };
     });
 }
 
@@ -506,6 +511,7 @@ export async function registrarResultadoMultijugador(juego, resultados, { sinTem
             const recompensa = await entregarRecompensa(client, userId, { xp, oro, diamantes });
             // Contra la máquina no se suman puntos de temporada (el ranking es entre personas).
             const temporada = limiteDiario || sinTemporada ? null : await sumarPuntosTemporada(client, userId, resultado);
+            const pase = limiteDiario ? null : await sumarExpPase(client, userId, resultado === "ganada");
 
             await sumarEstadisticas(client, userId, {
                 jugadas: 1,
@@ -522,7 +528,7 @@ export async function registrarResultadoMultijugador(juego, resultados, { sinTem
                 [userId, juego, resultado, xp, oro, diamantes, resultado === "ganada", Number(aciertos) || 0, Number(errores) || 0]
             );
 
-            return { ...recompensa, limite_diario_alcanzado: limiteDiario, temporada };
+            return { ...recompensa, limite_diario_alcanzado: limiteDiario, temporada, pase };
         });
 
         premios.push({ userId, resultado, recompensa: premio });

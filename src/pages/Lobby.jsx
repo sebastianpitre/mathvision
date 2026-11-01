@@ -20,6 +20,7 @@ import {
     LuUserRound,
     LuTrophy,
     LuGift,
+    LuCrown,
     LuBadgeCheck,
     LuUsers,
     LuVolume2,
@@ -177,9 +178,14 @@ export default function Lobby() {
 
     // Recompensas de eventos listas para reclamar (el número rojo en "Eventos").
     const [porReclamar, setPorReclamar] = useState(0);
+    // Pase Élite: si hay uno, el botón dice tu nivel y cuántos premios esperan.
+    const [pase, setPase] = useState(null);
     useEffect(() => {
         api("/eventos")
             .then((r) => setPorReclamar(r.porReclamar || 0))
+            .catch(() => {});
+        api("/pase")
+            .then((r) => setPase(r.pase ? { nivel: r.yo.nivel, porReclamar: r.porReclamar || 0 } : null))
             .catch(() => {});
     }, []);
     useEffect(() => alCambiarSilencio(setSilencio), []);
@@ -268,6 +274,19 @@ export default function Lobby() {
                 </div>
 
                 <div className="ffl-arriba-der">
+                    {pase && (
+                        <button
+                            type="button"
+                            className="ffl-pase"
+                            onClick={() => navigate("/pase")}
+                            aria-label={`Pase Élite, nivel ${pase.nivel}${pase.porReclamar ? `: ${pase.porReclamar} premios para reclamar` : ""}`}
+                        >
+                            <LuCrown aria-hidden="true" />
+                            <span>Pase Élite</span>
+                            <b>{`Lv.${pase.nivel}`}</b>
+                            {pase.porReclamar > 0 && <span className="ffp-insignia-cuenta" aria-hidden="true">{pase.porReclamar}</span>}
+                        </button>
+                    )}
                     <span className="ffl-logo" aria-hidden="true">
                         LUDO<span>GAMIF</span>
                     </span>

@@ -52,7 +52,7 @@ export async function detallador(recompensas) {
         if (r?.marco_id) cosmeticos.add(Number(r.marco_id));
     }
     const [{ rows: ps }, { rows: cs }] = await Promise.all([
-        pool.query("SELECT id, name, thumbnail_path FROM characters WHERE id = ANY($1)", [[...personajes]]),
+        pool.query("SELECT id, name, thumbnail_path, model_path FROM characters WHERE id = ANY($1)", [[...personajes]]),
         pool.query("SELECT id, nombre, ruta, tipo FROM cosmeticos WHERE id = ANY($1)", [[...cosmeticos]]),
     ]);
     const p = new Map(ps.map((x) => [x.id, x]));
@@ -67,7 +67,7 @@ export async function detallador(recompensas) {
             oro: Number(r.oro) || 0,
             diamantes: Number(r.diamantes) || 0,
             tickets: Number(r.tickets) || 0,
-            personaje: per ? { id: r.personaje_id, nombre: per.name, foto: per.thumbnail_path } : null,
+            personaje: per ? { id: r.personaje_id, nombre: per.name, foto: per.thumbnail_path, modelo: per.model_path } : null,
             foto: cosmetico(r.foto_id),
             marco: cosmetico(r.marco_id),
         };

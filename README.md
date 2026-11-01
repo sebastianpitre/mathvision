@@ -169,6 +169,14 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   y ver cuántas veces salió cada premio (y el % real). Los tiquetes se ganan en las
   misiones de los **Eventos** (recompensa "Tiquetes") y también se pueden regalar desde
   **Jugadores**.
+- **Pase Élite:** crea el pase con nombre, fechas, niveles (50 por defecto), EXP por nivel
+  (100), EXP por partida ganada y perdida, precio del Élite en diamantes y una portada
+  opcional. Eliges los **premios mayores** (nivel, fila Gratis o Élite y qué se gana) y el
+  resto de casillas se llena **solo, al azar** (oro, diamantes, tiquetes, fotos y marcos;
+  más en los niveles altos y en la fila Élite). En "Ver casillas" tocas cualquier casilla
+  para cambiarla (queda fija ✨), "Sortear el resto otra vez" vuelve a sortear las que no
+  son fijas, y "Regalar Élite a" se lo da a un jugador (usuario o ID). Se ve cuántos
+  jugadores tiene y cuántos son Élite. Si hay varios activos, sale el que empezó de último.
 - **Lobby: fondo y anuncios → Fondo del lobby:** elige uno de los fondos que trae el juego
   (Normal, Halloween 🎃) o sube una imagen horizontal propia (hasta 3 MB). Se ve en el
   lobby, la tienda, la sala, el ranking y el inicio de sesión. Al actualizar queda puesto
@@ -226,6 +234,13 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
 - **Eventos** (botón en el lobby con el número de premios por reclamar, o menú flotante):
   el anuncio con su cuenta regresiva y las misiones con su barra de progreso y el botón
   **Reclamar**. El avance se calcula con las partidas que termina entre las fechas.
+- **Pase Élite** (botón dorado arriba en el lobby con tu nivel y los premios por reclamar,
+  o menú flotante): como el Pase Booyah. Arriba la fila **Gratis** y abajo la **Élite**.
+  Cada partida terminada da EXP (más si ganas; las que pasan el límite diario de premios
+  no cuentan). Al tocar un premio se ve en grande a la derecha: el personaje en 3D (se
+  puede girar), el marco puesto sobre tu foto o la foto de perfil. Si ya llegaste a ese
+  nivel, tocarlo lo reclama; también está **Reclamar todo**. La fila Élite se desbloquea
+  con diamantes (pide confirmar) o la regala el administrador.
 - **Carrusel de anuncios** (arriba a la izquierda del lobby, debajo del nombre): pasa
   solo, se puede deslizar o tocar los puntitos, y al tocarlo lleva a lo anunciado.
 - **GiraGamif** (la ruletita que gira al lado del carrusel, con el número de tiquetes, o

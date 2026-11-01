@@ -1,0 +1,634 @@
+/* Pase Élite (estilo Pase Booyah). Medidas en rem: escala con la pantalla. */
+
+.pa-estado {
+    margin: auto;
+    color: var(--suave);
+}
+
+.pa-vacio {
+    margin: auto;
+    width: min(24rem, 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 1.2rem;
+    text-align: center;
+}
+
+.pa-vacio svg {
+    width: 2.6rem;
+    height: 2.6rem;
+    color: var(--oro);
+}
+
+.pa-vacio h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    text-transform: uppercase;
+}
+
+.pa-vacio p {
+    margin: 0;
+    color: var(--suave);
+}
+
+/* ---------- Izquierda ---------- */
+.pa-info {
+    flex: 0 0 13rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    min-height: 0;
+    padding: 0.5rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.4rem;
+    background: var(--panel-fuerte);
+    overflow-y: auto;
+}
+
+.pa-info-elite {
+    border-color: rgba(255, 207, 62, 0.55);
+    box-shadow: 0 0 1.2rem rgba(255, 190, 40, 0.18) inset;
+}
+
+.pa-portada {
+    position: relative;
+    flex-shrink: 0;
+    min-height: 5.6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0.45rem;
+    border-radius: 0.3rem;
+    background: radial-gradient(circle at 75% 20%, #f59e0b 0, #7c2d12 45%, #1c1033 100%) center / cover;
+    overflow: hidden;
+}
+
+.pa-portada::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.75), transparent 65%);
+}
+
+.pa-portada h2 {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.1;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.pa-reloj {
+    position: absolute;
+    z-index: 1;
+    top: 0.35rem;
+    right: 0.35rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 99rem;
+    background: rgba(0, 0, 0, 0.6);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.pa-nivel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pa-nivel-num {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    background: linear-gradient(180deg, #ffe45c, #f2a900);
+    color: #2a1c00;
+    font-size: 1.3rem;
+    font-weight: 900;
+    line-height: 0.85;
+}
+
+.pa-nivel-num small {
+    font-size: 0.62rem;
+}
+
+.pa-exp {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.pa-exp small {
+    color: var(--suave);
+    font-size: 0.78rem;
+}
+
+.pa-barra {
+    height: 0.6rem;
+    border-radius: 99rem;
+    background: rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+}
+
+.pa-barra span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #f59e0b, #fde047);
+    transition: width 0.6s ease;
+}
+
+.pa-como {
+    margin: 0;
+    color: var(--suave);
+    font-size: 0.74rem;
+    line-height: 1.25;
+}
+
+.pa-comprar {
+    width: 100%;
+}
+
+.pa-gema-chica {
+    width: 0.95rem !important;
+    height: 0.95rem !important;
+    color: #38bdf8;
+    vertical-align: -0.12rem;
+}
+
+.pa-tienes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 2.3rem;
+    border-radius: 0.3rem;
+    background: rgba(255, 207, 62, 0.14);
+    color: var(--oro);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.pa-confirmar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.4rem;
+    border-radius: 0.3rem;
+    background: rgba(255, 255, 255, 0.07);
+    text-align: center;
+    font-weight: 700;
+}
+
+.pa-confirmar div {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.pa-confirmar .ffp-btn,
+.pa-no {
+    flex: 1;
+    min-height: 2.1rem;
+}
+
+.pa-no {
+    border: 1px solid var(--linea);
+    border-radius: 0.25rem;
+    background: transparent;
+    color: var(--texto);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pa-todo {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 2.3rem;
+    border: 1px solid rgba(74, 222, 128, 0.6);
+    border-radius: 0.3rem;
+    background: rgba(22, 163, 74, 0.35);
+    color: #fff;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.pa-todo:disabled {
+    border-color: var(--linea);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--suave);
+    cursor: default;
+}
+
+.pa-todo svg {
+    width: 1.05rem;
+    height: 1.05rem;
+}
+
+/* ---------- Centro: pista ---------- */
+.pa-pista-caja {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    border: 1px solid var(--linea);
+    border-radius: 0.4rem;
+    background: var(--panel);
+    overflow: hidden;
+}
+
+.pa-filas {
+    flex: 0 0 2rem;
+    display: grid;
+    grid-template-rows: 1.6rem 1fr 1fr;
+    gap: 0.4rem;
+    padding: 0.4rem 0;
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.pa-filas span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.pa-fila-gratis {
+    color: var(--suave);
+}
+
+.pa-fila-elite {
+    color: var(--oro);
+}
+
+.pa-fila-elite svg {
+    transform: rotate(90deg);
+}
+
+.pa-pista {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.4rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+.pa-col {
+    flex: 0 0 5.4rem;
+    display: grid;
+    grid-template-rows: 1.6rem 1fr 1fr;
+    gap: 0.4rem;
+}
+
+.pa-col-num {
+    display: grid;
+    place-items: center;
+    border-radius: 0.25rem;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--suave);
+    font-weight: 900;
+    font-size: 0.9rem;
+}
+
+.pa-col-alcanzado .pa-col-num {
+    background: linear-gradient(180deg, #fbbf24, #d97706);
+    color: #2a1c00;
+}
+
+.pa-col-actual .pa-col-num {
+    box-shadow: 0 0 0 2px #fff;
+}
+
+.pa-celda {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: 0;
+    padding: 0.3rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 0.3rem;
+    background: linear-gradient(180deg, rgba(71, 85, 105, 0.55), rgba(30, 41, 59, 0.75));
+    color: var(--texto);
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.15s ease;
+}
+
+.pa-celda:active {
+    transform: scale(0.96);
+}
+
+.pa-celda-vacia {
+    cursor: default;
+    opacity: 0.3;
+}
+
+.pa-celda-elite {
+    background: linear-gradient(180deg, rgba(180, 83, 9, 0.6), rgba(67, 20, 7, 0.82));
+    border-color: rgba(251, 191, 36, 0.35);
+}
+
+.pa-celda.pa-mayor {
+    border-color: #fde047;
+    background: radial-gradient(circle at 50% 35%, rgba(253, 224, 71, 0.45), transparent 70%), linear-gradient(180deg, #7c2d12, #2e1065);
+}
+
+.pa-celda.pa-mayor::before {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    background: conic-gradient(from 0deg, transparent 0 70%, rgba(255, 255, 255, 0.35) 80%, transparent 90%);
+    animation: pa-brillo 3.5s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes pa-brillo {
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+.pa-celda > img,
+.pa-celda > svg:not(.pa-marca),
+.pa-celda > .pa-oro,
+.pa-celda > .pa-marco,
+.pa-celda > span:first-child {
+    position: relative;
+    z-index: 1;
+}
+
+.pa-celda > img {
+    width: 88%;
+    max-height: 80%;
+    object-fit: contain;
+    border-radius: 0.25rem;
+}
+
+.pa-gema {
+    width: 2.7rem;
+    height: 2.7rem;
+    color: #38bdf8;
+    filter: drop-shadow(0 0 0.4rem rgba(56, 189, 248, 0.6));
+}
+
+.pa-oro {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+}
+
+.pa-marco {
+    position: relative;
+    display: block;
+    width: 3.6rem;
+    height: 3.6rem;
+}
+
+.pa-marco img:first-child {
+    width: 72%;
+    height: 72%;
+    margin: 14%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.pa-cantidad {
+    position: relative;
+    z-index: 2;
+    font-size: 0.95rem;
+    font-weight: 900;
+    text-shadow: 0 1px 3px #000;
+}
+
+.pa-marca {
+    position: absolute;
+    z-index: 3;
+    top: 0.2rem;
+    right: 0.2rem;
+    width: 1.05rem;
+    height: 1.05rem;
+    padding: 0.12rem;
+    border-radius: 50%;
+    background: #16a34a;
+    color: #fff;
+}
+
+.pa-candado {
+    background: rgba(0, 0, 0, 0.7);
+    color: var(--oro);
+}
+
+.pa-bloqueado {
+    filter: saturate(0.7);
+}
+
+.pa-bloqueado > img,
+.pa-bloqueado > svg:not(.pa-marca),
+.pa-bloqueado > .pa-oro,
+.pa-bloqueado > .pa-marco {
+    opacity: 0.6;
+}
+
+.pa-reclamado {
+    opacity: 0.55;
+}
+
+.pa-listo {
+    border-color: #4ade80;
+    box-shadow: 0 0 0.7rem rgba(74, 222, 128, 0.65);
+    animation: pa-latido 1.3s ease-in-out infinite;
+}
+
+@keyframes pa-latido {
+    50% {
+        box-shadow: 0 0 1.2rem rgba(74, 222, 128, 0.95);
+    }
+}
+
+.pa-elegida {
+    outline: 2px solid #fff;
+    outline-offset: 1px;
+}
+
+/* ---------- Derecha: vista previa ---------- */
+.pa-vista {
+    flex: 0 0 14rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-height: 0;
+    padding: 0.5rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.4rem;
+    background: var(--panel-fuerte);
+}
+
+.pa-vista-vacia {
+    margin: auto;
+    color: var(--suave);
+    text-align: center;
+}
+
+.pa-vista-cabeza {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.pa-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.08rem 0.45rem;
+    border-radius: 99rem;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.pa-chip-elite {
+    background: rgba(255, 207, 62, 0.2);
+    color: var(--oro);
+}
+
+.pa-chip-mayor {
+    background: linear-gradient(90deg, #f59e0b, #ec4899);
+    color: #fff;
+}
+
+.pa-chip svg {
+    width: 0.8rem;
+    height: 0.8rem;
+}
+
+.pa-vista-dibujo {
+    position: relative;
+    flex: 1;
+    min-height: 6rem;
+    display: grid;
+    place-items: center;
+    border-radius: 0.3rem;
+    background: radial-gradient(circle at 50% 60%, rgba(253, 224, 71, 0.22), transparent 65%);
+    overflow: hidden;
+}
+
+.pa-vista-dibujo .pa-gema {
+    width: 5rem;
+    height: 5rem;
+}
+
+.pa-vista-dibujo .pa-oro {
+    width: 4.6rem !important;
+    height: 4.6rem !important;
+}
+
+.pa-vista-perfil {
+    position: relative;
+    display: block;
+    width: min(8rem, 80%);
+    aspect-ratio: 1;
+}
+
+.pa-vista-perfil > img:first-child {
+    width: 72%;
+    height: 72%;
+    margin: 14%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.pa-vista-foto .pa-vista-perfil > img:first-child {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+.pa-vista-texto {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.pa-vista-texto small {
+    color: var(--suave);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+}
+
+.pa-vista-texto strong {
+    font-size: 1.05rem;
+    line-height: 1.15;
+}
+
+.pa-vista-texto em {
+    color: var(--suave);
+    font-size: 0.72rem;
+}
+
+.pa-vista-btn {
+    width: 100%;
+}
+
+.pa-vista-estado {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    min-height: 2.3rem;
+    border-radius: 0.3rem;
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--suave);
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.pa-obtenido {
+    background: rgba(22, 163, 74, 0.3);
+    color: #bbf7d0;
+}
+
+/* Pantallas bajitas (celular acostado) */
+@media (max-height: 26rem) {
+    .pa-info {
+        flex-basis: 11.5rem;
+    }
+
+    .pa-portada {
+        min-height: 4.2rem;
+    }
+
+    .pa-vista {
+        flex-basis: 12rem;
+    }
+
+    .pa-col {
+        flex-basis: 4.6rem;
+    }
+}

@@ -21,11 +21,20 @@
    PUT    /carrusel                { config }
    GET    /fondo-lobby             fondo actual y los que trae el juego
    PUT    /fondo-lobby             { ruta }
+
+   GET    /pases                   pases con sus premios (y catálogos)
+   POST   /pases                   crear { …, mayores } (el resto al azar)
+   PUT    /pases/:id               editar datos
+   PUT    /pases/:id/premio        cambiar una casilla { nivel, pista, recompensa }
+   POST   /pases/:id/rellenar      volver a sortear las casillas que no son mayores
+   POST   /pases/:id/regalar       { usuario } regalar la fila élite
+   DELETE /pases/:id
 ========================================================= */
 
 import express from "express";
 
 import { pool } from "../database/db.js";
+import { borrarPase, cambiarPremio, crearPase, editarPase, listarPasesAdmin, regalarElite, rellenarPase } from "../pase/pase.js";
 import { ruta, errorConEstado } from "../http/ruta.js";
 import {
     configTemporadas,
@@ -253,6 +262,54 @@ router.post(
         await regalarTickets(Number(req.params.id) || 0, req.body?.cantidad);
         res.json({ success: true });
     })
+);
+
+/* ---------------- Pase Élite ---------------- */
+
+const idDe = (req) => Number(req.params.id) || 0;
+
+router.get(
+    "/pases",
+    ruta(async (req, res) => {
+        const [{ rows: personajes }, { rows: cosmeticos }] = await Promise.all([
+            pool.query("SELECT id, name, thumbnail_path FROM characters ORDER BY orden, name"),
+            pool.query("SELECT id, tipo, nombre, ruta FROM cosmeticos ORDER BY tipo, nombre"),
+        ]);
+        res.json({ success: true, pases: await listarPasesAdmin(), personajes, cosmeticos });
+    })
+);
+
+router.post(
+    "/pases",
+    ruta(async (req, res) => res.status(201).json({ success: true, pase: await crearPase(req.body || {}) }))
+);
+
+router.put(
+    "/pases/:id",
+    ruta(async (req, res) => res.json({ success: true, pase: await editarPase(idDe(req), req.body || {}) }))
+);
+
+router.put(
+    "/pases/:id/premio",
+    ruta(async (req, res) => res.json({ success: true, ...(await cambiarPremio(idDe(req), req.body || {})) }))
+);
+
+router.post(
+    "/pases/:id/rellenar",
+    ruta(async (req, res) => res.json({ success: true, ...(await rellenarPase(idDe(req))) }))
+);
+
+router.post(
+    "/pases/:id/regalar",
+    ruta(async (req, res) => {
+        const { usuario } = await regalarElite(idDe(req), req.body?.usuario);
+        res.json({ success: true, message: `Pase Élite regalado a ${usuario}.` });
+    })
+);
+
+router.delete(
+    "/pases/:id",
+    ruta(async (req, res) => res.json({ success: true, ...(await borrarPase(idDe(req))) }))
 );
 
 export default router;

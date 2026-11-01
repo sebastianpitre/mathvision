@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
     LuExpand,
     LuGift,
+    LuCrown,
     LuTicket,
     LuHouse,
     LuLogOut,
@@ -203,6 +204,7 @@ export default function MenuFlotante() {
         { id: "perfil", texto: "Perfil", icono: LuUserRound, accion: () => ir("/profile") },
         { id: "ranking", texto: "Ranking", icono: LuTrophy, accion: () => ir("/ranking") },
         { id: "eventos", texto: "Eventos", icono: LuGift, accion: () => ir("/eventos") },
+        { id: "pase", texto: "Pase Élite", icono: LuCrown, accion: () => ir("/pase") },
         { id: "suerte", texto: "GiraGamif", icono: LuTicket, accion: () => ir("/suerte") },
         esAdmin && { id: "panel", texto: "Panel", icono: LuShieldCheck, accion: () => ir("/admin") },
         {

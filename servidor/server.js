@@ -28,6 +28,7 @@ import eventosRoutes from "./src/eventos/eventosRoutes.js";
 import ruletaRoutes from "./src/ruleta/ruletaRoutes.js";
 import carruselRoutes from "./src/carrusel/carruselRoutes.js";
 import perfilesRoutes from "./src/perfiles/perfilesRoutes.js";
+import paseRoutes from "./src/pase/paseRoutes.js";
 import { revisarTemporadas, rangoJugador } from "./src/temporadas/temporadas.js";
 import { TriquiGame } from "./src/games/triqui/TriquiGame.js";
 
@@ -135,6 +136,7 @@ app.use("/api/eventos", eventosRoutes);
 app.use("/api/ruletas", ruletaRoutes);
 app.use("/api/carrusel", carruselRoutes);
 app.use("/api/perfiles", perfilesRoutes);
+app.use("/api/pase", paseRoutes);
 
 /*
  * Modelos 3D y fotos subidos desde el panel. Cada archivo
