@@ -7,13 +7,29 @@
      coordenadas del objeto (antes de girarlo).
 ========================================================= */
 
-export const TIPOS_SIN_INCLINAR = ["columna", "arbol", "circulo", "salon", "escalera"];
+export const TIPOS_SIN_INCLINAR = ["columna", "arbol", "circulo", "salon", "escalera", "baranda"];
+export const NOMBRES_PARED = ["Fondo", "Frente", "Izquierda", "Derecha"];
 
 /* Color, foto y tamaño de la foto que lleva un objeto (o el suelo). */
 export function materialDe(o, materiales = []) {
     const m = o?.material ? materiales.find((x) => x.id === o.material) : null;
-    if (m) return { color: m.tipo === "imagen" ? "#ffffff" : m.color, textura: m.tipo === "imagen" ? m.textura : null, baldosa: m.baldosa || 2, nombre: m.nombre };
-    return { color: o?.textura ? "#ffffff" : o?.color || "#cccccc", textura: o?.textura || null, baldosa: o?.baldosa || 2, nombre: null };
+    if (m) {
+        return {
+            color: m.tipo === "imagen" ? "#ffffff" : m.color,
+            textura: m.tipo === "imagen" ? m.textura : null,
+            baldosa: m.baldosa || 2,
+            nombre: m.nombre,
+            transparente: Boolean(m.transparente),
+        };
+    }
+    return { color: o?.textura ? "#ffffff" : o?.color || "#cccccc", textura: o?.textura || null, baldosa: o?.baldosa || 2, nombre: null, transparente: false };
+}
+
+/* Textura de una pared del salón: la suya (si tiene) o la del salón. */
+export function materialPared(o, k, materiales = []) {
+    const p = o.paredes?.[k];
+    if (!p) return materialDe(o, materiales);
+    return materialDe({ material: p.material, color: p.color }, materiales);
 }
 
 /* Color para dibujar en el mapa (la foto se ve aparte, como patrón). */
@@ -32,10 +48,10 @@ export function partesDe(o) {
         const g = Math.min(o.grosor || 0.25, o.ancho / 2, o.largo / 2);
         const h = o.alto;
         return [
-            { cx: 0, cy: h / 2, cz: -o.largo / 2 + g / 2, w: o.ancho, h, d: g }, // fondo
-            { cx: 0, cy: h / 2, cz: o.largo / 2 - g / 2, w: o.ancho, h, d: g }, // frente
-            { cx: -o.ancho / 2 + g / 2, cy: h / 2, cz: 0, w: g, h, d: o.largo - g * 2 }, // izquierda
-            { cx: o.ancho / 2 - g / 2, cy: h / 2, cz: 0, w: g, h, d: o.largo - g * 2 }, // derecha
+            { cx: 0, cy: h / 2, cz: -o.largo / 2 + g / 2, w: o.ancho, h, d: g, pared: 0 }, // fondo
+            { cx: 0, cy: h / 2, cz: o.largo / 2 - g / 2, w: o.ancho, h, d: g, pared: 1 }, // frente
+            { cx: -o.ancho / 2 + g / 2, cy: h / 2, cz: 0, w: g, h, d: o.largo - g * 2, pared: 2 }, // izquierda
+            { cx: o.ancho / 2 - g / 2, cy: h / 2, cz: 0, w: g, h, d: o.largo - g * 2, pared: 3 }, // derecha
         ];
     }
     if (o.tipo === "escalera") {
@@ -53,4 +69,12 @@ export function partesDe(o) {
         return partes;
     }
     return null;
+}
+
+/* Baranda: palitos cada "separacion" metros y un pasamanos arriba. */
+export function palitosDe(o) {
+    const sep = Math.max(0.08, o.separacion || 0.4);
+    const n = Math.max(2, Math.floor(o.ancho / sep + 1e-6) + 1);
+    const paso = o.ancho / (n - 1);
+    return Array.from({ length: n }, (_, i) => -o.ancho / 2 + paso * i);
 }

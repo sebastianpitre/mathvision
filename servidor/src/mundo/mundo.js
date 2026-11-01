@@ -4,11 +4,16 @@
    Se guarda en config_juego (clave "mundo"):
      cielo   { tipo: color | degradado | foto, color, arriba, horizonte, foto }
      suelo   { color, textura, baldosa (metros que ocupa la foto), material }
-     materiales [{ id, nombre, tipo: color | imagen, color, textura, baldosa }]
+     materiales [{ id, nombre, tipo: color | imagen, color, textura, baldosa, transparente }]
              texturas guardadas que se reutilizan: si se cambia una,
              cambian todos los objetos que la usan.
      luz     dia | tarde | noche
-     personajes  ids de personajes .glb que se pueden usar
+     personajes  ids de personajes .glb que se pueden usar (cada jugador
+             solo ve los que tiene)
+     modelos [{ id, nombre, ruta (.glb), ancho, alto, largo }]  "mis objetos":
+             modelos 3D que sube el admin y se reutilizan
+     tamano  mitad del lado del suelo en metros (60 → de -60 a 60)
+     controles { tamanos: { joystick, saltar, … }, teclas: { adelante: "KeyW", … } }
      objetos [{ id, nombre, tipo, x, z, y, rot, incl, ancho, alto, largo,
                material | color, textura, baldosa, …propios del tipo }]
    Tipos de objeto: caja, pared, plataforma (para brincar),
@@ -18,7 +23,11 @@
    tocar USAR lleva al círculo "destino"), salon (4 paredes que se
    mueven juntas, de "grosor") y escalera ("peldanos"; "flotante"
    = solo los peldaños, sin relleno). "incl" inclina la pieza
-   (rampas, paredes inclinadas).
+   (rampas, paredes inclinadas). Además: baranda (palitos cada
+   "separacion" metros y un pasamanos), modelo (un objeto de "mis
+   objetos"; "solido" = no se atraviesa). "fijo" = no se mueve en el
+   editor por accidente. El salón puede tener "paredes": una
+   textura distinta por pared (fondo, frente, izquierda, derecha).
 ========================================================= */
 
 import { pool } from "../database/db.js";
@@ -27,14 +36,17 @@ import { JUEGOS_SALA } from "../salas/juegos.js";
 
 const CLAVE = "mundo";
 const COLOR = /^#[0-9a-f]{6}$/i;
-export const LIMITE = 60; // el suelo va de -60 a 60 metros
+export const LIMITE = 60; // el suelo va de -60 a 60 metros (se puede agrandar: "tamano")
+export const LIMITE_MAX = 150;
+export const MAX_MODELOS = 100;
 export const MAX_OBJETOS = 300;
-export const TIPOS_OBJETO = ["caja", "pared", "plataforma", "columna", "arbol", "cuadro", "circulo", "salon", "escalera"];
+export const TIPOS_OBJETO = ["caja", "pared", "plataforma", "columna", "arbol", "cuadro", "circulo", "salon", "escalera", "baranda", "modelo"];
 export const FUNCIONES_CIRCULO = ["juego", "teletransporte"];
 export const MAX_MATERIALES = 60;
 export const LUCES = ["dia", "tarde", "noche"];
 
 export const esGlb = (ruta) => /\.glb$/i.test(String(ruta || ""));
+const esModelo = (r) => typeof r === "string" && /^\/archivos\/modelos\/[\w\-.]+\.glb$/i.test(r) && !r.includes("..");
 const esImagen = (r) => typeof r === "string" && /^\/(archivos|img)\/[\w\-./]+\.(png|jpe?g|webp)$/i.test(r) && !r.includes("..");
 
 const color = (v, d) => (COLOR.test(v) ? String(v).toLowerCase() : d);
@@ -55,7 +67,61 @@ export const PIEZAS = {
     circulo: { ancho: 5, alto: 0.1, largo: 5, color: "#ffcf3e" },
     salon: { ancho: 10, alto: 3, largo: 8, color: "#efe7d8" },
     escalera: { ancho: 2, alto: 3, largo: 5, color: "#b9a68f" },
+    baranda: { ancho: 4, alto: 1, largo: 0.1, color: "#cbd5e1" },
+    modelo: { ancho: 1, alto: 1, largo: 1, color: "#ffffff" },
 };
+
+/* Controles del mundo (los pone el admin para todos). */
+export const ACCIONES = ["adelante", "atras", "izquierda", "derecha", "correr", "correrSolo", "saltar", "agarrar", "usar", "hablar", "escribir", "mirar"];
+export const BOTONES = ["joystick", "saltar", "correr", "agarrar", "hablar", "escribir", "usar"];
+export const CONTROLES_POR_DEFECTO = {
+    tamanos: { joystick: 1, saltar: 1, correr: 1, agarrar: 1, hablar: 1, escribir: 1, usar: 1 },
+    teclas: {
+        adelante: "KeyW",
+        atras: "KeyS",
+        izquierda: "KeyA",
+        derecha: "KeyD",
+        correr: "ShiftLeft",
+        correrSolo: "KeyR",
+        saltar: "Space",
+        agarrar: "KeyE",
+        usar: "KeyF",
+        hablar: "KeyV",
+        escribir: "Enter",
+        mirar: "KeyZ",
+    },
+};
+
+function limpiarControles(c = {}) {
+    const tamanos = {};
+    for (const b of BOTONES) tamanos[b] = num(c.tamanos?.[b], 0.6, 1.8, 1);
+    const teclas = {};
+    const usadas = new Set();
+    for (const a of ACCIONES) {
+        const t = String(c.teclas?.[a] || "");
+        const valida = /^[A-Za-z0-9]{1,20}$/.test(t) && !usadas.has(t) ? t : CONTROLES_POR_DEFECTO.teclas[a];
+        teclas[a] = usadas.has(valida) ? "" : valida;
+        if (teclas[a]) usadas.add(teclas[a]);
+    }
+    return { tamanos, teclas };
+}
+
+function limpiarModelo(m = {}, i) {
+    return {
+        id: textoCorto(m.id || `mo${i}`, 24) || `mo${i}`,
+        nombre: textoCorto(m.nombre, 40) || `Objeto ${i + 1}`,
+        ruta: m.ruta,
+        ancho: num(m.ancho, 0.01, 200, 1),
+        alto: num(m.alto, 0.01, 200, 1),
+        largo: num(m.largo, 0.01, 200, 1),
+    };
+}
+
+/* Textura propia de una pared del salón (o null = la del salón). */
+function limpiarPared(p) {
+    if (!p || typeof p !== "object") return null;
+    return { material: p.material ? textoCorto(p.material, 24) : null, color: color(p.color, "#ffffff") };
+}
 
 const textoCorto = (v, max) => String(v ?? "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, max);
 
@@ -68,12 +134,15 @@ function limpiarMaterial(m = {}, i) {
         color: color(m.color, "#cccccc"),
         textura: tipo === "imagen" ? m.textura : null,
         baldosa: num(m.baldosa, 0.25, 50, 2),
+        // PNG con partes transparentes (rejas, hojas…): se ve a través.
+        transparente: Boolean(m.transparente),
     };
 }
 
-function limpiarObjeto(o = {}, i) {
+function limpiarObjeto(o = {}, i, limite = LIMITE) {
     const tipo = TIPOS_OBJETO.includes(o.tipo) ? o.tipo : "caja";
     const base = PIEZAS[tipo];
+    const LIMITE = limite;
     return {
         id: String(o.id || `o${i}`).slice(0, 24),
         nombre: textoCorto(o.nombre, 40),
@@ -98,7 +167,12 @@ function limpiarObjeto(o = {}, i) {
                   destino: o.destino ? textoCorto(o.destino, 24) : null,
               }
             : {}),
-        ...(tipo === "salon" ? { grosor: num(o.grosor, 0.05, 2, 0.25) } : {}),
+        fijo: Boolean(o.fijo),
+        ...(tipo === "salon"
+            ? { grosor: num(o.grosor, 0.05, 2, 0.25), paredes: [0, 1, 2, 3].map((k) => limpiarPared(Array.isArray(o.paredes) ? o.paredes[k] : null)) }
+            : {}),
+        ...(tipo === "baranda" ? { separacion: num(o.separacion, 0.08, 3, 0.4), grueso: num(o.grueso, 0.02, 0.4, 0.06) } : {}),
+        ...(tipo === "modelo" ? { modelo: textoCorto(o.modelo, 24), solido: o.solido !== false } : {}),
         ...(tipo === "escalera" ? { peldanos: Math.round(num(o.peldanos, 2, 60, 12)), flotante: Boolean(o.flotante) } : {}),
     };
 }
@@ -124,9 +198,14 @@ export function normalizar(v = {}) {
             material: s.material ? textoCorto(s.material, 24) : null,
         },
         materiales: (Array.isArray(v.materiales) ? v.materiales : []).slice(0, MAX_MATERIALES).map(limpiarMaterial),
+        modelos: (Array.isArray(v.modelos) ? v.modelos : []).filter((m) => esModelo(m?.ruta)).slice(0, MAX_MODELOS).map(limpiarModelo),
+        tamano: [60, 80, 100, 150].includes(Number(v.tamano)) ? Number(v.tamano) : LIMITE,
+        controles: limpiarControles(v.controles),
         luz: LUCES.includes(v.luz) ? v.luz : "dia",
         personajes: Array.isArray(v.personajes) ? v.personajes.map(String).slice(0, 50) : [],
-        objetos: (Array.isArray(v.objetos) ? v.objetos : []).slice(0, MAX_OBJETOS).map(limpiarObjeto),
+        objetos: (Array.isArray(v.objetos) ? v.objetos : [])
+            .slice(0, MAX_OBJETOS)
+            .map((o, i) => limpiarObjeto(o, i, [60, 80, 100, 150].includes(Number(v.tamano)) ? Number(v.tamano) : LIMITE)),
     };
 }
 
@@ -147,17 +226,31 @@ export async function configMundo() {
     return cache;
 }
 
-/* Lo que ve el jugador: el diseño y los personajes permitidos (con su modelo). */
-export async function mundoParaJugador() {
+/*
+ * Lo que ve el jugador: el diseño y los personajes que puede usar:
+ * los permitidos en el mundo que ese jugador TIENE (comprados,
+ * ganados, gratis o el inicial). Sin userId: todos los permitidos.
+ */
+export async function mundoParaJugador(userId = null) {
     const c = await configMundo();
     const { rows } = await pool.query(
-        "SELECT id, name AS nombre, model_path AS modelo, thumbnail_path AS foto FROM characters WHERE id = ANY($1)",
-        [c.personajes]
+        `
+        SELECT c.id, c.name AS nombre, c.model_path AS modelo, c.thumbnail_path AS foto,
+               ($2::int IS NULL OR c.is_default OR (c.precio_oro = 0 AND c.precio_diamantes = 0)
+                OR EXISTS (SELECT 1 FROM personajes_jugador pj WHERE pj.user_id = $2 AND pj.character_id = c.id)) AS lo_tiene
+        FROM characters c
+        WHERE c.id = ANY($1)
+        `,
+        [c.personajes, userId]
     );
     const orden = new Map(c.personajes.map((id, i) => [id, i]));
+    const todos = rows.filter((p) => esGlb(p.modelo)).sort((a, b) => orden.get(a.id) - orden.get(b.id));
+    const limpio = ({ lo_tiene: _t, ...p }) => p;
     return {
         ...c,
-        personajes: rows.filter((p) => esGlb(p.modelo)).sort((a, b) => orden.get(a.id) - orden.get(b.id)),
+        // Para elegir: solo los que tiene. Para dibujar a los demás: todos los del mundo.
+        personajes: todos.filter((p) => p.lo_tiene).map(limpio),
+        personajesMundo: todos.map(limpio),
     };
 }
 
@@ -171,7 +264,17 @@ export async function guardarConfigMundo(d = {}) {
         idsMat.add(m.id);
     });
     if (valor.suelo.material && !idsMat.has(valor.suelo.material)) valor.suelo.material = null;
-    for (const o of valor.objetos) if (o.material && !idsMat.has(o.material)) o.material = null;
+    for (const o of valor.objetos) {
+        if (o.material && !idsMat.has(o.material)) o.material = null;
+        for (const p of o.paredes || []) if (p?.material && !idsMat.has(p.material)) p.material = null;
+    }
+    // "Mis objetos": ids únicos; los objetos que usan uno que ya no existe se quitan.
+    const idsMod = new Set();
+    valor.modelos.forEach((m, i) => {
+        if (idsMod.has(m.id)) m.id = `mo${i}-${Math.random().toString(36).slice(2, 6)}`;
+        idsMod.add(m.id);
+    });
+    valor.objetos = valor.objetos.filter((o) => o.tipo !== "modelo" || idsMod.has(o.modelo));
     if (valor.cielo.tipo === "foto" && !valor.cielo.foto) throw errorConEstado("Sube la foto del cielo o elige otro tipo de cielo.");
 
     const pedidos = [...new Set(valor.personajes)];

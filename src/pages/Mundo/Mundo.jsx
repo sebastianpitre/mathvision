@@ -15,7 +15,8 @@ import { sonar } from "../../services/sonidos";
 import { socket } from "../../services/socket";
 import { empezarCaptura, micDisponible, pararCaptura, TASA } from "../../services/voz";
 import { Cielo, Luces, Objetos, Suelo } from "./Escena";
-import { formasDe, paso, SALTO } from "./fisica";
+import { formasDe, paso, ponerLimite, SALTO } from "./fisica";
+import { nombreTecla, TAMANOS_POR_DEFECTO, TECLAS_POR_DEFECTO } from "./controles";
 import { ajustarVolumen, cerrarVoces, sonarVoz } from "./vozMundo";
 
 import "./mundo.css";
@@ -328,7 +329,7 @@ function Otro({ jugador, modelo, destinos, globo, habla, agarre, vistas, cargado
 }
 
 /* ---------- Joystick (celular) ---------- */
-function Joystick({ entrada, alTocar }) {
+function Joystick({ entrada, alTocar, tam = 1 }) {
     const base = useRef(null);
     const [punto, setPunto] = useState({ x: 0, y: 0 });
     const dedo = useRef(null);
@@ -356,6 +357,7 @@ function Joystick({ entrada, alTocar }) {
         <div
             ref={base}
             className={`mu-joy ${dedo.current != null ? "mu-joy-activo" : ""}`}
+            style={{ "--tam": tam }}
             onPointerDown={(e) => {
                 e.stopPropagation();
                 dedo.current = e.pointerId;
@@ -371,7 +373,7 @@ function Joystick({ entrada, alTocar }) {
             <span
                 className="mu-joy-punto"
                 style={{
-                    transform: `translate(${punto.x * 2.2}rem, ${punto.y * 2.2}rem)`,
+                    transform: `translate(${punto.x * 2.2 * tam}rem, ${punto.y * 2.2 * tam}rem)`,
                 }}
             />
         </div>
@@ -503,11 +505,12 @@ function Escribir({ alEnviar, alCerrar }) {
 }
 
 /* ---------- Botón de hablar (mantener) ---------- */
-function BotonMic({ hablando, alEmpezar, alTerminar, bloqueado }) {
+function BotonMic({ hablando, alEmpezar, alTerminar, bloqueado, tam = 1, tecla = "V" }) {
     return (
         <button
             type="button"
             className={`mu-accion mu-mic ${hablando ? "mu-mic-on" : ""} ${bloqueado ? "mu-mic-no" : ""}`}
+            style={{ "--tam": tam }}
             onPointerDown={(e) => {
                 e.stopPropagation();
                 e.currentTarget.setPointerCapture?.(e.pointerId);
@@ -518,7 +521,7 @@ function BotonMic({ hablando, alEmpezar, alTerminar, bloqueado }) {
             onLostPointerCapture={alTerminar}
             onContextMenu={(e) => e.preventDefault()}
             aria-label="Mantén para hablar"
-            title="Mantén para hablar (PC: mantén V)"
+            title={`Mantén para hablar (PC: mantén ${tecla})`}
         >
             {bloqueado ? <LuMicOff aria-hidden="true" /> : <LuMic aria-hidden="true" />}
             <small>{hablando ? "Hablando" : "Hablar"}</small>
@@ -814,46 +817,68 @@ export default function Mundo() {
         setCorrer(false);
     }, []);
 
-    // 3) Teclado (PC).
+    // 3) Teclado (PC): las teclas las pone el admin (panel → Mundo 3D → Controles).
+    const teclas = config?.controles?.teclas || TECLAS_POR_DEFECTO;
+    const [mirando, setMirando] = useState(false);
+    const escena = useRef(null);
+    const alternarMirar = useCallback(() => {
+        if (document.pointerLockElement) document.exitPointerLock?.();
+        else escena.current?.requestPointerLock?.();
+    }, []);
     useEffect(() => {
-        const MAPA = {
-            KeyW: "w",
-            ArrowUp: "w",
-            KeyS: "s",
-            ArrowDown: "s",
-            KeyA: "a",
-            ArrowLeft: "a",
-            KeyD: "d",
-            ArrowRight: "d",
-            ShiftLeft: "shift",
-            ShiftRight: "shift",
+        const cambio = () => setMirando(Boolean(document.pointerLockElement));
+        // Mirando con el mouse: la cámara gira sin hacer clic.
+        const mover = (e) => {
+            if (!document.pointerLockElement) return;
+            const c = camara.current;
+            c.yaw -= e.movementX * 0.0035;
+            c.pitch = Math.max(0.05, Math.min(1.25, c.pitch + e.movementY * 0.0025));
         };
+        document.addEventListener("pointerlockchange", cambio);
+        document.addEventListener("mousemove", mover);
+        return () => {
+            document.removeEventListener("pointerlockchange", cambio);
+            document.removeEventListener("mousemove", mover);
+            if (document.pointerLockElement) document.exitPointerLock?.();
+        };
+    }, []);
+
+    useEffect(() => {
+        const accion = {};
+        for (const [a, codigo] of Object.entries(teclas)) if (codigo) accion[codigo] = a;
+        const MOVER = { adelante: "w", atras: "s", izquierda: "a", derecha: "d", correr: "shift" };
+        const FLECHAS = { ArrowUp: "w", ArrowDown: "s", ArrowLeft: "a", ArrowRight: "d" };
         const abajo = (e) => {
             if (e.target instanceof HTMLInputElement) return;
-            const k = MAPA[e.code];
+            const a = accion[e.code];
+            const k = MOVER[a] || FLECHAS[e.code];
             if (k) {
                 entrada.current.teclas[k] = true;
                 e.preventDefault();
+                if (k !== "shift" && entrada.current.correr) quitarCorrer();
             }
-            if (e.code === "Space") {
+            if (e.repeat) return;
+            if (a === "saltar") {
                 e.preventDefault();
-                if (!e.repeat) brincar();
+                brincar();
             }
-            if (e.code === "KeyV" && !e.repeat) empezarHablar();
-            if (e.code === "KeyE" && !e.repeat) agarrarOLanzar();
-            if (e.code === "KeyF" && !e.repeat) usarRef.current?.();
-            if (e.code === "KeyR" && !e.repeat) alternarCorrer();
-            if (k && k !== "shift" && entrada.current.correr) quitarCorrer();
-            if (e.key === "Enter") {
+            if (a === "hablar") empezarHablar();
+            if (a === "agarrar") agarrarOLanzar();
+            if (a === "usar") usarRef.current?.();
+            if (a === "correrSolo") alternarCorrer();
+            if (a === "mirar") alternarMirar();
+            if (a === "escribir") {
                 e.preventDefault();
+                if (document.pointerLockElement) document.exitPointerLock?.();
                 setEscribiendo(true);
             }
-            if (e.key === "Escape") navigate("/lobby");
+            if (e.key === "Escape" && !document.pointerLockElement) navigate("/lobby");
         };
         const arriba = (e) => {
-            const k = MAPA[e.code];
+            const a = accion[e.code];
+            const k = MOVER[a] || FLECHAS[e.code];
             if (k) entrada.current.teclas[k] = false;
-            if (e.code === "KeyV") terminarHablar();
+            if (a === "hablar") terminarHablar();
         };
         const soltarTodo = () => {
             entrada.current.teclas = {};
@@ -867,7 +892,10 @@ export default function Mundo() {
             window.removeEventListener("keyup", arriba);
             window.removeEventListener("blur", soltarTodo);
         };
-    }, [navigate, brincar, empezarHablar, terminarHablar, agarrarOLanzar, alternarCorrer, quitarCorrer]);
+    }, [navigate, brincar, empezarHablar, terminarHablar, agarrarOLanzar, alternarCorrer, quitarCorrer, alternarMirar, teclas]);
+
+    // Si el admin agranda el mundo, la orilla se corre.
+    useEffect(() => ponerLimite(config?.tamano || 60), [config?.tamano]);
 
     // Arrastrar la pantalla gira la cámara.
     const alBajar = useCallback((e) => {
@@ -896,12 +924,21 @@ export default function Mundo() {
     };
 
     if (error || (config && config.personajes.length === 0)) {
+        // Solo se usan los personajes del mundo que el jugador TIENE.
+        const sinNinguno = !error && config?.personajesMundo?.length > 0;
         return (
             <div className="mu mu-aviso">
-                <p>{error || "El administrador aún no eligió personajes para el mundo."}</p>
-                <button type="button" className="ffp-btn" onClick={() => navigate("/lobby")}>
-                    Volver al lobby
-                </button>
+                <p>{error || (sinNinguno ? "Aún no tienes ninguno de los personajes del mundo. Consíguelos en la tienda." : "El administrador aún no eligió personajes para el mundo.")}</p>
+                <div className="mu-aviso-botones">
+                    {sinNinguno && (
+                        <button type="button" className="ffp-btn" onClick={() => navigate("/tienda")}>
+                            Ir a la tienda
+                        </button>
+                    )}
+                    <button type="button" className="ffp-btn ffp-btn-2" onClick={() => navigate("/lobby")}>
+                        Volver al lobby
+                    </button>
+                </div>
             </div>
         );
     }
@@ -914,7 +951,11 @@ export default function Mundo() {
         );
     }
 
-    const modeloDe = (id) => config.personajes.find((p) => p.id === id)?.modelo || config.personajes[0].modelo;
+    // Los demás pueden usar personajes que yo no tengo: se dibujan con la lista completa del mundo.
+    const todos = config.personajesMundo?.length ? config.personajesMundo : config.personajes;
+    const modeloDe = (id) => todos.find((p) => p.id === id)?.modelo || todos[0].modelo;
+    const tam = { ...TAMANOS_POR_DEFECTO, ...(config.controles?.tamanos || {}) };
+    const tecla = (a) => nombreTecla(teclas[a]);
     const mio = jugadores.find((j) => j.userId === yo);
     const cargoAlguien = agarre.current.cargando.has(yo);
     const circuloUsable = usable ? config.objetos.find((o) => o.id === usable) : null;
@@ -922,12 +963,12 @@ export default function Mundo() {
 
     return (
         <div className={`mu mu-luz-${config.luz}`}>
-            <div className="mu-escena" onPointerDown={alBajar} onPointerMove={alMover} onPointerUp={alSoltar} onPointerCancel={alSoltar}>
+            <div className="mu-escena" ref={escena} onPointerDown={alBajar} onPointerMove={alMover} onPointerUp={alSoltar} onPointerCancel={alSoltar}>
                 <Canvas shadows="percentage" camera={{ position: [0, 3, 6], fov: 58, near: 0.1, far: 900 }} dpr={[1, 1.5]} gl={{ antialias: true }}>
                     <Cielo cielo={config.cielo} />
                     <Luces luz={config.luz} colorSuelo={config.suelo.color} siguiendo={posicion} />
-                    <Suelo suelo={config.suelo} materiales={config.materiales} />
-                    <Objetos objetos={config.objetos} materiales={config.materiales} circulos={circulos} desfase={desfase} />
+                    <Suelo suelo={config.suelo} materiales={config.materiales} tamano={config.tamano} />
+                    <Objetos objetos={config.objetos} materiales={config.materiales} modelos={config.modelos} circulos={circulos} desfase={desfase} />
 
                     {mio && (
                         <Yo
@@ -1000,25 +1041,27 @@ export default function Mundo() {
             )}
 
             {/* ---------- Controles ---------- */}
-            <Joystick entrada={entrada} alTocar={quitarCorrer} />
+            <Joystick entrada={entrada} alTocar={quitarCorrer} tam={tam.joystick} />
+            {mirando && <p className="mu-mirando">{`🖱️ Mirando con el mouse · ${tecla("mirar")} para soltar`}</p>}
 
             <div className="mu-acciones" onPointerDown={(e) => e.stopPropagation()}>
-                <button type="button" className="mu-accion mu-chica" onClick={() => setEscribiendo(true)} aria-label="Escribir un mensaje" title="Escribir (Enter)">
+                <button type="button" className="mu-accion mu-chica" style={{ "--tam": tam.escribir }} onClick={() => setEscribiendo(true)} aria-label="Escribir un mensaje" title={`Escribir (${tecla("escribir")})`}>
                     <LuMessageCircle aria-hidden="true" />
                 </button>
                 <button
                     type="button"
                     className={`mu-accion mu-agarrar ${cargoAlguien ? "mu-lanzar" : ""}`}
+                    style={{ "--tam": tam.agarrar }}
                     onClick={agarrarOLanzar}
                     aria-label={cargoAlguien ? "Lanzar" : "Agarrar"}
-                    title={cargoAlguien ? "Lanzar (E)" : "Agarrar al que está al lado (E)"}
+                    title={cargoAlguien ? `Lanzar (${tecla("agarrar")})` : `Agarrar al que está al lado (${tecla("agarrar")})`}
                 >
                     {cargoAlguien ? <LuRocket aria-hidden="true" /> : <LuGrab aria-hidden="true" />}
                     <small>{cargoAlguien ? "Lanzar" : "Agarrar"}</small>
                 </button>
-                <BotonMic hablando={hablo} alEmpezar={empezarHablar} alTerminar={terminarHablar} />
+                <BotonMic hablando={hablo} alEmpezar={empezarHablar} alTerminar={terminarHablar} tam={tam.hablar} tecla={tecla("hablar")} />
                 {circuloUsable && (
-                    <button type="button" className="mu-accion mu-usar" onClick={usar} title="Usar (F)">
+                    <button type="button" className="mu-accion mu-usar" style={{ "--tam": tam.usar }} onClick={usar} title={`Usar (${tecla("usar")})`}>
                         <LuSparkles aria-hidden="true" />
                         <small>Usar</small>
                     </button>
@@ -1026,14 +1069,15 @@ export default function Mundo() {
                 <button
                     type="button"
                     className={`mu-accion ${correr ? "mu-correr-on" : ""}`}
+                    style={{ "--tam": tam.correr }}
                     onClick={alternarCorrer}
                     aria-pressed={correr}
-                    title="Correr solo hacia donde mira la cámara (R). Toca el joystick para quitarlo."
+                    title={`Correr solo hacia donde mira la cámara (${tecla("correrSolo")}). Toca el joystick para quitarlo.`}
                 >
                     <LuZap aria-hidden="true" />
                     <small>Correr</small>
                 </button>
-                <button type="button" className="mu-accion mu-saltar" onPointerDown={brincar} aria-label="Brincar" title="Brincar (Espacio)">
+                <button type="button" className="mu-accion mu-saltar" style={{ "--tam": tam.saltar }} onPointerDown={brincar} aria-label="Brincar" title={`Brincar (${tecla("saltar")})`}>
                     <LuChevronsUp aria-hidden="true" />
                     <small>Brincar</small>
                 </button>

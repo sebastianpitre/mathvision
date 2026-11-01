@@ -924,3 +924,159 @@
 .ed-form-tex > .ed-campo {
     flex: none;
 }
+
+/* ---------- Botones − / + de los números ---------- */
+.ed-num {
+    width: 104px;
+}
+
+.ed-num-btn {
+    width: 22px;
+    height: 100%;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--ed-suave) !important;
+    cursor: pointer;
+}
+
+.ed-num-btn:hover {
+    background: rgba(56, 189, 248, 0.2);
+    color: #e0f2fe !important;
+}
+
+.ed-num-btn svg {
+    width: 12px;
+    height: 12px;
+}
+
+.ed-num input {
+    padding: 0 2px 0 4px;
+    text-align: center;
+}
+
+.ed-num em {
+    padding-right: 3px;
+}
+
+/* ---------- Panel del objeto ---------- */
+.ed-objeto-cabeza {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--ed-borde);
+}
+
+.ed-objeto-cabeza > div {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.ed-objeto-cabeza small {
+    color: var(--ed-suave);
+}
+
+.ed-paredes {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+}
+
+.ed-paredes button {
+    position: relative;
+    height: 30px;
+    border: 1px solid var(--ed-borde);
+    border-radius: 8px;
+    background: var(--ed-fondo);
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.ed-paredes button.ed-on {
+    border-color: var(--ed-azul);
+    background: rgba(56, 189, 248, 0.14);
+}
+
+.ed-paredes i {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ed-oro);
+}
+
+.ed-pestanas {
+    flex-wrap: wrap;
+}
+
+.ed-pestanas button {
+    flex: 1 1 auto;
+    padding: 0 6px;
+    font-size: 12px;
+}
+
+.ed-capas li {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.ed-capas li > button:first-child {
+    flex: 1;
+    min-width: 0;
+}
+
+.ed-candado {
+    width: 28px;
+    height: 28px;
+    color: var(--ed-suave);
+}
+
+.ed-candado.ed-on {
+    color: var(--ed-oro);
+}
+
+.ed-li-on {
+    border-color: var(--ed-azul) !important;
+    background: rgba(56, 189, 248, 0.12) !important;
+}
+
+.ed-muestra-3d {
+    display: grid !important;
+    place-items: center;
+    background: linear-gradient(135deg, #7c3aed, #c084fc) !important;
+}
+
+.ed-muestra-3d svg {
+    width: 18px;
+    height: 18px;
+}
+
+.ed-nombre-modelo {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px dashed transparent;
+    background: transparent;
+    color: var(--ed-texto);
+    font: inherit;
+    font-weight: 700;
+    outline: none;
+}
+
+.ed-nombre-modelo:focus {
+    border-bottom-color: var(--ed-azul);
+}
+
+.ed-barra button:disabled {
+    opacity: 0.35;
+    cursor: default;
+}

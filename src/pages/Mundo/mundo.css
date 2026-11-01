@@ -290,8 +290,8 @@
     z-index: 4;
     left: calc(max(1.4rem, env(safe-area-inset-left)) + 2.6rem);
     bottom: max(1.2rem, env(safe-area-inset-bottom));
-    width: 7.4rem;
-    height: 7.4rem;
+    width: calc(7.4rem * var(--tam, 1));
+    height: calc(7.4rem * var(--tam, 1));
     display: grid;
     place-items: center;
     border: 2px solid rgba(255, 255, 255, 0.4);
@@ -307,8 +307,8 @@
 }
 
 .mu-joy-punto {
-    width: 3rem;
-    height: 3rem;
+    width: calc(3rem * var(--tam, 1));
+    height: calc(3rem * var(--tam, 1));
     border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #fff, #d6dbe6);
     box-shadow: 0 0.25rem 0.7rem rgba(0, 0, 0, 0.4);
@@ -338,8 +338,8 @@
     align-items: center;
     justify-content: center;
     gap: 0.05rem;
-    width: 3.6rem;
-    height: 3.6rem;
+    width: calc(3.6rem * var(--tam, 1));
+    height: calc(3.6rem * var(--tam, 1));
     padding: 0;
     border-radius: 50%;
     cursor: pointer;
@@ -364,8 +364,8 @@
 }
 
 .mu-chica {
-    width: 2.8rem;
-    height: 2.8rem;
+    width: calc(2.8rem * var(--tam, 1));
+    height: calc(2.8rem * var(--tam, 1));
 }
 
 .mu-acciones > :nth-child(1) {
@@ -389,8 +389,8 @@
 }
 
 .mu-saltar {
-    width: 4.6rem;
-    height: 4.6rem;
+    width: calc(4.6rem * var(--tam, 1));
+    height: calc(4.6rem * var(--tam, 1));
     background: linear-gradient(180deg, #ffe45c, #f2a900);
     color: #2a1c00;
     border-color: rgba(255, 255, 255, 0.6);
@@ -562,8 +562,9 @@
     position: absolute;
     inset: 0;
     z-index: 20;
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 1rem;
     background: rgba(5, 8, 16, 0.55);
     touch-action: auto;
@@ -572,6 +573,7 @@
 .mu-elegir {
     width: min(38rem, 100%);
     max-height: 100%;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
@@ -708,4 +710,51 @@
 
 .mu-portal strong {
     color: #c4b5fd;
+}
+
+/* La lista de personajes SIEMPRE con scroll (pueden ser muchos). */
+.mu-elegir ul {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    scrollbar-width: thin;
+}
+
+.mu-accion svg {
+    width: calc(1.4rem * var(--tam, 1));
+    height: calc(1.4rem * var(--tam, 1));
+}
+
+.mu-saltar svg {
+    width: calc(1.9rem * var(--tam, 1)) !important;
+    height: calc(1.9rem * var(--tam, 1)) !important;
+}
+
+.mu-acciones .mu-usar {
+    width: calc(5rem * var(--tam, 1));
+    height: calc(5rem * var(--tam, 1));
+}
+
+.mu-mirando {
+    position: absolute;
+    z-index: 6;
+    left: 50%;
+    top: 3.4rem;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 0.3rem 0.8rem;
+    border-radius: 99rem;
+    background: rgba(10, 14, 26, 0.7);
+    font-size: 0.8rem;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+.mu-aviso-botones {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    justify-content: center;
 }

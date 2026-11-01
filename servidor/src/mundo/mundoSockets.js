@@ -28,6 +28,8 @@
 import { pool } from "../database/db.js";
 import { obtenerConfigVoz, permisoVoz } from "../voz/voz.js";
 import { alCambiarMundo, mundoParaJugador, LIMITE } from "./mundo.js";
+
+let limite = LIMITE; // mitad del suelo (el admin lo puede agrandar)
 import { limpiarMensaje } from "./filtro.js";
 import { crearCirculos } from "./circulos.js";
 
@@ -91,7 +93,10 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
     });
     let objetosActuales = [];
     mundoParaJugador()
-        .then((c) => (objetosActuales = c.objetos))
+        .then((c) => {
+            objetosActuales = c.objetos;
+            limite = c.tamano || LIMITE;
+        })
         .catch(() => {});
     setInterval(() => {
         if (jugadores.size && roomManager && arranque) circulos.revisar(objetosActuales);
@@ -131,8 +136,11 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
 
     // El admin guardó el mundo: todos lo ven sin salir.
     alCambiarMundo(async () => {
-        const config = await mundoParaJugador();
+        const { personajes: _p, ...config } = await mundoParaJugador();
+        // (personajesMundo sí va: sirve para dibujar a todos)
         objetosActuales = config.objetos;
+        limite = config.tamano || LIMITE;
+        // Sin la lista de personajes: esa depende de lo que tiene cada jugador.
         if (jugadores.size) io.to(SALA).emit("mundo:diseno", { config });
     });
 
@@ -149,9 +157,15 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
 
     function registrar(socket) {
         socket.on("mundo:entrar", async ({ personaje } = {}) => {
-            const config = await mundoParaJugador();
+            const config = await mundoParaJugador(socket.userId); // solo los personajes que tiene
             const elegido = config.personajes.find((p) => p.id === String(personaje)) || config.personajes[0];
-            if (!elegido) return socket.emit("mundo:error", { mensaje: "El administrador aún no eligió personajes para el mundo." });
+            if (!elegido) {
+                return socket.emit("mundo:error", {
+                    mensaje: config.personajesMundo.length
+                        ? "Aún no tienes ninguno de los personajes del mundo. Consíguelos en la tienda."
+                        : "El administrador aún no eligió personajes para el mundo.",
+                });
+            }
 
             const ya = jugadores.get(socket.userId);
             if (!ya && jugadores.size >= MAXIMO) return socket.emit("mundo:error", { mensaje: "El mundo está lleno. Intenta en un rato." });
@@ -186,9 +200,9 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
         socket.on("mundo:mover", ({ x, y, z, r, andando } = {}) => {
             const j = mio(socket);
             if (!j || j.cargadoPor) return; // lo llevan cargado: su posición la pone el que lo carga
-            j.x = num(x, -LIMITE, LIMITE);
+            j.x = num(x, -limite, limite);
             j.y = num(y, 0, 40);
-            j.z = num(z, -LIMITE, LIMITE);
+            j.z = num(z, -limite, limite);
             j.r = num(r, -100, 100);
             j.andando = Math.round(num(andando, 0, 2));
             cambio = true;

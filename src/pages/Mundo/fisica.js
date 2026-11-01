@@ -12,7 +12,11 @@
 import { partesDe } from "./piezas.js";
 
 export const RADIO = 0.35;
-export const LIMITE = 58;
+export let LIMITE = 58;
+/* El admin puede agrandar el mundo: la orilla se mueve con él. */
+export function ponerLimite(mitad) {
+    LIMITE = Math.max(10, (mitad || 60) - 2);
+}
 const GRAVEDAD = 24;
 export const SALTO = 8; // velocidad hacia arriba (≈ 1.3 m de alto)
 const ESCALON = 0.45; // se sube solo a lo que mida menos que esto
@@ -24,6 +28,7 @@ export function formasDe(objetos = []) {
     const formas = [];
     for (const o of objetos) {
         if (o.tipo === "circulo") continue; // se pisa, no choca
+        if (o.tipo === "modelo" && o.solido === false) continue; // decorativo: se atraviesa
         const base = o.y || 0;
         if (o.tipo === "arbol") {
             formas.push({ cil: true, x: o.x, z: o.z, r: Math.max(0.2, o.ancho * 0.1), abajo: base, techo: base + o.alto * 0.45 });
@@ -53,7 +58,7 @@ export function formasDe(objetos = []) {
             }
             continue;
         }
-        const d = Math.max(o.largo, 0.1);
+        const d = o.tipo === "baranda" ? Math.max(o.grueso || 0.06, 0.15) : Math.max(o.largo, 0.1);
         const a = -(o.incl || 0) * RAD; // positivo: sube hacia el frente (+z del objeto)
         if (Math.abs(o.incl || 0) > 2) {
             const pie = Math.abs((d / 2) * Math.cos(a)) + Math.abs((o.alto / 2) * Math.sin(a));
@@ -61,9 +66,9 @@ export function formasDe(objetos = []) {
             if (Math.abs(o.incl) <= 50) {
                 // Rampa: se camina por encima.
                 formas.push({ rampa: true, x: o.x, z: o.z, hx: o.ancho / 2, hz: pie, cos, sin, base, cy: o.alto / 2, h: o.alto, d, a, abajo: base + o.alto / 2 - alto, techo: base + o.alto / 2 + alto });
-            } else {
-                formas.push({ x: o.x, z: o.z, hx: o.ancho / 2, hz: pie, cos, sin, abajo: base + o.alto / 2 - alto, techo: base + o.alto / 2 + alto });
+                continue;
             }
+            formas.push({ x: o.x, z: o.z, hx: o.ancho / 2, hz: pie, cos, sin, abajo: base + o.alto / 2 - alto, techo: base + o.alto / 2 + alto });
             continue;
         }
         formas.push({ x: o.x, z: o.z, hx: o.ancho / 2, hz: d / 2, cos, sin, abajo: base, techo: base + o.alto });
@@ -134,7 +139,9 @@ export function paso(p, dx, dz, dt, formas) {
         if (f.rampa) {
             // Por un lado de la rampa (muy abajo de su superficie) no se pasa.
             const h = alturaRampa(f, p.x, p.z);
-            if (h != null && p.y < h - 0.6 && p.y + 1.6 > f.abajo) empujar(f, p);
+            // Por debajo de la rampa se puede pasar (si la cabeza cabe).
+            const debajo = h != null ? h - f.h / Math.max(0.2, Math.cos(f.a)) : null;
+            if (h != null && p.y < h - 0.6 && p.y + 1.7 > debajo) empujar(f, p);
             continue;
         }
         if (p.y >= f.techo - ESCALON || p.y + 1.6 <= f.abajo) continue;

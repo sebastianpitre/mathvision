@@ -3,10 +3,12 @@ import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 import { Html } from "@react-three/drei";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { clone as clonarEsqueleto } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 import ProtegerError from "../../components/common/ProtegerError";
 import juegosLista from "../../data/mock/games.json";
-import { materialDe, partesDe } from "./piezas.js";
+import { materialDe, materialPared, palitosDe, partesDe } from "./piezas.js";
 
 /* =========================================================
    MUNDO 3D · EL ESCENARIO
@@ -32,20 +34,22 @@ function useTextura(ruta, repetirX = 1, repetirY = 1) {
     }, [base, repetirX, repetirY, gl]);
 }
 
-/* Material con foto (si hay) y si no, solo color. Mientras carga la foto se ve el color. */
-function Material({ color, textura, repetirX, repetirY, rugoso = 0.85 }) {
+/* Material con foto (si hay) y si no, solo color. Mientras carga la foto se ve el color.
+   transparente: PNG con huecos (rejas, hojas…) que se ven a través. */
+function Material({ color, textura, repetirX, repetirY, rugoso = 0.85, transparente = false }) {
     if (!textura) return <meshStandardMaterial color={color} roughness={rugoso} />;
     return (
         <ProtegerError respaldo={<meshStandardMaterial color={color} roughness={rugoso} />}>
-            <Suspense fallback={<meshStandardMaterial color={color} roughness={rugoso} />}>
-                <MaterialFoto textura={textura} repetirX={repetirX} repetirY={repetirY} rugoso={rugoso} />
+            <Suspense fallback={<meshStandardMaterial color={color} roughness={rugoso} transparent={transparente} opacity={transparente ? 0.4 : 1} />}>
+                <MaterialFoto textura={textura} repetirX={repetirX} repetirY={repetirY} rugoso={rugoso} transparente={transparente} />
             </Suspense>
         </ProtegerError>
     );
 }
 
-function MaterialFoto({ textura, repetirX, repetirY, rugoso }) {
+function MaterialFoto({ textura, repetirX, repetirY, rugoso, transparente }) {
     const mapa = useTextura(textura, repetirX, repetirY);
+    if (transparente) return <meshStandardMaterial map={mapa} roughness={rugoso} transparent alphaTest={0.35} side={THREE.DoubleSide} />;
     return <meshStandardMaterial map={mapa} roughness={rugoso} />;
 }
 
@@ -159,12 +163,13 @@ export function Luces({ luz, colorSuelo, siguiendo }) {
 }
 
 /* ---------- Suelo ---------- */
-export function Suelo({ suelo, materiales = [] }) {
+export function Suelo({ suelo, materiales = [], tamano = 60 }) {
     const m = materialDe(suelo, materiales);
-    const veces = TAMANO_SUELO / (m.baldosa || suelo.baldosa || 4);
+    const lado = tamano * 2 + 4;
+    const veces = lado / (m.baldosa || suelo.baldosa || 4);
     return (
         <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-            <planeGeometry args={[TAMANO_SUELO, TAMANO_SUELO]} />
+            <planeGeometry args={[lado, lado]} />
             <Material color={m.color} textura={m.textura} repetirX={veces} repetirY={veces} rugoso={0.95} />
         </mesh>
     );
@@ -177,14 +182,90 @@ const RAD = Math.PI / 180;
 function Caja({ w, h, d, m, posicion, sombra = true }) {
     const b = m.baldosa || 2;
     return (
-        <mesh position={posicion} castShadow={sombra} receiveShadow>
+        <mesh position={posicion} castShadow={sombra && !m.transparente} receiveShadow>
             <boxGeometry args={[w, h, Math.max(0.05, d)]} />
-            <Material color={m.color} textura={m.textura} repetirX={Math.max(w, d) / b} repetirY={Math.max(h, Math.min(w, d)) / b} />
+            <Material color={m.color} textura={m.textura} transparente={m.transparente} repetirX={Math.max(w, d) / b} repetirY={Math.max(h, Math.min(w, d)) / b} />
         </mesh>
     );
 }
 
-function Objeto({ o, materiales }) {
+/* Baranda: palitos parados y un pasamanos acostado arriba. */
+function Baranda({ o, m }) {
+    const g = o.grueso || 0.06;
+    const xs = palitosDe(o);
+    const b = m.baldosa || 2;
+    return (
+        <>
+            {xs.map((x) => (
+                <mesh key={x} position={[x, (o.alto - g) / 2, 0]} castShadow>
+                    <cylinderGeometry args={[g / 2, g / 2, o.alto - g, 8]} />
+                    <Material color={m.color} textura={m.textura} transparente={m.transparente} repetirX={1} repetirY={o.alto / b} />
+                </mesh>
+            ))}
+            <mesh position={[0, o.alto - g * 0.6, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
+                <cylinderGeometry args={[g * 0.75, g * 0.75, o.ancho + g, 10]} />
+                <Material color={m.color} textura={m.textura} transparente={m.transparente} repetirX={1} repetirY={o.ancho / b} />
+            </mesh>
+        </>
+    );
+}
+
+/* "Mis objetos": un modelo .glb que sube el admin, estirado al tamaño elegido. */
+function ModeloGlb({ ruta, ancho, alto, largo }) {
+    const gltf = useLoader(GLTFLoader, ruta);
+    const { objeto, escala, centro } = useMemo(() => {
+        const copia = clonarEsqueleto(gltf.scene);
+        copia.traverse((n) => {
+            if (n.isMesh) {
+                n.castShadow = true;
+                n.receiveShadow = true;
+            }
+        });
+        // La medida se toma del original (en un clon con esqueleto las medidas salen mal).
+        gltf.scene.updateMatrixWorld(true);
+        const caja = new THREE.Box3().setFromObject(gltf.scene);
+        const t = caja.getSize(new THREE.Vector3());
+        const c = caja.getCenter(new THREE.Vector3());
+        return { objeto: copia, escala: [ancho / (t.x || 1), alto / (t.y || 1), largo / (t.z || 1)], centro: [c.x, caja.min.y, c.z] };
+    }, [gltf, ancho, alto, largo]);
+    return (
+        <group scale={escala}>
+            <primitive object={objeto} position={[-centro[0], -centro[1], -centro[2]]} />
+        </group>
+    );
+}
+
+function Modelo({ o, modelos }) {
+    const m = modelos.find((x) => x.id === o.modelo);
+    const rot = (o.rot || 0) * RAD;
+    if (!m) return null;
+    return (
+        <group position={[o.x, o.y || 0, o.z]} rotation={new THREE.Euler(-(o.incl || 0) * RAD, rot, 0, "YXZ")}>
+            <ProtegerError
+                respaldo={
+                    <mesh position={[0, o.alto / 2, 0]}>
+                        <boxGeometry args={[o.ancho, o.alto, o.largo]} />
+                        <meshStandardMaterial color="#f87171" wireframe />
+                    </mesh>
+                }
+            >
+                <Suspense
+                    fallback={
+                        <mesh position={[0, o.alto / 2, 0]}>
+                            <boxGeometry args={[o.ancho, o.alto, o.largo]} />
+                            <meshStandardMaterial color="#94a3b8" transparent opacity={0.35} />
+                        </mesh>
+                    }
+                >
+                    <ModeloGlb ruta={m.ruta} ancho={o.ancho} alto={o.alto} largo={o.largo} />
+                </Suspense>
+            </ProtegerError>
+        </group>
+    );
+}
+
+function Objeto({ o, materiales, modelos }) {
+    if (o.tipo === "modelo") return <Modelo o={o} modelos={modelos} />;
     const rot = (o.rot || 0) * RAD;
     const base = o.y || 0;
     const m = materialDe(o, materiales);
@@ -226,7 +307,8 @@ function Objeto({ o, materiales }) {
         return (
             <group position={[o.x, base, o.z]} rotation={[0, rot, 0]}>
                 {partes.map((q, i) => (
-                    <Caja key={i} w={q.w} h={q.h} d={q.d} m={m} posicion={[q.cx, q.cy, q.cz]} />
+                    // Cada pared del salón puede tener su propia textura.
+                    <Caja key={i} w={q.w} h={q.h} d={q.d} m={q.pared != null ? materialPared(o, q.pared, materiales) : m} posicion={[q.cx, q.cy, q.cz]} />
                 ))}
             </group>
         );
@@ -234,6 +316,14 @@ function Objeto({ o, materiales }) {
 
     // Inclinada (positivo: sube hacia el frente). Orden: primero gira, luego inclina.
     const giro = new THREE.Euler(-(o.incl || 0) * RAD, rot, 0, "YXZ");
+
+    if (o.tipo === "baranda") {
+        return (
+            <group position={[o.x, base, o.z]} rotation={[0, rot, 0]}>
+                <Baranda o={o} m={m} />
+            </group>
+        );
+    }
 
     if (o.tipo === "cuadro") {
         // Una foto colgada (mural, logo del colegio, cartel…), con marco del color elegido.
@@ -249,11 +339,11 @@ function Objeto({ o, materiales }) {
                     <>
                         <mesh position={[0, 0, grueso / 2 + 0.005]}>
                             <planeGeometry args={[o.ancho, o.alto]} />
-                            <Material color="#ffffff" textura={foto} repetirX={1} repetirY={1} rugoso={0.7} />
+                            <Material color="#ffffff" textura={foto} transparente={m.transparente} repetirX={1} repetirY={1} rugoso={0.7} />
                         </mesh>
                         <mesh position={[0, 0, -grueso / 2 - 0.005]} rotation={[0, Math.PI, 0]}>
                             <planeGeometry args={[o.ancho, o.alto]} />
-                            <Material color="#ffffff" textura={foto} repetirX={1} repetirY={1} rugoso={0.7} />
+                            <Material color="#ffffff" textura={foto} transparente={m.transparente} repetirX={1} repetirY={1} rugoso={0.7} />
                         </mesh>
                     </>
                 )}
@@ -402,12 +492,12 @@ export function nombreDe(o) {
     return o?.nombre || o?.id || "";
 }
 
-export function Objetos({ objetos, materiales = [], circulos = {}, desfase = 0, seleccionado = null, etiquetas = true }) {
+export function Objetos({ objetos, materiales = [], modelos = [], circulos = {}, desfase = 0, seleccionado = null, etiquetas = true }) {
     const porId = new Map(objetos.map((o) => [o.id, o]));
     return (
         <>
             {objetos.map((o) => {
-                if (o.tipo !== "circulo") return <Objeto key={o.id} o={o} materiales={materiales} />;
+                if (o.tipo !== "circulo") return <Objeto key={o.id} o={o} materiales={materiales} modelos={modelos} />;
                 if (o.funcion === "teletransporte") return <Portal key={o.id} o={o} etiquetas={etiquetas} destino={o.destino ? nombreDe(porId.get(o.destino)) : null} />;
                 return <Circulo key={o.id} o={o} estado={circulos[o.id]} desfase={desfase} etiquetas={etiquetas} />;
             })}

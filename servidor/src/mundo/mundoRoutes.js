@@ -10,7 +10,7 @@ const router = express.Router();
 router.get(
     "/",
     requireAuth,
-    ruta(async (req, res) => res.json({ success: true, ...(await mundoParaJugador()) }))
+    ruta(async (req, res) => res.json({ success: true, ...(await mundoParaJugador(req.user.userId)) }))
 );
 
 export default router;

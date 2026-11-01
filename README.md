@@ -177,19 +177,36 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   para cambiarla (queda fija ✨), "Sortear el resto otra vez" vuelve a sortear las que no
   son fijas, y "Regalar Élite a" se lo da a un jugador (usuario o ID). Se ve cuántos
   jugadores tiene y cuántos son Élite. Si hay varios activos, sale el que empezó de último.
-- **Mundo 3D:** vistazo en 3D del colegio, los **personajes** que se pueden usar al caminar
-  (solo **.glb**, pesan menos; caben 40 jugadores) y el botón **Abrir el editor del Mundo 3D**.
+- **Mundo 3D:** vistazo en 3D del colegio, los **controles** para todos (tamaño de cada
+  botón en el celular y la tecla de cada acción en el PC, con "volver a los de fábrica"),
+  los **personajes** que se pueden usar al caminar (solo **.glb**; cada jugador solo ve
+  los que **tiene**: comprados, ganados, gratis o el inicial) y el botón **Abrir el editor
+  del Mundo 3D**.
   - **Editor** (pantalla completa, `/editor-mundo`), como un programa de diseño:
     - A la izquierda las piezas: pared, **salón** (4 paredes que se mueven juntas; se cambia
       largo, ancho, alto y grosor), caja, plataforma, **rampa**, **escalera**, **escalera
       flotante** (solo peldaños), columna, árbol, cuadro/mural, **círculo de juego** y
       **teletransporte**. Se elige y se toca el mapa (con Shift se ponen varias).
-    - Al elegir un objeto sale encima su barra: **girar 90°, duplicar, eliminar y ⚙**
-      (posición X/Z/altura, tamaño, girar, **inclinar** —hasta 50° se camina por encima—,
-      textura, nombre). Las agarraderas cambian el tamaño y el círculo azul lo gira.
+    - Al elegir un objeto sale encima su barra (**fijar, girar 90°, duplicar, eliminar, ⚙**)
+      y sus opciones en el **panel derecho** (pestaña con su ID): posición X/Z/altura,
+      tamaño, girar, **inclinar** (hasta 50° se camina por encima y por debajo se pasa si
+      cabe), textura y nombre. Cada número tiene botones **− / +** (Shift = de 10 en 10).
+      Las agarraderas cambian el tamaño y el círculo azul lo gira.
+    - **Fijar** (candado, tecla L): el objeto ya no se mueve ni se elige en el mapa por
+      accidente; se suelta desde su barra o desde la **Lista**.
+    - **Mis objetos:** sube modelos **.glb** (sillas, mesas, tableros…; gratis en
+      sketchfab.com o poly.pizza), se miden solos y se ponen las veces que quieras. Cada
+      uno se mueve, gira y cambia de tamaño (con "mantener proporción" y "tamaño
+      original"); "sólido" decide si se atraviesa.
+    - **Baranda:** palitos parados y un pasamanos; al alargarla salen más palitos. Se
+      elige la separación, el grosor y la altura.
+    - **Salón con paredes distintas:** marca qué paredes (fondo, frente, izquierda,
+      derecha) llevan otro color o textura; las demás siguen con la del salón.
     - Cada objeto tiene un **ID** visible (S1, P2, C3, T1…) para reconocerlo.
     - **Texturas guardadas** (panel derecho): color sólido o imagen con lo que mide cada foto.
       Se ponen en muchos objetos (y en el suelo); si se cambia la textura, cambian todos.
+      **Transparente:** para PNG con huecos (rejas, mallas) que se ven a través.
+    - **Tamaño del mundo** (Ambiente): suelo de 120, 160, 200 o 300 m.
     - **Teletransporte:** círculo con destino (otro círculo u objeto). En el mundo, al
       pararse encima sale el botón **USAR** (F en PC) y lleva al destino; sirve de puerta
       para los salones. Más adelante USAR podrá tener otras funciones.
@@ -198,7 +215,8 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
       hay cambios), Supr borra, Ctrl+D duplica, R gira, flechas mueven (Shift = 2 m).
     - **Moverse:** clic derecho (o espacio, o la mano) y arrastrar; la rueda acerca/aleja.
     - **Vista 3D** flotante: se arrastra por su barra y se le cambia el tamaño desde la
-      esquina; ahí el clic derecho no mueve el mapa.
+      esquina; adentro: arrastrar gira, **clic derecho desplaza** y la rueda acerca (sin
+      mover el mapa de atrás). Ctrl+S guarda también con el mouse sobre ella.
 - **Lobby: fondo y anuncios → Fondo del lobby:** elige uno de los fondos que trae el juego
   (Normal, Halloween 🎃) o sube una imagen horizontal propia (hasta 3 MB). Se ve en el
   lobby, la tienda, la sala, el ranking y el inicio de sesión. Al actualizar queda puesto
@@ -265,9 +283,10 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
   con diamantes (pide confirmar) o la regala el administrador.
 - **Mundo 3D** (botón abajo en el lobby o menú flotante): un lobby para caminar con todos.
   Celular: joystick a la izquierda y botones **Brincar**, **Correr**, **Agarrar/Lanzar**,
-  **Hablar** (mantener) y **Escribir**; arrastrar la pantalla gira la cámara. PC: W A S D,
-  Shift corre, R corre solo, Espacio brinca, E agarra/lanza, mantener V habla, Enter
-  escribe, Esc sale.
+  **Hablar** (mantener) y **Escribir**; arrastrar la pantalla gira la cámara. PC (teclas por
+  defecto; el admin las cambia): W A S D, Shift corre, R corre solo, Espacio brinca, E
+  agarra/lanza, mantener V habla, Enter escribe, **Z mira con el mouse sin hacer clic**
+  (Z otra vez lo quita), Esc sale.
   - **Correr** deja al personaje corriendo solo hacia donde mira la cámara (se dobla
     girando la cámara); se quita al tocar el joystick.
   - **Agarrar** alza al jugador que está al lado (máximo 6 s) y **Lanzar** lo tira hacia
@@ -345,7 +364,8 @@ más grande.
 - **Juegos** (SigloGamif, Triqui, Preguntas, Escape Álgebra): sin encabezado; solo las
   partes del juego, y los controles (salir, reloj, sonido, emojis) van dentro de ellas.
   La lista de emojis se abre centrada para que nunca quede por fuera de la pantalla.
-- El **Mundo** se quitó: los jugadores en línea y las invitaciones están en el lobby.
+- **Listas largas siempre con scroll interno** (personajes, premios, jugadores…): la
+  pantalla no se mueve, se desliza la lista. Nunca dejar una lista sin scroll.
 - **Ranking** (`/ranking`): los 50 mejores por nivel, victorias o aciertos, y tu puesto.
   Al tocar a alguien se ve su personaje en 3D al lado (para ver su skin) y su perfil.
 - **Invitaciones:** llegan arriba, en cualquier pantalla, por unos segundos. Se puede

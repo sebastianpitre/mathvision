@@ -12,6 +12,11 @@ import {
     LuHand,
     LuImage,
     LuLayers,
+    LuLock,
+    LuLockOpen,
+    LuMinus,
+    LuPackage,
+    LuUpload,
     LuMaximize,
     LuMousePointer2,
     LuPalette,
@@ -29,10 +34,13 @@ import {
     LuZoomOut,
 } from "react-icons/lu";
 
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+
 import { api } from "../../../services/api";
 import { subirArchivo } from "../subirArchivo";
 import { Cielo, Luces, Objetos, Suelo } from "../../Mundo/Escena";
-import { partesDe } from "../../Mundo/piezas.js";
+import { NOMBRES_PARED, palitosDe, partesDe } from "../../Mundo/piezas.js";
 import {
     ICONO_TIPO,
     LIMITE,
@@ -45,6 +53,7 @@ import {
     aMundo,
     crearPieza,
     idMaterialNuevo,
+    idModeloNuevo,
     idNuevo,
     limitar,
     nombreVisible,
@@ -195,10 +204,17 @@ function Numero({ etiqueta, valor, alCambiar, min, max, paso = 0.1, sufijo = "m"
         if (Number.isFinite(n)) alCambiar(limitar(n, min, max));
         else setTexto(String(valor));
     };
+    const sumar = (signo, e) => {
+        const n = limitar((Number(String(texto).replace(",", ".")) || 0) + signo * paso * (e?.shiftKey ? 10 : 1), min, max);
+        alCambiar(Math.round(n * 100) / 100);
+    };
     return (
         <label className="ed-num">
             <span>{etiqueta}</span>
             <div>
+                <button type="button" className="ed-num-btn" tabIndex={-1} onClick={(e) => (e.preventDefault(), sumar(-1, e))} aria-label={`Bajar ${etiqueta}`}>
+                    <LuMinus aria-hidden="true" />
+                </button>
                 <input
                     inputMode="decimal"
                     value={texto}
@@ -214,174 +230,372 @@ function Numero({ etiqueta, valor, alCambiar, min, max, paso = 0.1, sufijo = "m"
                     }}
                 />
                 {sufijo && <em>{sufijo}</em>}
+                <button type="button" className="ed-num-btn" tabIndex={-1} onClick={(e) => (e.preventDefault(), sumar(1, e))} aria-label={`Subir ${etiqueta}`}>
+                    <LuPlus aria-hidden="true" />
+                </button>
             </div>
         </label>
     );
 }
 
-/* ---------------- Opciones del objeto (⚙) ---------------- */
-function Propiedades({ o, doc, juegos, alCambiar, alCerrar, alNuevaTextura, estilo }) {
+/* ---------------- Elegir textura (guardada o propia) ---------------- */
+function ElegirTextura({ materiales, material, color, alCambiar, propio = "Propio" }) {
+    return (
+        <div className="ed-texturas-mini">
+            <button type="button" className={`ed-tex ${!material ? "ed-on" : ""}`} onClick={() => alCambiar({ material: null })} title="Color propio">
+                <span className="ed-muestra" style={{ background: color }} />
+                <small>{propio}</small>
+            </button>
+            {materiales.map((m) => (
+                <button key={m.id} type="button" className={`ed-tex ${material === m.id ? "ed-on" : ""}`} onClick={() => alCambiar({ material: m.id })} title={m.nombre}>
+                    <Muestra m={m} />
+                    <small>{m.nombre}</small>
+                </button>
+            ))}
+        </div>
+    );
+}
+
+/* ---------------- Panel del objeto elegido (antes era flotante) ---------------- */
+function PanelObjeto({ o, doc, juegos, alCambiar, alNuevaTextura, alError, limite }) {
     const materiales = doc.materiales || [];
     const circulos = doc.objetos.filter((x) => x.id !== o.id && x.tipo === "circulo");
     const otros = doc.objetos.filter((x) => x.id !== o.id && x.tipo !== "circulo");
     const c = (k) => (v) => alCambiar({ [k]: v });
+    const modelo = o.tipo === "modelo" ? (doc.modelos || []).find((m) => m.id === o.modelo) : null;
+    const [proporcion, setProporcion] = useState(true);
+    const [pared, setPared] = useState(0);
+
+    // Objetos 3D: cambiar un lado puede cambiar los otros (misma proporción).
+    const medida = (k) => (v) => {
+        if (o.tipo !== "modelo" || !proporcion) return alCambiar({ [k]: v });
+        const f = v / (o[k] || 1);
+        alCambiar({ ancho: Math.round(o.ancho * f * 100) / 100, alto: Math.round(o.alto * f * 100) / 100, largo: Math.round(o.largo * f * 100) / 100 });
+    };
+
     return (
-        <section className="ed-props" style={estilo} onPointerDown={(e) => e.stopPropagation()} aria-label="Opciones del objeto">
-            <header>
+        <div className="ed-panel-cuerpo ed-objeto" onPointerDown={(e) => e.stopPropagation()}>
+            <div className="ed-objeto-cabeza">
                 <span className="ed-props-icono">{ICONO_TIPO[o.tipo]}</span>
                 <div>
-                    <strong>{NOMBRE_TIPO[o.tipo]}</strong>
+                    <strong>{modelo ? modelo.nombre : NOMBRE_TIPO[o.tipo]}</strong>
                     <small>
                         ID <code>{o.id}</code>
                     </small>
                 </div>
-                <button type="button" className="ed-icono" onClick={alCerrar} aria-label="Cerrar opciones">
-                    <LuX aria-hidden="true" />
+                <button type="button" className={`ed-btn ed-btn-chico ${o.fijo ? "ed-btn-activo" : ""}`} onClick={() => alCambiar({ fijo: !o.fijo })} title="Fijo: no se mueve en el mapa por accidente">
+                    {o.fijo ? <LuLock aria-hidden="true" /> : <LuLockOpen aria-hidden="true" />}
+                    {o.fijo ? "Fijo" : "Fijar"}
                 </button>
-            </header>
+            </div>
 
-            <div className="ed-props-cuerpo">
-                <label className="ed-campo">
-                    <span>Nombre (opcional)</span>
-                    <input value={o.nombre || ""} maxLength={40} placeholder={`Ej: ${o.tipo === "circulo" ? "Puerta salón 101" : "Salón 101"}`} onChange={(e) => alCambiar({ nombre: e.target.value })} />
-                </label>
+            <label className="ed-campo">
+                <span>Nombre (opcional)</span>
+                <input value={o.nombre || ""} maxLength={40} placeholder={`Ej: ${o.tipo === "circulo" ? "Puerta salón 101" : "Salón 101"}`} onChange={(e) => alCambiar({ nombre: e.target.value })} />
+            </label>
 
-                <h4>Posición</h4>
-                <div className="ed-fila">
-                    <Numero etiqueta="X" valor={o.x} min={-LIMITE} max={LIMITE} paso={0.25} alCambiar={c("x")} />
-                    <Numero etiqueta="Z" valor={o.z} min={-LIMITE} max={LIMITE} paso={0.25} alCambiar={c("z")} />
-                    <Numero etiqueta="Altura" valor={o.y || 0} min={0} max={30} paso={0.1} alCambiar={c("y")} />
-                </div>
+            <h4>Posición</h4>
+            <div className="ed-fila">
+                <Numero etiqueta="X" valor={o.x} min={-limite} max={limite} paso={0.25} alCambiar={c("x")} />
+                <Numero etiqueta="Z" valor={o.z} min={-limite} max={limite} paso={0.25} alCambiar={c("z")} />
+                <Numero etiqueta="Altura" valor={o.y || 0} min={0} max={30} paso={0.1} alCambiar={c("y")} />
+            </div>
 
-                <h4>Tamaño</h4>
-                <div className="ed-fila">
-                    <Numero etiqueta={REDONDOS.includes(o.tipo) ? "Diámetro" : "Ancho"} valor={o.ancho} min={0.1} max={60} alCambiar={c("ancho")} />
-                    {!SIN_LARGO.includes(o.tipo) && <Numero etiqueta={["pared", "cuadro"].includes(o.tipo) ? "Grosor" : "Largo"} valor={o.largo} min={0.05} max={60} alCambiar={c("largo")} />}
-                    {o.tipo !== "circulo" && <Numero etiqueta="Alto" valor={o.alto} min={0.1} max={30} alCambiar={c("alto")} />}
-                </div>
-                {o.tipo === "salon" && (
-                    <div className="ed-fila">
-                        <Numero etiqueta="Grosor paredes" valor={o.grosor ?? 0.25} min={0.05} max={2} paso={0.05} alCambiar={c("grosor")} />
-                    </div>
+            <h4>Tamaño</h4>
+            <div className="ed-fila">
+                <Numero etiqueta={REDONDOS.includes(o.tipo) ? "Diámetro" : o.tipo === "baranda" ? "Largo" : "Ancho"} valor={o.ancho} min={0.1} max={60} alCambiar={medida("ancho")} />
+                {!SIN_LARGO.includes(o.tipo) && o.tipo !== "baranda" && (
+                    <Numero etiqueta={["pared", "cuadro"].includes(o.tipo) ? "Grosor" : "Largo"} valor={o.largo} min={0.05} max={60} alCambiar={medida("largo")} />
                 )}
-                {o.tipo === "escalera" && (
-                    <div className="ed-fila">
-                        <Numero etiqueta="Peldaños" valor={o.peldanos ?? 12} min={2} max={60} paso={1} sufijo="" alCambiar={(v) => alCambiar({ peldanos: Math.round(v) })} />
-                        <label className="ed-check">
-                            <input type="checkbox" checked={Boolean(o.flotante)} onChange={(e) => alCambiar({ flotante: e.target.checked })} />
-                            Flotante (solo peldaños)
-                        </label>
-                    </div>
-                )}
-
-                <h4>Giro</h4>
-                <div className="ed-fila ed-fila-giro">
-                    <Numero etiqueta="Girar" valor={o.rot || 0} min={-360} max={360} paso={5} sufijo="°" alCambiar={c("rot")} />
-                    <input type="range" min={0} max={359} step={1} value={((Math.round(o.rot || 0) % 360) + 360) % 360} onChange={(e) => alCambiar({ rot: Number(e.target.value) })} aria-label="Girar" />
+                {o.tipo !== "circulo" && <Numero etiqueta="Alto" valor={o.alto} min={0.1} max={30} alCambiar={medida("alto")} />}
+            </div>
+            {o.tipo === "modelo" && (
+                <div className="ed-fila">
+                    <label className="ed-check">
+                        <input type="checkbox" checked={proporcion} onChange={(e) => setProporcion(e.target.checked)} />
+                        Mantener proporción
+                    </label>
+                    {modelo && (
+                        <button type="button" className="ed-btn ed-btn-chico" onClick={() => alCambiar({ ancho: modelo.ancho, alto: modelo.alto, largo: modelo.largo })}>
+                            Tamaño original
+                        </button>
+                    )}
+                    <label className="ed-check">
+                        <input type="checkbox" checked={o.solido !== false} onChange={(e) => alCambiar({ solido: e.target.checked })} />
+                        Sólido (no se atraviesa)
+                    </label>
                 </div>
-                {!SIN_INCLINAR.includes(o.tipo) && (
+            )}
+            {o.tipo === "salon" && (
+                <div className="ed-fila">
+                    <Numero etiqueta="Grosor paredes" valor={o.grosor ?? 0.25} min={0.05} max={2} paso={0.05} alCambiar={c("grosor")} />
+                </div>
+            )}
+            {o.tipo === "baranda" && (
+                <div className="ed-fila">
+                    <Numero etiqueta="Separación" valor={o.separacion ?? 0.4} min={0.08} max={3} paso={0.05} alCambiar={c("separacion")} />
+                    <Numero etiqueta="Grosor palitos" valor={o.grueso ?? 0.06} min={0.02} max={0.4} paso={0.01} alCambiar={c("grueso")} />
+                </div>
+            )}
+            {o.tipo === "escalera" && (
+                <div className="ed-fila">
+                    <Numero etiqueta="Peldaños" valor={o.peldanos ?? 12} min={2} max={60} paso={1} sufijo="" alCambiar={(v) => alCambiar({ peldanos: Math.round(v) })} />
+                    <label className="ed-check">
+                        <input type="checkbox" checked={Boolean(o.flotante)} onChange={(e) => alCambiar({ flotante: e.target.checked })} />
+                        Flotante (solo peldaños)
+                    </label>
+                </div>
+            )}
+
+            <h4>Giro</h4>
+            <div className="ed-fila ed-fila-giro">
+                <Numero etiqueta="Girar" valor={o.rot || 0} min={-360} max={360} paso={15} sufijo="°" alCambiar={c("rot")} />
+                <input type="range" min={0} max={359} step={1} value={((Math.round(o.rot || 0) % 360) + 360) % 360} onChange={(e) => alCambiar({ rot: Number(e.target.value) })} aria-label="Girar" />
+            </div>
+            {!SIN_INCLINAR.includes(o.tipo) && (
+                <>
                     <div className="ed-fila ed-fila-giro">
-                        <Numero etiqueta="Inclinar" valor={o.incl || 0} min={-80} max={80} paso={1} sufijo="°" alCambiar={c("incl")} />
+                        <Numero etiqueta="Inclinar" valor={o.incl || 0} min={-80} max={80} paso={5} sufijo="°" alCambiar={c("incl")} />
                         <input type="range" min={-80} max={80} step={1} value={o.incl || 0} onChange={(e) => alCambiar({ incl: Number(e.target.value) })} aria-label="Inclinar" />
                     </div>
-                )}
-                {!SIN_INCLINAR.includes(o.tipo) && <p className="ed-ayuda">Positivo: sube hacia la flecha. Hasta 50° se puede caminar por encima (rampa).</p>}
+                    <p className="ed-ayuda">Positivo: sube hacia la flecha. Hasta 50° se camina por encima (rampa) y por debajo se pasa si cabe.</p>
+                </>
+            )}
 
-                {o.tipo === "circulo" ? (
-                    <>
-                        <h4>Función</h4>
-                        <div className="ed-segmentos">
-                            {[
-                                ["juego", "🎮 Juego"],
-                                ["teletransporte", "🌀 Teletransporte"],
-                            ].map(([id, t]) => (
-                                <button key={id} type="button" className={(o.funcion || "juego") === id ? "ed-on" : ""} onClick={() => alCambiar({ funcion: id })}>
-                                    {t}
-                                </button>
-                            ))}
-                        </div>
-                        {(o.funcion || "juego") === "juego" ? (
-                            <div className="ed-fila">
-                                <label className="ed-campo">
-                                    <span>Juego</span>
-                                    <select value={o.juego || "zona"} onChange={(e) => alCambiar({ juego: e.target.value })}>
-                                        {juegos.map((j) => (
-                                            <option key={j.id} value={j.id}>{`${j.nombre} (${j.min === j.max ? j.max : `${j.min}–${j.max}`})`}</option>
-                                        ))}
-                                    </select>
-                                </label>
-                                <Numero etiqueta="Cada" valor={o.segundos ?? 30} min={5} max={300} paso={5} sufijo="s" alCambiar={(v) => alCambiar({ segundos: Math.round(v) })} />
-                            </div>
-                        ) : (
-                            <>
-                                <label className="ed-campo">
-                                    <span>Lleva a</span>
-                                    <select value={o.destino || ""} onChange={(e) => alCambiar({ destino: e.target.value || null })}>
-                                        <option value="">— Elige el destino —</option>
-                                        {circulos.length > 0 && (
-                                            <optgroup label="Círculos">
-                                                {circulos.map((x) => (
-                                                    <option key={x.id} value={x.id}>
-                                                        {nombreVisible(x)}
-                                                    </option>
-                                                ))}
-                                            </optgroup>
-                                        )}
-                                        {otros.length > 0 && (
-                                            <optgroup label="Otros objetos">
-                                                {otros.map((x) => (
-                                                    <option key={x.id} value={x.id}>
-                                                        {nombreVisible(x)}
-                                                    </option>
-                                                ))}
-                                            </optgroup>
-                                        )}
-                                    </select>
-                                </label>
-                                <p className="ed-ayuda">En el mundo, al pararse aquí sale el botón USAR y lleva al destino. Ideal como puerta de un salón: pon uno adentro y otro afuera apuntándose entre sí.</p>
-                            </>
-                        )}
-                        <label className="ed-campo ed-campo-color">
-                            <span>Color del círculo</span>
-                            <input type="color" value={o.color} onChange={(e) => alCambiar({ color: e.target.value })} />
-                        </label>
-                    </>
-                ) : (
-                    <>
-                        <h4>Textura</h4>
-                        <div className="ed-texturas-mini">
-                            <button type="button" className={`ed-tex ${!o.material ? "ed-on" : ""}`} onClick={() => alCambiar({ material: null })} title="Color propio">
-                                <span className="ed-muestra" style={{ background: o.textura ? `url(${o.textura}) center/cover` : o.color }} />
-                                <small>Propio</small>
+            {o.tipo === "circulo" ? (
+                <>
+                    <h4>Función</h4>
+                    <div className="ed-segmentos">
+                        {[
+                            ["juego", "🎮 Juego"],
+                            ["teletransporte", "🌀 Teletransporte"],
+                        ].map(([id, t]) => (
+                            <button key={id} type="button" className={(o.funcion || "juego") === id ? "ed-on" : ""} onClick={() => alCambiar({ funcion: id })}>
+                                {t}
                             </button>
-                            {materiales.map((m) => (
-                                <button key={m.id} type="button" className={`ed-tex ${o.material === m.id ? "ed-on" : ""}`} onClick={() => alCambiar({ material: m.id })} title={m.nombre}>
-                                    <Muestra m={m} />
-                                    <small>{m.nombre}</small>
-                                </button>
-                            ))}
+                        ))}
+                    </div>
+                    {(o.funcion || "juego") === "juego" ? (
+                        <div className="ed-fila">
+                            <label className="ed-campo">
+                                <span>Juego</span>
+                                <select value={o.juego || "zona"} onChange={(e) => alCambiar({ juego: e.target.value })}>
+                                    {juegos.map((j) => (
+                                        <option key={j.id} value={j.id}>{`${j.nombre} (${j.min === j.max ? j.max : `${j.min}–${j.max}`})`}</option>
+                                    ))}
+                                </select>
+                            </label>
+                            <Numero etiqueta="Cada" valor={o.segundos ?? 30} min={5} max={300} paso={5} sufijo="s" alCambiar={(v) => alCambiar({ segundos: Math.round(v) })} />
                         </div>
-                        {!o.material && (
-                            <div className="ed-fila">
-                                <label className="ed-campo ed-campo-color">
-                                    <span>{o.tipo === "cuadro" ? "Marco" : "Color"}</span>
-                                    <input type="color" value={o.color} onChange={(e) => alCambiar({ color: e.target.value, textura: o.tipo === "cuadro" ? o.textura : null })} />
-                                </label>
-                                {o.tipo !== "cuadro" && (
-                                    <button type="button" className="ed-btn ed-btn-chico" onClick={() => alNuevaTextura({ tipo: "color", color: o.color })}>
-                                        <LuPlus aria-hidden="true" /> Guardar como textura
-                                    </button>
-                                )}
+                    ) : (
+                        <>
+                            <label className="ed-campo">
+                                <span>Lleva a</span>
+                                <select value={o.destino || ""} onChange={(e) => alCambiar({ destino: e.target.value || null })}>
+                                    <option value="">— Elige el destino —</option>
+                                    {circulos.length > 0 && (
+                                        <optgroup label="Círculos">
+                                            {circulos.map((x) => (
+                                                <option key={x.id} value={x.id}>
+                                                    {nombreVisible(x)}
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                    )}
+                                    {otros.length > 0 && (
+                                        <optgroup label="Otros objetos">
+                                            {otros.map((x) => (
+                                                <option key={x.id} value={x.id}>
+                                                    {nombreVisible(x)}
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                    )}
+                                </select>
+                            </label>
+                            <p className="ed-ayuda">En el mundo, al pararse aquí sale el botón USAR y lleva al destino. Para un salón: uno afuera y otro adentro, apuntándose entre sí.</p>
+                        </>
+                    )}
+                    <label className="ed-campo ed-campo-color">
+                        <span>Color del círculo</span>
+                        <input type="color" value={o.color} onChange={(e) => alCambiar({ color: e.target.value })} />
+                    </label>
+                </>
+            ) : o.tipo === "modelo" ? null : (
+                <>
+                    <h4>{o.tipo === "salon" ? "Textura del salón" : "Textura"}</h4>
+                    <ElegirTextura materiales={materiales} material={o.material} color={o.textura ? `url(${o.textura}) center/cover` : o.color} alCambiar={alCambiar} />
+                    {!o.material && (
+                        <div className="ed-fila">
+                            <label className="ed-campo ed-campo-color">
+                                <span>{o.tipo === "cuadro" ? "Marco" : "Color"}</span>
+                                <input type="color" value={o.color} onChange={(e) => alCambiar({ color: e.target.value, textura: o.tipo === "cuadro" ? o.textura : null })} />
+                            </label>
+                            {o.tipo !== "cuadro" && (
+                                <button type="button" className="ed-btn ed-btn-chico" onClick={() => alNuevaTextura({ tipo: "color", color: o.color })}>
+                                    <LuPlus aria-hidden="true" /> Guardar como textura
+                                </button>
+                            )}
+                        </div>
+                    )}
+                    {o.tipo === "cuadro" && !o.material && (
+                        <SubirImagen texto={o.textura ? "Cambiar foto del cuadro" : "Subir foto del cuadro"} alSubir={(ruta) => alCambiar({ textura: ruta })} alError={alError} className="ed-btn ed-btn-chico" />
+                    )}
+
+                    {o.tipo === "salon" && (
+                        <>
+                            <h4>Paredes distintas</h4>
+                            <p className="ed-ayuda">Marca las paredes que llevan otro diseño. Las demás siguen con la textura del salón.</p>
+                            <div className="ed-paredes">
+                                {NOMBRES_PARED.map((n, k) => {
+                                    const propia = Boolean(o.paredes?.[k]);
+                                    return (
+                                        <button key={n} type="button" className={`${pared === k ? "ed-on" : ""} ${propia ? "ed-pared-propia" : ""}`} onClick={() => setPared(k)}>
+                                            {n}
+                                            {propia && <i aria-label="Tiene su diseño" />}
+                                        </button>
+                                    );
+                                })}
                             </div>
-                        )}
-                        {o.tipo === "cuadro" && <p className="ed-ayuda">La foto del cuadro es la textura (o súbela abajo).</p>}
-                        {o.tipo === "cuadro" && !o.material && (
-                            <SubirImagen texto={o.textura ? "Cambiar foto del cuadro" : "Subir foto del cuadro"} alSubir={(ruta) => alCambiar({ textura: ruta })} alError={() => {}} className="ed-btn ed-btn-chico" />
-                        )}
-                    </>
-                )}
-            </div>
-        </section>
+                            <label className="ed-check">
+                                <input
+                                    type="checkbox"
+                                    checked={Boolean(o.paredes?.[pared])}
+                                    onChange={(e) => {
+                                        const paredes = [...(o.paredes || [null, null, null, null])];
+                                        paredes[pared] = e.target.checked ? { material: null, color: "#ffffff" } : null;
+                                        alCambiar({ paredes });
+                                    }}
+                                />
+                                {`La pared "${NOMBRES_PARED[pared]}" lleva otro diseño`}
+                            </label>
+                            {o.paredes?.[pared] && (
+                                <>
+                                    <ElegirTextura
+                                        materiales={materiales}
+                                        material={o.paredes[pared].material}
+                                        color={o.paredes[pared].color}
+                                        propio="Color"
+                                        alCambiar={(cambio) => {
+                                            const paredes = [...o.paredes];
+                                            paredes[pared] = { ...paredes[pared], ...cambio };
+                                            alCambiar({ paredes });
+                                        }}
+                                    />
+                                    {!o.paredes[pared].material && (
+                                        <label className="ed-campo ed-campo-color">
+                                            <span>Color de esta pared</span>
+                                            <input
+                                                type="color"
+                                                value={o.paredes[pared].color}
+                                                onChange={(e) => {
+                                                    const paredes = [...o.paredes];
+                                                    paredes[pared] = { ...paredes[pared], color: e.target.value };
+                                                    alCambiar({ paredes });
+                                                }}
+                                            />
+                                        </label>
+                                    )}
+                                </>
+                            )}
+                        </>
+                    )}
+                </>
+            )}
+        </div>
+    );
+}
+
+/* ---------------- Panel: mis objetos (modelos 3D propios) ---------------- */
+async function medirModelo(ruta) {
+    const gltf = await new GLTFLoader().loadAsync(ruta);
+    const caja = new THREE.Box3().setFromObject(gltf.scene);
+    const t = caja.getSize(new THREE.Vector3());
+    const r = (n) => Math.max(0.01, Math.round(n * 100) / 100);
+    return { ancho: r(t.x), alto: r(t.y), largo: r(t.z) };
+}
+
+function PanelModelos({ doc, cambiar, herramienta, setHerramienta, alError }) {
+    const entrada = useRef(null);
+    const [subiendo, setSubiendo] = useState(null);
+    const modelos = doc.modelos || [];
+    const usos = (id) => doc.objetos.filter((o) => o.tipo === "modelo" && o.modelo === id).length;
+
+    async function subir(archivo) {
+        if (!archivo) return;
+        if (!/\.glb$/i.test(archivo.name)) return alError("El objeto debe ser un archivo .glb");
+        setSubiendo(0);
+        try {
+            const ruta = await subirArchivo(archivo, "modelo", setSubiendo);
+            setSubiendo("midiendo");
+            const medidas = await medirModelo(ruta);
+            const id = idModeloNuevo(modelos);
+            const nombre = archivo.name.replace(/\.glb$/i, "").replace(/[-_]+/g, " ").slice(0, 40) || "Objeto";
+            cambiar((d) => {
+                d.modelos ||= [];
+                d.modelos.push({ id, nombre, ruta, ...medidas });
+                return d;
+            });
+            setHerramienta(`modelo:${id}`);
+        } catch (e) {
+            alError(e.message || "No se pudo abrir el modelo. ¿Es un .glb válido?");
+        } finally {
+            setSubiendo(null);
+        }
+    }
+
+    return (
+        <div className="ed-panel-cuerpo">
+            <p className="ed-ayuda">
+                Sube tus propios objetos 3D (<b>.glb</b>: sillas, mesas, tableros…) y úsalos todas las veces que quieras. Después se mueven, giran y cambian de tamaño
+                como las demás piezas. Gratis en sketchfab.com (descargar en glTF/GLB) o poly.pizza.
+            </p>
+            <input ref={entrada} type="file" hidden accept=".glb" onChange={(e) => (subir(e.target.files?.[0]), (e.target.value = ""))} />
+            <button type="button" className="ed-btn ed-btn-primario" onClick={() => entrada.current?.click()} disabled={subiendo !== null}>
+                <LuUpload aria-hidden="true" />
+                {subiendo === "midiendo" ? "Midiendo…" : subiendo !== null ? `Subiendo ${subiendo}%` : "Subir objeto .glb"}
+            </button>
+            {modelos.length === 0 && <p className="ed-vacio">Aún no hay objetos tuyos.</p>}
+            <ul className="ed-lista-tex">
+                {modelos.map((m) => (
+                    <li key={m.id} className={herramienta === `modelo:${m.id}` ? "ed-li-on" : ""}>
+                        <span className="ed-muestra ed-muestra-3d" aria-hidden="true">
+                            <LuBox />
+                        </span>
+                        <div>
+                            <input
+                                className="ed-nombre-modelo"
+                                value={m.nombre}
+                                maxLength={40}
+                                onChange={(e) => cambiar((d) => ((d.modelos.find((x) => x.id === m.id).nombre = e.target.value), d), false)}
+                                aria-label="Nombre del objeto"
+                            />
+                            <small>{`${m.ancho} × ${m.alto} × ${m.largo} m · ${usos(m.id)} puesto(s)`}</small>
+                        </div>
+                        <button type="button" className="ed-btn ed-btn-chico" onClick={() => setHerramienta((h) => (h === `modelo:${m.id}` ? null : `modelo:${m.id}`))} title="Toca el mapa para ponerlo (Shift = varios)">
+                            Poner
+                        </button>
+                        <button
+                            type="button"
+                            className="ed-icono"
+                            title="Borrar"
+                            aria-label={`Borrar ${m.nombre}`}
+                            onClick={() => {
+                                const n = usos(m.id);
+                                if (!window.confirm(n ? `"${m.nombre}" está puesto ${n} vez/veces en el mundo. Si lo borras, se quitan también. ¿Borrar?` : `¿Borrar "${m.nombre}"?`)) return;
+                                cambiar((d) => {
+                                    d.modelos = d.modelos.filter((x) => x.id !== m.id);
+                                    d.objetos = d.objetos.filter((o) => !(o.tipo === "modelo" && o.modelo === m.id));
+                                    return d;
+                                });
+                            }}
+                        >
+                            <LuTrash2 aria-hidden="true" />
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        </div>
     );
 }
 
@@ -414,6 +628,10 @@ function FormTextura({ inicial, alGuardar, alCancelar, alError }) {
                 <>
                     <SubirImagen texto={m.textura ? "Cambiar imagen" : "Subir imagen"} alSubir={(ruta) => setM({ ...m, textura: ruta })} alError={alError} />
                     <Numero etiqueta="Cada foto mide" valor={m.baldosa} min={0.25} max={50} paso={0.25} alCambiar={(v) => setM({ ...m, baldosa: v })} />
+                    <label className="ed-check">
+                        <input type="checkbox" checked={Boolean(m.transparente)} onChange={(e) => setM({ ...m, transparente: e.target.checked })} />
+                        Transparente (PNG con huecos: rejas, mallas, hojas…)
+                    </label>
                     <p className="ed-ayuda">
                         Foto cuadrada que se repita sin que se note el borde ("seamless"), 1024 o 2048 px. Gratis en ambientcg.com o polyhaven.com/textures
                         (el archivo "Color").
@@ -566,6 +784,16 @@ function PanelAmbiente({ doc, cambiar, alError }) {
                 </div>
             )}
 
+            <h4>📐 Tamaño del mundo</h4>
+            <div className="ed-segmentos">
+                {[60, 80, 100, 150].map((t) => (
+                    <button key={t} type="button" className={(doc.tamano || 60) === t ? "ed-on" : ""} onClick={() => cambiar((d) => ((d.tamano = t), d))}>
+                        {`${t * 2} m`}
+                    </button>
+                ))}
+            </div>
+            <p className="ed-ayuda">Lado del suelo. Si lo achicas, lo que quede afuera se acerca a la orilla al guardar.</p>
+
             <h4>💡 Luz</h4>
             <div className="ed-segmentos">
                 {[
@@ -583,7 +811,7 @@ function PanelAmbiente({ doc, cambiar, alError }) {
 }
 
 /* ---------------- Panel: capas (lista de objetos) ---------------- */
-function PanelCapas({ doc, sel, alElegir }) {
+function PanelCapas({ doc, sel, alElegir, alFijar }) {
     const [filtro, setFiltro] = useState("");
     const lista = doc.objetos.filter((o) => !filtro || nombreVisible(o).toLowerCase().includes(filtro.toLowerCase()));
     return (
@@ -597,6 +825,9 @@ function PanelCapas({ doc, sel, alElegir }) {
                             <strong>{o.nombre || NOMBRE_TIPO[o.tipo]}</strong>
                             <code>{o.id}</code>
                         </button>
+                        <button type="button" className={`ed-icono ed-candado ${o.fijo ? "ed-on" : ""}`} onClick={() => alFijar(o.id)} title={o.fijo ? "Fijo (toca para soltar)" : "Fijar"} aria-label={o.fijo ? `Soltar ${o.id}` : `Fijar ${o.id}`}>
+                            {o.fijo ? <LuLock aria-hidden="true" /> : <LuLockOpen aria-hidden="true" />}
+                        </button>
                     </li>
                 ))}
             </ul>
@@ -605,8 +836,15 @@ function PanelCapas({ doc, sel, alElegir }) {
     );
 }
 
+/* Color de una pared del salón con diseño propio (en el mapa). */
+function rellenoPared(p, materiales) {
+    const m = p.material ? materiales.find((x) => x.id === p.material) : null;
+    if (m) return m.tipo === "imagen" ? `url(#tex-${m.id})` : m.color;
+    return p.color;
+}
+
 /* ---------------- Dibujo de un objeto en el mapa ---------------- */
-function Figura({ o, materiales, elegido, escala, porId }) {
+function Figura({ o, materiales, modelos, elegido, escala, porId }) {
     const m = o.material ? materiales.find((x) => x.id === o.material) : null;
     const relleno = m ? (m.tipo === "imagen" ? `url(#tex-${m.id})` : m.color) : o.textura && o.tipo !== "cuadro" ? "#9aa4b5" : o.color;
     const borde = elegido ? "#38bdf8" : "rgba(0,0,0,.55)";
@@ -618,7 +856,7 @@ function Figura({ o, materiales, elegido, escala, porId }) {
         const tele = o.funcion === "teletransporte";
         const destino = tele && o.destino ? porId.get(o.destino) : null;
         return (
-            <g data-id={o.id} className="ed-figura">
+            <g data-id={o.id} className="ed-figura" style={o.fijo && !elegido ? { pointerEvents: "none" } : undefined}>
                 {destino && <line x1={o.x} y1={o.z} x2={destino.x} y2={destino.z} stroke={o.color} strokeWidth={1.5 / escala} strokeDasharray={`${6 / escala} ${4 / escala}`} pointerEvents="none" />}
                 <circle data-id={o.id} cx={o.x} cy={o.z} r={o.ancho / 2} fill={o.color} fillOpacity={0.22} stroke={elegido ? "#38bdf8" : o.color} strokeWidth={(elegido ? 3 : 2) / escala} />
                 {!tele && (
@@ -638,9 +876,34 @@ function Figura({ o, materiales, elegido, escala, porId }) {
 
     if (o.tipo === "columna" || o.tipo === "arbol") {
         return (
-            <g data-id={o.id} className="ed-figura">
+            <g data-id={o.id} className="ed-figura" style={o.fijo && !elegido ? { pointerEvents: "none" } : undefined}>
                 <circle data-id={o.id} cx={o.x} cy={o.z} r={o.tipo === "arbol" ? o.ancho / 2 : o.ancho / 2} fill={o.tipo === "arbol" && !m ? "#3f8f3a" : relleno} fillOpacity={o.tipo === "arbol" ? 0.75 : 1} stroke={borde} strokeWidth={ancho} />
                 {o.tipo === "arbol" && <circle cx={o.x} cy={o.z} r={o.ancho * 0.1} fill="#6b4a2f" pointerEvents="none" />}
+            </g>
+        );
+    }
+
+    if (o.tipo === "baranda") {
+        return (
+            <g data-id={o.id} className="ed-figura" transform={t} style={o.fijo && !elegido ? { pointerEvents: "none" } : undefined}>
+                <rect data-id={o.id} x={-o.ancho / 2} y={-Math.max(0.3, 6 / escala) / 2} width={o.ancho} height={Math.max(0.3, 6 / escala)} fill="transparent" />
+                <line x1={-o.ancho / 2} y1={0} x2={o.ancho / 2} y2={0} stroke={elegido ? "#38bdf8" : relleno} strokeWidth={Math.max(o.grueso || 0.06, 2.5 / escala)} pointerEvents="none" />
+                {palitosDe(o).map((x) => (
+                    <circle key={x} cx={x} cy={0} r={Math.max((o.grueso || 0.06) / 2, 1.6 / escala)} fill="#0f172a" pointerEvents="none" />
+                ))}
+            </g>
+        );
+    }
+    if (o.tipo === "modelo") {
+        const m3 = modelos.find((x) => x.id === o.modelo);
+        return (
+            <g data-id={o.id} className="ed-figura" transform={t} style={o.fijo && !elegido ? { pointerEvents: "none" } : undefined}>
+                <rect data-id={o.id} x={-o.ancho / 2} y={-o.largo / 2} width={o.ancho} height={o.largo} fill="#c084fc" fillOpacity={0.35} stroke={borde} strokeWidth={ancho} strokeDasharray={`${4 / escala} ${3 / escala}`} />
+                {escala > 6 && (
+                    <text x={0} y={0} fontSize={letra * 0.9} textAnchor="middle" className="ed-etiqueta" pointerEvents="none" transform={`rotate(${o.rot || 0})`}>
+                        {m3?.nombre || o.id}
+                    </text>
+                )}
             </g>
         );
     }
@@ -649,7 +912,7 @@ function Figura({ o, materiales, elegido, escala, porId }) {
     const inclinada = Math.abs(o.incl || 0) > 2;
     const largo = Math.max(o.largo, 0.15);
     return (
-        <g data-id={o.id} className="ed-figura" transform={t}>
+        <g data-id={o.id} className="ed-figura" transform={t} style={o.fijo && !elegido ? { pointerEvents: "none" } : undefined}>
             {partes ? (
                 <>
                     {o.tipo === "salon" && <rect data-id={o.id} x={-o.ancho / 2} y={-o.largo / 2} width={o.ancho} height={o.largo} fill={relleno} fillOpacity={0.12} />}
@@ -661,7 +924,7 @@ function Figura({ o, materiales, elegido, escala, porId }) {
                             y={q.cz - Math.max(q.d, 3 / escala) / 2}
                             width={Math.max(q.w, 3 / escala)}
                             height={Math.max(q.d, 3 / escala)}
-                            fill={relleno}
+                            fill={q.pared != null && o.paredes?.[q.pared] ? rellenoPared(o.paredes[q.pared], materiales) : relleno}
                             fillOpacity={o.tipo === "escalera" ? 0.45 + (0.55 * (i + 1)) / partes.length : 1}
                             stroke="rgba(0,0,0,.35)"
                             strokeWidth={0.6 / escala}
@@ -724,7 +987,7 @@ function Vista3D({ doc, sel, alCerrar }) {
                 onPointerUp={() => (arrastre.current = null)}
             >
                 <strong>Vista 3D</strong>
-                <span>Arrastra para girar · rueda para acercar</span>
+                <span>Arrastra: girar · clic derecho: desplazar · rueda: acercar</span>
                 {objeto && (
                     <button type="button" className="ed-icono" title={`Mirar ${objeto.id}`} onPointerDown={(e) => e.stopPropagation()} onClick={() => setObjetivo([objeto.x, (objeto.y || 0) + 1, objeto.z])}>
                         <LuCrosshair aria-hidden="true" />
@@ -739,11 +1002,12 @@ function Vista3D({ doc, sel, alCerrar }) {
                     <Suspense fallback={null}>
                         <Cielo cielo={doc.cielo} />
                         <Luces luz={doc.luz} colorSuelo={doc.suelo.color} siguiendo={centro} />
-                        <Suelo suelo={doc.suelo} materiales={doc.materiales} />
-                        <Objetos objetos={doc.objetos} materiales={doc.materiales} seleccionado={sel} etiquetas={false} />
+                        <Suelo suelo={doc.suelo} materiales={doc.materiales} tamano={doc.tamano} />
+                        <Objetos objetos={doc.objetos} materiales={doc.materiales} modelos={doc.modelos} seleccionado={sel} etiquetas={false} />
                     </Suspense>
                     {/* sin desplazar con clic derecho: eso solo es del mapa */}
-                    <OrbitControls target={objetivo} enablePan={false} maxPolarAngle={Math.PI / 2.05} minDistance={3} maxDistance={140} />
+                    {/* clic derecho: desplazar la vista 3D (no mueve el mapa) */}
+                    <OrbitControls target={objetivo} enablePan screenSpacePanning={false} maxPolarAngle={Math.PI / 2.05} minDistance={2} maxDistance={260} makeDefault />
                 </Canvas>
             </div>
         </section>
@@ -757,14 +1021,16 @@ export default function EditorMundo() {
     const navigate = useNavigate();
     const h = useHistoria();
     const { doc, cambiar } = h;
+    const LIMITE = doc?.tamano || 60; // mitad del lado del suelo (se puede agrandar)
     const [extra, setExtra] = useState({ juegos: [] });
     const [error, setError] = useState("");
     const [aviso, setAviso] = useState(null);
     const [guardando, setGuardando] = useState(false);
     const [sel, setSel] = useState(null);
     const [herramienta, setHerramienta] = useState(null); // clave de PIEZAS, "mano" o null
-    const [verProps, setVerProps] = useState(false);
     const [panel, setPanel] = useState("texturas");
+    const verProps = panel === "objeto";
+    const setVerProps = useCallback((v) => setPanel((p) => (typeof v === "function" ? v(p === "objeto") : v) ? "objeto" : p === "objeto" ? "texturas" : p), []);
     const [editandoTex, setEditandoTex] = useState(null);
     const [ver3d, setVer3d] = useState(false);
     const [vista, setVista] = useState({ cx: 0, cz: 0, escala: ESCALA_INICIAL });
@@ -790,7 +1056,7 @@ export default function EditorMundo() {
     useEffect(() => {
         api("/admin/mundo")
             .then((r) => {
-                h.iniciar({ ...r.config, materiales: r.config.materiales || [] });
+                h.iniciar({ ...r.config, materiales: r.config.materiales || [], modelos: r.config.modelos || [] });
                 setExtra({ juegos: r.juegos || [], personajes: r.personajes || [] });
             })
             .catch((e) => setError(e.message));
@@ -817,6 +1083,11 @@ export default function EditorMundo() {
     }, [h.sinGuardar]);
 
     const objeto = doc?.objetos.find((o) => o.id === sel) || null;
+    // Al elegir un objeto se abren sus opciones en el panel derecho; al soltarlo, vuelve.
+    useEffect(() => {
+        if (sel) setPanel("objeto");
+        else setPanel((p) => (p === "objeto" ? "texturas" : p));
+    }, [sel]);
     const porId = useMemo(() => new Map((doc?.objetos || []).map((o) => [o.id, o])), [doc?.objetos]);
 
     /* Pantalla ↔ mundo */
@@ -852,6 +1123,11 @@ export default function EditorMundo() {
         });
         setSel(id);
     }, [cambiar, doc, sel]);
+    const alternarFijo = useCallback((id) => cambiar((d) => {
+        const o = d.objetos.find((x) => x.id === id);
+        if (o) o.fijo = !o.fijo;
+        return d;
+    }), [cambiar]);
     const girar90 = useCallback(() => sel && cambiarSel({ rot: ((((objeto?.rot || 0) + 90) % 360) + 360) % 360 }), [cambiarSel, objeto?.rot, sel]);
 
     const encajar = useCallback(() => {
@@ -953,7 +1229,9 @@ export default function EditorMundo() {
                 else if (verProps) setVerProps(false);
                 else setSel(null);
             } else if (e.key.toLowerCase() === "r" && sel) {
-                girar90();
+                if (!doc.objetos.find((x) => x.id === sel)?.fijo) girar90();
+            } else if (e.key.toLowerCase() === "l" && sel) {
+                alternarFijo(sel);
             } else if (e.key.toLowerCase() === "v") {
                 setHerramienta(null);
             } else if (e.key.toLowerCase() === "h") {
@@ -965,6 +1243,7 @@ export default function EditorMundo() {
                 e.preventDefault();
                 const p = e.shiftKey ? 2 : 0.25;
                 const o = doc.objetos.find((x) => x.id === sel);
+                if (o?.fijo) return;
                 const dx = e.key === "ArrowLeft" ? -p : e.key === "ArrowRight" ? p : 0;
                 const dz = e.key === "ArrowUp" ? -p : e.key === "ArrowDown" ? p : 0;
                 cambiarSel({ x: limitar(o.x + dx, -LIMITE, LIMITE), z: limitar(o.z + dz, -LIMITE, LIMITE) });
@@ -981,7 +1260,7 @@ export default function EditorMundo() {
             window.removeEventListener("keydown", abajo);
             window.removeEventListener("keyup", arriba);
         };
-    }, [borrar, cambiarSel, doc, duplicar, girar90, guardar, h, herramienta, sel, verProps, zoom]);
+    }, [borrar, cambiarSel, doc, duplicar, girar90, guardar, h, herramienta, sel, verProps, zoom, alternarFijo, setVerProps]);
 
     /* Ratón en el mapa */
     const alBajar = (e) => {
@@ -994,12 +1273,18 @@ export default function EditorMundo() {
         if (e.button !== 0) return;
         const p = aMundoDesde(e.clientX, e.clientY);
         const manija = e.target.dataset?.manija;
-        if (manija && objeto) {
+        if (manija && objeto && !objeto.fijo) {
             accion.current = { tipo: manija, antes: doc, o: { ...objeto }, x0: p.x, z0: p.z };
             return;
         }
         if (herramienta && herramienta !== "mano") {
-            const pieza = PIEZAS.find((x) => x.clave === herramienta);
+            let pieza = PIEZAS.find((x) => x.clave === herramienta);
+            if (herramienta.startsWith("modelo:")) {
+                // Uno de "mis objetos": con su tamaño original.
+                const m = (doc.modelos || []).find((x) => x.id === herramienta.slice(7));
+                if (!m) return setHerramienta(null);
+                pieza = { clave: herramienta, tipo: "modelo", nombre: m.nombre, icono: "📦", prefijo: "M", modelo: m.id, solido: true, ancho: m.ancho, alto: m.alto, largo: m.largo, color: "#ffffff" };
+            }
             const nuevo = crearPieza(pieza, doc.objetos, redondear(p.x, 0.5), redondear(p.z, 0.5));
             cambiar((d) => (d.objetos.push(nuevo), d));
             setSel(nuevo.id);
@@ -1011,7 +1296,8 @@ export default function EditorMundo() {
             setSel(id);
             if (id !== sel) setVerProps(false);
             const o = doc.objetos.find((x) => x.id === id);
-            accion.current = { tipo: "mover", antes: doc, id, dx: p.x - o.x, dz: p.z - o.z, movio: false };
+            // Fijo: se elige pero no se mueve.
+            accion.current = o.fijo ? { tipo: "pan", x: e.clientX, y: e.clientY, v: vistaRef.current } : { tipo: "mover", antes: doc, id, dx: p.x - o.x, dz: p.z - o.z, movio: false };
         } else {
             setSel(null);
             setVerProps(false);
@@ -1096,18 +1382,10 @@ export default function EditorMundo() {
         const p = aPantalla(objeto.x, objeto.z - r);
         barra = { x: limitar(p.x, 120, tam.w - 120), y: limitar(p.y - 58, 8, tam.h - 60) };
     }
-    // Las opciones salen al lado del objeto (a la derecha, o a la izquierda si no cabe), sin taparlo.
-    let lugarOpciones = null;
-    if (objeto) {
-        const c = aPantalla(objeto.x, objeto.z);
-        const rpx = radioDe(objeto) * vista.escala;
-        let left = c.x + rpx + 18;
-        if (left + 300 > tam.w - 8) left = c.x - rpx - 318;
-        lugarOpciones = { left: limitar(left, 8, Math.max(8, tam.w - 308)), top: limitar(c.y - 140, 8, Math.max(8, tam.h - 440)) };
-    }
     const manijaR = 6 / vista.escala;
     const cursor = espacio || herramienta === "mano" ? "grab" : herramienta ? "crosshair" : "default";
-    const piezaActiva = PIEZAS.find((p) => p.clave === herramienta);
+    const modeloActivo = herramienta?.startsWith("modelo:") ? (doc.modelos || []).find((m) => m.id === herramienta.slice(7)) : null;
+    const piezaActiva = PIEZAS.find((p) => p.clave === herramienta) || (modeloActivo && { icono: "📦", nombre: modeloActivo.nombre });
 
     return (
         <div className="ed">
@@ -1223,11 +1501,11 @@ export default function EditorMundo() {
                             </g>
 
                             {doc.objetos.map((o) => (
-                                <Figura key={o.id} o={o} materiales={doc.materiales || []} elegido={o.id === sel} escala={vista.escala} porId={porId} />
+                                <Figura key={o.id} o={o} materiales={doc.materiales || []} modelos={doc.modelos || []} elegido={o.id === sel} escala={vista.escala} porId={porId} />
                             ))}
 
                             {/* agarraderas del elegido */}
-                            {objeto && (
+                            {objeto && !objeto.fijo && (
                                 <g className="ed-manijas">
                                     {(() => {
                                         if (REDONDOS.includes(objeto.tipo)) {
@@ -1259,7 +1537,10 @@ export default function EditorMundo() {
                             <span className="ed-barra-nombre">
                                 {ICONO_TIPO[objeto.tipo]} <code>{objeto.id}</code>
                             </span>
-                            <button type="button" onClick={girar90} title="Girar 90° (R)">
+                            <button type="button" onClick={() => alternarFijo(objeto.id)} title={objeto.fijo ? "Fijo: toca para soltar (L)" : "Fijar para no moverlo por accidente (L)"} className={objeto.fijo ? "ed-on" : ""}>
+                                {objeto.fijo ? <LuLock aria-hidden="true" /> : <LuLockOpen aria-hidden="true" />}
+                            </button>
+                            <button type="button" onClick={girar90} title="Girar 90° (R)" disabled={objeto.fijo}>
                                 <LuRotateCw aria-hidden="true" />
                             </button>
                             <button type="button" onClick={duplicar} title="Duplicar (Ctrl+D)">
@@ -1268,22 +1549,10 @@ export default function EditorMundo() {
                             <button type="button" onClick={borrar} title="Eliminar (Supr)" className="ed-peligro">
                                 <LuTrash2 aria-hidden="true" />
                             </button>
-                            <button type="button" onClick={() => setVerProps((v) => !v)} title="Opciones: posición, tamaño, textura…" className={verProps ? "ed-on" : ""}>
+                            <button type="button" onClick={() => setPanel("objeto")} title="Opciones: posición, tamaño, textura… (panel derecho)" className={verProps ? "ed-on" : ""}>
                                 <LuSettings aria-hidden="true" />
                             </button>
                         </div>
-                    )}
-
-                    {objeto && verProps && (
-                        <Propiedades
-                            o={objeto}
-                            doc={doc}
-                            juegos={extra.juegos}
-                            alCambiar={(c) => cambiarSel(c)}
-                            alCerrar={() => setVerProps(false)}
-                            alNuevaTextura={nuevaTexturaDesde}
-                            estilo={lugarOpciones}
-                        />
                     )}
 
                     {piezaActiva && (
@@ -1308,21 +1577,40 @@ export default function EditorMundo() {
                 <aside className="ed-panel">
                     <div className="ed-pestanas" role="tablist">
                         {[
+                            objeto && ["objeto", LuSettings, objeto.id],
+                            ["modelos", LuPackage, "Mis objetos"],
                             ["texturas", LuPalette, "Texturas"],
                             ["ambiente", LuSun, "Ambiente"],
-                            ["capas", LuLayers, "Objetos"],
-                        ].map(([id, Icono, t]) => (
+                            ["capas", LuLayers, "Lista"],
+                        ]
+                            .filter(Boolean)
+                            .map(([id, Icono, t]) => (
                             <button key={id} type="button" role="tab" aria-selected={panel === id} className={panel === id ? "ed-on" : ""} onClick={() => setPanel(id)}>
                                 <Icono aria-hidden="true" /> {t}
                             </button>
                         ))}
                     </div>
+                    {panel === "objeto" && objeto && (
+                        <PanelObjeto
+                            key={objeto.id}
+                            o={objeto}
+                            doc={doc}
+                            juegos={extra.juegos}
+                            limite={LIMITE}
+                            alCambiar={(c) => cambiarSel(c)}
+                            alNuevaTextura={nuevaTexturaDesde}
+                            alError={(m) => avisar(m, "error")}
+                        />
+                    )}
+                    {panel === "objeto" && !objeto && <p className="ed-vacio">Elige un objeto en el mapa.</p>}
+                    {panel === "modelos" && <PanelModelos doc={doc} cambiar={cambiar} herramienta={herramienta} setHerramienta={setHerramienta} alError={(m) => avisar(m, "error")} />}
                     {panel === "texturas" && <PanelTexturas doc={doc} sel={sel} cambiar={cambiar} editando={editandoTex} setEditando={setEditandoTex} alError={(m) => avisar(m, "error")} />}
                     {panel === "ambiente" && <PanelAmbiente doc={doc} cambiar={cambiar} alError={(m) => avisar(m, "error")} />}
                     {panel === "capas" && (
                         <PanelCapas
                             doc={doc}
                             sel={sel}
+                            alFijar={alternarFijo}
                             alElegir={(id) => {
                                 const o = doc.objetos.find((x) => x.id === id);
                                 setSel(id);
