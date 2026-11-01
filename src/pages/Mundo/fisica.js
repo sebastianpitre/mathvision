@@ -9,11 +9,15 @@
    · Gravedad y salto.
 ========================================================= */
 
+import { partesDe } from "./piezas.js";
+
 export const RADIO = 0.35;
 export const LIMITE = 58;
 const GRAVEDAD = 24;
 export const SALTO = 8; // velocidad hacia arriba (≈ 1.3 m de alto)
 const ESCALON = 0.45; // se sube solo a lo que mida menos que esto
+
+const RAD = Math.PI / 180;
 
 /* Objetos del diseño → formas para chocar. */
 export function formasDe(objetos = []) {
@@ -29,10 +33,51 @@ export function formasDe(objetos = []) {
             formas.push({ cil: true, x: o.x, z: o.z, r: o.ancho / 2, abajo: base, techo: base + o.alto });
             continue;
         }
-        const a = ((o.rot || 0) * Math.PI) / 180;
-        formas.push({ x: o.x, z: o.z, hx: o.ancho / 2, hz: Math.max(o.largo, 0.1) / 2, cos: Math.cos(a), sin: Math.sin(a), abajo: base, techo: base + o.alto });
+        const ang = (o.rot || 0) * RAD;
+        const cos = Math.cos(ang);
+        const sin = Math.sin(ang);
+        // Salón y escalera: varias cajas que giran juntas.
+        const partes = partesDe(o);
+        if (partes) {
+            for (const q of partes) {
+                formas.push({
+                    x: o.x + q.cx * cos + q.cz * sin,
+                    z: o.z - q.cx * sin + q.cz * cos,
+                    hx: q.w / 2,
+                    hz: Math.max(q.d, 0.1) / 2,
+                    cos,
+                    sin,
+                    abajo: base + q.cy - q.h / 2,
+                    techo: base + q.cy + q.h / 2,
+                });
+            }
+            continue;
+        }
+        const d = Math.max(o.largo, 0.1);
+        const a = -(o.incl || 0) * RAD; // positivo: sube hacia el frente (+z del objeto)
+        if (Math.abs(o.incl || 0) > 2) {
+            const pie = Math.abs((d / 2) * Math.cos(a)) + Math.abs((o.alto / 2) * Math.sin(a));
+            const alto = Math.abs((o.alto / 2) * Math.cos(a)) + Math.abs((d / 2) * Math.sin(a));
+            if (Math.abs(o.incl) <= 50) {
+                // Rampa: se camina por encima.
+                formas.push({ rampa: true, x: o.x, z: o.z, hx: o.ancho / 2, hz: pie, cos, sin, base, cy: o.alto / 2, h: o.alto, d, a, abajo: base + o.alto / 2 - alto, techo: base + o.alto / 2 + alto });
+            } else {
+                formas.push({ x: o.x, z: o.z, hx: o.ancho / 2, hz: pie, cos, sin, abajo: base + o.alto / 2 - alto, techo: base + o.alto / 2 + alto });
+            }
+            continue;
+        }
+        formas.push({ x: o.x, z: o.z, hx: o.ancho / 2, hz: d / 2, cos, sin, abajo: base, techo: base + o.alto });
     }
     return formas;
+}
+
+/* Altura de la rampa en ese punto (o null si está fuera). */
+function alturaRampa(f, x, z) {
+    const { lx, lz } = local(f, x, z);
+    if (Math.abs(lx) > f.hx + 0.05) return null;
+    const z0 = (lz - (f.h / 2) * Math.sin(f.a)) / Math.cos(f.a);
+    if (Math.abs(z0) > f.d / 2 + 0.05) return null;
+    return f.base + f.cy + (f.h / 2) * Math.cos(f.a) - z0 * Math.sin(f.a);
 }
 
 /* Punto en coordenadas de la caja. */
@@ -86,6 +131,12 @@ export function paso(p, dx, dz, dt, formas) {
 
     // Choques con lo que está a la altura del cuerpo.
     for (const f of formas) {
+        if (f.rampa) {
+            // Por un lado de la rampa (muy abajo de su superficie) no se pasa.
+            const h = alturaRampa(f, p.x, p.z);
+            if (h != null && p.y < h - 0.6 && p.y + 1.6 > f.abajo) empujar(f, p);
+            continue;
+        }
         if (p.y >= f.techo - ESCALON || p.y + 1.6 <= f.abajo) continue;
         empujar(f, p);
     }
@@ -93,6 +144,11 @@ export function paso(p, dx, dz, dt, formas) {
     // ¿Sobre qué está parado?
     let piso = 0;
     for (const f of formas) {
+        if (f.rampa) {
+            const h = alturaRampa(f, p.x, p.z);
+            if (h != null && h > piso && p.y >= h - 0.6) piso = h;
+            continue;
+        }
         if (f.techo > piso && p.y >= f.techo - ESCALON && encima(f, p.x, p.z)) piso = f.techo;
     }
 
@@ -100,7 +156,7 @@ export function paso(p, dx, dz, dt, formas) {
     p.y += p.vy * dt;
     if (p.y <= piso) {
         // Sube escalones suave en vez de saltar de golpe.
-        p.y = piso - p.y > 0.05 ? p.y + Math.min(piso - p.y, dt * 6) : piso;
+        p.y = piso - p.y > 0.05 && piso - p.y < ESCALON ? p.y + Math.min(piso - p.y, dt * 6) : piso;
         if (p.y >= piso - 0.001) p.y = piso;
         p.vy = Math.max(0, p.vy);
         p.enSuelo = true;

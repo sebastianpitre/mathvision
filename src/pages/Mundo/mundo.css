@@ -687,3 +687,25 @@
     box-shadow: 0 0 1.1rem rgba(251, 146, 60, 0.8);
     animation: mu-latido 1s ease-in-out infinite;
 }
+
+/* ---------- Botón USAR (sobre un círculo con función) ---------- */
+.mu-acciones .mu-usar {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.7rem);
+    width: 5rem;
+    height: 5rem;
+    background: linear-gradient(180deg, #a78bfa, #6d28d9);
+    border-color: #ddd6fe;
+    box-shadow: 0 0 1.4rem rgba(167, 139, 250, 0.85);
+    animation: mu-latido 1.1s ease-in-out infinite;
+}
+
+.mu-acciones .mu-usar svg {
+    width: 1.9rem;
+    height: 1.9rem;
+}
+
+.mu-portal strong {
+    color: #c4b5fd;
+}

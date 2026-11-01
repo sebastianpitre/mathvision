@@ -177,21 +177,28 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   para cambiarla (queda fija ✨), "Sortear el resto otra vez" vuelve a sortear las que no
   son fijas, y "Regalar Élite a" se lo da a un jugador (usuario o ID). Se ve cuántos
   jugadores tiene y cuántos son Élite. Si hay varios activos, sale el que empezó de último.
-- **Mundo 3D:** aquí se diseña el colegio.
-  - **Cielo:** un color, un degradado (arriba y horizonte) o una **foto 360°**: panorámica
-    "equirectangular" 2:1 (por ejemplo 4096×2048) en JPG, hasta 8 MB. Gratis en
-    polyhaven.com/hdris (descargar JPG), o tomada con el celular en modo 360°.
-  - **Suelo:** color o una **foto que se repite** (cuadrada y "seamless/tileable",
-    1024 o 2048 px, JPG) y cuántos metros mide cada repetición. Gratis en ambientcg.com o
-    polyhaven.com/textures (el archivo "Color"), o una foto del piso real tomada de frente.
-  - **Luz:** día, tarde o noche (color del sol y sombras).
-  - **Objetos:** pared, caja, plataforma (para brincar encima), columna, árbol, cuadro o
-    mural con foto y **círculo de juego** (elige el juego, cada cuántos segundos arma la
-    partida, 30 por defecto, y el diámetro). Se elige la pieza y se toca el mapa; se arrastran, se giran, se
-    duplican y cada uno puede llevar color o foto como textura. "Salón 10×8" pone 4
-    paredes con puerta. Hay **vista 3D** para revisar antes de guardar.
-  - **Personajes:** solo modelos **.glb** (pesan menos que los .vrm). Caben 40 jugadores.
-  - Al guardar, los que están adentro ven el cambio al instante.
+- **Mundo 3D:** vistazo en 3D del colegio, los **personajes** que se pueden usar al caminar
+  (solo **.glb**, pesan menos; caben 40 jugadores) y el botón **Abrir el editor del Mundo 3D**.
+  - **Editor** (pantalla completa, `/editor-mundo`), como un programa de diseño:
+    - A la izquierda las piezas: pared, **salón** (4 paredes que se mueven juntas; se cambia
+      largo, ancho, alto y grosor), caja, plataforma, **rampa**, **escalera**, **escalera
+      flotante** (solo peldaños), columna, árbol, cuadro/mural, **círculo de juego** y
+      **teletransporte**. Se elige y se toca el mapa (con Shift se ponen varias).
+    - Al elegir un objeto sale encima su barra: **girar 90°, duplicar, eliminar y ⚙**
+      (posición X/Z/altura, tamaño, girar, **inclinar** —hasta 50° se camina por encima—,
+      textura, nombre). Las agarraderas cambian el tamaño y el círculo azul lo gira.
+    - Cada objeto tiene un **ID** visible (S1, P2, C3, T1…) para reconocerlo.
+    - **Texturas guardadas** (panel derecho): color sólido o imagen con lo que mide cada foto.
+      Se ponen en muchos objetos (y en el suelo); si se cambia la textura, cambian todos.
+    - **Teletransporte:** círculo con destino (otro círculo u objeto). En el mundo, al
+      pararse encima sale el botón **USAR** (F en PC) y lleva al destino; sirve de puerta
+      para los salones. Más adelante USAR podrá tener otras funciones.
+    - **Ambiente:** cielo (color, degradado o foto 360°), suelo (textura guardada o color) y luz.
+    - **Deshacer/Rehacer** (Ctrl+Z / Ctrl+Y), **Guardar** (Ctrl+S; un punto amarillo avisa si
+      hay cambios), Supr borra, Ctrl+D duplica, R gira, flechas mueven (Shift = 2 m).
+    - **Moverse:** clic derecho (o espacio, o la mano) y arrastrar; la rueda acerca/aleja.
+    - **Vista 3D** flotante: se arrastra por su barra y se le cambia el tamaño desde la
+      esquina; ahí el clic derecho no mueve el mapa.
 - **Lobby: fondo y anuncios → Fondo del lobby:** elige uno de los fondos que trae el juego
   (Normal, Halloween 🎃) o sube una imagen horizontal propia (hasta 3 MB). Se ve en el
   lobby, la tienda, la sala, el ranking y el inicio de sesión. Al actualizar queda puesto
@@ -279,7 +286,9 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
     reglas de "Voz y reportes" (segundos, espera, quitar la voz). Encima de quien habla
     salen ondas verdes.
   - En la lista de jugadores se puede silenciar o reportar a alguien.
-  - Las paredes y objetos no se atraviesan; a las plataformas se sube brincando.
+  - Las paredes y objetos no se atraviesan; a las plataformas se sube brincando y por las
+    escaleras y rampas se sube caminando.
+  - **USAR** (F en PC): sale al pararse en un teletransporte y lleva a su destino.
 - **Carrusel de anuncios** (arriba a la izquierda del lobby, debajo del nombre): pasa
   solo, se puede deslizar o tocar los puntitos, y al tocarlo lleva a lo anunciado.
 - **GiraGamif** (la ruletita que gira al lado del carrusel, con el número de tiquetes, o

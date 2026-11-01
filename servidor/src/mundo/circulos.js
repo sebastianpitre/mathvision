@@ -55,7 +55,7 @@ export function crearCirculos({ io, roomManager, ayudas, arranque, jugadores, sa
     /* Se llama cada 500 ms con el diseño actual. */
     function revisar(objetos) {
         const ahora = Date.now();
-        const circulos = objetos.filter((o) => o.tipo === "circulo");
+        const circulos = objetos.filter((o) => o.tipo === "circulo" && (o.funcion || "juego") === "juego");
         let cambio = false;
 
         for (const c of circulos) {

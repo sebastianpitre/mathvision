@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
-import { LuChevronsUp, LuGrab, LuMessageCircle, LuMic, LuMicOff, LuRocket, LuSend, LuUserRound, LuUsers, LuX, LuZap } from "react-icons/lu";
+import { LuChevronsUp, LuGrab, LuMessageCircle, LuMic, LuMicOff, LuRocket, LuSend, LuSparkles, LuUserRound, LuUsers, LuX, LuZap } from "react-icons/lu";
 
 import ProtegerError from "../../components/common/ProtegerError";
 import VRMCharacter from "../../components/character/VRMCharacter";
@@ -11,6 +11,7 @@ import { AccionesJugador } from "../../components/juego/Reportar";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
 import { avisar } from "../../services/avisos";
+import { sonar } from "../../services/sonidos";
 import { socket } from "../../services/socket";
 import { empezarCaptura, micDisponible, pararCaptura, TASA } from "../../services/voz";
 import { Cielo, Luces, Objetos, Suelo } from "./Escena";
@@ -201,6 +202,11 @@ function Yo({ modelo, nombre, entrada, camara, inicio, formas, posicion, globo, 
         }
 
         // Me lanzaron: salgo volando con el impulso.
+        // Teletransporte (botón USAR): aparece en el otro círculo.
+        if (a.irA) {
+            Object.assign(pos, a.irA, { vy: 0, mx: 0, mz: 0 });
+            a.irA = null;
+        }
         if (a.lanzarme) {
             const l = a.lanzarme;
             a.lanzarme = null;
@@ -541,6 +547,7 @@ export default function Mundo() {
         cargados: new Map(),
         cargando: new Set(),
         lanzarme: null,
+        irA: null,
     });
     const [, setVerAgarre] = useState(0);
     const vistas = useRef(new Map()); // userId → dónde se ve ahora (para pegar al alzado)
@@ -623,6 +630,10 @@ export default function Mundo() {
                     andando: 0,
                 });
         };
+        const alTele = (d) => {
+            agarre.current.irA = d;
+            sonar("iniciar");
+        };
         const alCirculos = ({ ahora, c }) => {
             setDesfase(ahora - Date.now());
             setCirculos(Object.fromEntries(c.map((x) => [x.id, x])));
@@ -684,6 +695,7 @@ export default function Mundo() {
         socket.on("mundo:soltado", alSoltado);
         socket.on("mundo:lanzado", alLanzado);
         socket.on("mundo:circulos", alCirculos);
+        socket.on("mundo:teletransporte", alTele);
         socket.on("mundo:aPartida", alPartida);
         socket.on("mundo:dicho", alDicho);
         socket.on("mundo:hablando", alHablando);
@@ -704,6 +716,7 @@ export default function Mundo() {
             socket.off("mundo:soltado", alSoltado);
             socket.off("mundo:lanzado", alLanzado);
             socket.off("mundo:circulos", alCirculos);
+            socket.off("mundo:teletransporte", alTele);
             socket.off("mundo:aPartida", alPartida);
             socket.off("mundo:dicho", alDicho);
             socket.off("mundo:hablando", alHablando);
@@ -769,6 +782,24 @@ export default function Mundo() {
         socket.emit(agarre.current.cargando.has(miIdRef.current) ? "mundo:lanzar" : "mundo:agarrar");
     }, []);
     const decir = useCallback((texto) => socket.emit("mundo:decir", { texto }), []);
+    // Botón USAR: aparece cuando estoy parado en un círculo con función (teletransporte…).
+    const [usable, setUsable] = useState(null);
+    useEffect(() => {
+        const t = setInterval(() => {
+            const p = posicion.current;
+            const c = (config?.objetos || []).find(
+                (o) => o.tipo === "circulo" && o.funcion === "teletransporte" && o.destino && Math.hypot(p.x - o.x, p.z - o.z) <= o.ancho / 2 && Math.abs(p.y - (o.y || 0)) < 1.2
+            );
+            setUsable(c ? c.id : null);
+        }, 250);
+        return () => clearInterval(t);
+    }, [config?.objetos]);
+    const usar = useCallback(() => {
+        if (usable) socket.emit("mundo:usar", { id: usable });
+    }, [usable]);
+    const usarRef = useRef(null);
+    usarRef.current = usar;
+
     const brincar = useCallback(() => {
         entrada.current.saltar = true;
     }, []);
@@ -810,6 +841,7 @@ export default function Mundo() {
             }
             if (e.code === "KeyV" && !e.repeat) empezarHablar();
             if (e.code === "KeyE" && !e.repeat) agarrarOLanzar();
+            if (e.code === "KeyF" && !e.repeat) usarRef.current?.();
             if (e.code === "KeyR" && !e.repeat) alternarCorrer();
             if (k && k !== "shift" && entrada.current.correr) quitarCorrer();
             if (e.key === "Enter") {
@@ -885,6 +917,7 @@ export default function Mundo() {
     const modeloDe = (id) => config.personajes.find((p) => p.id === id)?.modelo || config.personajes[0].modelo;
     const mio = jugadores.find((j) => j.userId === yo);
     const cargoAlguien = agarre.current.cargando.has(yo);
+    const circuloUsable = usable ? config.objetos.find((o) => o.id === usable) : null;
     const otros = jugadores.filter((j) => j.userId !== yo);
 
     return (
@@ -893,8 +926,8 @@ export default function Mundo() {
                 <Canvas shadows="percentage" camera={{ position: [0, 3, 6], fov: 58, near: 0.1, far: 900 }} dpr={[1, 1.5]} gl={{ antialias: true }}>
                     <Cielo cielo={config.cielo} />
                     <Luces luz={config.luz} colorSuelo={config.suelo.color} siguiendo={posicion} />
-                    <Suelo suelo={config.suelo} />
-                    <Objetos objetos={config.objetos} circulos={circulos} desfase={desfase} />
+                    <Suelo suelo={config.suelo} materiales={config.materiales} />
+                    <Objetos objetos={config.objetos} materiales={config.materiales} circulos={circulos} desfase={desfase} />
 
                     {mio && (
                         <Yo
@@ -984,6 +1017,12 @@ export default function Mundo() {
                     <small>{cargoAlguien ? "Lanzar" : "Agarrar"}</small>
                 </button>
                 <BotonMic hablando={hablo} alEmpezar={empezarHablar} alTerminar={terminarHablar} />
+                {circuloUsable && (
+                    <button type="button" className="mu-accion mu-usar" onClick={usar} title="Usar (F)">
+                        <LuSparkles aria-hidden="true" />
+                        <small>Usar</small>
+                    </button>
+                )}
                 <button
                     type="button"
                     className={`mu-accion ${correr ? "mu-correr-on" : ""}`}

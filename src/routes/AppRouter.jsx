@@ -23,6 +23,7 @@ const JuegoPreguntas = lazy(() => import("../games/MathMillonario/MathMillonario
 const EscapeAlgebra = lazy(() => import("../games/EscapeAlgebra/EscapeAlgebra"));
 const TriquiGame = lazy(() => import("../games/triqui/TriquiGame"));
 const Admin = lazy(() => import("../pages/Admin/Admin"));
+const EditorMundo = lazy(() => import("../pages/Admin/mundo/EditorMundo"));
 const Sala = lazy(() => import("../pages/Sala/Sala"));
 const Preparando = lazy(() => import("../pages/Sala/Preparando"));
 const Eventos = lazy(() => import("../pages/Eventos/Eventos"));
@@ -153,6 +154,7 @@ function AppRouter() {
                 <Route path="/triqui-local" element={<TriquiGame mode="local" />} />
 
                 <Route path="/admin" element={<SoloAdmin><Admin /></SoloAdmin>} />
+                <Route path="/editor-mundo" element={<SoloAdmin><EditorMundo /></SoloAdmin>} />
 
                 {/* Direcciones viejas que pueden estar guardadas */}
                 <Route path="/games/math-millonario" element={<Navigate to="/games/preguntas" replace />} />

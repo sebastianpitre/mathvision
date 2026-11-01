@@ -7,6 +7,7 @@
                     andando: 0 quieto · 1 camina · 2 corre
      mundo:agarrar                           alza al jugador que tiene al frente
      mundo:lanzar                            lo tira hacia donde mira
+     mundo:usar     { id }                   botón USAR sobre un círculo (teletransporte…)
      mundo:decir    { texto }                globo encima del jugador
      mundo:hablar / mundo:audio / mundo:callar   micrófono
      mundo:salir
@@ -16,6 +17,7 @@
      mundo:dicho, mundo:hablando, mundo:audio
      mundo:agarre { por, a } · mundo:soltado { a } · mundo:lanzado { a, por, x, y, z, vx, vy, vz }
      mundo:circulos    cuenta de cada círculo de juego
+     mundo:teletransporte { x, y, z }  te lleva a otro círculo
      mundo:aPartida    salió por un círculo: va a la pantalla previa
      mundo:diseno      el admin cambió el mundo
 
@@ -213,6 +215,25 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
             mejor.cargadoPor = j.userId;
             mejor.andando = 0;
             io.to(SALA).emit("mundo:agarre", { por: j.userId, a: mejor.userId });
+        });
+
+        // Botón USAR: el servidor revisa que esté parado en ese círculo.
+        socket.on("mundo:usar", ({ id } = {}) => {
+            const j = mio(socket);
+            if (!j || j.cargadoPor || j.cargando) return;
+            const c = objetosActuales.find((o) => o.id === String(id) && o.tipo === "circulo");
+            if (!c || Math.hypot(j.x - c.x, j.z - c.z) > c.ancho / 2 + 0.6) return;
+            if (c.funcion === "teletransporte") {
+                const d = objetosActuales.find((o) => o.id === c.destino);
+                if (!d) return socket.emit("mundo:error", { mensaje: "Este círculo no tiene destino.", leve: true });
+                // Sale a un lado del círculo de llegada (para no rebotar de vuelta).
+                const a = Math.random() * Math.PI * 2;
+                const r = d.tipo === "circulo" ? Math.min(d.ancho / 2 + 0.8, 4) : 1.5;
+                const destino = { x: d.x + Math.cos(a) * r, y: d.y || 0, z: d.z + Math.sin(a) * r };
+                Object.assign(j, destino);
+                cambio = true;
+                socket.emit("mundo:teletransporte", destino);
+            }
         });
 
         // Tirarlo hacia donde mira.

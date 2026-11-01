@@ -6,6 +6,7 @@ import { Html } from "@react-three/drei";
 
 import ProtegerError from "../../components/common/ProtegerError";
 import juegosLista from "../../data/mock/games.json";
+import { materialDe, partesDe } from "./piezas.js";
 
 /* =========================================================
    MUNDO 3D · EL ESCENARIO
@@ -158,28 +159,42 @@ export function Luces({ luz, colorSuelo, siguiendo }) {
 }
 
 /* ---------- Suelo ---------- */
-export function Suelo({ suelo }) {
-    const veces = TAMANO_SUELO / (suelo.baldosa || 4);
+export function Suelo({ suelo, materiales = [] }) {
+    const m = materialDe(suelo, materiales);
+    const veces = TAMANO_SUELO / (m.baldosa || suelo.baldosa || 4);
     return (
         <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
             <planeGeometry args={[TAMANO_SUELO, TAMANO_SUELO]} />
-            <Material color={suelo.textura ? "#ffffff" : suelo.color} textura={suelo.textura} repetirX={veces} repetirY={veces} rugoso={0.95} />
+            <Material color={m.color} textura={m.textura} repetirX={veces} repetirY={veces} rugoso={0.95} />
         </mesh>
     );
 }
 
 /* ---------- Objetos ---------- */
-function Objeto({ o }) {
-    const rot = ((o.rot || 0) * Math.PI) / 180;
+const RAD = Math.PI / 180;
+
+/* Una caja con su textura repetida según su tamaño. */
+function Caja({ w, h, d, m, posicion, sombra = true }) {
+    const b = m.baldosa || 2;
+    return (
+        <mesh position={posicion} castShadow={sombra} receiveShadow>
+            <boxGeometry args={[w, h, Math.max(0.05, d)]} />
+            <Material color={m.color} textura={m.textura} repetirX={Math.max(w, d) / b} repetirY={Math.max(h, Math.min(w, d)) / b} />
+        </mesh>
+    );
+}
+
+function Objeto({ o, materiales }) {
+    const rot = (o.rot || 0) * RAD;
     const base = o.y || 0;
-    const color = o.textura ? "#ffffff" : o.color;
-    const b = o.baldosa || 2;
+    const m = materialDe(o, materiales);
+    const b = m.baldosa || 2;
 
     if (o.tipo === "columna") {
         return (
             <mesh position={[o.x, base + o.alto / 2, o.z]} castShadow receiveShadow>
                 <cylinderGeometry args={[o.ancho / 2, o.ancho / 2, o.alto, 28]} />
-                <Material color={color} textura={o.textura} repetirX={(Math.PI * o.ancho) / b} repetirY={o.alto / b} />
+                <Material color={m.color} textura={m.textura} repetirX={(Math.PI * o.ancho) / b} repetirY={o.alto / b} />
             </mesh>
         );
     }
@@ -195,33 +210,50 @@ function Objeto({ o }) {
                 </mesh>
                 <mesh position={[0, tronco + copa * 0.55, 0]} castShadow>
                     <icosahedronGeometry args={[copa, 1]} />
-                    <Material color={color} textura={o.textura} repetirX={2} repetirY={2} />
+                    <Material color={m.color} textura={m.textura} repetirX={2} repetirY={2} />
                 </mesh>
                 <mesh position={[copa * 0.45, tronco + copa * 0.2, copa * 0.2]} castShadow>
                     <icosahedronGeometry args={[copa * 0.6, 1]} />
-                    <Material color={color} textura={o.textura} repetirX={1} repetirY={1} />
+                    <Material color={m.color} textura={m.textura} repetirX={1} repetirY={1} />
                 </mesh>
             </group>
         );
     }
 
+    // Salón (4 paredes) y escalera (peldaños): varias cajas que giran juntas.
+    const partes = partesDe(o);
+    if (partes) {
+        return (
+            <group position={[o.x, base, o.z]} rotation={[0, rot, 0]}>
+                {partes.map((q, i) => (
+                    <Caja key={i} w={q.w} h={q.h} d={q.d} m={m} posicion={[q.cx, q.cy, q.cz]} />
+                ))}
+            </group>
+        );
+    }
+
+    // Inclinada (positivo: sube hacia el frente). Orden: primero gira, luego inclina.
+    const giro = new THREE.Euler(-(o.incl || 0) * RAD, rot, 0, "YXZ");
+
     if (o.tipo === "cuadro") {
         // Una foto colgada (mural, logo del colegio, cartel…), con marco del color elegido.
+        const foto = m.textura;
+        const grueso = Math.max(0.05, o.largo);
         return (
-            <group position={[o.x, base + o.alto / 2, o.z]} rotation={[0, rot, 0]}>
+            <group position={[o.x, base + o.alto / 2, o.z]} rotation={giro}>
                 <mesh castShadow receiveShadow>
-                    <boxGeometry args={[o.ancho + 0.16, o.alto + 0.16, Math.max(0.05, o.largo)]} />
-                    <meshStandardMaterial color={o.color} roughness={0.6} />
+                    <boxGeometry args={[o.ancho + 0.16, o.alto + 0.16, grueso]} />
+                    <meshStandardMaterial color={o.material ? "#ffffff" : o.color} roughness={0.6} />
                 </mesh>
-                {o.textura && (
+                {foto && (
                     <>
-                        <mesh position={[0, 0, Math.max(0.05, o.largo) / 2 + 0.005]}>
+                        <mesh position={[0, 0, grueso / 2 + 0.005]}>
                             <planeGeometry args={[o.ancho, o.alto]} />
-                            <Material color="#ffffff" textura={o.textura} repetirX={1} repetirY={1} rugoso={0.7} />
+                            <Material color="#ffffff" textura={foto} repetirX={1} repetirY={1} rugoso={0.7} />
                         </mesh>
-                        <mesh position={[0, 0, -Math.max(0.05, o.largo) / 2 - 0.005]} rotation={[0, Math.PI, 0]}>
+                        <mesh position={[0, 0, -grueso / 2 - 0.005]} rotation={[0, Math.PI, 0]}>
                             <planeGeometry args={[o.ancho, o.alto]} />
-                            <Material color="#ffffff" textura={o.textura} repetirX={1} repetirY={1} rugoso={0.7} />
+                            <Material color="#ffffff" textura={foto} repetirX={1} repetirY={1} rugoso={0.7} />
                         </mesh>
                     </>
                 )}
@@ -231,10 +263,9 @@ function Objeto({ o }) {
 
     // caja, pared, plataforma
     return (
-        <mesh position={[o.x, base + o.alto / 2, o.z]} rotation={[0, rot, 0]} castShadow receiveShadow>
-            <boxGeometry args={[o.ancho, o.alto, Math.max(0.05, o.largo)]} />
-            <Material color={color} textura={o.textura} repetirX={Math.max(o.ancho, o.largo) / b} repetirY={o.alto / b} />
-        </mesh>
+        <group position={[o.x, base + o.alto / 2, o.z]} rotation={giro}>
+            <Caja w={o.ancho} h={o.alto} d={o.largo} m={m} posicion={[0, 0, 0]} />
+        </group>
     );
 }
 
@@ -257,22 +288,18 @@ function Letrero({ imagen }) {
     );
 }
 
-function Circulo({ o, estado, desfase }) {
+/* Piso que brilla y anillo que gira (todos los círculos). */
+function Anillo({ o, rapido }) {
     const anillo = useRef(null);
     const luz = useRef(null);
     const r = o.ancho / 2;
-    const juego = JUEGO_DE[o.juego] || { nombre: o.juego, imagen: null };
-    const rot = ((o.rot || 0) * Math.PI) / 180;
-    const contando = Boolean(estado?.hasta);
     useFrame(({ clock }) => {
         const t = clock.elapsedTime;
-        if (anillo.current) anillo.current.rotation.z = t * (contando ? 1.6 : 0.4);
-        if (luz.current) luz.current.material.opacity = (contando ? 0.32 : 0.16) + Math.sin(t * (contando ? 6 : 2)) * 0.06;
+        if (anillo.current) anillo.current.rotation.z = t * (rapido ? 1.6 : 0.4);
+        if (luz.current) luz.current.material.opacity = (rapido ? 0.32 : 0.16) + Math.sin(t * (rapido ? 6 : 2)) * 0.06;
     });
-    const faltan = contando ? Math.max(0, Math.ceil((estado.hasta - (Date.now() + desfase)) / 1000)) : null;
     return (
-        <group position={[o.x, (o.y || 0) + 0.02, o.z]}>
-            {/* piso brillante y anillo que gira */}
+        <>
             <mesh ref={luz} rotation={[-Math.PI / 2, 0, 0]}>
                 <circleGeometry args={[r, 48]} />
                 <meshBasicMaterial color={o.color} transparent opacity={0.18} depthWrite={false} toneMapped={false} />
@@ -281,6 +308,48 @@ function Circulo({ o, estado, desfase }) {
                 <ringGeometry args={[r - 0.18, r, 64, 1, 0, Math.PI * 1.7]} />
                 <meshBasicMaterial color={o.color} toneMapped={false} side={THREE.DoubleSide} />
             </mesh>
+        </>
+    );
+}
+
+/* Círculo de teletransporte: un portal de luz (se usa con el botón USAR). */
+function Portal({ o, destino, etiquetas = true }) {
+    const haz = useRef(null);
+    const r = o.ancho / 2;
+    useFrame(({ clock }) => {
+        if (haz.current) {
+            haz.current.rotation.y = clock.elapsedTime * 0.8;
+            haz.current.material.opacity = 0.16 + Math.sin(clock.elapsedTime * 3) * 0.05;
+        }
+    });
+    return (
+        <group position={[o.x, (o.y || 0) + 0.02, o.z]}>
+            <Anillo o={o} />
+            <mesh ref={haz} position={[0, 1.4, 0]}>
+                <cylinderGeometry args={[r * 0.92, r, 2.8, 32, 1, true]} />
+                <meshBasicMaterial color={o.color} transparent opacity={0.18} side={THREE.DoubleSide} depthWrite={false} toneMapped={false} />
+            </mesh>
+            {etiquetas && (
+                <Html position={[0, 3.1, 0]} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
+                    <div className="mu-circulo mu-portal">
+                        <strong>{o.nombre || "Teletransporte"}</strong>
+                        <span>{destino ? `↪ a ${destino}` : "Sin destino"}</span>
+                    </div>
+                </Html>
+            )}
+        </group>
+    );
+}
+
+function Circulo({ o, estado, desfase, etiquetas = true }) {
+    const r = o.ancho / 2;
+    const juego = JUEGO_DE[o.juego] || { nombre: o.juego, imagen: null };
+    const rot = (o.rot || 0) * RAD;
+    const contando = Boolean(estado?.hasta);
+    const faltan = contando ? Math.max(0, Math.ceil((estado.hasta - (Date.now() + desfase)) / 1000)) : null;
+    return (
+        <group position={[o.x, (o.y || 0) + 0.02, o.z]}>
+            <Anillo o={o} rapido={contando} />
             {/* letrero con la imagen del juego, al fondo del círculo */}
             <group rotation={[0, rot, 0]}>
                 <group position={[0, 0, -r - 0.3]}>
@@ -303,18 +372,46 @@ function Circulo({ o, estado, desfase }) {
                             </Suspense>
                         )}
                     </group>
-                    <Html position={[0, 3.55, 0]} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
-                        <div className={`mu-circulo ${contando ? "mu-circulo-cuenta" : ""}`}>
-                            <strong>{juego.nombre}</strong>
-                            {estado?.aviso ? <span>{estado.aviso}</span> : contando ? <span>{`⏳ ${faltan} s · ${estado.dentro} adentro`}</span> : <span>Párate aquí para jugar</span>}
-                        </div>
-                    </Html>
+                    {etiquetas && (
+                        <Html position={[0, 3.55, 0]} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
+                            <div className={`mu-circulo ${contando ? "mu-circulo-cuenta" : ""}`}>
+                                <strong>{juego.nombre}</strong>
+                                {estado?.aviso ? <span>{estado.aviso}</span> : contando ? <span>{`⏳ ${faltan} s · ${estado.dentro} adentro`}</span> : <span>Párate aquí para jugar</span>}
+                            </div>
+                        </Html>
+                    )}
                 </group>
             </group>
         </group>
     );
 }
 
-export function Objetos({ objetos, circulos = {}, desfase = 0 }) {
-    return objetos.map((o) => (o.tipo === "circulo" ? <Circulo key={o.id} o={o} estado={circulos[o.id]} desfase={desfase} /> : <Objeto key={o.id} o={o} />));
+/* Contorno del objeto elegido (vista previa del editor). */
+function Marca({ o }) {
+    const alto = o.tipo === "circulo" ? 0.3 : o.alto;
+    const d = ["columna", "arbol", "circulo"].includes(o.tipo) ? o.ancho : Math.max(o.largo, 0.1);
+    return (
+        <mesh position={[o.x, (o.y || 0) + alto / 2, o.z]} rotation={[0, (o.rot || 0) * RAD, 0]}>
+            <boxGeometry args={[o.ancho + 0.2, alto + 0.2, d + 0.2]} />
+            <meshBasicMaterial color="#38bdf8" wireframe toneMapped={false} />
+        </mesh>
+    );
+}
+
+export function nombreDe(o) {
+    return o?.nombre || o?.id || "";
+}
+
+export function Objetos({ objetos, materiales = [], circulos = {}, desfase = 0, seleccionado = null, etiquetas = true }) {
+    const porId = new Map(objetos.map((o) => [o.id, o]));
+    return (
+        <>
+            {objetos.map((o) => {
+                if (o.tipo !== "circulo") return <Objeto key={o.id} o={o} materiales={materiales} />;
+                if (o.funcion === "teletransporte") return <Portal key={o.id} o={o} etiquetas={etiquetas} destino={o.destino ? nombreDe(porId.get(o.destino)) : null} />;
+                return <Circulo key={o.id} o={o} estado={circulos[o.id]} desfase={desfase} etiquetas={etiquetas} />;
+            })}
+            {seleccionado && porId.get(seleccionado) && <Marca o={porId.get(seleccionado)} />}
+        </>
+    );
 }
