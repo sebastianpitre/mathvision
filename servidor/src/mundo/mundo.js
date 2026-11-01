@@ -8,17 +8,20 @@
      personajes  ids de personajes .glb que se pueden usar
      objetos [{ id, tipo, x, z, rot, ancho, alto, largo, color, textura, baldosa }]
    Tipos de objeto: caja, pared, plataforma (para brincar),
-   columna, arbol, cuadro (una foto colgada, como un mural).
+   columna, arbol, cuadro (una foto colgada, como un mural) y
+   circulo (círculo de juego: cada "segundos" arma una partida
+   del "juego" con los que estén adentro).
 ========================================================= */
 
 import { pool } from "../database/db.js";
 import { errorConEstado } from "../http/ruta.js";
+import { JUEGOS_SALA } from "../salas/juegos.js";
 
 const CLAVE = "mundo";
 const COLOR = /^#[0-9a-f]{6}$/i;
 export const LIMITE = 60; // el suelo va de -60 a 60 metros
 export const MAX_OBJETOS = 300;
-export const TIPOS_OBJETO = ["caja", "pared", "plataforma", "columna", "arbol", "cuadro"];
+export const TIPOS_OBJETO = ["caja", "pared", "plataforma", "columna", "arbol", "cuadro", "circulo"];
 export const LUCES = ["dia", "tarde", "noche"];
 
 export const esGlb = (ruta) => /\.glb$/i.test(String(ruta || ""));
@@ -38,6 +41,8 @@ export const PIEZAS = {
     columna: { ancho: 0.8, alto: 4, largo: 0.8, color: "#d9d4cc" },
     arbol: { ancho: 3, alto: 5, largo: 3, color: "#3f8f3a" },
     cuadro: { ancho: 3, alto: 2, largo: 0.1, color: "#ffffff" },
+    // Círculo de juego: quien se pare adentro entra a una partida (ancho = diámetro).
+    circulo: { ancho: 5, alto: 0.1, largo: 5, color: "#ffcf3e" },
 };
 
 function limpiarObjeto(o = {}, i) {
@@ -56,6 +61,12 @@ function limpiarObjeto(o = {}, i) {
         color: color(o.color, base.color),
         textura: esImagen(o.textura) ? o.textura : null,
         baldosa: num(o.baldosa, 0.25, 50, 2),
+        ...(tipo === "circulo"
+            ? {
+                  juego: JUEGOS_SALA[o.juego] ? o.juego : "zona",
+                  segundos: Math.round(num(o.segundos, 5, 300, 30)),
+              }
+            : {}),
     };
 }
 

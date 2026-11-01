@@ -63,7 +63,7 @@ export class RoomManager {
             code,
             hostUserId: miembro.userId,
             juego: "siglo",
-            estado: "sala", // "sala" | "jugando"
+            estado: "sala", // "sala" | "preparando" (pantalla previa) | "jugando"
             miembros: new Map([[miembro.userId, miembro]]),
             bloqueados: new Set(), // userId de los que el creador sacó
             victorias: {}, // juego → Map(userId → partidas ganadas en esta sala)
@@ -97,7 +97,7 @@ export class RoomManager {
             return { success: false, message: "El creador te sacó de esa sala. Solo puedes volver si te invita." };
         }
 
-        if (room.estado === "jugando") {
+        if (room.estado === "jugando" || room.estado === "preparando") {
             return { success: false, message: "Esa sala está en plena partida. Espera a que termine." };
         }
 
@@ -190,6 +190,10 @@ export class RoomManager {
             motivoNoIniciar: motivoNoIniciar(room.juego, miembros.length),
             juegos: Object.values(JUEGOS_SALA),
             temaInvasion: room.temaInvasion || null,
+            // Pantalla previa: quiénes ya cargaron el juego y hasta cuándo se espera.
+            listos: room.listos ? [...room.listos] : [],
+            preparandoHasta: room.preparandoHasta || null,
+            ahora: Date.now(),
 
             // Compatibilidad con el Triqui
             players: [...room.players.values()].map((p) => p.toJSON()),

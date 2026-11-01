@@ -165,6 +165,9 @@ export default function Sala() {
                 juegoPedido.current = null;
             }
 
+            // Partida que salió de un círculo del Mundo 3D: pantalla previa.
+            if (nueva?.estado === "preparando") return navigate("/preparando", { replace: true });
+
             setSala(nueva);
         };
 

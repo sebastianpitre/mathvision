@@ -2,7 +2,8 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useNavigate } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
-import { LuChevronsUp, LuHand, LuMessageCircle, LuMic, LuMicOff, LuSend, LuUserRound, LuUsers, LuX, LuZap } from "react-icons/lu";
+import * as THREE from "three";
+import { LuChevronsUp, LuGrab, LuMessageCircle, LuMic, LuMicOff, LuRocket, LuSend, LuUserRound, LuUsers, LuX, LuZap } from "react-icons/lu";
 
 import ProtegerError from "../../components/common/ProtegerError";
 import VRMCharacter from "../../components/character/VRMCharacter";
@@ -21,10 +22,15 @@ import "./mundo.css";
 /* =========================================================
    MUNDO 3D (lobby para caminar)
    · Celular: joystick a la izquierda, botones a la derecha
-     (brincar, correr, saludar, hablar, escribir); arrastra la
-     pantalla para girar la cámara.
-   · PC: W A S D / flechas, Shift corre, Espacio brinca,
-     Enter escribe, mantener V habla, arrastra para girar.
+     (brincar, correr, agarrar/lanzar, hablar, escribir);
+     arrastra la pantalla para girar la cámara.
+   · Correr: corre solo hacia donde mira la cámara (gira la
+     cámara para doblar); se quita al tocar el joystick.
+   · Agarrar: alza al jugador que está al lado; Lanzar lo tira.
+   · Círculos de juego: párate adentro y al terminar la cuenta
+     se arma la partida (pantalla previa en /preparando).
+   · PC: W A S D / flechas, Shift corre, R corre solo,
+     Espacio brinca, E agarra/lanza, Enter escribe, mantener V habla.
    · Los mensajes salen en un globo encima del jugador unos
      segundos y desaparecen: no quedan guardados en ningún lado.
    · La voz se oye solo cerca (más bajito mientras más lejos).
@@ -32,6 +38,7 @@ import "./mundo.css";
 
 const VELOCIDAD = 4.2; // m/s caminando
 const VELOCIDAD_CORRER = 8.5;
+const ALTURA_CARGADO = 1.9; // el que va alzado, encima de la cabeza
 const DISTANCIA_CAMARA = 6.2;
 const DURACION_GLOBO = 6000;
 const CLAVE_PERSONAJE = "ludogamif:mundo-personaje";
@@ -60,11 +67,19 @@ const girarHacia = (a, b, t) => {
 };
 
 /* ---------- Personaje con nombre, globo y "está hablando" ---------- */
-function Cuerpo({ modelo, andar, saludo, nombre, yo, globo, habla }) {
+function Cuerpo({ modelo, andar, saludo, brazos, cargado, nombre, yo, globo, habla }) {
     const grupo = useRef(null);
     const sombras = useRef(false);
+    const cabeza = useRef(null);
+    const { camera } = useThree();
+    const punto = useRef(new THREE.Vector3());
     // Que el personaje proyecte sombra (se marca una vez cuando carga).
     useFrame(() => {
+        // El nombre de alguien pegado a la cámara se vería gigante: se esconde.
+        if (cabeza.current && grupo.current) {
+            grupo.current.getWorldPosition(punto.current);
+            cabeza.current.style.opacity = punto.current.distanceTo(camera.position) < 2.6 ? "0" : "1";
+        }
         if (sombras.current || !grupo.current) return;
         let hay = false;
         grupo.current.traverse((o) => {
@@ -80,16 +95,21 @@ function Cuerpo({ modelo, andar, saludo, nombre, yo, globo, habla }) {
         <group ref={grupo}>
             <ProtegerError respaldo={null}>
                 <Suspense fallback={null}>
-                    <VRMCharacter url={modelo} andar={andar} saludo={saludo} texturaMax={512} rotation={[0, 0, 0]} />
+                    {/* alzado: acostado encima de la cabeza del que lo carga */}
+                    <group rotation={cargado ? [0, 0, Math.PI / 2] : [0, 0, 0]} position={cargado ? [0.85, 0, 0] : [0, 0, 0]}>
+                        <VRMCharacter url={modelo} andar={andar} saludo={saludo} brazos={brazos} texturaMax={512} rotation={[0, 0, 0]} />
+                    </group>
                 </Suspense>
             </ProtegerError>
             {/* sombrita redonda debajo (se ve aunque el sol esté lejos) */}
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-                <circleGeometry args={[0.42, 24]} />
-                <meshBasicMaterial color="#000" transparent opacity={0.22} depthWrite={false} />
-            </mesh>
-            <Html position={[0, 2.05, 0]} center distanceFactor={8} zIndexRange={[10, 0]} style={{ pointerEvents: "none" }}>
-                <div className="mu-cabeza">
+            {!cargado && (
+                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+                    <circleGeometry args={[0.42, 24]} />
+                    <meshBasicMaterial color="#000" transparent opacity={0.22} depthWrite={false} />
+                </mesh>
+            )}
+            <Html position={[0, cargado ? 1.0 : 2.05, 0]} center distanceFactor={8} zIndexRange={[10, 0]} style={{ pointerEvents: "none" }}>
+                <div className="mu-cabeza" ref={cabeza}>
                     {globo && (
                         <p className="mu-globo" key={globo.n}>
                             {globo.texto}
@@ -112,15 +132,25 @@ function Cuerpo({ modelo, andar, saludo, nombre, yo, globo, habla }) {
 }
 
 /* ---------- Yo: se mueve con el joystick o el teclado ---------- */
-function Yo({ modelo, nombre, entrada, camara, inicio, formas, posicion, saludo, globo, habla }) {
+function Yo({ modelo, nombre, entrada, camara, inicio, formas, posicion, globo, habla, agarre, vistas, yoId }) {
     const grupo = useRef(null);
     const p = posicion;
     const andar = useRef(0);
+    const brazos = useRef(0);
     const ultimoEnvio = useRef({ t: 0, x: NaN, y: NaN, z: NaN, r: NaN, a: -1 });
     const { camera } = useThree();
 
     useEffect(() => {
-        Object.assign(p.current, { x: inicio.x, y: inicio.y || 0, z: inicio.z, r: inicio.r, vy: 0, enSuelo: true });
+        Object.assign(p.current, {
+            x: inicio.x,
+            y: inicio.y || 0,
+            z: inicio.z,
+            r: inicio.r,
+            vy: 0,
+            mx: 0,
+            mz: 0,
+            enSuelo: true,
+        });
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     useFrame((_, delta) => {
@@ -129,19 +159,38 @@ function Yo({ modelo, nombre, entrada, camara, inicio, formas, posicion, saludo,
         const t = e.teclas;
         let ix = e.joy.x + (t.d ? 1 : 0) - (t.a ? 1 : 0);
         let iy = e.joy.y + (t.w ? 1 : 0) - (t.s ? 1 : 0);
+        // Correr solo: hacia adelante de la cámara mientras no toque el joystick.
+        const auto = e.correr && Math.hypot(ix, iy) < 0.08;
+        if (auto) iy = 1;
         const largo = Math.hypot(ix, iy);
         if (largo > 1) {
             ix /= largo;
             iy /= largo;
         }
         const fuerza = Math.min(1, largo);
-        const corre = e.correr || t.shift;
+        const corre = auto || t.shift;
+        const a = agarre.current;
+        const meCargan = a.cargados.get(yoId);
         const yaw = camara.current.yaw;
         const pos = p.current;
 
         let dx = 0;
         let dz = 0;
-        if (fuerza > 0.08) {
+        if (meCargan) {
+            // Me tienen alzado: voy encima del que me carga, sin moverme.
+            const v = vistas.current.get(meCargan);
+            if (v)
+                Object.assign(pos, {
+                    x: v.x,
+                    y: v.y + ALTURA_CARGADO,
+                    z: v.z,
+                    r: v.r,
+                    vy: 0,
+                    mx: 0,
+                    mz: 0,
+                });
+            pos.enSuelo = false;
+        } else if (fuerza > 0.08) {
             // Adelante = alejándose de la cámara.
             const vx = -Math.sin(yaw) * iy + Math.cos(yaw) * ix;
             const vz = -Math.cos(yaw) * iy - Math.sin(yaw) * ix;
@@ -151,18 +200,43 @@ function Yo({ modelo, nombre, entrada, camara, inicio, formas, posicion, saludo,
             pos.r = girarHacia(pos.r, Math.atan2(vx, vz), Math.min(1, dt * 12));
         }
 
+        // Me lanzaron: salgo volando con el impulso.
+        if (a.lanzarme) {
+            const l = a.lanzarme;
+            a.lanzarme = null;
+            Object.assign(pos, {
+                x: l.x,
+                y: l.y,
+                z: l.z,
+                vy: l.vy,
+                mx: l.vx,
+                mz: l.vz,
+                enSuelo: false,
+            });
+        }
+
         // Brincar (solo desde el piso).
         if (e.saltar) {
             e.saltar = false;
-            if (pos.enSuelo) {
+            if (pos.enSuelo && !meCargan) {
                 pos.vy = SALTO;
                 pos.enSuelo = false;
             }
         }
-        paso(pos, dx, dz, dt, formas);
+        if (!meCargan) {
+            paso(pos, dx + (pos.mx || 0) * dt, dz + (pos.mz || 0) * dt, dt, formas);
+            // El impulso del lanzamiento se frena al caer.
+            if (pos.enSuelo && (pos.mx || pos.mz)) {
+                pos.mx *= 0.75;
+                pos.mz *= 0.75;
+                if (Math.hypot(pos.mx, pos.mz) < 0.3) pos.mx = pos.mz = 0;
+            }
+        }
+        vistas.current.set(yoId, { x: pos.x, y: pos.y, z: pos.z, r: pos.r });
 
-        const meta = fuerza > 0.08 && pos.enSuelo ? (corre ? 2 : 1) : 0;
+        const meta = fuerza > 0.08 && pos.enSuelo && !meCargan ? (corre ? 2 : 1) : 0;
         andar.current += (meta - andar.current) * Math.min(1, dt * 10);
+        brazos.current += ((a.cargando.has(yoId) ? 1 : 0) - brazos.current) * Math.min(1, dt * 10);
 
         if (grupo.current) {
             grupo.current.position.set(pos.x, pos.y, pos.z);
@@ -180,48 +254,75 @@ function Yo({ modelo, nombre, entrada, camara, inicio, formas, posicion, saludo,
         const u = ultimoEnvio.current;
         const ahora = performance.now();
         const anda = Math.round(andar.current);
-        if (
-            ahora - u.t > 100 &&
-            (Math.abs(u.x - pos.x) > 0.01 || Math.abs(u.z - pos.z) > 0.01 || Math.abs(u.y - pos.y) > 0.01 || Math.abs(u.r - pos.r) > 0.02 || u.a !== anda)
-        ) {
-            socket.emit("mundo:mover", { x: pos.x, y: pos.y, z: pos.z, r: pos.r, andando: anda });
-            Object.assign(u, { t: ahora, x: pos.x, y: pos.y, z: pos.z, r: pos.r, a: anda });
+        if (ahora - u.t > 100 && (Math.abs(u.x - pos.x) > 0.01 || Math.abs(u.z - pos.z) > 0.01 || Math.abs(u.y - pos.y) > 0.01 || Math.abs(u.r - pos.r) > 0.02 || u.a !== anda)) {
+            socket.emit("mundo:mover", {
+                x: pos.x,
+                y: pos.y,
+                z: pos.z,
+                r: pos.r,
+                andando: anda,
+            });
+            Object.assign(u, {
+                t: ahora,
+                x: pos.x,
+                y: pos.y,
+                z: pos.z,
+                r: pos.r,
+                a: anda,
+            });
         }
     });
 
     return (
         <group ref={grupo} position={[inicio.x, inicio.y || 0, inicio.z]}>
-            <Cuerpo modelo={modelo} andar={andar} saludo={saludo} nombre={nombre} yo globo={globo} habla={habla} />
+            <Cuerpo modelo={modelo} andar={andar} brazos={brazos} cargado={Boolean(agarre.current.cargados.get(yoId))} nombre={nombre} yo globo={globo} habla={habla} />
         </group>
     );
 }
 
 /* ---------- Los demás: se acercan suave a su última posición ---------- */
-function Otro({ jugador, modelo, destinos, saludo, globo, habla }) {
+function Otro({ jugador, modelo, destinos, globo, habla, agarre, vistas, cargado }) {
     const grupo = useRef(null);
     const andar = useRef(0);
+    const brazos = useRef(0);
 
     useFrame((_, delta) => {
         const d = destinos.current.get(jugador.userId);
         const g = grupo.current;
         if (!d || !g) return;
+        const a = agarre.current;
         const t = Math.min(1, delta * 10);
-        g.position.x += (d.x - g.position.x) * t;
-        g.position.y += (d.y - g.position.y) * Math.min(1, delta * 14);
-        g.position.z += (d.z - g.position.z) * t;
-        g.rotation.y = girarHacia(g.rotation.y, d.r, t);
-        andar.current += ((d.andando || 0) - andar.current) * Math.min(1, delta * 8);
+        const por = a.cargados.get(jugador.userId);
+        const v = por ? vistas.current.get(por) : null;
+        if (v) {
+            // Va alzado encima del que lo carga (pegado, sin retraso).
+            g.position.set(v.x, v.y + ALTURA_CARGADO, v.z);
+            g.rotation.y = v.r;
+        } else {
+            g.position.x += (d.x - g.position.x) * t;
+            g.position.y += (d.y - g.position.y) * Math.min(1, delta * 14);
+            g.position.z += (d.z - g.position.z) * t;
+            g.rotation.y = girarHacia(g.rotation.y, d.r, t);
+        }
+        vistas.current.set(jugador.userId, {
+            x: g.position.x,
+            y: g.position.y,
+            z: g.position.z,
+            r: g.rotation.y,
+        });
+        andar.current += ((v ? 0 : d.andando || 0) - andar.current) * Math.min(1, delta * 8);
+        brazos.current += ((a.cargando.has(jugador.userId) ? 1 : 0) - brazos.current) * Math.min(1, delta * 10);
     });
 
     return (
         <group ref={grupo} position={[jugador.x, jugador.y || 0, jugador.z]} rotation={[0, jugador.r, 0]}>
-            <Cuerpo modelo={modelo} andar={andar} saludo={saludo} nombre={jugador.nombre} globo={globo} habla={habla} />
+            <Cuerpo modelo={modelo} andar={andar} brazos={brazos} cargado={cargado} nombre={jugador.nombre} globo={globo} habla={habla} />
         </group>
     );
 }
 
 /* ---------- Joystick (celular) ---------- */
-function Joystick({ entrada }) {
+function Joystick({ entrada, alTocar }) {
     const base = useRef(null);
     const [punto, setPunto] = useState({ x: 0, y: 0 });
     const dedo = useRef(null);
@@ -253,6 +354,7 @@ function Joystick({ entrada }) {
                 e.stopPropagation();
                 dedo.current = e.pointerId;
                 e.currentTarget.setPointerCapture(e.pointerId);
+                alTocar?.();
                 mover(e);
             }}
             onPointerMove={(e) => dedo.current === e.pointerId && mover(e)}
@@ -260,7 +362,12 @@ function Joystick({ entrada }) {
             onPointerCancel={soltar}
             aria-hidden="true"
         >
-            <span className="mu-joy-punto" style={{ transform: `translate(${punto.x * 2.2}rem, ${punto.y * 2.2}rem)` }} />
+            <span
+                className="mu-joy-punto"
+                style={{
+                    transform: `translate(${punto.x * 2.2}rem, ${punto.y * 2.2}rem)`,
+                }}
+            />
         </div>
     );
 }
@@ -289,7 +396,10 @@ function Minimapa({ objetos, posicion, destinos, yo, camara }) {
                     {objetos.map((o) => {
                         const [cx, cy] = a(o.x, o.z);
                         if (Math.abs(cx - R) > R + 40 || Math.abs(cy - R) > R + 40) return null;
-                        if (o.tipo === "columna" || o.tipo === "arbol") return <circle key={o.id} cx={cx} cy={cy} r={Math.max(1.5, (o.ancho / 2) * ESCALA)} className={o.tipo === "arbol" ? "mu-mapa-arbol" : "mu-mapa-obj"} />;
+                        if (o.tipo === "circulo")
+                            return <circle key={o.id} cx={cx} cy={cy} r={Math.max(2.5, (o.ancho / 2) * ESCALA)} className="mu-mapa-circulo" style={{ stroke: o.color }} />;
+                        if (o.tipo === "columna" || o.tipo === "arbol")
+                            return <circle key={o.id} cx={cx} cy={cy} r={Math.max(1.5, (o.ancho / 2) * ESCALA)} className={o.tipo === "arbol" ? "mu-mapa-arbol" : "mu-mapa-obj"} />;
                         const w = Math.max(1.5, o.ancho * ESCALA);
                         const h = Math.max(1.5, Math.max(0.1, o.largo) * ESCALA);
                         return <rect key={o.id} x={cx - w / 2} y={cy - h / 2} width={w} height={h} transform={`rotate(${-(o.rot || 0)} ${cx} ${cy})`} className="mu-mapa-obj" />;
@@ -302,7 +412,11 @@ function Minimapa({ objetos, posicion, destinos, yo, camara }) {
                 </g>
             </g>
             {/* yo: flecha en el centro mirando hacia donde miro */}
-            <path d={`M ${R} ${R - 6} L ${R + 4.5} ${R + 4.5} L ${R} ${R + 2} L ${R - 4.5} ${R + 4.5} Z`} className="mu-mapa-yo" transform={`rotate(${((camara.current.yaw - p.r + Math.PI) * 180) / Math.PI} ${R} ${R})`} />
+            <path
+                d={`M ${R} ${R - 6} L ${R + 4.5} ${R + 4.5} L ${R} ${R + 2} L ${R - 4.5} ${R + 4.5} Z`}
+                className="mu-mapa-yo"
+                transform={`rotate(${((camara.current.yaw - p.r + Math.PI) * 180) / Math.PI} ${R} ${R})`}
+            />
         </svg>
     );
 }
@@ -422,17 +536,28 @@ export default function Mundo() {
     const [correr, setCorrer] = useState(false);
     const [hablo, setHablo] = useState(false);
     const destinos = useRef(new Map());
-    const saludos = useRef(new Map()); // userId → ref { n }
-    const entrada = useRef({ joy: { x: 0, y: 0 }, teclas: {}, correr: false, saltar: false });
+    // Agarres: a quién cargan (víctima → el que carga) y quiénes cargan a alguien.
+    const agarre = useRef({
+        cargados: new Map(),
+        cargando: new Set(),
+        lanzarme: null,
+    });
+    const [, setVerAgarre] = useState(0);
+    const vistas = useRef(new Map()); // userId → dónde se ve ahora (para pegar al alzado)
+    const [circulos, setCirculos] = useState({});
+    const [desfase, setDesfase] = useState(0);
+    const [, setTic] = useState(0);
+    const entrada = useRef({
+        joy: { x: 0, y: 0 },
+        teclas: {},
+        correr: false,
+        saltar: false,
+    });
     const camara = useRef({ yaw: 0, pitch: 0.36, y: 0 });
     const posicion = useRef({ x: 0, y: 0, z: 0, r: 0, vy: 0, enSuelo: true });
     const arrastre = useRef(null);
     const hablandoRef = useRef(false);
-
-    const saludoDe = (id) => {
-        if (!saludos.current.has(id)) saludos.current.set(id, { current: { n: 0 } });
-        return saludos.current.get(id);
-    };
+    const miIdRef = useRef(null);
 
     // 1) Diseño y personajes permitidos.
     useEffect(() => {
@@ -453,10 +578,19 @@ export default function Mundo() {
         const entrar = () => socket.emit("mundo:entrar", { personaje: elegido });
         const alBienvenida = ({ yo: id, config: c }) => {
             setYo(id);
+            miIdRef.current = id;
             setConfig((x) => ({ ...x, ...c }));
         };
         const alJugadores = ({ jugadores: lista }) => {
-            for (const j of lista) if (!destinos.current.has(j.userId)) destinos.current.set(j.userId, { x: j.x, y: j.y || 0, z: j.z, r: j.r, andando: j.andando });
+            for (const j of lista)
+                if (!destinos.current.has(j.userId))
+                    destinos.current.set(j.userId, {
+                        x: j.x,
+                        y: j.y || 0,
+                        z: j.z,
+                        r: j.r,
+                        andando: j.andando,
+                    });
             const ids = new Set(lista.map((j) => j.userId));
             for (const id of destinos.current.keys()) if (!ids.has(id)) destinos.current.delete(id);
             setJugadores(lista);
@@ -464,11 +598,42 @@ export default function Mundo() {
         const alPosiciones = ({ p }) => {
             for (const [id, x, y, z, r, a] of p) destinos.current.set(id, { x, y, z, r, andando: a });
         };
-        const alGesto = ({ userId }) => {
-            saludoDe(userId).current.n += 1;
+        const verAgarre = () => setVerAgarre((n) => n + 1);
+        const alAgarre = ({ por, a }) => {
+            agarre.current.cargados.set(a, por);
+            agarre.current.cargando.add(por);
+            verAgarre();
         };
+        const quitarAgarre = (a) => {
+            const por = agarre.current.cargados.get(a);
+            agarre.current.cargados.delete(a);
+            if (por != null) agarre.current.cargando.delete(por);
+            verAgarre();
+        };
+        const alSoltado = ({ a }) => quitarAgarre(a);
+        const alLanzado = (l) => {
+            quitarAgarre(l.a);
+            if (l.a === miIdRef.current) agarre.current.lanzarme = l;
+            else
+                destinos.current.set(l.a, {
+                    ...(destinos.current.get(l.a) || {}),
+                    x: l.x,
+                    y: l.y,
+                    z: l.z,
+                    andando: 0,
+                });
+        };
+        const alCirculos = ({ ahora, c }) => {
+            setDesfase(ahora - Date.now());
+            setCirculos(Object.fromEntries(c.map((x) => [x.id, x])));
+        };
+        // Salí por un círculo de juego: a la pantalla previa.
+        const alPartida = () => navigate("/preparando");
         const alDicho = ({ userId, texto }) => {
-            setGlobos((g) => ({ ...g, [userId]: { texto, n: (g[userId]?.n || 0) + 1 } }));
+            setGlobos((g) => ({
+                ...g,
+                [userId]: { texto, n: (g[userId]?.n || 0) + 1 },
+            }));
             const t = setTimeout(() => {
                 timers.delete(t);
                 setGlobos((g) => {
@@ -489,13 +654,13 @@ export default function Mundo() {
             setConfig((x) => ({ ...x, ...c }));
             avisar("El mundo se actualizó ✨", "ok", 2500);
         };
-        const alError = ({ mensaje, voz }) => {
+        const alError = ({ mensaje, voz, leve }) => {
             if (voz) {
                 hablandoRef.current = false;
                 setHablo(false);
                 pararCaptura();
                 avisar(mensaje, "error", 3000);
-            } else if (mensaje.includes("Espera")) avisar(mensaje, "error", 2000);
+            } else if (leve || mensaje.includes("Espera")) avisar(mensaje, "error", 2000);
             else setError(mensaje);
         };
         const alPuedeHablar = async () => {
@@ -515,7 +680,11 @@ export default function Mundo() {
         socket.on("mundo:bienvenida", alBienvenida);
         socket.on("mundo:jugadores", alJugadores);
         socket.on("mundo:posiciones", alPosiciones);
-        socket.on("mundo:gesto", alGesto);
+        socket.on("mundo:agarre", alAgarre);
+        socket.on("mundo:soltado", alSoltado);
+        socket.on("mundo:lanzado", alLanzado);
+        socket.on("mundo:circulos", alCirculos);
+        socket.on("mundo:aPartida", alPartida);
         socket.on("mundo:dicho", alDicho);
         socket.on("mundo:hablando", alHablando);
         socket.on("mundo:audio", alAudio);
@@ -531,7 +700,11 @@ export default function Mundo() {
             socket.off("mundo:bienvenida", alBienvenida);
             socket.off("mundo:jugadores", alJugadores);
             socket.off("mundo:posiciones", alPosiciones);
-            socket.off("mundo:gesto", alGesto);
+            socket.off("mundo:agarre", alAgarre);
+            socket.off("mundo:soltado", alSoltado);
+            socket.off("mundo:lanzado", alLanzado);
+            socket.off("mundo:circulos", alCirculos);
+            socket.off("mundo:aPartida", alPartida);
             socket.off("mundo:dicho", alDicho);
             socket.off("mundo:hablando", alHablando);
             socket.off("mundo:audio", alAudio);
@@ -554,6 +727,14 @@ export default function Mundo() {
         }
         if (hablandoRef.current && miId != null && hablan.has(miId)) hablandoRef.current = "activo";
     }, [hablan, hablo, miId]);
+
+    // La cuenta de los círculos se ve bajar.
+    const hayCuenta = Object.values(circulos).some((c) => c.hasta);
+    useEffect(() => {
+        if (!hayCuenta) return undefined;
+        const t = setInterval(() => setTic((n) => n + 1), 500);
+        return () => clearInterval(t);
+    }, [hayCuenta]);
 
     // El volumen de quien habla sigue la distancia.
     useEffect(() => {
@@ -583,21 +764,39 @@ export default function Mundo() {
         socket.emit("mundo:callar");
     }, []);
 
-    const saludar = useCallback(() => socket.emit("mundo:gesto", { gesto: "saludar" }), []);
+    // Agarrar o, si ya cargo a alguien, lanzarlo.
+    const agarrarOLanzar = useCallback(() => {
+        socket.emit(agarre.current.cargando.has(miIdRef.current) ? "mundo:lanzar" : "mundo:agarrar");
+    }, []);
     const decir = useCallback((texto) => socket.emit("mundo:decir", { texto }), []);
     const brincar = useCallback(() => {
         entrada.current.saltar = true;
     }, []);
     const alternarCorrer = useCallback(() => {
-        setCorrer((c) => {
-            entrada.current.correr = !c;
-            return !c;
-        });
+        entrada.current.correr = !entrada.current.correr;
+        setCorrer(entrada.current.correr);
+    }, []);
+    // Tocar el joystick (o moverse con el teclado) quita el correr solo.
+    const quitarCorrer = useCallback(() => {
+        if (!entrada.current.correr) return;
+        entrada.current.correr = false;
+        setCorrer(false);
     }, []);
 
     // 3) Teclado (PC).
     useEffect(() => {
-        const MAPA = { KeyW: "w", ArrowUp: "w", KeyS: "s", ArrowDown: "s", KeyA: "a", ArrowLeft: "a", KeyD: "d", ArrowRight: "d", ShiftLeft: "shift", ShiftRight: "shift" };
+        const MAPA = {
+            KeyW: "w",
+            ArrowUp: "w",
+            KeyS: "s",
+            ArrowDown: "s",
+            KeyA: "a",
+            ArrowLeft: "a",
+            KeyD: "d",
+            ArrowRight: "d",
+            ShiftLeft: "shift",
+            ShiftRight: "shift",
+        };
         const abajo = (e) => {
             if (e.target instanceof HTMLInputElement) return;
             const k = MAPA[e.code];
@@ -610,7 +809,9 @@ export default function Mundo() {
                 if (!e.repeat) brincar();
             }
             if (e.code === "KeyV" && !e.repeat) empezarHablar();
-            if (e.code === "KeyH" && !e.repeat) saludar();
+            if (e.code === "KeyE" && !e.repeat) agarrarOLanzar();
+            if (e.code === "KeyR" && !e.repeat) alternarCorrer();
+            if (k && k !== "shift" && entrada.current.correr) quitarCorrer();
             if (e.key === "Enter") {
                 e.preventDefault();
                 setEscribiendo(true);
@@ -634,7 +835,7 @@ export default function Mundo() {
             window.removeEventListener("keyup", arriba);
             window.removeEventListener("blur", soltarTodo);
         };
-    }, [navigate, brincar, empezarHablar, terminarHablar, saludar]);
+    }, [navigate, brincar, empezarHablar, terminarHablar, agarrarOLanzar, alternarCorrer, quitarCorrer]);
 
     // Arrastrar la pantalla gira la cámara.
     const alBajar = useCallback((e) => {
@@ -683,6 +884,7 @@ export default function Mundo() {
 
     const modeloDe = (id) => config.personajes.find((p) => p.id === id)?.modelo || config.personajes[0].modelo;
     const mio = jugadores.find((j) => j.userId === yo);
+    const cargoAlguien = agarre.current.cargando.has(yo);
     const otros = jugadores.filter((j) => j.userId !== yo);
 
     return (
@@ -692,7 +894,7 @@ export default function Mundo() {
                     <Cielo cielo={config.cielo} />
                     <Luces luz={config.luz} colorSuelo={config.suelo.color} siguiendo={posicion} />
                     <Suelo suelo={config.suelo} />
-                    <Objetos objetos={config.objetos} />
+                    <Objetos objetos={config.objetos} circulos={circulos} desfase={desfase} />
 
                     {mio && (
                         <Yo
@@ -704,7 +906,9 @@ export default function Mundo() {
                             inicio={destinos.current.get(yo) || mio}
                             formas={formas}
                             posicion={posicion}
-                            saludo={saludoDe(yo)}
+                            agarre={agarre}
+                            vistas={vistas}
+                            yoId={yo}
                             globo={globos[yo]}
                             habla={hablan.has(yo)}
                         />
@@ -715,7 +919,9 @@ export default function Mundo() {
                             jugador={j}
                             modelo={modeloDe(j.personaje)}
                             destinos={destinos}
-                            saludo={saludoDe(j.userId)}
+                            agarre={agarre}
+                            vistas={vistas}
+                            cargado={agarre.current.cargados.has(j.userId)}
                             globo={globos[j.userId]}
                             habla={hablan.has(j.userId)}
                         />
@@ -761,17 +967,30 @@ export default function Mundo() {
             )}
 
             {/* ---------- Controles ---------- */}
-            <Joystick entrada={entrada} />
+            <Joystick entrada={entrada} alTocar={quitarCorrer} />
 
             <div className="mu-acciones" onPointerDown={(e) => e.stopPropagation()}>
                 <button type="button" className="mu-accion mu-chica" onClick={() => setEscribiendo(true)} aria-label="Escribir un mensaje" title="Escribir (Enter)">
                     <LuMessageCircle aria-hidden="true" />
                 </button>
-                <button type="button" className="mu-accion mu-chica" onClick={saludar} aria-label="Saludar" title="Saludar (H)">
-                    <LuHand aria-hidden="true" />
+                <button
+                    type="button"
+                    className={`mu-accion mu-agarrar ${cargoAlguien ? "mu-lanzar" : ""}`}
+                    onClick={agarrarOLanzar}
+                    aria-label={cargoAlguien ? "Lanzar" : "Agarrar"}
+                    title={cargoAlguien ? "Lanzar (E)" : "Agarrar al que está al lado (E)"}
+                >
+                    {cargoAlguien ? <LuRocket aria-hidden="true" /> : <LuGrab aria-hidden="true" />}
+                    <small>{cargoAlguien ? "Lanzar" : "Agarrar"}</small>
                 </button>
                 <BotonMic hablando={hablo} alEmpezar={empezarHablar} alTerminar={terminarHablar} />
-                <button type="button" className={`mu-accion ${correr ? "mu-correr-on" : ""}`} onClick={alternarCorrer} aria-pressed={correr} title="Correr (Shift)">
+                <button
+                    type="button"
+                    className={`mu-accion ${correr ? "mu-correr-on" : ""}`}
+                    onClick={alternarCorrer}
+                    aria-pressed={correr}
+                    title="Correr solo hacia donde mira la cámara (R). Toca el joystick para quitarlo."
+                >
                     <LuZap aria-hidden="true" />
                     <small>Correr</small>
                 </button>

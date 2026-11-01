@@ -176,7 +176,10 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
             actualizarMundo();
         }
 
-        if (quedan) emitirSala(quedan);
+        if (quedan) {
+            emitirSala(quedan);
+            ayudas.arranque?.alSalir(quedan);
+        }
     }
 
     /* Alguien perdió la conexión: se le espera un rato. */
@@ -418,10 +421,121 @@ export function crearAyudasSala({ io, roomManager, worldManager, WORLD_ROOM }) {
 }
 
 /* =========================================================
+   ARRANCAR UNA PARTIDA
+   · iniciar(room): empieza el juego elegido (botón Iniciar).
+   · preparar(room): pantalla previa (partidas del Mundo 3D):
+     se espera a que a todos les cargue el juego (✓) y ahí se
+     inicia. Al que no cargue en ESPERA_PREPARAR se le saca.
+========================================================= */
+
+const ESPERA_PREPARAR_MS = 25_000;
+
+export function crearArranque({ io, roomManager, ayudas, startTriquiGame, emitRoomState }) {
+    async function iniciar(room) {
+        clearTimeout(room.timerPreparar);
+        room.timerPreparar = null;
+        room.listos = null;
+        room.preparandoHasta = null;
+        room.currentGame?.destruir?.();
+        room.currentGame?.clearTurnTimer?.();
+        room.estado = "jugando";
+
+        if (room.juego === "triqui") {
+            roomManager.prepararTriqui(room);
+            const juego = startTriquiGame(room);
+            io.to(room.code).emit("game:started", { game: juego.toJSON() });
+            emitRoomState(room);
+        } else if (room.juego === "siglo") {
+            ayudas.iniciarSiglo(room);
+        } else if (room.juego === "invasion") {
+            await ayudas.iniciarInvasion(room);
+        } else if (room.juego === "zona") {
+            await ayudas.iniciarZona(room);
+        } else if (room.juego === "penal") {
+            await ayudas.iniciarPenal(room);
+        }
+
+        ayudas.estadoMundo(room, "playing");
+        io.to(room.code).emit("sala:juegoIniciado", {
+            juego: room.juego,
+            ruta: JUEGOS_SALA[room.juego].ruta,
+        });
+        ayudas.emitirSala(room);
+
+        console.log(`🎮 Sala ${room.code}: ${JUEGOS_SALA[room.juego].nombre} con ${room.miembros.size} jugadores`);
+    }
+
+    const personas = (room) => [...room.miembros.values()].filter((m) => !m.esBot);
+
+    function preparar(room) {
+        room.estado = "preparando";
+        room.listos = new Set();
+        room.preparandoHasta = Date.now() + ESPERA_PREPARAR_MS;
+        clearTimeout(room.timerPreparar);
+        room.timerPreparar = setTimeout(() => vencer(room.code), ESPERA_PREPARAR_MS);
+        ayudas.emitirSala(room);
+    }
+
+    /* ¿Ya cargaron todos? Entonces empieza. */
+    function revisar(room) {
+        if (room?.estado !== "preparando") return;
+        const gente = personas(room);
+        if (gente.length && gente.every((m) => room.listos.has(m.userId))) {
+            iniciar(room).catch((e) => console.error("❌ Iniciar partida preparada:", e.message));
+        }
+    }
+
+    function listo(room, userId) {
+        room.listos.add(String(userId));
+        ayudas.emitirSala(room);
+        // Una pausa corta para que todos vean los ✓ antes de arrancar.
+        setTimeout(() => revisar(roomManager.getRoom(room.code)), 900);
+    }
+
+    /* Se acabó la espera: se saca a los que no cargaron y se juega con los demás. */
+    function vencer(code) {
+        const room = roomManager.getRoom(code);
+        if (room?.estado !== "preparando") return;
+        for (const m of personas(room)) {
+            if (room.listos.has(m.userId)) continue;
+            const s = ayudas.socketDe(m);
+            ayudas.salirDeSala(m.userId, { motivo: "no alcanzó a cargar" });
+            s?.emit("sala:expulsado", { message: "No alcanzó a cargar la partida. Intenta otra vez." });
+            s?.emit("sala:estado", { sala: null });
+        }
+        const sigue = roomManager.getRoom(code);
+        if (!sigue) return;
+        const juego = JUEGOS_SALA[sigue.juego];
+        while (juego?.maquina && sigue.miembros.size < juego.min) {
+            const bot = crearMaquina(sigue);
+            sigue.miembros.set(bot.userId, bot);
+        }
+        if (motivoNoIniciar(sigue.juego, sigue.miembros.size)) {
+            // No alcanzan: vuelven a la sala normal.
+            clearTimeout(sigue.timerPreparar);
+            sigue.estado = "sala";
+            sigue.listos = null;
+            sigue.preparandoHasta = null;
+            io.to(sigue.code).emit("sala:error", { message: "No alcanzaron los jugadores para empezar." });
+            ayudas.emitirSala(sigue);
+            return;
+        }
+        iniciar(sigue).catch((e) => console.error("❌ Iniciar partida preparada:", e.message));
+    }
+
+    /* Alguien se fue mientras se preparaba: quizá ya están todos. */
+    function alSalir(room) {
+        if (room?.estado === "preparando") revisar(room);
+    }
+
+    return { iniciar, preparar, listo, alSalir };
+}
+
+/* =========================================================
    EVENTOS DE CADA CONEXIÓN
 ========================================================= */
 
-export function registrarEventosSala(socket, { io, roomManager, ayudas, startTriquiGame, emitRoomState }) {
+export function registrarEventosSala(socket, { io, roomManager, ayudas, arranque }) {
     const yo = () => String(socket.userId);
     const error = (message) => socket.emit("sala:error", { message });
     const miSala = () => roomManager.salaDeUsuario(yo());
@@ -565,33 +679,13 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, startTri
         const ausente = [...room.miembros.values()].find((m) => !m.conectado);
         if (ausente) return error(`Esperando a que ${ausente.nombre} se vuelva a conectar.`);
 
-        room.currentGame?.destruir?.();
-        room.currentGame?.clearTurnTimer?.();
-        room.estado = "jugando";
+        await arranque.iniciar(room);
+    });
 
-        if (room.juego === "triqui") {
-            roomManager.prepararTriqui(room);
-            const juego = startTriquiGame(room);
-            io.to(room.code).emit("game:started", { game: juego.toJSON() });
-            emitRoomState(room);
-        } else if (room.juego === "siglo") {
-            ayudas.iniciarSiglo(room);
-        } else if (room.juego === "invasion") {
-            await ayudas.iniciarInvasion(room);
-        } else if (room.juego === "zona") {
-            await ayudas.iniciarZona(room);
-        } else if (room.juego === "penal") {
-            await ayudas.iniciarPenal(room);
-        }
-
-        ayudas.estadoMundo(room, "playing");
-        io.to(room.code).emit("sala:juegoIniciado", {
-            juego: room.juego,
-            ruta: JUEGOS_SALA[room.juego].ruta,
-        });
-        ayudas.emitirSala(room);
-
-        console.log(`🎮 Sala ${room.code}: ${JUEGOS_SALA[room.juego].nombre} con ${room.miembros.size} jugadores`);
+    // Pantalla previa (partidas que salen del Mundo 3D): ya cargó el juego.
+    socket.on("sala:listo", () => {
+        const room = miSala();
+        if (room?.estado === "preparando") arranque.listo(room, yo());
     });
 
     socket.on("sala:emoji", ({ emoji } = {}) => {

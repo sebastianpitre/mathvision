@@ -5,14 +5,18 @@
      mundo:entrar   { personaje }            entra (o cambia de personaje)
      mundo:mover    { x, y, z, r, andando }  10 veces por segundo
                     andando: 0 quieto · 1 camina · 2 corre
-     mundo:gesto    { gesto }                saludar…
+     mundo:agarrar                           alza al jugador que tiene al frente
+     mundo:lanzar                            lo tira hacia donde mira
      mundo:decir    { texto }                globo encima del jugador
      mundo:hablar / mundo:audio / mundo:callar   micrófono
      mundo:salir
    Servidor → navegador
      mundo:jugadores   lista completa (al entrar/salir/cambiar)
      mundo:posiciones  [userId, x, y, z, r, andando] (10 por segundo)
-     mundo:gesto, mundo:dicho, mundo:hablando, mundo:audio
+     mundo:dicho, mundo:hablando, mundo:audio
+     mundo:agarre { por, a } · mundo:soltado { a } · mundo:lanzado { a, por, x, y, z, vx, vy, vz }
+     mundo:circulos    cuenta de cada círculo de juego
+     mundo:aPartida    salió por un círculo: va a la pantalla previa
      mundo:diseno      el admin cambió el mundo
 
    Los mensajes NO se guardan en ningún lado: solo se
@@ -23,14 +27,17 @@ import { pool } from "../database/db.js";
 import { obtenerConfigVoz, permisoVoz } from "../voz/voz.js";
 import { alCambiarMundo, mundoParaJugador, LIMITE } from "./mundo.js";
 import { limpiarMensaje } from "./filtro.js";
+import { crearCirculos } from "./circulos.js";
 
 const SALA = "mundo";
 const MAXIMO = 40; // jugadores a la vez (el celular se pone lento con más)
 const TICK_MS = 100;
 const RADIO_VOZ = 22; // metros: más lejos no se oye
 const PAUSA_MENSAJE_MS = 1500;
-const PAUSA_GESTO_MS = 1500;
-const GESTOS = ["saludar"];
+const DISTANCIA_AGARRE = 1.9; // metros
+const CARGA_MAX_MS = 6000; // si no lo lanza, lo suelta solo
+const INMUNE_MS = 3500; // después de caer no lo pueden volver a agarrar enseguida
+const LANZAR = { horizontal: 9, vertical: 7.5 };
 const MAX_BYTES_AUDIO = 24 * 1024;
 
 const num = (v, min, max) => {
@@ -39,7 +46,7 @@ const num = (v, min, max) => {
 };
 const r2 = (n) => Math.round(n * 100) / 100;
 
-export function crearMundo({ io }) {
+export function crearMundo({ io, roomManager, ayudas, arranque }) {
     const jugadores = new Map(); // userId → { socketId, userId, nombre, personaje, x, y, z, r, andando, habla }
     let cambio = false;
 
@@ -47,8 +54,61 @@ export function crearMundo({ io }) {
     const enviarLista = () => io.to(SALA).emit("mundo:jugadores", { jugadores: [...jugadores.values()].map(publico) });
     const hablando = () => io.to(SALA).emit("mundo:hablando", { ids: [...jugadores.values()].filter((j) => j.habla).map((j) => j.userId) });
 
+    /* ---------- Agarrar y lanzar ---------- */
+    function soltar(cargador, { avisar = true } = {}) {
+        const victima = cargador?.cargando ? jugadores.get(cargador.cargando) : null;
+        if (cargador) cargador.cargando = null;
+        if (victima) {
+            victima.cargadoPor = null;
+            victima.inmuneHasta = Date.now() + INMUNE_MS;
+            if (avisar) io.to(SALA).emit("mundo:soltado", { a: victima.userId });
+        }
+        return victima;
+    }
+
+    function sacarDelMundo(userId) {
+        const j = jugadores.get(userId);
+        if (!j) return;
+        if (j.cargando) soltar(j);
+        if (j.cargadoPor) soltar(jugadores.get(j.cargadoPor));
+        jugadores.delete(userId);
+        io.sockets.sockets.get(j.socketId)?.leave(SALA);
+        enviarLista();
+        if (j.habla) hablando();
+    }
+
+    // Círculos de juego (src/mundo/circulos.js).
+    const circulos = crearCirculos({
+        io,
+        roomManager,
+        ayudas,
+        arranque,
+        jugadores,
+        sacarDelMundo,
+        emitir: () => io.to(SALA).emit("mundo:circulos", circulos.estado()),
+    });
+    let objetosActuales = [];
+    mundoParaJugador()
+        .then((c) => (objetosActuales = c.objetos))
+        .catch(() => {});
+    setInterval(() => {
+        if (jugadores.size && roomManager && arranque) circulos.revisar(objetosActuales);
+    }, 500).unref();
+
     setInterval(() => {
         const ahora = Date.now();
+        // El que carga a otro: lo lleva encima (y lo suelta solo si se demora).
+        for (const j of jugadores.values()) {
+            if (!j.cargando) continue;
+            const v = jugadores.get(j.cargando);
+            if (!v) {
+                j.cargando = null;
+                continue;
+            }
+            Object.assign(v, { x: j.x, y: j.y + 1.9, z: j.z });
+            cambio = true;
+            if (ahora > j.cargaHasta) soltar(j);
+        }
         // Se acabó el tiempo de hablar de alguien.
         let corte = false;
         for (const j of jugadores.values()) {
@@ -69,17 +129,15 @@ export function crearMundo({ io }) {
 
     // El admin guardó el mundo: todos lo ven sin salir.
     alCambiarMundo(async () => {
-        if (!jugadores.size) return;
-        io.to(SALA).emit("mundo:diseno", { config: await mundoParaJugador() });
+        const config = await mundoParaJugador();
+        objetosActuales = config.objetos;
+        if (jugadores.size) io.to(SALA).emit("mundo:diseno", { config });
     });
 
     function quitar(socket) {
         const j = jugadores.get(socket.userId);
         if (!j || j.socketId !== socket.id) return;
-        jugadores.delete(socket.userId);
-        socket.leave(SALA);
-        enviarLista();
-        if (j.habla) hablando();
+        sacarDelMundo(socket.userId);
     }
 
     const mio = (socket) => {
@@ -110,8 +168,14 @@ export function crearMundo({ io }) {
                 andando: 0,
                 habla: null,
                 ultimaVoz: ya?.ultimaVoz || 0,
+                cargando: ya?.cargando || null,
+                cargadoPor: ya?.cargadoPor || null,
+                cargaHasta: ya?.cargaHasta || 0,
+                inmuneHasta: 0,
             });
+            objetosActuales = config.objetos;
             socket.join(SALA);
+            socket.emit("mundo:circulos", circulos.estado());
             const voz = await obtenerConfigVoz();
             socket.emit("mundo:bienvenida", { yo: socket.userId, config, voz: { segundos: voz.segundos, espera: voz.espera } });
             enviarLista();
@@ -119,7 +183,7 @@ export function crearMundo({ io }) {
 
         socket.on("mundo:mover", ({ x, y, z, r, andando } = {}) => {
             const j = mio(socket);
-            if (!j) return;
+            if (!j || j.cargadoPor) return; // lo llevan cargado: su posición la pone el que lo carga
             j.x = num(x, -LIMITE, LIMITE);
             j.y = num(y, 0, 40);
             j.z = num(z, -LIMITE, LIMITE);
@@ -128,13 +192,40 @@ export function crearMundo({ io }) {
             cambio = true;
         });
 
-        socket.on("mundo:gesto", ({ gesto } = {}) => {
+        // Agarrar al que está al frente (o al lado) y alzarlo.
+        socket.on("mundo:agarrar", () => {
             const j = mio(socket);
-            if (!j || !GESTOS.includes(gesto)) return;
             const ahora = Date.now();
-            if (ahora - (j.ultimoGesto || 0) < PAUSA_GESTO_MS) return;
-            j.ultimoGesto = ahora;
-            io.to(SALA).emit("mundo:gesto", { userId: j.userId, gesto });
+            if (!j || j.cargando || j.cargadoPor) return;
+            let mejor = null;
+            let mejorD = DISTANCIA_AGARRE;
+            for (const o of jugadores.values()) {
+                if (o === j || o.cargadoPor || o.cargando || o.saliendo || (o.inmuneHasta || 0) > ahora || Math.abs(o.y - j.y) > 1) continue;
+                const d = Math.hypot(o.x - j.x, o.z - j.z);
+                if (d < mejorD) {
+                    mejor = o;
+                    mejorD = d;
+                }
+            }
+            if (!mejor) return socket.emit("mundo:error", { mensaje: "Acércate a alguien para agarrarlo.", leve: true });
+            j.cargando = mejor.userId;
+            j.cargaHasta = ahora + CARGA_MAX_MS;
+            mejor.cargadoPor = j.userId;
+            mejor.andando = 0;
+            io.to(SALA).emit("mundo:agarre", { por: j.userId, a: mejor.userId });
+        });
+
+        // Tirarlo hacia donde mira.
+        socket.on("mundo:lanzar", () => {
+            const j = mio(socket);
+            if (!j?.cargando) return;
+            const v = soltar(j, { avisar: false });
+            if (!v) return;
+            const vx = Math.sin(j.r) * LANZAR.horizontal;
+            const vz = Math.cos(j.r) * LANZAR.horizontal;
+            const salida = { x: r2(j.x + Math.sin(j.r) * 0.6), y: r2(j.y + 1.9), z: r2(j.z + Math.cos(j.r) * 0.6) };
+            Object.assign(v, salida);
+            io.to(SALA).emit("mundo:lanzado", { a: v.userId, por: j.userId, ...salida, vx: r2(vx), vy: LANZAR.vertical, vz: r2(vz) });
         });
 
         // Globo de texto: no se guarda, solo se reenvía.

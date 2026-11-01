@@ -38,6 +38,7 @@ import express from "express";
 
 import { pool } from "../database/db.js";
 import { configMundo, guardarConfigMundo, esGlb } from "../mundo/mundo.js";
+import { JUEGOS_SALA } from "../salas/juegos.js";
 import { borrarPase, cambiarPremio, crearPase, editarPase, listarPasesAdmin, regalarElite, rellenarPase } from "../pase/pase.js";
 import { ruta, errorConEstado } from "../http/ruta.js";
 import {
@@ -322,7 +323,12 @@ router.get(
     "/mundo",
     ruta(async (req, res) => {
         const { rows } = await pool.query("SELECT id, name, model_path, thumbnail_path FROM characters ORDER BY orden, name");
-        res.json({ success: true, config: await configMundo(), personajes: rows.map((p) => ({ ...p, glb: esGlb(p.model_path) })) });
+        res.json({
+            success: true,
+            config: await configMundo(),
+            personajes: rows.map((p) => ({ ...p, glb: esGlb(p.model_path) })),
+            juegos: Object.values(JUEGOS_SALA).map(({ id, nombre, min, max, maquina }) => ({ id, nombre, min, max, maquina: Boolean(maquina) })),
+        });
     })
 );
 

@@ -67,6 +67,8 @@ export default function VRMCharacter({
     andar,
     // Mundo 3D: ref { n } que sube cada vez que debe saludar.
     saludo,
+    // Mundo 3D: ref 0…1 = brazos arriba (cargando a otro jugador).
+    brazos,
     position = [0, 0, 0],
     rotation = [0, Math.PI, 0]
 
@@ -506,6 +508,27 @@ export default function VRMCharacter({
             bones.rightHand.rotation.x = base.rightHand.x;
             bones.rightHand.rotation.z = base.rightHand.z;
 
+        }
+
+
+        /*
+         * =============================================
+         * BRAZOS ARRIBA (mundo: cargando a alguien)
+         * =============================================
+         */
+        const arriba = brazos ? Math.max(0, Math.min(1, brazos.current || 0)) : 0;
+        if (arriba > 0.001) {
+            const mezcla = (a, b) => a + (b - a) * arriba;
+            if (bones.leftUpperArm && base.leftUpperArm) {
+                bones.leftUpperArm.rotation.z = mezcla(bones.leftUpperArm.rotation.z, 1.25);
+                bones.leftUpperArm.rotation.x = mezcla(bones.leftUpperArm.rotation.x, base.leftUpperArm.x);
+            }
+            if (bones.rightUpperArm && base.rightUpperArm) {
+                bones.rightUpperArm.rotation.z = mezcla(bones.rightUpperArm.rotation.z, -1.25);
+                bones.rightUpperArm.rotation.x = mezcla(bones.rightUpperArm.rotation.x, base.rightUpperArm.x);
+            }
+            if (bones.leftLowerArm) bones.leftLowerArm.rotation.z = mezcla(bones.leftLowerArm.rotation.z, 0.35);
+            if (bones.rightLowerArm) bones.rightLowerArm.rotation.z = mezcla(bones.rightLowerArm.rotation.z, -0.35);
         }
 
 

@@ -2,7 +2,10 @@ import { Suspense, useEffect, useMemo, useRef } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
+import { Html } from "@react-three/drei";
+
 import ProtegerError from "../../components/common/ProtegerError";
+import juegosLista from "../../data/mock/games.json";
 
 /* =========================================================
    MUNDO 3D · EL ESCENARIO
@@ -235,6 +238,83 @@ function Objeto({ o }) {
     );
 }
 
-export function Objetos({ objetos }) {
-    return objetos.map((o) => <Objeto key={o.id} o={o} />);
+/* ---------- Círculo de juego con su letrero ---------- */
+export const JUEGO_DE = Object.fromEntries(juegosLista.filter((j) => j.sala).map((j) => [j.sala, { nombre: j.name, imagen: j.image }]));
+
+function Letrero({ imagen }) {
+    const mapa = useLoader(THREE.TextureLoader, imagen);
+    const t = useMemo(() => {
+        const c = mapa.clone();
+        c.colorSpace = THREE.SRGBColorSpace;
+        c.needsUpdate = true;
+        return c;
+    }, [mapa]);
+    return (
+        <mesh position={[0, 0, 0.06]}>
+            <planeGeometry args={[2.4, 1.35]} />
+            <meshBasicMaterial map={t} toneMapped={false} />
+        </mesh>
+    );
+}
+
+function Circulo({ o, estado, desfase }) {
+    const anillo = useRef(null);
+    const luz = useRef(null);
+    const r = o.ancho / 2;
+    const juego = JUEGO_DE[o.juego] || { nombre: o.juego, imagen: null };
+    const rot = ((o.rot || 0) * Math.PI) / 180;
+    const contando = Boolean(estado?.hasta);
+    useFrame(({ clock }) => {
+        const t = clock.elapsedTime;
+        if (anillo.current) anillo.current.rotation.z = t * (contando ? 1.6 : 0.4);
+        if (luz.current) luz.current.material.opacity = (contando ? 0.32 : 0.16) + Math.sin(t * (contando ? 6 : 2)) * 0.06;
+    });
+    const faltan = contando ? Math.max(0, Math.ceil((estado.hasta - (Date.now() + desfase)) / 1000)) : null;
+    return (
+        <group position={[o.x, (o.y || 0) + 0.02, o.z]}>
+            {/* piso brillante y anillo que gira */}
+            <mesh ref={luz} rotation={[-Math.PI / 2, 0, 0]}>
+                <circleGeometry args={[r, 48]} />
+                <meshBasicMaterial color={o.color} transparent opacity={0.18} depthWrite={false} toneMapped={false} />
+            </mesh>
+            <mesh ref={anillo} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+                <ringGeometry args={[r - 0.18, r, 64, 1, 0, Math.PI * 1.7]} />
+                <meshBasicMaterial color={o.color} toneMapped={false} side={THREE.DoubleSide} />
+            </mesh>
+            {/* letrero con la imagen del juego, al fondo del círculo */}
+            <group rotation={[0, rot, 0]}>
+                <group position={[0, 0, -r - 0.3]}>
+                    <mesh position={[-1.05, 1.1, 0]} castShadow>
+                        <cylinderGeometry args={[0.07, 0.07, 2.2, 8]} />
+                        <meshStandardMaterial color="#2a2f3a" />
+                    </mesh>
+                    <mesh position={[1.05, 1.1, 0]} castShadow>
+                        <cylinderGeometry args={[0.07, 0.07, 2.2, 8]} />
+                        <meshStandardMaterial color="#2a2f3a" />
+                    </mesh>
+                    <group position={[0, 2.35, 0]}>
+                        <mesh castShadow>
+                            <boxGeometry args={[2.6, 1.55, 0.1]} />
+                            <meshStandardMaterial color={o.color} />
+                        </mesh>
+                        {juego.imagen && (
+                            <Suspense fallback={null}>
+                                <Letrero imagen={juego.imagen} />
+                            </Suspense>
+                        )}
+                    </group>
+                    <Html position={[0, 3.55, 0]} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
+                        <div className={`mu-circulo ${contando ? "mu-circulo-cuenta" : ""}`}>
+                            <strong>{juego.nombre}</strong>
+                            {estado?.aviso ? <span>{estado.aviso}</span> : contando ? <span>{`⏳ ${faltan} s · ${estado.dentro} adentro`}</span> : <span>Párate aquí para jugar</span>}
+                        </div>
+                    </Html>
+                </group>
+            </group>
+        </group>
+    );
+}
+
+export function Objetos({ objetos, circulos = {}, desfase = 0 }) {
+    return objetos.map((o) => (o.tipo === "circulo" ? <Circulo key={o.id} o={o} estado={circulos[o.id]} desfase={desfase} /> : <Objeto key={o.id} o={o} />));
 }

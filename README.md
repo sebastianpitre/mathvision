@@ -185,8 +185,9 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
     1024 o 2048 px, JPG) y cuántos metros mide cada repetición. Gratis en ambientcg.com o
     polyhaven.com/textures (el archivo "Color"), o una foto del piso real tomada de frente.
   - **Luz:** día, tarde o noche (color del sol y sombras).
-  - **Objetos:** pared, caja, plataforma (para brincar encima), columna, árbol y cuadro o
-    mural con foto. Se elige la pieza y se toca el mapa; se arrastran, se giran, se
+  - **Objetos:** pared, caja, plataforma (para brincar encima), columna, árbol, cuadro o
+    mural con foto y **círculo de juego** (elige el juego, cada cuántos segundos arma la
+    partida, 30 por defecto, y el diámetro). Se elige la pieza y se toca el mapa; se arrastran, se giran, se
     duplican y cada uno puede llevar color o foto como textura. "Salón 10×8" pone 4
     paredes con puerta. Hay **vista 3D** para revisar antes de guardar.
   - **Personajes:** solo modelos **.glb** (pesan menos que los .vrm). Caben 40 jugadores.
@@ -256,9 +257,21 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
   nivel, tocarlo lo reclama; también está **Reclamar todo**. La fila Élite se desbloquea
   con diamantes (pide confirmar) o la regala el administrador.
 - **Mundo 3D** (botón abajo en el lobby o menú flotante): un lobby para caminar con todos.
-  Celular: joystick a la izquierda y botones **Brincar**, **Correr**, **Hablar** (mantener),
-  **Saludar** y **Escribir**; arrastrar la pantalla gira la cámara. PC: W A S D, Shift
-  corre, Espacio brinca, mantener V habla, H saluda, Enter escribe, Esc sale.
+  Celular: joystick a la izquierda y botones **Brincar**, **Correr**, **Agarrar/Lanzar**,
+  **Hablar** (mantener) y **Escribir**; arrastrar la pantalla gira la cámara. PC: W A S D,
+  Shift corre, R corre solo, Espacio brinca, E agarra/lanza, mantener V habla, Enter
+  escribe, Esc sale.
+  - **Correr** deja al personaje corriendo solo hacia donde mira la cámara (se dobla
+    girando la cámara); se quita al tocar el joystick.
+  - **Agarrar** alza al jugador que está al lado (máximo 6 s) y **Lanzar** lo tira hacia
+    donde uno mira. Al que cae no lo pueden volver a agarrar por unos segundos.
+  - **Círculos de juego:** tienen un letrero con la imagen del juego. Cuando alguien se
+    para adentro empieza la cuenta; al llegar a cero se arma una sala con los que estén
+    adentro (los primeros que entraron, hasta el máximo del juego). Si falta gente y el
+    juego admite la máquina, se completa con 🤖; si no, avisa y vuelve a contar. Los
+    elegidos salen a una **pantalla previa** con sus nombres y un ✓ cuando a cada uno le
+    cargó el juego; cuando todos tienen ✓ empieza la partida (al que no cargue en 25 s se
+    le saca). El círculo queda libre de inmediato para los demás.
   - Los mensajes salen en un **globo encima del jugador** por 6 segundos y desaparecen:
     **no se guardan en ningún lado** (no hay historial). Se tapan groserías, enlaces y
     teléfonos, y no se puede escribir seguido.

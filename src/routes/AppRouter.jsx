@@ -24,6 +24,7 @@ const EscapeAlgebra = lazy(() => import("../games/EscapeAlgebra/EscapeAlgebra"))
 const TriquiGame = lazy(() => import("../games/triqui/TriquiGame"));
 const Admin = lazy(() => import("../pages/Admin/Admin"));
 const Sala = lazy(() => import("../pages/Sala/Sala"));
+const Preparando = lazy(() => import("../pages/Sala/Preparando"));
 const Eventos = lazy(() => import("../pages/Eventos/Eventos"));
 const Pase = lazy(() => import("../pages/Pase/Pase"));
 const Mundo = lazy(() => import("../pages/Mundo/Mundo"));
@@ -147,6 +148,7 @@ function AppRouter() {
                 <Route path="/eventos" element={<Privada><Eventos /></Privada>} />
                 <Route path="/pase" element={<Privada><Pase /></Privada>} />
                 <Route path="/mundo" element={<Privada><Mundo /></Privada>} />
+                <Route path="/preparando" element={<Privada><Preparando /></Privada>} />
                 <Route path="/suerte" element={<Privada><Suerte /></Privada>} />
                 <Route path="/triqui-local" element={<TriquiGame mode="local" />} />
 

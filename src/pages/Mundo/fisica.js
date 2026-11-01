@@ -19,6 +19,7 @@ const ESCALON = 0.45; // se sube solo a lo que mida menos que esto
 export function formasDe(objetos = []) {
     const formas = [];
     for (const o of objetos) {
+        if (o.tipo === "circulo") continue; // se pisa, no choca
         const base = o.y || 0;
         if (o.tipo === "arbol") {
             formas.push({ cil: true, x: o.x, z: o.z, r: Math.max(0.2, o.ancho * 0.1), abajo: base, techo: base + o.alto * 0.45 });

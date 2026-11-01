@@ -61,6 +61,7 @@ import {
 
 import {
     crearAyudasSala,
+    crearArranque,
     registrarEventosSala,
     emojiPermitido,
 } from "./src/salas/salaSockets.js";
@@ -273,8 +274,11 @@ const ayudasSala =
 
 /* Voz en la sala (walkie-talkie). Ver src/voz/. */
 const voz = crearVoz({ io, roomManager });
-const mundo3d = crearMundo({ io });
 ayudasSala.alSalirDeVoz = voz.cortar;
+// Iniciar partidas (botón Iniciar y círculos de juego del Mundo 3D).
+const arranqueSala = crearArranque({ io, roomManager, ayudas: ayudasSala, startTriquiGame, emitRoomState });
+ayudasSala.arranque = arranqueSala;
+const mundo3d = crearMundo({ io, roomManager, ayudas: ayudasSala, arranque: arranqueSala });
 
 const PORT = config.PORT;
 
@@ -653,8 +657,7 @@ io.on(
             io,
             roomManager,
             ayudas: ayudasSala,
-            startTriquiGame,
-            emitRoomState,
+            arranque: arranqueSala,
         });
 
         console.log(
