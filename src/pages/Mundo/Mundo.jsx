@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -531,6 +531,8 @@ function BotonMic({ hablando, alEmpezar, alTerminar, bloqueado, tam = 1, tecla =
 
 export default function Mundo() {
     const navigate = useNavigate();
+    // Si llegó con su sala (el creador los trajo), al salir vuelve a la sala.
+    const volver = useLocation().state?.desdeSala ? "/sala" : "/lobby";
     const { user } = useAuth();
     const [config, setConfig] = useState(null);
     const [error, setError] = useState("");
@@ -872,7 +874,7 @@ export default function Mundo() {
                 if (document.pointerLockElement) document.exitPointerLock?.();
                 setEscribiendo(true);
             }
-            if (e.key === "Escape" && !document.pointerLockElement) navigate("/lobby");
+            if (e.key === "Escape" && !document.pointerLockElement) navigate(volver);
         };
         const arriba = (e) => {
             const a = accion[e.code];
@@ -892,7 +894,7 @@ export default function Mundo() {
             window.removeEventListener("keyup", arriba);
             window.removeEventListener("blur", soltarTodo);
         };
-    }, [navigate, brincar, empezarHablar, terminarHablar, agarrarOLanzar, alternarCorrer, quitarCorrer, alternarMirar, teclas]);
+    }, [navigate, volver, brincar, empezarHablar, terminarHablar, agarrarOLanzar, alternarCorrer, quitarCorrer, alternarMirar, teclas]);
 
     // Si el admin agranda el mundo, la orilla se corre.
     useEffect(() => ponerLimite(config?.tamano || 60), [config?.tamano]);
@@ -935,7 +937,7 @@ export default function Mundo() {
                             Ir a la tienda
                         </button>
                     )}
-                    <button type="button" className="ffp-btn ffp-btn-2" onClick={() => navigate("/lobby")}>
+                    <button type="button" className="ffp-btn ffp-btn-2" onClick={() => navigate(volver)}>
                         Volver al lobby
                     </button>
                 </div>
@@ -1016,7 +1018,7 @@ export default function Mundo() {
                     <LuUserRound aria-hidden="true" />
                     <span className="mu-ocultar-movil">Personaje</span>
                 </button>
-                <button type="button" className="mu-icono" onClick={() => navigate("/lobby")} aria-label="Salir del mundo">
+                <button type="button" className="mu-icono" onClick={() => navigate(volver)} aria-label="Salir del mundo">
                     <LuX aria-hidden="true" />
                 </button>
             </header>
@@ -1085,7 +1087,7 @@ export default function Mundo() {
 
             {escribiendo && <Escribir alEnviar={decir} alCerrar={() => setEscribiendo(false)} />}
 
-            {eligiendo && <Elegir personajes={config.personajes} actual={elegido} alElegir={elegir} alCerrar={elegido ? () => setEligiendo(false) : () => navigate("/lobby")} />}
+            {eligiendo && <Elegir personajes={config.personajes} actual={elegido} alElegir={elegir} alCerrar={elegido ? () => setEligiendo(false) : () => navigate(volver)} />}
         </div>
     );
 }

@@ -277,8 +277,9 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
   administradores salen con un fondo especial que brilla y el chulo azul de verificado.
   La flecha de abajo oculta la lista y la vuelve a mostrar.
 
-- **Anuncio al entrar:** al llegar al lobby sale la imagen de cada evento activo (una vez
-  por evento cada vez que se abre el juego). Al tocarla va a ese evento; con la X se cierra.
+- **Anuncio al entrar:** al llegar al lobby sale primero el del **Mundo 3D** (el planeta
+  girando; al tocarlo entra al mundo) y luego la imagen de cada evento activo (una vez
+  por anuncio cada vez que se abre el juego). Al tocarla va a ese evento; con la X se cierra.
 - **Eventos** (botón en el lobby con el número de premios por reclamar, o menú flotante):
   el anuncio con su cuenta regresiva y las misiones con su barra de progreso y el botón
   **Reclamar**. El avance se calcula con las partidas que termina entre las fechas.
@@ -289,7 +290,10 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
   puede girar), el marco puesto sobre tu foto o la foto de perfil. Si ya llegaste a ese
   nivel, tocarlo lo reclama; también está **Reclamar todo**. La fila Élite se desbloquea
   con diamantes (pide confirmar) o la regala el administrador.
-- **Mundo 3D** (botón abajo en el lobby o menú flotante): un lobby para caminar con todos.
+- **Mundo 3D** (el **planeta** que flota a la izquierda de los jugadores en línea, o menú
+  flotante): un lobby para caminar con todos. En una **sala**, el planeta flota junto a
+  "Invitar": el creador lo toca y **toda la sala va junta al mundo**; al salir del mundo
+  vuelven a la misma sala.
   Celular: joystick a la izquierda y botones **Brincar**, **Correr**, **Agarrar/Lanzar**,
   **Hablar** (mantener) y **Escribir**; arrastrar la pantalla gira la cámara. PC (teclas por
   defecto; el admin las cambia): W A S D, Shift corre, R corre solo, Espacio brinca, E

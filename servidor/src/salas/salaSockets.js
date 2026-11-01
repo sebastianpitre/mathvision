@@ -10,6 +10,7 @@
      sala:iniciar               solo el creador, si alcanzan los jugadores
      sala:expulsar { userId }   solo el creador, antes de iniciar (también saca máquinas)
      sala:agregarMaquina        solo el creador: una máquina 🤖 en un puesto libre
+     sala:irAlMundo             solo el creador: todos van juntos al Mundo 3D
 
      siglo:estado | siglo:votar { segundos } | siglo:tirar
      siglo:elegir { opcion: "unidad" | "decena", numero? (joker 0–6) }
@@ -34,6 +35,7 @@
      sala:error  { message }
      sala:entrar { code }       te llevan a una sala (invitación aceptada)
      sala:juegoIniciado { juego, ruta }
+     sala:alMundo { por }       el creador los llevó al Mundo 3D (la sala sigue)
      sala:expulsado { message } el creador te sacó de la sala
      progreso:actualizar        cambió tu oro o tus diamantes
      sala:emoji { userId, nombre, emoji, en }
@@ -680,6 +682,19 @@ export function registrarEventosSala(socket, { io, roomManager, ayudas, arranque
         if (ausente) return error(`Esperando a que ${ausente.nombre} se vuelva a conectar.`);
 
         await arranque.iniciar(room);
+    });
+
+    // El creador lleva a toda la sala al Mundo 3D. La sala no se
+    // deshace: al salir del mundo vuelven a ella.
+    socket.on("sala:irAlMundo", () => {
+        const room = miSala();
+        if (!room) return error("No estás en una sala.");
+        if (room.hostUserId !== yo()) return error("Solo el creador lleva a la sala al Mundo 3D.");
+        if (room.estado !== "sala") return error("Espera a que termine la partida.");
+
+        const por = room.miembros.get(yo())?.nombre || "El creador";
+        io.to(room.code).emit("sala:alMundo", { por });
+        console.log(`🌍 Sala ${room.code}: ${socket.username} llevó a todos al Mundo 3D`);
     });
 
     // Pantalla previa (partidas que salen del Mundo 3D): ya cargó el juego.

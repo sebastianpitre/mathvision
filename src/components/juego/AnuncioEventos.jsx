@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { LuX } from "react-icons/lu";
 
 import { api } from "../../services/api";
+import { PlanetaLienzo } from "./Planeta";
 
 import "./anuncio.css";
 
@@ -12,6 +13,8 @@ import "./anuncio.css";
    toca, va a ese evento; con la X se cierra. Sale una vez por
    evento cada vez que se abre el juego (no en cada vuelta al
    lobby). Si hay varios eventos, salen uno tras otro.
+   Primero sale el del Mundo 3D: un planeta girando y, al
+   tocarlo, entra al mundo.
 ========================================================= */
 
 const CLAVE = "ludogamif:anuncios-vistos";
@@ -37,6 +40,7 @@ function marcarVisto(id) {
 export default function AnuncioEventos() {
     const navigate = useNavigate();
     const [cola, setCola] = useState([]);
+    const [verMundo, setVerMundo] = useState(() => !vistos().has("mundo"));
 
     useEffect(() => {
         let cancelado = false;
@@ -55,11 +59,48 @@ export default function AnuncioEventos() {
     const actual = cola[0];
 
     useEffect(() => {
-        if (!actual) return;
-        const tecla = (e) => e.key === "Escape" && cerrar();
+        if (!actual && !verMundo) return;
+        const tecla = (e) => {
+            if (e.key !== "Escape") return;
+            if (verMundo) {
+                marcarVisto("mundo");
+                setVerMundo(false);
+            } else cerrar();
+        };
         document.addEventListener("keydown", tecla);
         return () => document.removeEventListener("keydown", tecla);
     });
+
+    if (verMundo) {
+        const cerrarMundo = () => {
+            marcarVisto("mundo");
+            setVerMundo(false);
+        };
+        const entrar = () => {
+            marcarVisto("mundo");
+            navigate("/mundo");
+        };
+        return (
+            <div className="an-fondo" onClick={cerrarMundo}>
+                <div className="an-caja" role="dialog" aria-modal="true" aria-label="Mundo 3D" onClick={(e) => e.stopPropagation()}>
+                    <button type="button" className="an-mundo" onClick={entrar} aria-label="Entrar al Mundo 3D">
+                        <span className="pl-estrellas" aria-hidden="true" />
+                        <PlanetaLienzo />
+                        <span className="an-mundo-texto">
+                            <small>Ya está abierto</small>
+                            <strong>Mundo 3D</strong>
+                            <p>Camina con tu personaje, habla con tus amigos y entra a los círculos de juego.</p>
+                            <span className="an-ir">Entrar al mundo</span>
+                        </span>
+                    </button>
+                    <button type="button" className="an-cerrar" onClick={cerrarMundo} aria-label="Cerrar anuncio">
+                        <LuX aria-hidden="true" />
+                    </button>
+                    {cola.length > 0 && <span className="an-mas" aria-hidden="true">{`1/${cola.length + 1}`}</span>}
+                </div>
+            </div>
+        );
+    }
 
     if (!actual) return null;
 

@@ -7,6 +7,7 @@ import { LuBot, LuCheck, LuCopy, LuCrown, LuDoorOpen, LuLogIn, LuPlus, LuSetting
 import PantallaFF from "../../components/juego/PantallaFF";
 import ElegirJuego, { textoJugadores } from "../../components/juego/ElegirJuego";
 import ElegirTema from "./ElegirTema";
+import Planeta from "../../components/juego/Planeta";
 import ListaJugadores from "../../components/juego/ListaJugadores";
 import ProtegerError from "../../components/common/ProtegerError";
 import VRMCharacter from "../../components/character/VRMCharacter";
@@ -32,7 +33,8 @@ import Verificado from "../../components/juego/Verificado";
      sacar a alguien antes de iniciar).
    · Centro: los personajes 3D de todos, con sus emojis.
      Abajo, el juego elegido y el botón INICIAR (creador).
-   · Derecha: jugadores en línea para invitar.
+   · Derecha: jugadores en línea para invitar. A su izquierda
+     flota el planeta: el creador lleva a todos al Mundo 3D.
    · Arriba: el código de la sala para compartir.
 ========================================================= */
 
@@ -177,11 +179,17 @@ export default function Sala() {
             setSala((s) => (s === undefined ? null : s)); // si el enlace falló, que no quede cargando
         };
         const alExpulsado = ({ message }) => avisar(message, "error", 6000);
+        // El creador llevó a todos al Mundo 3D (al salir, vuelven a la sala).
+        const alMundo = ({ por }) => {
+            avisar(`${por} los llevó al Mundo 3D 🌍`, "ok", 3500);
+            navigate("/mundo", { state: { desdeSala: true } });
+        };
 
         socket.on("connect", alConectar);
         socket.on("sala:estado", alEstado);
         socket.on("sala:error", alError);
         socket.on("sala:expulsado", alExpulsado);
+        socket.on("sala:alMundo", alMundo);
 
         if (socket.connected) alConectar();
         else socket.connect();
@@ -191,6 +199,7 @@ export default function Sala() {
             socket.off("sala:estado", alEstado);
             socket.off("sala:error", alError);
             socket.off("sala:expulsado", alExpulsado);
+            socket.off("sala:alMundo", alMundo);
         };
     }, [miId, navigate]);
 
@@ -407,6 +416,19 @@ export default function Sala() {
                             <span key={m?.userId ?? `e-${i}`}>{m && <BurbujaEmoji dato={emojis[String(m.userId)]} />}</span>
                         ))}
                     </div>
+
+                    {/* Planeta: el creador lleva a todos al Mundo 3D */}
+                    <Planeta
+                        className="sl-planeta"
+                        subtitulo={soyCreador ? "Ir todos" : "Lo elige el creador"}
+                        deshabilitado={!soyCreador || sala.estado !== "sala"}
+                        etiqueta={soyCreador ? "Llevar a toda la sala al Mundo 3D" : "Mundo 3D: solo el creador puede llevar a la sala"}
+                        onClick={() => {
+                            if (!soyCreador) return avisar("Solo el creador de la sala los lleva al Mundo 3D.", "info", 3000);
+                            if (sala.estado !== "sala") return avisar("Espera a que termine la partida.", "info", 3000);
+                            socket.emit("sala:irAlMundo");
+                        }}
+                    />
 
                     <SelectorEmojis className="sl-selector-emojis" />
                     <BotonHablar className="sl-hablar" />

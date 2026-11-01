@@ -21,7 +21,6 @@ import {
     LuTrophy,
     LuGift,
     LuCrown,
-    LuGlobe,
     LuBadgeCheck,
     LuUsers,
     LuVolume2,
@@ -54,6 +53,7 @@ import Tiquete from "../components/juego/Tiquete";
 import Carrusel from "../components/juego/Carrusel";
 import { useFondoLobby } from "../hooks/useFondoLobby";
 import BotonRuleta from "../components/juego/BotonRuleta";
+import Planeta from "../components/juego/Planeta";
 
 /* =========================================================
    LOBBY (diseño tipo Free Fire)
@@ -63,7 +63,8 @@ import BotonRuleta from "../components/juego/BotonRuleta";
      · arriba: perfil, oro y diamantes · logo y botones
      · izquierda: carrusel de anuncios + ruleta GiraGamif, y
        debajo el menú (Tienda, Sala…)
-     · derecha: jugadores en línea para invitar (se pliega)
+     · derecha: jugadores en línea para invitar (se pliega) y,
+       a su izquierda, el planeta que lleva al Mundo 3D
      · abajo: atajos · juego elegido y el botón INICIAR
    Todo se mide en rem, que depende del alto de la pantalla
    (ver .escala-juego en globals.css).
@@ -408,6 +409,9 @@ export default function Lobby() {
                 </button>
             </aside>
 
+            {/* Planeta flotando: la puerta al Mundo 3D */}
+            <Planeta className="ffl-planeta" subtitulo="Entrar" onClick={() => navigate("/mundo")} etiqueta="Entrar al Mundo 3D" />
+
             {/* ================= ABAJO IZQUIERDA ================= */}
             <p className="ffl-aviso" aria-live="off">
                 <span className="ffl-aviso-etiqueta">Aviso</span>
@@ -431,10 +435,6 @@ export default function Lobby() {
                 >
                     <LuSmartphone aria-hidden="true" />
                     <span>Triqui local</span>
-                </button>
-                <button type="button" className="ffl-barra-btn ffl-barra-mundo" onClick={() => navigate("/mundo")}>
-                    <LuGlobe aria-hidden="true" />
-                    <span>Mundo 3D</span>
                 </button>
             </nav>
 
