@@ -17,7 +17,7 @@ export let LIMITE = 58;
 export function ponerLimite(mitad) {
     LIMITE = Math.max(10, (mitad || 60) - 2);
 }
-const GRAVEDAD = 24;
+export const GRAVEDAD = 24;
 export const SALTO = 8; // velocidad hacia arriba (≈ 1.3 m de alto)
 const ESCALON = 0.45; // se sube solo a lo que mida menos que esto
 
@@ -27,7 +27,18 @@ const RAD = Math.PI / 180;
 export function formasDe(objetos = []) {
     const formas = [];
     for (const o of objetos) {
-        if (o.tipo === "circulo") continue; // se pisa, no choca
+        if (o.tipo === "circulo" || o.tipo === "cancha") continue; // se pisa, no choca
+        if (o.tipo === "ranking") {
+            // La pantalla (atrás) y el pedestal del primero (un escalón).
+            const a = (o.rot || 0) * RAD;
+            const c = Math.cos(a);
+            const s = Math.sin(a);
+            const lugar = (lz) => ({ x: o.x + lz * s, z: o.z + lz * c });
+            const fondo = -o.largo / 2 + 0.1;
+            formas.push({ ...lugar(fondo), hx: o.ancho / 2, hz: 0.12, cos: c, sin: s, abajo: o.y || 0, techo: (o.y || 0) + o.alto + 0.6 });
+            formas.push({ cil: true, ...lugar(Math.min(o.largo / 2 - 1, fondo + 2)), r: 1, abajo: o.y || 0, techo: (o.y || 0) + 0.24 });
+            continue;
+        }
         if (o.tipo === "modelo" && o.solido === false) continue; // decorativo: se atraviesa
         const base = o.y || 0;
         if (o.tipo === "arbol") {

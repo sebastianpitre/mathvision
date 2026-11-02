@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
-import { LuChevronsUp, LuGrab, LuMessageCircle, LuMic, LuMicOff, LuRocket, LuSend, LuSparkles, LuUserRound, LuUsers, LuX, LuZap } from "react-icons/lu";
+import { LuChevronsUp, LuGrab, LuLogOut, LuMessageCircle, LuMic, LuMicOff, LuRocket, LuSend, LuSparkles, LuUserRound, LuUsers, LuX, LuZap } from "react-icons/lu";
 
 import ProtegerError from "../../components/common/ProtegerError";
 import VRMCharacter from "../../components/character/VRMCharacter";
@@ -16,7 +16,8 @@ import { socket } from "../../services/socket";
 import { empezarCaptura, micDisponible, pararCaptura, TASA } from "../../services/voz";
 import { Cielo, Luces, Objetos, Suelo } from "./Escena";
 import { formasDe, paso, ponerLimite, SALTO } from "./fisica";
-import { nombreTecla, TAMANOS_POR_DEFECTO, TECLAS_POR_DEFECTO } from "./controles";
+import { nombreTecla, POSICIONES_POR_DEFECTO, TAMANOS_POR_DEFECTO, TECLAS_POR_DEFECTO } from "./controles";
+import { aroDe, Balon, COLOR_EQUIPO, dentroDeCancha, Marcador, Mira, NOMBRE_EQUIPO, trayectoria } from "./cancha.jsx";
 import { ajustarVolumen, cerrarVoces, sonarVoz } from "./vozMundo";
 
 import "./mundo.css";
@@ -69,9 +70,27 @@ const girarHacia = (a, b, t) => {
 };
 
 /* ---------- Personaje con nombre, globo y "está hablando" ---------- */
-function Cuerpo({ modelo, andar, saludo, brazos, cargado, nombre, yo, globo, habla }) {
+/* Pinta el personaje con el color de su equipo (o le devuelve sus colores). */
+function teñir(grupo, color) {
+    const tono = color ? new THREE.Color(color) : null;
+    let hay = false;
+    grupo.traverse((o) => {
+        if (!o.isMesh || o.userData.sinTinte) return;
+        for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+            if (!m?.color) continue;
+            hay = true;
+            if (!m.userData.colorOriginal) m.userData.colorOriginal = m.color.clone();
+            m.color.copy(m.userData.colorOriginal);
+            if (tono) m.color.lerp(tono, 0.55);
+        }
+    });
+    return hay;
+}
+
+function Cuerpo({ modelo, clave, andar, saludo, brazos, cargado, nombre, yo, globo, habla, equipo = null }) {
     const grupo = useRef(null);
     const sombras = useRef(false);
+    const tinte = useRef(undefined);
     const cabeza = useRef(null);
     const { camera } = useThree();
     const punto = useRef(new THREE.Vector3());
@@ -82,6 +101,8 @@ function Cuerpo({ modelo, andar, saludo, brazos, cargado, nombre, yo, globo, hab
             grupo.current.getWorldPosition(punto.current);
             cabeza.current.style.opacity = punto.current.distanceTo(camera.position) < 2.6 ? "0" : "1";
         }
+        // Color del equipo en la cancha (se aplica cuando el modelo ya cargó).
+        if (grupo.current && tinte.current !== equipo && teñir(grupo.current, equipo ? COLOR_EQUIPO[equipo] : null)) tinte.current = equipo;
         if (sombras.current || !grupo.current) return;
         let hay = false;
         grupo.current.traverse((o) => {
@@ -99,15 +120,23 @@ function Cuerpo({ modelo, andar, saludo, brazos, cargado, nombre, yo, globo, hab
                 <Suspense fallback={null}>
                     {/* alzado: acostado encima de la cabeza del que lo carga */}
                     <group rotation={cargado ? [0, 0, Math.PI / 2] : [0, 0, 0]} position={cargado ? [0.85, 0, 0] : [0, 0, 0]}>
-                        <VRMCharacter url={modelo} andar={andar} saludo={saludo} brazos={brazos} texturaMax={512} rotation={[0, 0, 0]} />
+                        {/* Cada jugador con su copia del modelo (dos con la misma skin se ven los dos, cada uno con su color). */}
+                        <VRMCharacter url={`${modelo}#j${clave}`} andar={andar} saludo={saludo} brazos={brazos} texturaMax={512} rotation={[0, 0, 0]} />
                     </group>
                 </Suspense>
             </ProtegerError>
             {/* sombrita redonda debajo (se ve aunque el sol esté lejos) */}
             {!cargado && (
-                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} userData={{ sinTinte: true }}>
                     <circleGeometry args={[0.42, 24]} />
                     <meshBasicMaterial color="#000" transparent opacity={0.22} depthWrite={false} />
+                </mesh>
+            )}
+            {/* aro del color del equipo a los pies */}
+            {equipo && !cargado && (
+                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]} userData={{ sinTinte: true }}>
+                    <ringGeometry args={[0.45, 0.6, 32]} />
+                    <meshBasicMaterial color={COLOR_EQUIPO[equipo]} toneMapped={false} />
                 </mesh>
             )}
             <Html position={[0, cargado ? 1.0 : 2.05, 0]} center distanceFactor={8} zIndexRange={[10, 0]} style={{ pointerEvents: "none" }}>
@@ -117,7 +146,7 @@ function Cuerpo({ modelo, andar, saludo, brazos, cargado, nombre, yo, globo, hab
                             {globo.texto}
                         </p>
                     )}
-                    <span className={`mu-nombre ${yo ? "mu-nombre-yo" : ""}`}>
+                    <span className={`mu-nombre ${yo ? "mu-nombre-yo" : ""} ${equipo ? `mu-nombre-${equipo}` : ""}`}>
                         {habla && (
                             <span className="mu-ondas" aria-label="Está hablando">
                                 <i />
@@ -134,7 +163,7 @@ function Cuerpo({ modelo, andar, saludo, brazos, cargado, nombre, yo, globo, hab
 }
 
 /* ---------- Yo: se mueve con el joystick o el teclado ---------- */
-function Yo({ modelo, nombre, entrada, camara, inicio, formas, posicion, globo, habla, agarre, vistas, yoId }) {
+function Yo({ modelo, nombre, entrada, camara, inicio, formas, posicion, globo, habla, agarre, vistas, yoId, cancha, mira, equipo }) {
     const grupo = useRef(null);
     const p = posicion;
     const andar = useRef(0);
@@ -232,12 +261,35 @@ function Yo({ modelo, nombre, entrada, camara, inicio, formas, posicion, globo, 
         }
         if (!meCargan) {
             paso(pos, dx + (pos.mx || 0) * dt, dz + (pos.mz || 0) * dt, dt, formas);
+            // En un partido no se sale de la cancha caminando (solo con el botón Salir).
+            const c = cancha.current;
+            if (c) {
+                const q = dentroDeCancha(c, pos.x, pos.z);
+                if (q.x !== pos.x || q.z !== pos.z) {
+                    pos.x = q.x;
+                    pos.z = q.z;
+                    pos.mx = 0;
+                    pos.mz = 0;
+                }
+            }
             // El impulso del lanzamiento se frena al caer.
             if (pos.enSuelo && (pos.mx || pos.mz)) {
                 pos.mx *= 0.75;
                 pos.mz *= 0.75;
                 if (Math.hypot(pos.mx, pos.mz) < 0.3) pos.mx = pos.mz = 0;
             }
+        }
+        // Apuntando: mira hacia donde mira la cámara y se dibuja el camino del tiro.
+        const m = mira.current;
+        if (m.activo) {
+            const dir = yaw + Math.PI;
+            pos.r = girarHacia(pos.r, dir, Math.min(1, dt * 14));
+            if (m.carga) m.f = (1 - Math.cos((performance.now() - m.desde) / 650)) / 2; // PC: la fuerza sube y baja sola
+            const c = cancha.current;
+            const meta = m.balon && c && equipo ? aroDe(c, equipo === "azul" ? 1 : 0) : null;
+            m.dir = dir;
+            m.suelo = c ? c.y || 0 : pos.enSuelo ? pos.y : 0;
+            m.camino = trayectoria(pos, dir, m.f, { balon: m.balon, suelo: m.suelo, meta });
         }
         vistas.current.set(yoId, { x: pos.x, y: pos.y, z: pos.z, r: pos.r });
 
@@ -282,13 +334,13 @@ function Yo({ modelo, nombre, entrada, camara, inicio, formas, posicion, globo, 
 
     return (
         <group ref={grupo} position={[inicio.x, inicio.y || 0, inicio.z]}>
-            <Cuerpo modelo={modelo} andar={andar} brazos={brazos} cargado={Boolean(agarre.current.cargados.get(yoId))} nombre={nombre} yo globo={globo} habla={habla} />
+            <Cuerpo modelo={modelo} clave={yoId} andar={andar} brazos={brazos} cargado={Boolean(agarre.current.cargados.get(yoId))} nombre={nombre} yo globo={globo} habla={habla} equipo={equipo} />
         </group>
     );
 }
 
 /* ---------- Los demás: se acercan suave a su última posición ---------- */
-function Otro({ jugador, modelo, destinos, globo, habla, agarre, vistas, cargado }) {
+function Otro({ jugador, modelo, destinos, globo, habla, agarre, vistas, cargado, equipo }) {
     const grupo = useRef(null);
     const andar = useRef(0);
     const brazos = useRef(0);
@@ -323,22 +375,41 @@ function Otro({ jugador, modelo, destinos, globo, habla, agarre, vistas, cargado
 
     return (
         <group ref={grupo} position={[jugador.x, jugador.y || 0, jugador.z]} rotation={[0, jugador.r, 0]}>
-            <Cuerpo modelo={modelo} andar={andar} brazos={brazos} cargado={cargado} nombre={jugador.nombre} globo={globo} habla={habla} />
+            <Cuerpo modelo={modelo} clave={jugador.userId} andar={andar} brazos={brazos} cargado={cargado} nombre={jugador.nombre} globo={globo} habla={habla} equipo={equipo} />
         </group>
     );
 }
 
-/* ---------- Joystick (celular) ---------- */
-function Joystick({ entrada, alTocar, tam = 1 }) {
-    const base = useRef(null);
-    const [punto, setPunto] = useState({ x: 0, y: 0 });
-    const dedo = useRef(null);
+/* ---------- Joystick (celular) ----------
+   · fijo: siempre en su lugar (el que puso el admin).
+   · flotante: tocas en cualquier parte de la mitad izquierda y
+     ahí aparece; queda fijo en ese punto mientras no sueltes.
+     Quieto se ve tenue en su lugar, como pista. */
+const remPx = () => parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
 
-    const mover = (e) => {
-        const r = base.current.getBoundingClientRect();
-        const radio = r.width / 2;
-        let x = (e.clientX - (r.left + radio)) / radio;
-        let y = (e.clientY - (r.top + radio)) / radio;
+function Joystick({ entrada, alTocar, tam = 1, lugar, modo = "flotante" }) {
+    const [punto, setPunto] = useState({ x: 0, y: 0 });
+    const [centro, setCentro] = useState(null); // flotante: dónde se tocó (px)
+    const dedo = useRef(null);
+    const base = useRef(null);
+    const flotante = modo !== "fijo";
+
+    const mover = (e, c) => {
+        let cx;
+        let cy;
+        let radio;
+        if (c) {
+            cx = c.x;
+            cy = c.y;
+            radio = c.radio;
+        } else {
+            const r = base.current.getBoundingClientRect();
+            radio = r.width / 2;
+            cx = r.left + radio;
+            cy = r.top + radio;
+        }
+        let x = (e.clientX - cx) / radio;
+        let y = (e.clientY - cy) / radio;
         const l = Math.hypot(x, y);
         if (l > 1) {
             x /= l;
@@ -347,35 +418,81 @@ function Joystick({ entrada, alTocar, tam = 1 }) {
         entrada.current.joy = { x, y: -y };
         setPunto({ x, y });
     };
-    const soltar = () => {
+    const soltar = (e) => {
+        if (dedo.current !== e.pointerId) return;
         dedo.current = null;
         entrada.current.joy = { x: 0, y: 0 };
         setPunto({ x: 0, y: 0 });
+        setCentro(null);
+    };
+    const empezar = (e, c) => {
+        e.stopPropagation();
+        dedo.current = e.pointerId;
+        try {
+            e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {
+            // sin captura: igual funciona mientras el dedo siga encima
+        }
+        alTocar?.();
+        mover(e, c);
     };
 
-    return (
-        <div
-            ref={base}
-            className={`mu-joy ${dedo.current != null ? "mu-joy-activo" : ""}`}
-            style={{ "--tam": tam }}
-            onPointerDown={(e) => {
-                e.stopPropagation();
-                dedo.current = e.pointerId;
-                e.currentTarget.setPointerCapture(e.pointerId);
-                alTocar?.();
-                mover(e);
+    const estiloLugar = { "--tam": tam, left: `${lugar.x}%`, top: `${lugar.y}%` };
+    const bola = (
+        <span
+            className="mu-joy-punto"
+            style={{
+                transform: `translate(${punto.x * 2.2 * tam}rem, ${punto.y * 2.2 * tam}rem)`,
             }}
-            onPointerMove={(e) => dedo.current === e.pointerId && mover(e)}
+        />
+    );
+
+    if (!flotante) {
+        return (
+            <div
+                ref={base}
+                className={`mu-joy mu-libre ${dedo.current != null ? "mu-joy-activo" : ""}`}
+                style={estiloLugar}
+                onPointerDown={(e) => empezar(e)}
+                onPointerMove={(e) => dedo.current === e.pointerId && mover(e)}
+                onPointerUp={soltar}
+                onPointerCancel={soltar}
+                aria-hidden="true"
+            >
+                {bola}
+            </div>
+        );
+    }
+
+    return (
+        <div className="mu-joy-capa">
+        <div
+            className="mu-joy-zona"
+            onPointerDown={(e) => {
+                // Con el mouse se sigue girando la cámara (en PC se camina con el teclado).
+                if (e.pointerType === "mouse" || dedo.current != null) return;
+                const radio = 3.7 * remPx() * tam;
+                const margen = radio + 4;
+                const c = {
+                    x: Math.min(window.innerWidth - margen, Math.max(margen, e.clientX)),
+                    y: Math.min(window.innerHeight - margen, Math.max(margen, e.clientY)),
+                    radio,
+                };
+                setCentro(c);
+                empezar(e, c);
+            }}
+            onPointerMove={(e) => dedo.current === e.pointerId && mover(e, centro)}
             onPointerUp={soltar}
             onPointerCancel={soltar}
             aria-hidden="true"
-        >
-            <span
-                className="mu-joy-punto"
-                style={{
-                    transform: `translate(${punto.x * 2.2 * tam}rem, ${punto.y * 2.2 * tam}rem)`,
-                }}
-            />
+        />
+            <div
+                className={`mu-joy mu-libre ${centro ? "mu-joy-activo" : "mu-joy-pista"}`}
+                style={centro ? { "--tam": tam, left: centro.x, top: centro.y } : estiloLugar}
+                aria-hidden="true"
+            >
+                {bola}
+            </div>
         </div>
     );
 }
@@ -505,12 +622,12 @@ function Escribir({ alEnviar, alCerrar }) {
 }
 
 /* ---------- Botón de hablar (mantener) ---------- */
-function BotonMic({ hablando, alEmpezar, alTerminar, bloqueado, tam = 1, tecla = "V" }) {
+function BotonMic({ hablando, alEmpezar, alTerminar, bloqueado, tam = 1, tecla = "V", estilo }) {
     return (
         <button
             type="button"
-            className={`mu-accion mu-mic ${hablando ? "mu-mic-on" : ""} ${bloqueado ? "mu-mic-no" : ""}`}
-            style={{ "--tam": tam }}
+            className={`mu-accion mu-mic mu-libre ${hablando ? "mu-mic-on" : ""} ${bloqueado ? "mu-mic-no" : ""}`}
+            style={estilo || { "--tam": tam }}
             onPointerDown={(e) => {
                 e.stopPropagation();
                 e.currentTarget.setPointerCapture?.(e.pointerId);
@@ -566,6 +683,14 @@ export default function Mundo() {
         saltar: false,
     });
     const camara = useRef({ yaw: 0, pitch: 0.36, y: 0 });
+    // Cancha (minijuego azul vs rojo): estado de cada partido y dónde va cada balón.
+    const [canchas, setCanchas] = useState({});
+    const balones = useRef(new Map());
+    const [tengoBalon, setTengoBalon] = useState(false);
+    const canchaRef = useRef(null); // la cancha en la que juego (no se sale caminando)
+    // Apuntar: { activo, f (0…1), balon, carga (PC), desde, y0, camino }
+    const mira = useRef({ activo: false, f: 0.5 });
+    const [apuntando, setApuntando] = useState(false);
     const posicion = useRef({ x: 0, y: 0, z: 0, r: 0, vy: 0, enSuelo: true });
     const arrastre = useRef(null);
     const hablandoRef = useRef(false);
@@ -692,7 +817,35 @@ export default function Mundo() {
             }
         };
 
+        const alCanchas = ({ ahora, canchas: lista }) => {
+            setDesfase(ahora - Date.now());
+            setCanchas(Object.fromEntries(lista.map((c) => [c.id, c])));
+        };
+        const alCancha = ({ ahora, cancha }) => {
+            setDesfase(ahora - Date.now());
+            setCanchas((x) => ({ ...x, [cancha.id]: cancha }));
+        };
+        const alBalones = ({ b }) => {
+            const t = performance.now();
+            let mio = false;
+            for (const [id, x, y, z, vx, vy, vz, por, pausa] of b) balones.current.set(id, { x, y, z, vx, vy, vz, por, pausa, t });
+            for (const d of balones.current.values()) if (d.por != null && d.por === miIdRef.current) mio = true;
+            setTengoBalon(mio);
+        };
+        const alCesta = ({ equipo, por }) => {
+            sonar("ganar");
+            avisar(`🏀 ¡Cesta del equipo ${NOMBRE_EQUIPO[equipo]}!${por ? ` (${por})` : ""}`, "ok", 2200);
+        };
+        const alToma = ({ a }) => {
+            if (a != null && a === miIdRef.current) avisar("¡Te quitaron el balón!", "error", 1500);
+        };
+
         socket.on("connect", entrar);
+        socket.on("cancha:todas", alCanchas);
+        socket.on("cancha:estado", alCancha);
+        socket.on("cancha:balones", alBalones);
+        socket.on("cancha:cesta", alCesta);
+        socket.on("cancha:toma", alToma);
         socket.on("mundo:bienvenida", alBienvenida);
         socket.on("mundo:jugadores", alJugadores);
         socket.on("mundo:posiciones", alPosiciones);
@@ -714,6 +867,11 @@ export default function Mundo() {
         return () => {
             socket.emit("mundo:salir");
             socket.off("connect", entrar);
+            socket.off("cancha:todas", alCanchas);
+            socket.off("cancha:estado", alCancha);
+            socket.off("cancha:balones", alBalones);
+            socket.off("cancha:cesta", alCesta);
+            socket.off("cancha:toma", alToma);
             socket.off("mundo:bienvenida", alBienvenida);
             socket.off("mundo:jugadores", alJugadores);
             socket.off("mundo:posiciones", alPosiciones);
@@ -747,7 +905,7 @@ export default function Mundo() {
     }, [hablan, hablo, miId]);
 
     // La cuenta de los círculos se ve bajar.
-    const hayCuenta = Object.values(circulos).some((c) => c.hasta);
+    const hayCuenta = Object.values(circulos).some((c) => c.hasta) || Object.values(canchas).some((c) => c.termina || c.fin || Object.keys(c.entrando || {}).length);
     useEffect(() => {
         if (!hayCuenta) return undefined;
         const t = setInterval(() => setTic((n) => n + 1), 500);
@@ -782,9 +940,49 @@ export default function Mundo() {
         socket.emit("mundo:callar");
     }, []);
 
-    // Agarrar o, si ya cargo a alguien, lanzarlo.
-    const agarrarOLanzar = useCallback(() => {
-        socket.emit(agarre.current.cargando.has(miIdRef.current) ? "mundo:lanzar" : "mundo:agarrar");
+    // ¿En qué cancha juego y de qué equipo soy?
+    const miCanchaObj = (config?.objetos || []).find((o) => o.tipo === "cancha" && canchas[o.id]?.equipos?.[yo]);
+    const miEquipo = miCanchaObj ? canchas[miCanchaObj.id].equipos[yo] : null;
+    useEffect(() => {
+        canchaRef.current = miCanchaObj || null;
+    }, [miCanchaObj]);
+    const salirCancha = useCallback(() => {
+        canchaRef.current = null; // ya, para que la vuelta afuera no quede atajada en la orilla
+        socket.emit("cancha:salir");
+    }, []);
+
+    // ¿Tengo algo que lanzar? (a alguien alzado o el balón)
+    const lanzableRef = useRef(false);
+    lanzableRef.current = tengoBalon || agarre.current.cargando.has(yo);
+
+    // Agarrar: toma el balón, se lo quita al que lo tiene o alza al de al lado (eso lo decide el servidor).
+    const agarrar = useCallback(() => socket.emit("mundo:agarrar"), []);
+
+    // Apuntar: se mantiene el botón y se desliza arriba (más lejos) o abajo (más cerca).
+    const empezarApuntar = useCallback((y0, carga = false) => {
+        Object.assign(mira.current, { activo: true, f: 0.5, y0, carga, desde: performance.now(), balon: !agarre.current.cargando.has(miIdRef.current), camino: null });
+        setApuntando(true);
+    }, []);
+    const moverApuntar = useCallback((y) => {
+        const m = mira.current;
+        if (!m.activo || m.carga) return;
+        m.f = Math.min(1, Math.max(0, 0.5 + (m.y0 - y) / (remPx() * 9)));
+    }, []);
+    const lanzar = useCallback(() => {
+        const m = mira.current;
+        if (!m.activo) return;
+        m.activo = false;
+        setApuntando(false);
+        socket.emit("mundo:lanzar", { fuerza: Math.round(m.f * 100) / 100, dir: m.dir ?? camara.current.yaw + Math.PI });
+    }, []);
+    useEffect(() => {
+        if (!apuntando) return undefined;
+        const t = setInterval(() => setTic((n) => n + 1), 100);
+        return () => clearInterval(t);
+    }, [apuntando]);
+    const cancelarApuntar = useCallback(() => {
+        mira.current.activo = false;
+        setApuntando(false);
     }, []);
     const decir = useCallback((texto) => socket.emit("mundo:decir", { texto }), []);
     // Botón USAR: aparece cuando estoy parado en un círculo con función (teletransporte…).
@@ -792,9 +990,11 @@ export default function Mundo() {
     useEffect(() => {
         const t = setInterval(() => {
             const p = posicion.current;
-            const c = (config?.objetos || []).find(
-                (o) => o.tipo === "circulo" && o.funcion === "teletransporte" && o.destino && Math.hypot(p.x - o.x, p.z - o.z) <= o.ancho / 2 && Math.abs(p.y - (o.y || 0)) < 1.2
-            );
+            const c = canchaRef.current
+                ? null
+                : (config?.objetos || []).find(
+                      (o) => o.tipo === "circulo" && o.funcion === "teletransporte" && o.destino && Math.hypot(p.x - o.x, p.z - o.z) <= o.ancho / 2 && Math.abs(p.y - (o.y || 0)) < 1.2
+                  );
             setUsable(c ? c.id : null);
         }, 250);
         return () => clearInterval(t);
@@ -865,7 +1065,11 @@ export default function Mundo() {
                 brincar();
             }
             if (a === "hablar") empezarHablar();
-            if (a === "agarrar") agarrarOLanzar();
+            if (a === "agarrar") {
+                // Con algo en las manos: mantener para apuntar (la fuerza sube y baja), soltar lanza.
+                if (lanzableRef.current) empezarApuntar(0, true);
+                else agarrar();
+            }
             if (a === "usar") usarRef.current?.();
             if (a === "correrSolo") alternarCorrer();
             if (a === "mirar") alternarMirar();
@@ -881,6 +1085,7 @@ export default function Mundo() {
             const k = MOVER[a] || FLECHAS[e.code];
             if (k) entrada.current.teclas[k] = false;
             if (a === "hablar") terminarHablar();
+            if (a === "agarrar") lanzar();
         };
         const soltarTodo = () => {
             entrada.current.teclas = {};
@@ -894,7 +1099,7 @@ export default function Mundo() {
             window.removeEventListener("keyup", arriba);
             window.removeEventListener("blur", soltarTodo);
         };
-    }, [navigate, volver, brincar, empezarHablar, terminarHablar, agarrarOLanzar, alternarCorrer, quitarCorrer, alternarMirar, teclas]);
+    }, [navigate, volver, brincar, empezarHablar, terminarHablar, agarrar, empezarApuntar, lanzar, alternarCorrer, quitarCorrer, alternarMirar, teclas]);
 
     // Si el admin agranda el mundo, la orilla se corre.
     useEffect(() => ponerLimite(config?.tamano || 60), [config?.tamano]);
@@ -960,6 +1165,16 @@ export default function Mundo() {
     const tecla = (a) => nombreTecla(teclas[a]);
     const mio = jugadores.find((j) => j.userId === yo);
     const cargoAlguien = agarre.current.cargando.has(yo);
+    const lanzable = cargoAlguien || tengoBalon;
+    const lugar = { ...POSICIONES_POR_DEFECTO, ...(config.controles?.posiciones || {}) };
+    // Cada botón va donde lo puso el admin (en % de la pantalla).
+    const en = (b, extra = {}) => ({ "--tam": tam[b], left: `${lugar[b].x}%`, top: `${lugar[b].y}%`, ...extra });
+    const equipoDe = (id) => {
+        for (const c of Object.values(canchas)) if (c.equipos?.[id]) return c.equipos[id];
+        return null;
+    };
+    const estadoMiCancha = miCanchaObj ? canchas[miCanchaObj.id] : null;
+    const canchasMapa = config.objetos.filter((o) => o.tipo === "cancha");
     const circuloUsable = usable ? config.objetos.find((o) => o.id === usable) : null;
     const otros = jugadores.filter((j) => j.userId !== yo);
 
@@ -970,7 +1185,11 @@ export default function Mundo() {
                     <Cielo cielo={config.cielo} />
                     <Luces luz={config.luz} colorSuelo={config.suelo.color} siguiendo={posicion} />
                     <Suelo suelo={config.suelo} materiales={config.materiales} tamano={config.tamano} />
-                    <Objetos objetos={config.objetos} materiales={config.materiales} modelos={config.modelos} circulos={circulos} desfase={desfase} />
+                    <Objetos objetos={config.objetos} materiales={config.materiales} modelos={config.modelos} circulos={circulos} desfase={desfase} canchas={canchas} yoId={yo} />
+                    {canchasMapa.map((o) => (
+                        <Balon key={`balon-${o.id}`} o={o} modelos={config.modelos} datos={balones} vistas={vistas} />
+                    ))}
+                    <Mira mira={mira} />
 
                     {mio && (
                         <Yo
@@ -987,6 +1206,9 @@ export default function Mundo() {
                             yoId={yo}
                             globo={globos[yo]}
                             habla={hablan.has(yo)}
+                            cancha={canchaRef}
+                            mira={mira}
+                            equipo={miEquipo}
                         />
                     )}
                     {otros.map((j) => (
@@ -1000,9 +1222,12 @@ export default function Mundo() {
                             cargado={agarre.current.cargados.has(j.userId)}
                             globo={globos[j.userId]}
                             habla={hablan.has(j.userId)}
+                            equipo={equipoDe(j.userId)}
                         />
                     ))}
                 </Canvas>
+                {/* El joystick va sobre la escena: con el mouse se sigue girando la cámara. */}
+                <Joystick entrada={entrada} alTocar={quitarCorrer} tam={tam.joystick} lugar={lugar.joystick} modo={config.controles?.joystick} />
             </div>
 
             {/* ---------- Arriba ---------- */}
@@ -1042,36 +1267,48 @@ export default function Mundo() {
                 </aside>
             )}
 
-            {/* ---------- Controles ---------- */}
-            <Joystick entrada={entrada} alTocar={quitarCorrer} tam={tam.joystick} />
+            {/* ---------- En un partido: marcador y Salir arriba ---------- */}
+            {miCanchaObj && (
+                <div className="mu-partido">
+                    <Marcador estado={estadoMiCancha} ahora={Date.now() + desfase} compacto />
+                    <button type="button" className="mu-salir-cancha" onClick={salirCancha}>
+                        <LuLogOut aria-hidden="true" />
+                        Salir
+                    </button>
+                </div>
+            )}
+
+            {/* ---------- Controles (cada uno donde lo puso el admin) ---------- */}
             {mirando && <p className="mu-mirando">{`🖱️ Mirando con el mouse · ${tecla("mirar")} para soltar`}</p>}
 
             <div className="mu-acciones" onPointerDown={(e) => e.stopPropagation()}>
-                <button type="button" className="mu-accion mu-chica" style={{ "--tam": tam.escribir }} onClick={() => setEscribiendo(true)} aria-label="Escribir un mensaje" title={`Escribir (${tecla("escribir")})`}>
+                <button type="button" className="mu-accion mu-chica mu-libre" style={en("escribir")} onClick={() => setEscribiendo(true)} aria-label="Escribir un mensaje" title={`Escribir (${tecla("escribir")})`}>
                     <LuMessageCircle aria-hidden="true" />
                 </button>
                 <button
                     type="button"
-                    className={`mu-accion mu-agarrar ${cargoAlguien ? "mu-lanzar" : ""}`}
-                    style={{ "--tam": tam.agarrar }}
-                    onClick={agarrarOLanzar}
-                    aria-label={cargoAlguien ? "Lanzar" : "Agarrar"}
-                    title={cargoAlguien ? `Lanzar (${tecla("agarrar")})` : `Agarrar al que está al lado (${tecla("agarrar")})`}
+                    className={`mu-accion mu-agarrar mu-libre ${lanzable ? "mu-lanzar" : ""} ${apuntando ? "mu-apuntando" : ""}`}
+                    style={en("agarrar")}
+                    onPointerDown={(e) => {
+                        if (!lanzable) return agarrar();
+                        e.currentTarget.setPointerCapture?.(e.pointerId);
+                        empezarApuntar(e.clientY);
+                    }}
+                    onPointerMove={(e) => moverApuntar(e.clientY)}
+                    onPointerUp={lanzar}
+                    onPointerCancel={cancelarApuntar}
+                    aria-label={lanzable ? "Lanzar (mantén y desliza para apuntar)" : tengoBalon ? "Lanzar" : "Agarrar"}
+                    title={lanzable ? `Mantén y desliza arriba o abajo para apuntar; suelta para lanzar (${tecla("agarrar")})` : `Agarrar (${tecla("agarrar")})`}
                 >
-                    {cargoAlguien ? <LuRocket aria-hidden="true" /> : <LuGrab aria-hidden="true" />}
-                    <small>{cargoAlguien ? "Lanzar" : "Agarrar"}</small>
+                    {lanzable ? <LuRocket aria-hidden="true" /> : <LuGrab aria-hidden="true" />}
+                    <small>{apuntando ? `${Math.round((mira.current.f || 0) * 100)}%` : lanzable ? "Lanzar" : "Agarrar"}</small>
+                    {apuntando && <span className="mu-fuerza" aria-hidden="true" />}
                 </button>
-                <BotonMic hablando={hablo} alEmpezar={empezarHablar} alTerminar={terminarHablar} tam={tam.hablar} tecla={tecla("hablar")} />
-                {circuloUsable && (
-                    <button type="button" className="mu-accion mu-usar" style={{ "--tam": tam.usar }} onClick={usar} title={`Usar (${tecla("usar")})`}>
-                        <LuSparkles aria-hidden="true" />
-                        <small>Usar</small>
-                    </button>
-                )}
+                <BotonMic hablando={hablo} alEmpezar={empezarHablar} alTerminar={terminarHablar} tam={tam.hablar} tecla={tecla("hablar")} estilo={en("hablar")} />
                 <button
                     type="button"
-                    className={`mu-accion ${correr ? "mu-correr-on" : ""}`}
-                    style={{ "--tam": tam.correr }}
+                    className={`mu-accion mu-libre ${correr ? "mu-correr-on" : ""}`}
+                    style={en("correr")}
                     onClick={alternarCorrer}
                     aria-pressed={correr}
                     title={`Correr solo hacia donde mira la cámara (${tecla("correrSolo")}). Toca el joystick para quitarlo.`}
@@ -1079,10 +1316,17 @@ export default function Mundo() {
                     <LuZap aria-hidden="true" />
                     <small>Correr</small>
                 </button>
-                <button type="button" className="mu-accion mu-saltar" style={{ "--tam": tam.saltar }} onPointerDown={brincar} aria-label="Brincar" title={`Brincar (${tecla("saltar")})`}>
+                <button type="button" className="mu-accion mu-saltar mu-libre" style={en("saltar")} onPointerDown={brincar} aria-label="Brincar" title={`Brincar (${tecla("saltar")})`}>
                     <LuChevronsUp aria-hidden="true" />
                     <small>Brincar</small>
                 </button>
+                {/* USAR: solo aparece cuando hay algo para usar (no mueve los demás botones) */}
+                {circuloUsable && (
+                    <button type="button" className="mu-accion mu-usar mu-libre" style={en("usar")} onClick={usar} title={`Usar (${tecla("usar")})`}>
+                        <LuSparkles aria-hidden="true" />
+                        <small>Usar</small>
+                    </button>
+                )}
             </div>
 
             {escribiendo && <Escribir alEnviar={decir} alCerrar={() => setEscribiendo(false)} />}

@@ -13,7 +13,9 @@
      modelos [{ id, nombre, ruta (.glb), ancho, alto, largo }]  "mis objetos":
              modelos 3D que sube el admin y se reutilizan
      tamano  mitad del lado del suelo en metros (60 → de -60 a 60)
-     controles { tamanos: { joystick, saltar, … }, teclas: { adelante: "KeyW", … } }
+     controles { tamanos: { joystick, saltar, … }, teclas: { adelante: "KeyW", … },
+               posiciones: { boton: { x, y } } (% de la pantalla, el centro del botón),
+               joystick: "flotante" (sale donde toques) | "fijo" }
      objetos [{ id, nombre, tipo, x, z, y, rot, incl, ancho, alto, largo,
                material | color, textura, baldosa, …propios del tipo }]
    Tipos de objeto: caja, pared, plataforma (para brincar),
@@ -28,6 +30,11 @@
    objetos"; "solido" = no se atraviesa). "fijo" = no se mueve en el
    editor por accidente. El salón puede tener "paredes": una
    textura distinta por pared (fondo, frente, izquierda, derecha).
+   cancha: minijuego azul vs rojo (ver cancha.js): "balon" (id de
+   "mis objetos" o "" = balón normal), "tamBalon", "minutos",
+   "maxEquipo", "cestas" [{ x, z, y, radio }] y "entradas" [{ x, z }]
+   relativas al centro de la cancha. ranking: tabla con los "top"
+   mejores de la temporada y la skin del primero con su corona.
 ========================================================= */
 
 import { pool } from "../database/db.js";
@@ -40,7 +47,7 @@ export const LIMITE = 60; // el suelo va de -60 a 60 metros (se puede agrandar: 
 export const LIMITE_MAX = 150;
 export const MAX_MODELOS = 100;
 export const MAX_OBJETOS = 300;
-export const TIPOS_OBJETO = ["caja", "pared", "plataforma", "columna", "arbol", "cuadro", "circulo", "salon", "escalera", "baranda", "modelo"];
+export const TIPOS_OBJETO = ["caja", "pared", "plataforma", "columna", "arbol", "cuadro", "circulo", "salon", "escalera", "baranda", "modelo", "cancha", "ranking"];
 export const FUNCIONES_CIRCULO = ["juego", "teletransporte"];
 export const MAX_MATERIALES = 60;
 export const LUCES = ["dia", "tarde", "noche"];
@@ -69,11 +76,24 @@ export const PIEZAS = {
     escalera: { ancho: 2, alto: 3, largo: 5, color: "#b9a68f" },
     baranda: { ancho: 4, alto: 1, largo: 0.1, color: "#cbd5e1" },
     modelo: { ancho: 1, alto: 1, largo: 1, color: "#ffffff" },
+    cancha: { ancho: 14, alto: 0.05, largo: 24, color: "#c2410c" },
+    ranking: { ancho: 5, alto: 3.2, largo: 3, color: "#1e293b" },
 };
 
 /* Controles del mundo (los pone el admin para todos). */
 export const ACCIONES = ["adelante", "atras", "izquierda", "derecha", "correr", "correrSolo", "saltar", "agarrar", "usar", "hablar", "escribir", "mirar"];
 export const BOTONES = ["joystick", "saltar", "correr", "agarrar", "hablar", "escribir", "usar"];
+/* Dónde va cada botón en el celular: % del ancho y del alto (centro del botón). */
+export const POSICIONES_POR_DEFECTO = {
+    joystick: { x: 15, y: 72 },
+    escribir: { x: 70, y: 60 },
+    agarrar: { x: 80, y: 58 },
+    hablar: { x: 91, y: 56 },
+    correr: { x: 79, y: 84 },
+    saltar: { x: 91, y: 82 },
+    usar: { x: 50, y: 24 },
+};
+
 export const CONTROLES_POR_DEFECTO = {
     tamanos: { joystick: 1, saltar: 1, correr: 1, agarrar: 1, hablar: 1, escribir: 1, usar: 1 },
     teclas: {
@@ -103,7 +123,13 @@ function limpiarControles(c = {}) {
         teclas[a] = usadas.has(valida) ? "" : valida;
         if (teclas[a]) usadas.add(teclas[a]);
     }
-    return { tamanos, teclas };
+    const posiciones = {};
+    for (const b of BOTONES) {
+        const p = c.posiciones?.[b] || {};
+        const d = POSICIONES_POR_DEFECTO[b];
+        posiciones[b] = { x: num(p.x, 3, 97, d.x), y: num(p.y, 8, 96, d.y) };
+    }
+    return { tamanos, teclas, posiciones, joystick: c.joystick === "fijo" ? "fijo" : "flotante" };
 }
 
 function limpiarModelo(m = {}, i) {
@@ -174,6 +200,47 @@ function limpiarObjeto(o = {}, i, limite = LIMITE) {
         ...(tipo === "baranda" ? { separacion: num(o.separacion, 0.08, 3, 0.4), grueso: num(o.grueso, 0.02, 0.4, 0.06) } : {}),
         ...(tipo === "modelo" ? { modelo: textoCorto(o.modelo, 24), solido: o.solido !== false } : {}),
         ...(tipo === "escalera" ? { peldanos: Math.round(num(o.peldanos, 2, 60, 12)), flotante: Boolean(o.flotante) } : {}),
+        ...(tipo === "cancha" ? limpiarCancha(o, num(o.ancho, 0.1, 60, base.ancho), num(o.largo, 0.05, 60, base.largo)) : {}),
+        ...(tipo === "ranking" ? { top: Math.round(num(o.top, 3, 10, 5)) } : {}),
+    };
+}
+
+/* Cestas y bolas de entrada por defecto (relativas al centro de la cancha). */
+export function partesCancha(ancho, largo) {
+    return {
+        cestas: [
+            { x: 0, z: -(largo / 2 - 2.5), y: 3.2, radio: 0.8 },
+            { x: 0, z: largo / 2 - 2.5, y: 3.2, radio: 0.8 },
+        ],
+        entradas: [
+            { x: ancho / 2 + 3, z: -2.5 },
+            { x: ancho / 2 + 3, z: 2.5 },
+        ],
+    };
+}
+
+function limpiarCancha(o, ancho, largo) {
+    const d = partesCancha(ancho, largo);
+    const cestas = [0, 1].map((i) => {
+        const k = (Array.isArray(o.cestas) && o.cestas[i]) || d.cestas[i];
+        return {
+            x: num(k.x, -ancho / 2, ancho / 2, d.cestas[i].x),
+            z: num(k.z, -largo / 2, largo / 2, d.cestas[i].z),
+            y: num(k.y, 1, 12, 3.2),
+            radio: num(k.radio, 0.3, 3, 0.8),
+        };
+    });
+    const entradas = [0, 1].map((i) => {
+        const k = (Array.isArray(o.entradas) && o.entradas[i]) || d.entradas[i];
+        return { x: num(k.x, -ancho / 2 - 20, ancho / 2 + 20, d.entradas[i].x), z: num(k.z, -largo / 2 - 20, largo / 2 + 20, d.entradas[i].z) };
+    });
+    return {
+        balon: o.balon ? textoCorto(o.balon, 24) : "",
+        tamBalon: num(o.tamBalon, 0.2, 2, 0.6),
+        minutos: Math.round(num(o.minutos, 1, 30, 5)),
+        maxEquipo: Math.round(num(o.maxEquipo, 1, 10, 5)),
+        cestas,
+        entradas,
     };
 }
 
@@ -275,6 +342,7 @@ export async function guardarConfigMundo(d = {}) {
         idsMod.add(m.id);
     });
     valor.objetos = valor.objetos.filter((o) => o.tipo !== "modelo" || idsMod.has(o.modelo));
+    for (const o of valor.objetos) if (o.tipo === "cancha" && o.balon && !idsMod.has(o.balon)) o.balon = "";
     if (valor.cielo.tipo === "foto" && !valor.cielo.foto) throw errorConEstado("Sube la foto del cielo o elige otro tipo de cielo.");
 
     const pedidos = [...new Set(valor.personajes)];

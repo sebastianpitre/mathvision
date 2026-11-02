@@ -261,6 +261,52 @@ function ElegirTextura({ materiales, material, color, alCambiar, propio = "Propi
 }
 
 /* ---------------- Panel del objeto elegido (antes era flotante) ---------------- */
+/* Cancha: balón, tiempo, cupo y dónde van las cestas y las bolas para entrar. */
+function OpcionesCancha({ o, modelos, alCambiar }) {
+    const equipo = ["Azul", "Rojo"];
+    const cesta = (i, k) => (v) => alCambiar({ cestas: o.cestas.map((q, j) => (j === i ? { ...q, [k]: v } : q)) });
+    const entrada = (i, k) => (v) => alCambiar({ entradas: o.entradas.map((q, j) => (j === i ? { ...q, [k]: v } : q)) });
+    return (
+        <>
+            <h4>Partido</h4>
+            <label className="ed-campo">
+                <span>Balón (el objeto que se agarra)</span>
+                <select value={o.balon || ""} onChange={(e) => alCambiar({ balon: e.target.value })}>
+                    <option value="">🏀 Balón normal</option>
+                    {modelos.map((m) => (
+                        <option key={m.id} value={m.id}>{`📦 ${m.nombre}`}</option>
+                    ))}
+                </select>
+            </label>
+            <div className="ed-fila">
+                <Numero etiqueta="Tamaño balón" valor={o.tamBalon ?? 0.6} min={0.2} max={2} paso={0.05} alCambiar={(v) => alCambiar({ tamBalon: v })} />
+                <Numero etiqueta="Minutos" valor={o.minutos ?? 5} min={1} max={30} paso={1} sufijo="min" alCambiar={(v) => alCambiar({ minutos: Math.round(v) })} />
+                <Numero etiqueta="Por equipo" valor={o.maxEquipo ?? 5} min={1} max={10} paso={1} sufijo="" alCambiar={(v) => alCambiar({ maxEquipo: Math.round(v) })} />
+            </div>
+            <p className="ed-ayuda">En el mapa arrastra los aros (cestas) y las bolas de entrada. Cada equipo encesta en el aro del otro color.</p>
+            {o.cestas.map((k, i) => (
+                <div key={`c${i}`}>
+                    <h4>{`Cesta ${equipo[i]}`}</h4>
+                    <div className="ed-fila">
+                        <Numero etiqueta="X" valor={k.x} min={-o.ancho / 2} max={o.ancho / 2} paso={0.25} alCambiar={cesta(i, "x")} />
+                        <Numero etiqueta="Z" valor={k.z} min={-o.largo / 2} max={o.largo / 2} paso={0.25} alCambiar={cesta(i, "z")} />
+                        <Numero etiqueta="Altura" valor={k.y} min={1} max={12} paso={0.1} alCambiar={cesta(i, "y")} />
+                        <Numero etiqueta="Radio" valor={k.radio} min={0.3} max={3} paso={0.05} alCambiar={cesta(i, "radio")} />
+                    </div>
+                </div>
+            ))}
+            <h4>Bolas para entrar</h4>
+            {o.entradas.map((k, i) => (
+                <div className="ed-fila" key={`e${i}`}>
+                    <Numero etiqueta={`${equipo[i]} X`} valor={k.x} min={-o.ancho / 2 - 20} max={o.ancho / 2 + 20} paso={0.25} alCambiar={entrada(i, "x")} />
+                    <Numero etiqueta={`${equipo[i]} Z`} valor={k.z} min={-o.largo / 2 - 20} max={o.largo / 2 + 20} paso={0.25} alCambiar={entrada(i, "z")} />
+                </div>
+            ))}
+            <p className="ed-ayuda">Las medidas van desde el centro de la cancha y giran con ella. El letrero con las instrucciones sale junto a las bolas.</p>
+        </>
+    );
+}
+
 function PanelObjeto({ o, doc, juegos, alCambiar, alNuevaTextura, alError, limite }) {
     const materiales = doc.materiales || [];
     const circulos = doc.objetos.filter((x) => x.id !== o.id && x.tipo === "circulo");
@@ -325,7 +371,7 @@ function PanelObjeto({ o, doc, juegos, alCambiar, alNuevaTextura, alError, limit
                 {!SIN_LARGO.includes(o.tipo) && o.tipo !== "baranda" && (
                     <Numero etiqueta={["pared", "cuadro"].includes(o.tipo) ? "Grosor" : "Largo"} valor={o.largo} min={0.05} max={60} alCambiar={medida("largo")} />
                 )}
-                {o.tipo !== "circulo" && <Numero etiqueta="Alto" valor={o.alto} min={0.1} max={30} alCambiar={medida("alto")} />}
+                {!["circulo", "cancha"].includes(o.tipo) && <Numero etiqueta={o.tipo === "ranking" ? "Alto pantalla" : "Alto"} valor={o.alto} min={0.1} max={30} alCambiar={medida("alto")} />}
             </div>
             {o.tipo === "modelo" && (
                 <div className="ed-fila">
@@ -343,6 +389,15 @@ function PanelObjeto({ o, doc, juegos, alCambiar, alNuevaTextura, alError, limit
                         Sólido (no se atraviesa)
                     </label>
                 </div>
+            )}
+            {o.tipo === "cancha" && <OpcionesCancha o={o} modelos={doc.modelos || []} alCambiar={alCambiar} />}
+            {o.tipo === "ranking" && (
+                <>
+                    <div className="ed-fila">
+                        <Numero etiqueta="Cuántos mostrar" valor={o.top ?? 5} min={3} max={10} paso={1} sufijo="" alCambiar={(v) => alCambiar({ top: Math.round(v) })} />
+                    </div>
+                    <p className="ed-ayuda">Muestra los mejores de la temporada (se actualiza solo). Al frente, el primero con su skin en un círculo de luz y una corona 👑.</p>
+                </>
             )}
             {o.tipo === "salon" && (
                 <div className="ed-fila">
@@ -443,7 +498,12 @@ function PanelObjeto({ o, doc, juegos, alCambiar, alNuevaTextura, alError, limit
                         <input type="color" value={o.color} onChange={(e) => alCambiar({ color: e.target.value })} />
                     </label>
                 </>
-            ) : o.tipo === "modelo" ? null : (
+            ) : o.tipo === "modelo" ? null : o.tipo === "cancha" || o.tipo === "ranking" ? (
+                <label className="ed-campo ed-campo-color">
+                    <span>{o.tipo === "cancha" ? "Color del piso" : "Color de la pantalla"}</span>
+                    <input type="color" value={o.color} onChange={(e) => alCambiar({ color: e.target.value })} />
+                </label>
+            ) : (
                 <>
                     <h4>{o.tipo === "salon" ? "Textura del salón" : "Textura"}</h4>
                     <ElegirTextura materiales={materiales} material={o.material} color={o.textura ? `url(${o.textura}) center/cover` : o.color} alCambiar={alCambiar} />
@@ -892,6 +952,46 @@ function Figura({ o, materiales, modelos, elegido, escala, porId }) {
                 </text>
                 <text x={o.x} y={o.z + letra * 1.1} fontSize={letra * 0.9} textAnchor="middle" className="ed-etiqueta" pointerEvents="none">
                     {tele ? (destino ? `→ ${destino.id}` : "sin destino") : o.juego}
+                </text>
+            </g>
+        );
+    }
+
+    if (o.tipo === "cancha") {
+        const colores = ["#3b82f6", "#ef4444"];
+        return (
+            <g data-id={o.id} className="ed-figura" transform={t}>
+                <rect data-id={o.id} x={-o.ancho / 2} y={-o.largo / 2} width={o.ancho} height={o.largo} fill={o.color} fillOpacity={0.55} stroke={borde} strokeWidth={ancho} />
+                <rect x={-o.ancho / 2} y={-o.largo / 2} width={o.ancho} height={o.largo / 2} fill={colores[0]} fillOpacity={0.18} pointerEvents="none" />
+                <rect x={-o.ancho / 2} y={0} width={o.ancho} height={o.largo / 2} fill={colores[1]} fillOpacity={0.18} pointerEvents="none" />
+                <line x1={-o.ancho / 2} y1={0} x2={o.ancho / 2} y2={0} stroke="#fff" strokeWidth={1.2 / escala} pointerEvents="none" />
+                {(o.cestas || []).map((k, i) => (
+                    <circle key={`c${i}`} cx={k.x} cy={k.z} r={k.radio} fill="none" stroke={colores[i]} strokeWidth={3 / escala} pointerEvents="none" />
+                ))}
+                {(o.entradas || []).map((k, i) => (
+                    <g key={`e${i}`} pointerEvents="none">
+                        <circle cx={k.x} cy={k.z} r={1.4} fill={colores[i]} fillOpacity={0.15} stroke={colores[i]} strokeWidth={1 / escala} strokeDasharray={`${3 / escala} ${2 / escala}`} />
+                        <circle cx={k.x} cy={k.z} r={0.6} fill={colores[i]} />
+                    </g>
+                ))}
+                {escala > 3 && (
+                    <text x={0} y={-o.largo / 4} fontSize={letra * 1.2} textAnchor="middle" className="ed-etiqueta" pointerEvents="none" transform={`rotate(${o.rot || 0} 0 ${-o.largo / 4})`}>
+                        {`🏀 ${o.nombre || o.id}`}
+                    </text>
+                )}
+            </g>
+        );
+    }
+
+    if (o.tipo === "ranking") {
+        const fondo = -o.largo / 2 + 0.1;
+        return (
+            <g data-id={o.id} className="ed-figura" transform={t}>
+                <rect data-id={o.id} x={-o.ancho / 2} y={-o.largo / 2} width={o.ancho} height={o.largo} fill="#fbbf24" fillOpacity={0.12} stroke={borde} strokeWidth={ancho} strokeDasharray={`${4 / escala} ${3 / escala}`} />
+                <rect x={-o.ancho / 2} y={fondo - 0.1} width={o.ancho} height={0.2} fill={o.color} pointerEvents="none" />
+                <circle cx={0} cy={Math.min(o.largo / 2 - 1, fondo + 2)} r={1} fill="#fbbf24" fillOpacity={0.7} pointerEvents="none" />
+                <text x={0} y={Math.min(o.largo / 2 - 1, fondo + 2) + letra * 0.4} fontSize={letra * 1.2} textAnchor="middle" pointerEvents="none">
+                    👑
                 </text>
             </g>
         );
@@ -1458,6 +1558,18 @@ export default function EditorMundo() {
         }
         const { lx, lz } = aLocal(o, p.x, p.z);
         a.movio = true;
+        // Cancha: arrastrar un aro o una bola de entrada (relativo a la cancha).
+        const parte = /^(cesta|entrada)-(\d)$/.exec(a.tipo);
+        if (parte) {
+            const lista = parte[1] === "cesta" ? "cestas" : "entradas";
+            const i = Number(parte[2]);
+            const lejos = parte[1] === "cesta" ? 0 : 20;
+            const nx = limitar(redondear(lx, paso), -o.ancho / 2 - lejos, o.ancho / 2 + lejos);
+            const nz = limitar(redondear(lz, paso), -o.largo / 2 - lejos, o.largo / 2 + lejos);
+            setMedida({ texto: `${parte[1] === "cesta" ? "Cesta" : "Entrada"} ${i ? "roja" : "azul"} · ${nx.toFixed(2)}, ${nz.toFixed(2)}`, sx: e.clientX, sy: e.clientY });
+            cambiarSel({ [lista]: o[lista].map((q, j) => (j === i ? { ...q, x: nx, z: nz } : q)) }, false);
+            return;
+        }
         if (a.tipo === "radio") {
             const nuevo = limitar(redondear(Math.abs(lx) * 2, paso), 0.2, 60);
             setMedida({ texto: `⌀ ${nuevo.toFixed(2)} m`, sx: e.clientX, sy: e.clientY });
@@ -1676,6 +1788,22 @@ export default function EditorMundo() {
                                                 <circle data-manija="girar" cx={arriba.x} cy={arriba.z} r={manijaR * 1.1} className="ed-manija-girar" />
                                                 <rect data-manija="ancho" x={este.x - manijaR} y={este.z - manijaR} width={manijaR * 2} height={manijaR * 2} />
                                                 {!SIN_LARGO.includes(objeto.tipo) && <rect data-manija="largo" x={sur.x - manijaR} y={sur.z - manijaR} width={manijaR * 2} height={manijaR * 2} />}
+                                                {objeto.tipo === "cancha" &&
+                                                    [...objeto.cestas.map((k, i) => ["cesta", i, k]), ...objeto.entradas.map((k, i) => ["entrada", i, k])].map(([tipo, i, k]) => {
+                                                        const w = aMundo(objeto, k.x, k.z);
+                                                        return (
+                                                            <circle
+                                                                key={`${tipo}${i}`}
+                                                                data-manija={`${tipo}-${i}`}
+                                                                cx={w.x}
+                                                                cy={w.z}
+                                                                r={manijaR * 1.25}
+                                                                className={`ed-manija-cancha ed-manija-${i ? "rojo" : "azul"}`}
+                                                            >
+                                                                <title>{`${tipo === "cesta" ? "Cesta" : "Entrada"} ${i ? "roja" : "azul"} (arrastra)`}</title>
+                                                            </circle>
+                                                        );
+                                                    })}
                                             </>
                                         );
                                     })()}

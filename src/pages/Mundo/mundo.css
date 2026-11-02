@@ -288,8 +288,6 @@
 .mu-joy {
     position: absolute;
     z-index: 4;
-    left: calc(max(1.4rem, env(safe-area-inset-left)) + 2.6rem);
-    bottom: max(1.2rem, env(safe-area-inset-bottom));
     width: calc(7.4rem * var(--tam, 1));
     height: calc(7.4rem * var(--tam, 1));
     display: grid;
@@ -315,20 +313,51 @@
     pointer-events: none;
 }
 
-/* ---------- Botones de acción (derecha) ---------- */
+/* ---------- Botones de acción ----------
+   Cada botón va donde lo puso el admin (left/top en %, el centro
+   del botón). La capa cubre la pantalla pero solo los botones
+   reciben toques. */
 .mu-acciones {
     position: absolute;
+    inset: 0;
     z-index: 4;
-    right: max(1rem, env(safe-area-inset-right));
-    bottom: max(1rem, env(safe-area-inset-bottom));
-    display: grid;
-    grid-template-columns: repeat(3, auto);
-    grid-template-areas:
-        "chat  hola  mic"
-        ".     correr saltar";
-    align-items: end;
-    justify-items: center;
-    gap: 0.5rem;
+    pointer-events: none;
+}
+
+.mu-acciones > * {
+    pointer-events: auto;
+}
+
+/* (.mu delante: le gana a .mu-accion, que es position: relative) */
+.mu .mu-libre {
+    position: absolute;
+    translate: -50% -50%;
+}
+
+/* Joystick flotante: se toca en la mitad izquierda y aparece ahí. */
+.mu-joy-capa {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.mu-joy-zona {
+    position: absolute;
+    left: 0;
+    top: 14%;
+    bottom: 0;
+    width: 48%;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+.mu-joy-capa .mu-joy {
+    pointer-events: none;
+}
+
+.mu-joy-pista {
+    opacity: 0.45;
 }
 
 .mu-accion {
@@ -366,26 +395,6 @@
 .mu-chica {
     width: calc(2.8rem * var(--tam, 1));
     height: calc(2.8rem * var(--tam, 1));
-}
-
-.mu-acciones > :nth-child(1) {
-    grid-area: chat;
-}
-
-.mu-acciones > :nth-child(2) {
-    grid-area: hola;
-}
-
-.mu-acciones > :nth-child(3) {
-    grid-area: mic;
-}
-
-.mu-acciones > :nth-child(4) {
-    grid-area: correr;
-}
-
-.mu-acciones > :nth-child(5) {
-    grid-area: saltar;
 }
 
 .mu-saltar {
@@ -690,11 +699,8 @@
     animation: mu-latido 1s ease-in-out infinite;
 }
 
-/* ---------- Botón USAR (sobre un círculo con función) ---------- */
+/* ---------- Botón USAR (solo sobre algo usable; por defecto arriba al centro) ---------- */
 .mu-acciones .mu-usar {
-    position: absolute;
-    right: 0;
-    bottom: calc(100% + 0.7rem);
     width: 5rem;
     height: 5rem;
     background: linear-gradient(180deg, #a78bfa, #6d28d9);
@@ -757,4 +763,208 @@
     gap: 0.6rem;
     flex-wrap: wrap;
     justify-content: center;
+}
+
+/* ---------- Apuntar (mantener Lanzar) ---------- */
+.mu-apuntando {
+    box-shadow: 0 0 0 0.35rem rgba(253, 224, 71, 0.35), 0 0 1.4rem rgba(253, 224, 71, 0.8);
+}
+
+.mu-fuerza {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 0.4rem);
+    width: 0.35rem;
+    height: 4.5rem;
+    translate: -50% 0;
+    border-radius: 99rem;
+    background: linear-gradient(0deg, #4ade80, #fde047, #f97316);
+    box-shadow: 0 0 0.6rem rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+.mu-mira-etiqueta {
+    display: block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 99rem;
+    background: rgba(10, 14, 26, 0.78);
+    color: #fde047;
+    font-size: 0.8rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.mu-mira-encesta {
+    color: #4ade80;
+    box-shadow: 0 0 0.8rem rgba(74, 222, 128, 0.7);
+}
+
+/* ---------- Cancha: marcador, entradas, letrero ---------- */
+.mu-marcador {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 13rem;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 0.7rem;
+    background: rgba(8, 12, 24, 0.82);
+    color: #fff;
+    white-space: nowrap;
+    box-shadow: 0 0.3rem 1rem rgba(0, 0, 0, 0.35);
+}
+
+.mu-marcador-fila {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 900;
+}
+
+.mu-marcador-equipo {
+    padding: 0.1rem 0.55rem;
+    border-radius: 0.4rem;
+    font-size: 1.05rem;
+}
+
+.mu-azul {
+    background: #2563eb;
+}
+
+.mu-rojo {
+    background: #dc2626;
+}
+
+.mu-marcador-reloj {
+    font-size: 0.85rem;
+    color: #fde68a;
+}
+
+.mu-marcador-fin {
+    margin: 0;
+    color: #fde047;
+    font-weight: 900;
+}
+
+.mu-marcador-top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.75rem;
+}
+
+.mu-marcador-top li {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.mu-marcador-top em {
+    color: #cbd5e1;
+    font-style: normal;
+}
+
+.mu-marcador-chico {
+    min-width: 0;
+    padding: 0.3rem 0.6rem;
+}
+
+.mu-partido {
+    position: absolute;
+    z-index: 6;
+    top: 3.4rem;
+    left: 50%;
+    translate: -50% 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.mu-salir-cancha {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.45rem 0.8rem;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    border-radius: 0.6rem;
+    background: linear-gradient(180deg, #f87171, #b91c1c);
+    color: #fff;
+    font-weight: 900;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 0.3rem 0.8rem rgba(0, 0, 0, 0.35);
+}
+
+.mu-entrada-azul {
+    border-color: #60a5fa;
+}
+
+.mu-entrada-rojo {
+    border-color: #f87171;
+}
+
+.mu-nombre-azul {
+    box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.mu-nombre-rojo {
+    box-shadow: 0 0 0 2px #ef4444;
+}
+
+.mu-letrero {
+    width: 15rem;
+    padding: 0.6rem 0.8rem;
+    border: 3px solid #fbbf24;
+    border-radius: 0.6rem;
+    background: rgba(15, 23, 42, 0.92);
+    color: #fff;
+    font-size: 0.8rem;
+    line-height: 1.3;
+}
+
+.mu-letrero strong {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: #fde68a;
+    font-size: 0.95rem;
+}
+
+.mu-letrero ol {
+    margin: 0;
+    padding-left: 1.1rem;
+}
+
+/* ---------- Tabla de ranking: corona del primero ---------- */
+.mu-corona {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    animation: mu-flotar 2.2s ease-in-out infinite;
+}
+
+.mu-corona span {
+    font-size: 2.4rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 0.6rem rgba(253, 224, 71, 0.9));
+}
+
+.mu-corona strong {
+    padding: 0.1rem 0.55rem;
+    border-radius: 99rem;
+    background: linear-gradient(180deg, #fde047, #f59e0b);
+    color: #2a1c00;
+    font-size: 0.8rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+@keyframes mu-flotar {
+    50% {
+        transform: translateY(-0.4rem);
+    }
 }

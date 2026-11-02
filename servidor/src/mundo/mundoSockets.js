@@ -6,7 +6,8 @@
      mundo:mover    { x, y, z, r, andando }  10 veces por segundo
                     andando: 0 quieto · 1 camina · 2 corre
      mundo:agarrar                           alza al jugador que tiene al frente
-     mundo:lanzar                            lo tira hacia donde mira
+     mundo:lanzar  { fuerza, dir }           lo tira (o tira el balón) con la fuerza apuntada
+     cancha:salir                            sale del partido de la cancha
      mundo:usar     { id }                   botón USAR sobre un círculo (teletransporte…)
      mundo:decir    { texto }                globo encima del jugador
      mundo:hablar / mundo:audio / mundo:callar   micrófono
@@ -20,6 +21,7 @@
      mundo:teletransporte { x, y, z }  te lleva a otro círculo
      mundo:aPartida    salió por un círculo: va a la pantalla previa
      mundo:diseno      el admin cambió el mundo
+     cancha:todas / cancha:estado / cancha:balones / cancha:cesta / cancha:toma  (ver cancha.js)
 
    Los mensajes NO se guardan en ningún lado: solo se
    reenvían y desaparecen. La voz se oye solo cerca (RADIO_VOZ).
@@ -32,6 +34,7 @@ import { alCambiarMundo, mundoParaJugador, LIMITE } from "./mundo.js";
 let limite = LIMITE; // mitad del suelo (el admin lo puede agrandar)
 import { limpiarMensaje } from "./filtro.js";
 import { crearCirculos } from "./circulos.js";
+import { crearCanchas } from "./cancha.js";
 
 const SALA = "mundo";
 const MAXIMO = 40; // jugadores a la vez (el celular se pone lento con más)
@@ -41,7 +44,8 @@ const PAUSA_MENSAJE_MS = 1500;
 const DISTANCIA_AGARRE = 1.9; // metros
 const CARGA_MAX_MS = 6000; // si no lo lanza, lo suelta solo
 const INMUNE_MS = 3500; // después de caer no lo pueden volver a agarrar enseguida
-const LANZAR = { horizontal: 9, vertical: 7.5 };
+/* Lanzar a una persona: fuerza 0…1 (apuntando) → velocidades. El navegador usa la misma cuenta. */
+const tiroPersona = (f) => ({ vh: 4 + 9 * f, vy: 6 + 4 * f });
 const MAX_BYTES_AUDIO = 24 * 1024;
 
 const num = (v, min, max) => {
@@ -73,6 +77,7 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
     function sacarDelMundo(userId) {
         const j = jugadores.get(userId);
         if (!j) return;
+        canchas.salir(userId, { mover: false });
         if (j.cargando) soltar(j);
         if (j.cargadoPor) soltar(jugadores.get(j.cargadoPor));
         jugadores.delete(userId);
@@ -91,10 +96,13 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
         sacarDelMundo,
         emitir: () => io.to(SALA).emit("mundo:circulos", circulos.estado()),
     });
+    // Canchas (minijuego azul vs rojo, src/mundo/cancha.js).
+    const canchas = crearCanchas({ io, jugadores, sala: SALA });
     let objetosActuales = [];
     mundoParaJugador()
         .then((c) => {
             objetosActuales = c.objetos;
+            canchas.ponerObjetos(c.objetos);
             limite = c.tamano || LIMITE;
         })
         .catch(() => {});
@@ -140,6 +148,7 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
         // (personajesMundo sí va: sirve para dibujar a todos)
         objetosActuales = config.objetos;
         limite = config.tamano || LIMITE;
+        canchas.ponerObjetos(config.objetos);
         // Sin la lista de personajes: esa depende de lo que tiene cada jugador.
         if (jugadores.size) io.to(SALA).emit("mundo:diseno", { config });
     });
@@ -192,6 +201,7 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
             objetosActuales = config.objetos;
             socket.join(SALA);
             socket.emit("mundo:circulos", circulos.estado());
+            socket.emit("cancha:todas", canchas.todos());
             const voz = await obtenerConfigVoz();
             socket.emit("mundo:bienvenida", { yo: socket.userId, config, voz: { segundos: voz.segundos, espera: voz.espera } });
             enviarLista();
@@ -205,6 +215,7 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
             j.z = num(z, -limite, limite);
             j.r = num(r, -100, 100);
             j.andando = Math.round(num(andando, 0, 2));
+            canchas.limitar(j); // en un partido no se sale de la cancha caminando
             cambio = true;
         });
 
@@ -213,6 +224,8 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
             const j = mio(socket);
             const ahora = Date.now();
             if (!j || j.cargando || j.cargadoPor) return;
+            // En la cancha: primero el balón (tomarlo o quitárselo al que lo tiene).
+            if (canchas.tieneBalon(j) || canchas.agarrar(j)) return;
             let mejor = null;
             let mejorD = DISTANCIA_AGARRE;
             for (const o of jugadores.values()) {
@@ -234,7 +247,7 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
         // Botón USAR: el servidor revisa que esté parado en ese círculo.
         socket.on("mundo:usar", ({ id } = {}) => {
             const j = mio(socket);
-            if (!j || j.cargadoPor || j.cargando) return;
+            if (!j || j.cargadoPor || j.cargando || j.cancha) return;
             const c = objetosActuales.find((o) => o.id === String(id) && o.tipo === "circulo");
             if (!c || Math.hypot(j.x - c.x, j.z - c.z) > c.ancho / 2 + 0.6) return;
             if (c.funcion === "teletransporte") {
@@ -250,17 +263,27 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
             }
         });
 
-        // Tirarlo hacia donde mira.
-        socket.on("mundo:lanzar", () => {
+        // Tirar (al que carga o el balón) con la fuerza que apuntó, hacia "dir".
+        socket.on("mundo:lanzar", ({ fuerza, dir } = {}) => {
             const j = mio(socket);
-            if (!j?.cargando) return;
+            if (!j) return;
+            const f = Number.isFinite(Number(fuerza)) ? num(fuerza, 0, 1) : 0.55;
+            const d = Number.isFinite(Number(dir)) ? num(dir, -100, 100) : j.r;
+            j.r = d;
+            if (canchas.lanzar(j, f, d)) return;
+            if (!j.cargando) return;
             const v = soltar(j, { avisar: false });
             if (!v) return;
-            const vx = Math.sin(j.r) * LANZAR.horizontal;
-            const vz = Math.cos(j.r) * LANZAR.horizontal;
-            const salida = { x: r2(j.x + Math.sin(j.r) * 0.6), y: r2(j.y + 1.9), z: r2(j.z + Math.cos(j.r) * 0.6) };
+            const { vh, vy } = tiroPersona(f);
+            const salida = { x: r2(j.x + Math.sin(d) * 0.6), y: r2(j.y + 1.9), z: r2(j.z + Math.cos(d) * 0.6) };
             Object.assign(v, salida);
-            io.to(SALA).emit("mundo:lanzado", { a: v.userId, por: j.userId, ...salida, vx: r2(vx), vy: LANZAR.vertical, vz: r2(vz) });
+            io.to(SALA).emit("mundo:lanzado", { a: v.userId, por: j.userId, ...salida, vx: r2(Math.sin(d) * vh), vy: r2(vy), vz: r2(Math.cos(d) * vh) });
+        });
+
+        // Botón Salir de la cancha (caminando no se puede).
+        socket.on("cancha:salir", () => {
+            const j = mio(socket);
+            if (j?.cancha) canchas.salir(j.userId);
         });
 
         // Globo de texto: no se guarda, solo se reenvía.

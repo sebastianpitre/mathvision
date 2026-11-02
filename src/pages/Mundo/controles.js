@@ -17,6 +17,17 @@ export const TECLAS_POR_DEFECTO = {
     mirar: "KeyZ",
 };
 
+/* Dónde va cada botón en el celular: % del ancho y del alto (el centro del botón). */
+export const POSICIONES_POR_DEFECTO = {
+    joystick: { x: 15, y: 72 },
+    escribir: { x: 70, y: 60 },
+    agarrar: { x: 80, y: 58 },
+    hablar: { x: 91, y: 56 },
+    correr: { x: 79, y: 84 },
+    saltar: { x: 91, y: 82 },
+    usar: { x: 50, y: 24 },
+};
+
 export const TAMANOS_POR_DEFECTO = { joystick: 1, saltar: 1, correr: 1, agarrar: 1, hablar: 1, escribir: 1, usar: 1 };
 
 export const NOMBRE_ACCION = {
@@ -27,7 +38,7 @@ export const NOMBRE_ACCION = {
     correr: "Correr (mantener)",
     correrSolo: "Correr solo",
     saltar: "Brincar",
-    agarrar: "Agarrar / lanzar",
+    agarrar: "Agarrar / lanzar (mantener para apuntar)",
     usar: "Usar",
     hablar: "Hablar (mantener)",
     escribir: "Escribir",

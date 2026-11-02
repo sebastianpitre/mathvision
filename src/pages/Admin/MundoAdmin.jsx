@@ -7,7 +7,7 @@ import { LuPenTool, LuSave } from "react-icons/lu";
 import { api } from "../../services/api";
 import { useCarga } from "./useCarga";
 import { Cielo, Luces, Objetos, Suelo } from "../Mundo/Escena";
-import { NOMBRE_ACCION, NOMBRE_BOTON, TAMANOS_POR_DEFECTO, TECLAS_POR_DEFECTO, nombreTecla } from "../Mundo/controles";
+import { NOMBRE_ACCION, NOMBRE_BOTON, POSICIONES_POR_DEFECTO, TAMANOS_POR_DEFECTO, TECLAS_POR_DEFECTO, nombreTecla } from "../Mundo/controles";
 
 /* =========================================================
    MUNDO 3D (pestaña del panel)
@@ -33,11 +33,113 @@ function Vistazo({ config }) {
     );
 }
 
-/* Controles del mundo para todos: tamaño de los botones (celular) y teclas (PC). */
+/* ---------- Dónde va cada botón (celular) ----------
+   Una pantalla de celular acostado en pequeño: se arrastra cada
+   botón a su lugar y al tocarlo se cambia su tamaño. */
+const DIAMETRO = { joystick: 7.4, saltar: 4.6, usar: 5, escribir: 2.8, agarrar: 3.6, hablar: 3.6, correr: 3.6 }; // rem del juego
+const ICONO_BOTON = { joystick: "🕹️", saltar: "⏫", correr: "⚡", agarrar: "✊", hablar: "🎤", escribir: "💬", usar: "✨" };
+const COLOR_BOTON = { saltar: "#f2a900", agarrar: "#db2777", usar: "#7c3aed", joystick: "rgba(255,255,255,.12)" };
+
+function Acomodar({ c, setC }) {
+    const caja = useRef(null);
+    const arrastre = useRef(null);
+    const [elegido, setElegido] = useState("joystick");
+    const [alto, setAlto] = useState(260);
+    useEffect(() => {
+        const medir = () => caja.current && setAlto(caja.current.getBoundingClientRect().height);
+        medir();
+        window.addEventListener("resize", medir);
+        return () => window.removeEventListener("resize", medir);
+    }, []);
+    // En el celular acostado (≈390 px de alto) 1 rem = 16 px.
+    const px = (rem) => (rem * 16 * alto) / 390;
+
+    const mover = (e) => {
+        const a = arrastre.current;
+        if (!a || a.id !== e.pointerId) return;
+        const r = caja.current.getBoundingClientRect();
+        const x = Math.round(Math.min(97, Math.max(3, ((e.clientX - r.left) / r.width) * 100)));
+        const y = Math.round(Math.min(96, Math.max(8, ((e.clientY - r.top) / r.height) * 100)));
+        setC((v) => ({ ...v, posiciones: { ...v.posiciones, [a.b]: { x, y } } }));
+    };
+
+    return (
+        <div>
+            <h4 style={{ margin: "0 0 6px" }}>📐 Dónde va cada botón (celular)</h4>
+            <p className="lb-muted" style={{ margin: "0 0 8px", fontSize: 13 }}>
+                Arrastra los botones. Toca uno para cambiar su tamaño. "Usar" solo aparece cuando hay algo para usar (un teletransporte).
+            </p>
+            <div
+                ref={caja}
+                className="mw-celular"
+                onPointerMove={mover}
+                onPointerUp={() => (arrastre.current = null)}
+                onPointerCancel={() => (arrastre.current = null)}
+            >
+                <span className="mw-celular-arriba">🗺️ · 👥 3 · ✕</span>
+                {c.joystick === "flotante" && <span className="mw-zona-joy">Toca aquí y sale el joystick</span>}
+                {Object.keys(DIAMETRO).map((b) => {
+                    const p = c.posiciones[b];
+                    const d = px(DIAMETRO[b] * c.tamanos[b]);
+                    return (
+                        <button
+                            key={b}
+                            type="button"
+                            className={`mw-boton ${elegido === b ? "mw-boton-elegido" : ""}`}
+                            style={{ left: `${p.x}%`, top: `${p.y}%`, width: d, height: d, background: COLOR_BOTON[b] || "rgba(255,255,255,.22)", fontSize: Math.max(10, d * 0.32) }}
+                            onPointerDown={(e) => {
+                                e.currentTarget.setPointerCapture(e.pointerId);
+                                arrastre.current = { id: e.pointerId, b };
+                                setElegido(b);
+                            }}
+                            title={`${NOMBRE_BOTON[b]} (arrastra)`}
+                            aria-label={`${NOMBRE_BOTON[b]}: x ${p.x}%, y ${p.y}%`}
+                        >
+                            <span aria-hidden="true">{ICONO_BOTON[b]}</span>
+                            {d > 34 && <small>{NOMBRE_BOTON[b]}</small>}
+                        </button>
+                    );
+                })}
+            </div>
+            <div className="lg-row" style={{ alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
+                <strong>{`${ICONO_BOTON[elegido]} ${NOMBRE_BOTON[elegido]}`}</strong>
+                <input
+                    type="range"
+                    min={0.6}
+                    max={1.8}
+                    step={0.05}
+                    value={c.tamanos[elegido]}
+                    onChange={(e) => setC((x) => ({ ...x, tamanos: { ...x.tamanos, [elegido]: Number(e.target.value) } }))}
+                    aria-label={`Tamaño de ${NOMBRE_BOTON[elegido]}`}
+                    style={{ flex: "1 1 160px" }}
+                />
+                <span className="lb-muted">{`${Math.round(c.tamanos[elegido] * 100)}%`}</span>
+                <button type="button" className="lb-btn lb-btn-sm lb-btn-ghost" onClick={() => setC((x) => ({ ...x, posiciones: { ...x.posiciones, [elegido]: { ...POSICIONES_POR_DEFECTO[elegido] } } }))}>
+                    Volver a su lugar
+                </button>
+            </div>
+            <div className="lg-row" style={{ alignItems: "center", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                <span>Joystick:</span>
+                {[
+                    ["flotante", "Flotante (sale donde toques y queda fijo ahí)"],
+                    ["fijo", "Fijo (siempre en su lugar)"],
+                ].map(([id, t]) => (
+                    <button key={id} type="button" className={`lb-btn lb-btn-sm ${c.joystick === id ? "lb-btn-primary" : "lb-btn-ghost"}`} onClick={() => setC((x) => ({ ...x, joystick: id }))} aria-pressed={c.joystick === id}>
+                        {t}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/* Controles del mundo para todos: dónde va y qué tamaño tiene cada botón (celular) y teclas (PC). */
 function Controles({ config, alGuardado, alAviso }) {
     const inicial = () => ({
         tamanos: { ...TAMANOS_POR_DEFECTO, ...(config.controles?.tamanos || {}) },
         teclas: { ...TECLAS_POR_DEFECTO, ...(config.controles?.teclas || {}) },
+        posiciones: { ...POSICIONES_POR_DEFECTO, ...(config.controles?.posiciones || {}) },
+        joystick: config.controles?.joystick === "fijo" ? "fijo" : "flotante",
     });
     const [c, setC] = useState(inicial);
     const [escuchando, setEscuchando] = useState(null);
@@ -83,7 +185,7 @@ function Controles({ config, alGuardado, alAviso }) {
             <div className="lg-row" style={{ justifyContent: "space-between", alignItems: "center" }}>
                 <h3 className="lg-card-title" style={{ margin: 0 }}>🎮 Controles del mundo (para todos)</h3>
                 <div className="lg-row">
-                    <button type="button" className="lb-btn lb-btn-ghost" onClick={() => setC({ tamanos: { ...TAMANOS_POR_DEFECTO }, teclas: { ...TECLAS_POR_DEFECTO } })}>
+                    <button type="button" className="lb-btn lb-btn-ghost" onClick={() => setC({ tamanos: { ...TAMANOS_POR_DEFECTO }, teclas: { ...TECLAS_POR_DEFECTO }, posiciones: structuredClone(POSICIONES_POR_DEFECTO), joystick: "flotante" })}>
                         Volver a los de fábrica
                     </button>
                     <button type="button" className="lb-btn lb-btn-primary" disabled={!cambio || guardando} onClick={guardar}>
@@ -93,36 +195,7 @@ function Controles({ config, alGuardado, alAviso }) {
                 </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 18 }}>
-                <div>
-                    <h4 style={{ margin: "0 0 8px" }}>📱 Tamaño de los botones (celular)</h4>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        {Object.keys(NOMBRE_BOTON).map((b) => (
-                            <label key={b} style={{ display: "grid", gridTemplateColumns: "90px 1fr 48px 40px", alignItems: "center", gap: 10 }}>
-                                <span>{NOMBRE_BOTON[b]}</span>
-                                <input
-                                    type="range"
-                                    min={0.6}
-                                    max={1.8}
-                                    step={0.05}
-                                    value={c.tamanos[b]}
-                                    onChange={(e) => setC((x) => ({ ...x, tamanos: { ...x.tamanos, [b]: Number(e.target.value) } }))}
-                                />
-                                <span className="lb-muted">{`${Math.round(c.tamanos[b] * 100)}%`}</span>
-                                <span
-                                    aria-hidden="true"
-                                    style={{
-                                        width: 32 * Math.min(1.25, c.tamanos[b]),
-                                        height: 32 * Math.min(1.25, c.tamanos[b]),
-                                        borderRadius: "50%",
-                                        background: b === "saltar" ? "#f2a900" : "rgba(255,255,255,.25)",
-                                        border: "1px solid rgba(255,255,255,.4)",
-                                        justifySelf: "center",
-                                    }}
-                                />
-                            </label>
-                        ))}
-                    </div>
-                </div>
+                <Acomodar c={c} setC={setC} />
                 <div>
                     <h4 style={{ margin: "0 0 8px" }}>⌨️ Teclas (computador)</h4>
                     <p className="lb-muted" style={{ margin: "0 0 8px", fontSize: 13 }}>

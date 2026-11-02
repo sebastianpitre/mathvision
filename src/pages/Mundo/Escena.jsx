@@ -9,6 +9,8 @@ import { clone as clonarEsqueleto } from "three/examples/jsm/utils/SkeletonUtils
 import ProtegerError from "../../components/common/ProtegerError";
 import juegosLista from "../../data/mock/games.json";
 import { alturaBaranda, materialDe, materialPared, palitosDe, partesDe } from "./piezas.js";
+import { Cancha } from "./cancha.jsx";
+import { TablaRanking } from "./Ranking.jsx";
 
 /* =========================================================
    MUNDO 3D · EL ESCENARIO
@@ -215,7 +217,7 @@ function Baranda({ o, m }) {
 }
 
 /* "Mis objetos": un modelo .glb que sube el admin, estirado al tamaño elegido. */
-function ModeloGlb({ ruta, ancho, alto, largo }) {
+export function ModeloGlb({ ruta, ancho, alto, largo }) {
     const gltf = useLoader(GLTFLoader, ruta);
     const { objeto, escala, centro } = useMemo(() => {
         const copia = clonarEsqueleto(gltf.scene);
@@ -482,7 +484,7 @@ function Circulo({ o, estado, desfase, etiquetas = true }) {
 
 /* Contorno del objeto elegido (vista previa del editor). */
 function Marca({ o }) {
-    const alto = o.tipo === "circulo" ? 0.3 : o.alto;
+    const alto = o.tipo === "circulo" || o.tipo === "cancha" ? 0.3 : o.alto;
     const d = ["columna", "arbol", "circulo"].includes(o.tipo) ? o.ancho : Math.max(o.largo, 0.1);
     return (
         <mesh position={[o.x, (o.y || 0) + alto / 2, o.z]} rotation={[0, (o.rot || 0) * RAD, 0]}>
@@ -496,11 +498,14 @@ export function nombreDe(o) {
     return o?.nombre || o?.id || "";
 }
 
-export function Objetos({ objetos, materiales = [], modelos = [], circulos = {}, desfase = 0, seleccionado = null, etiquetas = true }) {
+export function Objetos({ objetos, materiales = [], modelos = [], circulos = {}, desfase = 0, seleccionado = null, etiquetas = true, canchas = {}, yoId = null }) {
     const porId = new Map(objetos.map((o) => [o.id, o]));
+    const ahora = Date.now() + desfase;
     return (
         <>
             {objetos.map((o) => {
+                if (o.tipo === "cancha") return <Cancha key={o.id} o={o} estado={canchas[o.id]} ahora={ahora} yoId={yoId} etiquetas={etiquetas} />;
+                if (o.tipo === "ranking") return <TablaRanking key={o.id} o={o} etiquetas={etiquetas} />;
                 if (o.tipo !== "circulo") return <Objeto key={o.id} o={o} materiales={materiales} modelos={modelos} />;
                 if (o.funcion === "teletransporte") return <Portal key={o.id} o={o} etiquetas={etiquetas} destino={o.destino ? nombreDe(porId.get(o.destino)) : null} />;
                 return <Circulo key={o.id} o={o} estado={circulos[o.id]} desfase={desfase} etiquetas={etiquetas} />;

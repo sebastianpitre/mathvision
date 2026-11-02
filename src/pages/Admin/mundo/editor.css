@@ -1238,3 +1238,17 @@
     font: 11px ui-monospace, Menlo, Consolas, monospace;
     pointer-events: none;
 }
+
+/* Cancha: agarraderas de los aros y las bolas de entrada */
+.ed-manijas .ed-manija-cancha {
+    stroke: #fff;
+    cursor: move;
+}
+
+.ed-manijas .ed-manija-azul {
+    fill: #3b82f6;
+}
+
+.ed-manijas .ed-manija-rojo {
+    fill: #ef4444;
+}

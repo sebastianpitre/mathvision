@@ -177,16 +177,27 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
   para cambiarla (queda fija ✨), "Sortear el resto otra vez" vuelve a sortear las que no
   son fijas, y "Regalar Élite a" se lo da a un jugador (usuario o ID). Se ve cuántos
   jugadores tiene y cuántos son Élite. Si hay varios activos, sale el que empezó de último.
-- **Mundo 3D:** vistazo en 3D del colegio, los **controles** para todos (tamaño de cada
-  botón en el celular y la tecla de cada acción en el PC, con "volver a los de fábrica"),
+- **Mundo 3D:** vistazo en 3D del colegio, los **controles** para todos (en un celular en
+  pequeño se **arrastra cada botón a su lugar** y al tocarlo se cambia su **tamaño**; el
+  **joystick** puede ser **flotante** —sale donde toques en la mitad izquierda y queda fijo
+  ahí mientras no sueltes— o **fijo**; y la tecla de cada acción en el PC, con "volver a
+  los de fábrica"),
   los **personajes** que se pueden usar al caminar (solo **.glb**; cada jugador solo ve
   los que **tiene**: comprados, ganados, gratis o el inicial) y el botón **Abrir el editor
   del Mundo 3D**.
   - **Editor** (pantalla completa, `/editor-mundo`), como un programa de diseño:
     - A la izquierda las piezas: pared, **salón** (4 paredes que se mueven juntas; se cambia
       largo, ancho, alto y grosor), caja, plataforma, **rampa**, **escalera**, **escalera
-      flotante** (solo peldaños), columna, árbol, cuadro/mural, **círculo de juego** y
-      **teletransporte**. Se elige y se toca el mapa (con Shift se ponen varias).
+      flotante** (solo peldaños), columna, árbol, cuadro/mural, **círculo de juego**,
+      **teletransporte**, **cancha (partido)** y **tabla de ranking**. Se elige y se toca el
+      mapa (con Shift se ponen varias).
+    - **Cancha (partido azul vs rojo, tipo básquet):** se elige su tamaño, el **balón** (el
+      normal o uno de "mis objetos") y su tamaño, los minutos del partido y cuántos caben
+      por equipo. En el mapa se **arrastran los dos aros** (cestas en el aire; en el panel
+      también su altura y radio) y las **dos bolas para entrar**. Junto a las bolas sale un
+      letrero con las instrucciones.
+    - **Tabla de ranking:** pantalla con los mejores de la temporada (3 a 10) y, al frente,
+      el primero con su skin en un círculo de luz y una corona 👑 flotando.
     - Al elegir un objeto sale encima su barra (**fijar, girar 90°, duplicar, eliminar, ⚙**)
       y sus opciones en el **panel derecho** (pestaña con su ID): posición X/Z/altura,
       tamaño, girar, **inclinar** (hasta 50° se camina por encima y por debajo se pasa si
@@ -294,8 +305,10 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
   flotante): un lobby para caminar con todos. En una **sala**, el planeta flota junto a
   "Invitar": el creador lo toca y **toda la sala va junta al mundo**; al salir del mundo
   vuelven a la misma sala.
-  Celular: joystick a la izquierda y botones **Brincar**, **Correr**, **Agarrar/Lanzar**,
-  **Hablar** (mantener) y **Escribir**; arrastrar la pantalla gira la cámara. PC (teclas por
+  Celular: joystick a la izquierda (flotante: tocas donde quieras de la mitad izquierda) y
+  botones **Brincar**, **Correr**, **Agarrar/Lanzar**, **Hablar** (mantener) y **Escribir**,
+  cada uno donde lo puso el admin; arrastrar la pantalla gira la cámara. **Usar** solo
+  aparece (arriba al centro) cuando hay algo para usar, sin mover los demás botones. PC (teclas por
   defecto; el admin las cambia): W A S D, Shift corre, R corre solo, Espacio brinca, E
   agarra/lanza, mantener V habla, Enter escribe, **Z mira con el mouse sin hacer clic**
   (Z otra vez lo quita), Esc sale.
@@ -303,6 +316,17 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
     girando la cámara); se quita al tocar el joystick.
   - **Agarrar** alza al jugador que está al lado (máximo 6 s) y **Lanzar** lo tira hacia
     donde uno mira. Al que cae no lo pueden volver a agarrar por unos segundos.
+  - **Apuntar:** mantén **Lanzar** y desliza hacia arriba (más lejos) o abajo (más cerca);
+    se ve el camino del tiro, dónde cae y a cuántos metros (verde = "¡Encesta!"). Al soltar
+    lanza. En PC: mantén E (la fuerza sube y baja sola) y suelta.
+  - **Cancha (partido azul vs rojo):** párate **3 s** junto a una bola (azul o roja) y
+    entras a ese equipo (si el otro tiene muchos menos, te pasan a ese para emparejar);
+    te pintas del color del equipo. **Agarrar** toma el balón; si alguien cerca lo tiene,
+    **se lo quitas**; si nadie lo tiene, **alzas** al de al lado. Encesta en el **aro del
+    otro color**. Arriba salen el **marcador**, el tiempo y los **3 con más cestas**; no se
+    sale de la cancha caminando: se usa el botón **Salir** de arriba. Al acabar el tiempo
+    se anuncia el ganador y empieza otro partido con los que sigan.
+  - **Tabla de ranking:** los mejores de la temporada y el primero con su skin y su 👑.
   - **Círculos de juego:** tienen un letrero con la imagen del juego. Cuando alguien se
     para adentro empieza la cuenta; al llegar a cero se arma una sala con los que estén
     adentro (los primeros que entraron, hasta el máximo del juego). Si falta gente y el
