@@ -207,7 +207,7 @@ function limpiarObjeto(o = {}, i, limite = LIMITE) {
 }
 
 /* Sonidos de la cancha: acción → sonido de fábrica. El admin los cambia por cancha. */
-export const ACCIONES_CANCHA = ["anota", "palo", "tomar", "robar", "pase", "rebote", "falta", "entrar", "inicio", "fin"];
+export const ACCIONES_CANCHA = ["anota", "palo", "tablero", "arquero", "tomar", "robar", "pase", "rebote", "falta", "entrar", "inicio", "fin"];
 const esSonido = (r) => typeof r === "string" && /^\/(archivos\/sonidos|sounds)\/[\w\-./]+\.(mp3|ogg|wav|m4a)$/i.test(r) && !r.includes("..");
 
 function limpiarSonidos(v = {}) {
@@ -229,8 +229,8 @@ export function partesCancha(ancho, largo, deporte = "basquet") {
                   { x: 0, z: largo / 2 - 0.6, y: 2.2, radio: 2.5 },
               ]
             : [
-                  { x: 0, z: -(largo / 2 - 2.5), y: 3.2, radio: 0.8 },
-                  { x: 0, z: largo / 2 - 2.5, y: 3.2, radio: 0.8 },
+                  { x: 0, z: -(largo / 2 - 2.5), y: 3.2, radio: 0.8, tablero: {} },
+                  { x: 0, z: largo / 2 - 2.5, y: 3.2, radio: 0.8, tablero: {} },
               ];
     return {
         cestas,
@@ -246,20 +246,35 @@ function limpiarCancha(o, ancho, largo) {
     const d = partesCancha(ancho, largo, deporte);
     const cestas = [0, 1].map((i) => {
         const k = (Array.isArray(o.cestas) && o.cestas[i]) || d.cestas[i];
+        const t = k.tablero && typeof k.tablero === "object" ? k.tablero : {};
         return {
             x: num(k.x, -ancho / 2, ancho / 2, d.cestas[i].x),
             z: num(k.z, -largo / 2, largo / 2, d.cestas[i].z),
             y: num(k.y, 1, 12, d.cestas[i].y),
             radio: num(k.radio, 0.3, 6, d.cestas[i].radio),
+            // Tablero (básquet): flotante detrás del aro. dy = cuánto más arriba que el aro va su centro.
+            tablero: {
+                activo: t.activo !== false,
+                ancho: num(t.ancho, 0.4, 8, 1.8),
+                alto: num(t.alto, 0.3, 5, 1.1),
+                dy: num(t.dy, -3, 5, 0.45),
+                atras: num(t.atras, 0, 3, 0.15),
+            },
         };
     });
     const entradas = [0, 1].map((i) => {
         const k = (Array.isArray(o.entradas) && o.entradas[i]) || d.entradas[i];
         return { x: num(k.x, -ancho / 2 - 20, ancho / 2 + 20, d.entradas[i].x), z: num(k.z, -largo / 2 - 20, largo / 2 + 20, d.entradas[i].z) };
     });
+    const a = o.arqueros && typeof o.arqueros === "object" ? o.arqueros : {};
+    const b = o.bots && typeof o.bots === "object" ? o.bots : {};
     return {
         deporte,
         sonidos: limpiarSonidos(o.sonidos),
+        // Fútbol: dos arqueros que van de palo a palo.
+        arqueros: { activo: a.activo !== false, velocidad: num(a.velocidad, 0.2, 3, 1), ancho: num(a.ancho, 0.4, 4, 1.2), alto: num(a.alto, 0.5, 4, 1.8) },
+        // Bots que completan los equipos mientras haya alguien jugando.
+        bots: { activo: b.activo !== false, porEquipo: Math.round(num(b.porEquipo, 1, 5, 3)) },
         balon: o.balon ? textoCorto(o.balon, 24) : "",
         tamBalon: num(o.tamBalon, 0.2, 2, 0.6),
         minutos: Math.round(num(o.minutos, 1, 30, 5)),

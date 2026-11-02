@@ -312,9 +312,12 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
   defecto; el admin las cambia): W A S D, Shift corre, R corre solo, Espacio brinca, E
   agarra/lanza, mantener V habla, Enter escribe, **Z mira con el mouse sin hacer clic**
   (Z otra vez lo quita), Esc sale.
-  - **Correr** se prende y se apaga cuando quieras, también mientras caminas (no hay que
-    soltar el joystick: los botones responden con otro dedo). Prendido corre hacia donde
-    muevas el joystick, y si no lo tocas corre solo hacia donde mira la cámara.
+  - **Correr** responde al instante aunque tengas otro dedo en el joystick. Prendido corre
+    solo hacia donde mira la cámara (o hacia donde muevas el joystick si ya lo tenías
+    tocado) y **se quita al volver a caminar** (tocar el joystick o una tecla de mover).
+  - **Tocar un botón y deslizar el mismo dedo gira la cámara** (brincar y mirar a la vez,
+    como en los juegos de celular). En PC, **manteniendo E** el mouse gira la mira (a los
+    lados) y sube/baja la fuerza, sin hacer clic.
   - **Ajustes** (⚙ arriba): **sensibilidad de la cámara** (también la de apuntar), guardada
     en el dispositivo para la próxima vez.
   - Al salir de la app (otra app, bloquear el teléfono, cerrar el navegador) el juego deja
@@ -329,8 +332,8 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
     entras a ese equipo (si el otro tiene muchos menos, te pasan a ese para emparejar);
     te pintas del color del equipo. **Agarrar** toma el balón; si alguien cerca lo tiene,
     **se lo quitas**; si nadie lo tiene, **alzas** al de al lado. Encesta en el **aro del
-    otro color**. Arriba salen el **marcador**, el tiempo y los **3 con más cestas**; no se
-    sale de la cancha caminando: se usa el botón **Salir** de arriba. Al acabar el tiempo
+    otro color**. Arriba a la derecha, chiquitos, el **resultado**, el tiempo y **Salir** (no
+    se sale caminando); los **goleadores de cada equipo** van en el cartel de la cancha. Al acabar el tiempo
     se anuncia el ganador y empieza otro partido con los que sigan.
     - **Fútbol:** las cestas son **porterías** (marco del color del equipo, sin fondo, con
       un difuminado); el balón va a los pies y se **patea** (más rápido y bajito). Los
@@ -338,9 +341,20 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
     - El balón **no atraviesa a los jugadores**: si lo lanzó un compañero, lo recibe
       (**pase**); si no, **rebota** (así se puede tapar un gol). Si alguien lo pisa quieto,
       lo empuja.
+    - **Básquet:** cada aro puede tener su **tablero** flotante detrás (se sube/baja, se
+      cambia ancho, alto y distancia; también el tamaño y la altura del aro). Suena
+      distinto ("tablero").
+    - **Fútbol:** un **arquero** en cada portería que va de un palo al otro (velocidad y
+      tamaño en el editor; suena "arquero"). Los **palos** tienen un margen hacia afuera:
+      el tiro que pasa rozando también suena a palo.
+    - **Bots 🤖:** completan los equipos (por defecto 3 contra 3) mientras haya al menos una
+      persona, así se puede jugar solo. Toman el balón, se lo quitan al rival, defienden
+      entre el balón y su arco y tiran calculando la fuerza. Cada persona que entra
+      reemplaza a un bot de su equipo. Se prende/apaga y se elige cuántos por equipo en el
+      editor de la cancha.
     - **Falta:** alzar a un rival y lanzarlo. Suena el silbato y el que la recibió aparece
       **donde lo alzaron, con el balón** (tiro libre, no se lo pueden quitar por 2,5 s).
-    - **Sonidos** (editor de la cancha): gol/cesta, palo, tomar, quitar, pase, rebote,
+    - **Sonidos** (editor de la cancha): gol/cesta, palo, tablero, arquero, tomar, quitar, pase, rebote,
       falta, entrar, inicio y fin. Cada uno: de fábrica, ninguno o uno de la **biblioteca**
       (Panel → Sonidos; se suben una vez y se reutilizan), con su volumen. De lejos suenan
       más bajito.

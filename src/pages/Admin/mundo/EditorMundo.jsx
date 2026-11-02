@@ -392,6 +392,10 @@ function OpcionesCancha({ o, modelos, alCambiar }) {
     const equipo = ["Azul", "Rojo"];
     const futbol = o.deporte === "futbol";
     const cesta = (i, k) => (v) => alCambiar({ cestas: o.cestas.map((q, j) => (j === i ? { ...q, [k]: v } : q)) });
+    const TABLERO = { activo: true, ancho: 1.8, alto: 1.1, dy: 0.45, atras: 0.15 };
+    const tablero = (i, k) => (v) => alCambiar({ cestas: o.cestas.map((q, j) => (j === i ? { ...q, tablero: { ...TABLERO, ...(q.tablero || {}), [k]: v } } : q)) });
+    const arqueros = { activo: true, velocidad: 1, ancho: 1.2, alto: 1.8, ...(o.arqueros || {}) };
+    const bots = { activo: true, porEquipo: 3, ...(o.bots || {}) };
     const entrada = (i, k) => (v) => alCambiar({ entradas: o.entradas.map((q, j) => (j === i ? { ...q, [k]: v } : q)) });
     return (
         <>
@@ -440,11 +444,54 @@ function OpcionesCancha({ o, modelos, alCambiar }) {
                         {futbol ? (
                             <Numero etiqueta="Ancho" valor={k.radio * 2} min={0.6} max={12} paso={0.25} alCambiar={(v) => cesta(i, "radio")(v / 2)} />
                         ) : (
-                            <Numero etiqueta="Radio" valor={k.radio} min={0.3} max={3} paso={0.05} alCambiar={cesta(i, "radio")} />
+                            <Numero etiqueta="Tamaño aro (radio)" valor={k.radio} min={0.3} max={3} paso={0.05} alCambiar={cesta(i, "radio")} />
                         )}
                     </div>
+                    {!futbol && (
+                        <>
+                            <label className="ed-check">
+                                <input type="checkbox" checked={k.tablero?.activo !== false} onChange={(e) => tablero(i, "activo")(e.target.checked)} />
+                                Tablero detrás del aro (suena distinto)
+                            </label>
+                            {k.tablero?.activo !== false && (
+                                <div className="ed-fila">
+                                    <Numero etiqueta="Tablero: subir/bajar" valor={k.tablero?.dy ?? 0.45} min={-3} max={5} paso={0.05} alCambiar={tablero(i, "dy")} />
+                                    <Numero etiqueta="Tablero: ancho" valor={k.tablero?.ancho ?? 1.8} min={0.4} max={8} paso={0.1} alCambiar={tablero(i, "ancho")} />
+                                    <Numero etiqueta="Tablero: alto" valor={k.tablero?.alto ?? 1.1} min={0.3} max={5} paso={0.1} alCambiar={tablero(i, "alto")} />
+                                    <Numero etiqueta="Detrás del aro" valor={k.tablero?.atras ?? 0.15} min={0} max={3} paso={0.05} alCambiar={tablero(i, "atras")} />
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
             ))}
+            {futbol && (
+                <>
+                    <h4>Arqueros</h4>
+                    <label className="ed-check">
+                        <input type="checkbox" checked={arqueros.activo} onChange={(e) => alCambiar({ arqueros: { ...arqueros, activo: e.target.checked } })} />
+                        Un arquero en cada portería (va de un palo al otro)
+                    </label>
+                    {arqueros.activo && (
+                        <div className="ed-fila">
+                            <Numero etiqueta="Velocidad" valor={arqueros.velocidad} min={0.2} max={3} paso={0.1} sufijo="×" alCambiar={(v) => alCambiar({ arqueros: { ...arqueros, velocidad: v } })} />
+                            <Numero etiqueta="Ancho" valor={arqueros.ancho} min={0.4} max={4} paso={0.1} alCambiar={(v) => alCambiar({ arqueros: { ...arqueros, ancho: v } })} />
+                            <Numero etiqueta="Alto" valor={arqueros.alto} min={0.5} max={4} paso={0.1} alCambiar={(v) => alCambiar({ arqueros: { ...arqueros, alto: v } })} />
+                        </div>
+                    )}
+                </>
+            )}
+            <h4>Bots</h4>
+            <label className="ed-check">
+                <input type="checkbox" checked={bots.activo} onChange={(e) => alCambiar({ bots: { ...bots, activo: e.target.checked } })} />
+                Completar los equipos con bots 🤖 (se juega aunque estés solo)
+            </label>
+            {bots.activo && (
+                <div className="ed-fila">
+                    <Numero etiqueta="Jugadores por equipo" valor={bots.porEquipo} min={1} max={5} paso={1} sufijo="" alCambiar={(v) => alCambiar({ bots: { ...bots, porEquipo: Math.round(v) } })} />
+                </div>
+            )}
+            <p className="ed-ayuda">Mientras haya alguien jugando, los bots completan cada equipo hasta ese número. Cada persona que entra reemplaza a un bot de su equipo.</p>
             <h4>Bolas para entrar</h4>
             {o.entradas.map((k, i) => (
                 <div className="ed-fila" key={`e${i}`}>
@@ -1120,7 +1167,19 @@ function Figura({ o, materiales, modelos, elegido, escala, porId }) {
                     o.deporte === "futbol" ? (
                         <line key={`c${i}`} x1={k.x - k.radio} y1={k.z} x2={k.x + k.radio} y2={k.z} stroke={colores[i]} strokeWidth={Math.max(0.25, 4 / escala)} strokeLinecap="square" pointerEvents="none" />
                     ) : (
-                        <circle key={`c${i}`} cx={k.x} cy={k.z} r={k.radio} fill="none" stroke={colores[i]} strokeWidth={3 / escala} pointerEvents="none" />
+                        <g key={`c${i}`} pointerEvents="none">
+                            <circle cx={k.x} cy={k.z} r={k.radio} fill="none" stroke={colores[i]} strokeWidth={3 / escala} />
+                            {k.tablero?.activo !== false && (
+                                <line
+                                    x1={k.x - (k.tablero?.ancho ?? 1.8) / 2}
+                                    x2={k.x + (k.tablero?.ancho ?? 1.8) / 2}
+                                    y1={k.z + (Math.sign(k.z) || (i ? 1 : -1)) * (k.radio + (k.tablero?.atras ?? 0.15))}
+                                    y2={k.z + (Math.sign(k.z) || (i ? 1 : -1)) * (k.radio + (k.tablero?.atras ?? 0.15))}
+                                    stroke="#f8fafc"
+                                    strokeWidth={Math.max(0.12, 3 / escala)}
+                                />
+                            )}
+                        </g>
                     )
                 )}
                 {(o.entradas || []).map((k, i) => (

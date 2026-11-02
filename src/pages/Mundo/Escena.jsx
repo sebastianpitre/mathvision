@@ -526,7 +526,7 @@ export function Objetos({ objetos, materiales = [], modelos = [], circulos = {},
     return (
         <>
             {objetos.map((o) => {
-                if (o.tipo === "cancha") return <Cancha key={o.id} o={o} estado={canchas[o.id]} ahora={ahora} yoId={yoId} etiquetas={etiquetas} />;
+                if (o.tipo === "cancha") return <Cancha key={o.id} o={o} estado={canchas[o.id]} ahora={ahora} yoId={yoId} etiquetas={etiquetas} desfase={desfase} />;
                 if (o.tipo === "ranking") return <TablaRanking key={o.id} o={o} etiquetas={etiquetas} />;
                 if (o.tipo !== "circulo") return <Objeto key={o.id} o={o} materiales={materiales} modelos={modelos} />;
                 if (o.funcion === "teletransporte") return <Portal key={o.id} o={o} etiquetas={etiquetas} destino={o.destino ? nombreDe(porId.get(o.destino)) : null} />;

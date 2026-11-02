@@ -25,7 +25,14 @@
    lo alzaron: el que la recibió aparece ahí con el balón.
    Cada acción manda "cancha:sonido" y el navegador suena el
    sonido que el admin eligió para esa cancha.
+   Básquet: cada aro puede tener su tablero (flotante, detrás
+   del aro; se sube/baja y se mide en el editor; suena "tablero").
+   Fútbol: arqueros que van de un palo al otro (suena "arquero").
+   Bots (bots.js): completan los equipos mientras haya alguien
+   jugando; cuando entra una persona, sale un bot.
 ========================================================= */
+
+import { nombreBot, pensarBots } from "./bots.js";
 
 export const G_BALON = 14; // gravedad del balón (m/s²)
 const PASO_MS = 50;
@@ -43,7 +50,27 @@ const PAUSA_FALTA_MS = 1200; // la falta se cobra cuando el lanzado ya cayó
 const PROTEGIDO_FALTA_MS = 2500;
 const RADIO_JUGADOR = 0.4;
 const ALTO_JUGADOR = 1.85;
-const GRUESO_PALO = 0.1;
+const GRUESO_PALO = 0.22; // un poco más grueso hacia afuera: el balón que roza el palo, suena
+
+/*
+ * Arquero i (fútbol): va y viene de un palo al otro, un poco
+ * adelante de la línea. t = hora (ms). El navegador usa lo mismo.
+ */
+export function arqueroEn(c, i, t) {
+    const k = c.cestas[i];
+    const a = c.arqueros;
+    const rango = Math.max(0, k.radio - a.ancho / 2);
+    const lado = Math.sign(k.z) || (i === 0 ? -1 : 1);
+    return { lx: k.x + Math.sin((t / 1000) * a.velocidad * 1.3 + i * Math.PI) * rango, lz: k.z - lado * 0.5 };
+}
+
+/* Tablero del aro i (básquet): centro en coordenadas de la cancha. */
+export function tableroDe(c, i) {
+    const k = c.cestas[i];
+    const t = k.tablero;
+    const lado = Math.sign(k.z) || (i === 0 ? -1 : 1);
+    return { lx: k.x, lz: k.z + lado * (k.radio + t.atras), y: k.y + t.dy, ancho: t.ancho, alto: t.alto };
+}
 
 /*
  * Fuerza (0…1) → velocidades de salida y desde qué altura sale.
@@ -118,6 +145,7 @@ export function crearCanchas({ io, jugadores, sala }) {
                 fin: null,
                 pausa: 0,
                 cambio: true,
+                bots: new Map(), // id → { id, nombre, equipo, x, y, z, r, andando }
                 forma: JSON.stringify([c.x, c.z, c.y, c.rot, c.ancho, c.largo, c.tamBalon]),
             };
             estados.set(c.id, e);
@@ -125,16 +153,36 @@ export function crearCanchas({ io, jugadores, sala }) {
         return e;
     }
 
+    /* Personas y bots del partido, con su equipo. */
+    const ent = (e, id) => jugadores.get(id) || e.bots.get(id) || null;
+    const equipoDe = (e, id) => e.equipos.get(id) || e.bots.get(id)?.equipo || null;
+    function participantes(e) {
+        const lista = [];
+        for (const [uid, equipo] of e.equipos) {
+            const j = jugadores.get(uid);
+            if (j) lista.push({ ...j, id: uid, equipo, real: j });
+        }
+        for (const b of e.bots.values()) lista.push(Object.assign(b, { real: b }));
+        return lista;
+    }
+
     function publico(c, e) {
-        const nombre = (id) => jugadores.get(id)?.nombre || "Jugador";
+        const nombre = (id) => ent(e, id)?.nombre || "Jugador";
         const top = [...e.cestas.entries()]
             .filter(([, n]) => n > 0)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 3)
-            .map(([id, n]) => ({ userId: id, nombre: nombre(id), cestas: n, equipo: e.equipos.get(id) || null }));
+            .map(([id, n]) => ({ userId: id, nombre: nombre(id), cestas: n, equipo: equipoDe(e, id) }));
+        // Goleadores de cada equipo (para el cartel de la cancha).
+        const goles = [...e.cestas.entries()]
+            .filter(([, n]) => n > 0)
+            .sort((a, b) => b[1] - a[1])
+            .map(([id, n]) => ({ nombre: nombre(id), cestas: n, equipo: equipoDe(e, id) }));
         return {
             id: c.id,
             equipos: Object.fromEntries(e.equipos),
+            bots: [...e.bots.values()].map((b) => ({ id: b.id, nombre: b.nombre, equipo: b.equipo })),
+            goles,
             puntos: e.puntos,
             top,
             termina: e.termina,
@@ -182,12 +230,123 @@ export function crearCanchas({ io, jugadores, sala }) {
             sonar(c, "inicio");
         }
         sonar(c, "entrar", j);
+        ajustarBots(c, e);
         const destino = { ...lugarEnSuMitad(c, equipo), y: c.y || 0 };
         Object.assign(j, destino);
         const s = socketDe(j);
         s?.emit("mundo:teletransporte", destino);
         if (equipo !== pedido) s?.emit("mundo:error", { mensaje: `Te pasamos al equipo ${equipo} para emparejar.`, leve: true });
         e.cambio = true;
+    }
+
+    /* Bots: cada equipo se completa hasta "porEquipo" mientras haya al menos una persona. */
+    function ajustarBots(c, e) {
+        const quiere = c.bots?.activo && e.equipos.size ? c.bots.porEquipo : 0;
+        let cambio = false;
+        for (const equipo of EQUIPOS) {
+            const personas = cuantos(e, equipo);
+            const actuales = [...e.bots.values()].filter((b) => b.equipo === equipo);
+            const falta = Math.max(0, quiere - personas);
+            // Sobran: sale el último (si tenía el balón, lo suelta).
+            while (actuales.length > falta) {
+                const b = actuales.pop();
+                if (e.balon.por === b.id) Object.assign(e.balon, { por: null, vx: 0, vy: 0, vz: 0, quieto: false });
+                e.bots.delete(b.id);
+                e.cestas.delete(b.id);
+                cambio = true;
+            }
+            // Faltan: entra uno en su mitad.
+            while (actuales.length < falta) {
+                e.nBots = (e.nBots || 0) + 1;
+                const id = `bot:${c.id}:${e.nBots}`;
+                const lugar = lugarEnSuMitad(c, equipo);
+                const b = { id, userId: id, nombre: nombreBot(e.nBots + (equipo === "rojo" ? 5 : 0)), equipo, x: lugar.x, y: c.y || 0, z: lugar.z, r: equipo === "azul" ? 0 : Math.PI, andando: 0, esBot: true };
+                e.bots.set(id, b);
+                e.cestas.set(id, 0);
+                actuales.push(b);
+                cambio = true;
+            }
+        }
+        if (cambio) e.cambio = true;
+    }
+
+    /* Lo que necesitan los bots para "pensar" (bots.js). */
+    function apiBots(c, e) {
+        const base = c.y || 0;
+        const radio = c.tamBalon / 2;
+        const metaDe = (equipo) => {
+            const i = equipo === "azul" ? 1 : 0;
+            const k = c.cestas[i];
+            const w = aMundo(c, k.x, k.z);
+            const lado = Math.sign(k.z) || (i === 0 ? -1 : 1);
+            const futbol = c.deporte === "futbol";
+            return {
+                x: w.x,
+                z: w.z,
+                // Un punto a "d" metros de la meta, hacia el centro de la cancha.
+                frente: (d) => aMundo(c, k.x, k.z - lado * d),
+                entra: (p, antes, vy) => {
+                    if (futbol) {
+                        const a = aLocal(c, antes.x, antes.z);
+                        const l = aLocal(c, p.x, p.z);
+                        if ((a.lz - k.z) * lado < 0 && (l.lz - k.z) * lado >= 0 && Math.abs(l.lx - k.x) < k.radio * 0.6 && p.y - base < k.y * 0.8) return { puntaje: 1 };
+                        return null;
+                    }
+                    const cy = base + k.y;
+                    if (antes.y > cy && p.y <= cy && Math.hypot(p.x - w.x, p.z - w.z) < k.radio * 0.5 && vy < -2) return { puntaje: -vy };
+                    return null;
+                },
+            };
+        };
+        return {
+            participantes: () => participantes(e),
+            ent: (id) => ent(e, id),
+            equipoDe: (id) => equipoDe(e, id),
+            metaDe,
+            dentro: (x, z) => dentroDeCancha(c, x, z),
+            entre: (a, b, t, desvio = 0) => {
+                const dx = b.x - a.x;
+                const dz = b.z - a.z;
+                const d = Math.hypot(dx, dz) || 1;
+                return dentroDeCancha(c, a.x + dx * t + (-dz / d) * desvio, a.z + dz * t + (dx / d) * desvio);
+            },
+            tomar: (bot) => {
+                const b = e.balon;
+                // Un tiro recién lanzado no se agarra en el aire (si no, el mismo bot lo volvía a tomar).
+                if (b.por || e.pausa || e.fin || Date.now() - (b.soltado || 0) < 900 || Math.hypot(b.x - bot.x, b.z - bot.z) > ALCANCE_BALON) return;
+                Object.assign(b, { por: bot.id, ultimo: bot.id, protegido: Date.now() + PROTEGIDO_MS });
+                io.to(sala).emit("cancha:toma", { id: c.id, por: bot.id });
+                sonar(c, "tomar", bot);
+            },
+            robar: (bot) => {
+                const b = e.balon;
+                const otro = b.por ? ent(e, b.por) : null;
+                if (!otro || Date.now() < b.protegido || Math.hypot(otro.x - bot.x, otro.z - bot.z) > ALCANCE_ROBO) return;
+                const robado = b.por;
+                Object.assign(b, { por: bot.id, ultimo: bot.id, protegido: Date.now() + PROTEGIDO_MS });
+                io.to(sala).emit("cancha:toma", { id: c.id, por: bot.id, a: robado });
+                sonar(c, "robar", bot);
+            },
+            lanzar: (bot, f, dir) => soltarTiro(c, e, bot, f, dir),
+            radio,
+        };
+    }
+
+    /* Suelta el balón con la fuerza y dirección del tiro (persona o bot). */
+    function soltarTiro(c, e, j, fuerza, dir) {
+        const t = tiroBalon(fuerza, c.deporte);
+        Object.assign(e.balon, {
+            por: null,
+            ultimo: j.userId,
+            soltado: Date.now(),
+            x: j.x + Math.sin(dir) * t.adelante,
+            y: t.alto == null ? j.y + c.tamBalon / 2 + 0.05 : j.y + t.alto,
+            z: j.z + Math.cos(dir) * t.adelante,
+            vx: Math.sin(dir) * t.vh,
+            vy: t.vy,
+            vz: Math.cos(dir) * t.vh,
+            quieto: false,
+        });
     }
 
     /* Sale de la cancha (botón Salir, se desconectó o se quitó la cancha). */
@@ -201,6 +360,7 @@ export function crearCanchas({ io, jugadores, sala }) {
             e.equipos.delete(userId);
             if (e.balon.por === userId) soltarBalon(e, { userId });
             e.cambio = true;
+            ajustarBots(c, e);
             if (!e.equipos.size) reiniciar(c, e);
             if (j && mover) {
                 // Afuera, al lado de las bolas de entrada.
@@ -219,7 +379,7 @@ export function crearCanchas({ io, jugadores, sala }) {
 
     function reiniciar(c, e) {
         e.puntos = { azul: 0, rojo: 0 };
-        e.cestas = new Map([...e.equipos.keys()].map((id) => [id, 0]));
+        e.cestas = new Map([...e.equipos.keys(), ...e.bots.keys()].map((id) => [id, 0]));
         e.balon = nuevoBalon(c);
         e.termina = e.equipos.size ? Date.now() + c.minutos * 60_000 : null;
         e.fin = null;
@@ -272,6 +432,7 @@ export function crearCanchas({ io, jugadores, sala }) {
             }
             // Alguien del equipo ya no está en el mundo.
             for (const id of e.equipos.keys()) if (!jugadores.has(id)) salir(id, { mover: false });
+            ajustarBots(c, e);
             if (e.cambio) {
                 e.cambio = false;
                 emitirEstado(c, e);
@@ -282,10 +443,11 @@ export function crearCanchas({ io, jugadores, sala }) {
     /* Choques del balón con los jugadores del partido. Devuelve true si alguien lo recibió. */
     function chocarJugadores(c, e, b, radio, ahora) {
         const rapido = Math.hypot(b.vx, b.vz, b.vy) > 1.5;
-        const equipoTiro = b.ultimo ? e.equipos.get(b.ultimo) : null;
-        for (const [uid, equipo] of e.equipos) {
-            const p = jugadores.get(uid);
-            if (!p || p.cargadoPor) continue;
+        const equipoTiro = b.ultimo ? equipoDe(e, b.ultimo) : null;
+        for (const p of participantes(e)) {
+            const uid = p.id;
+            const equipo = p.equipo;
+            if (p.cargadoPor) continue;
             if (uid === b.ultimo && ahora - b.soltado < 400) continue; // recién lanzado: no le pega al que lo tiró
             const dx = b.x - p.x;
             const dz = b.z - p.z;
@@ -337,8 +499,56 @@ export function crearCanchas({ io, jugadores, sala }) {
         return true;
     }
 
+    /* Choque contra una caja alineada con la cancha (tablero, arquero): rebota y suena. */
+    function chocarCaja(c, b, radio, caja, accion) {
+        const L = aLocal(c, b.x, b.z);
+        const base = c.y || 0;
+        const px = caja.ancho / 2 + radio - Math.abs(L.lx - caja.lx);
+        const pz = caja.grueso / 2 + radio - Math.abs(L.lz - caja.lz);
+        const py = caja.alto / 2 + radio - Math.abs(b.y - (base + caja.y));
+        if (px <= 0 || pz <= 0 || py <= 0) return;
+        const a = ((c.rot || 0) * Math.PI) / 180;
+        let vlx = b.vx * Math.cos(a) - b.vz * Math.sin(a);
+        let vlz = b.vx * Math.sin(a) + b.vz * Math.cos(a);
+        let lx = L.lx;
+        let lz = L.lz;
+        const fuerza = Math.hypot(vlx, vlz, b.vy);
+        // Sale por el lado donde menos entró.
+        if (pz <= px && pz <= py) {
+            const s = Math.sign(L.lz - caja.lz) || 1;
+            lz = caja.lz + s * (caja.grueso / 2 + radio);
+            if (vlz * s < 0) vlz = -vlz * 0.6;
+        } else if (px <= py) {
+            const s = Math.sign(L.lx - caja.lx) || 1;
+            lx = caja.lx + s * (caja.ancho / 2 + radio);
+            if (vlx * s < 0) vlx = -vlx * 0.6;
+        } else {
+            const s = Math.sign(b.y - (base + caja.y)) || 1;
+            b.y = base + caja.y + s * (caja.alto / 2 + radio);
+            if (b.vy * s < 0) b.vy = -b.vy * 0.6;
+        }
+        const w = aMundo(c, lx, lz);
+        b.x = w.x;
+        b.z = w.z;
+        b.vx = vlx * Math.cos(a) + vlz * Math.sin(a);
+        b.vz = -vlx * Math.sin(a) + vlz * Math.cos(a);
+        b.quieto = false;
+        if (fuerza > 1) sonar(c, accion, b, 200);
+    }
+
     function chocarMarcos(c, b, radio) {
         const base = c.y || 0;
+        const ahora = Date.now();
+        c.cestas.forEach((k, i) => {
+            if (c.deporte === "futbol" && c.arqueros?.activo) {
+                const q = arqueroEn(c, i, ahora);
+                chocarCaja(c, b, radio, { lx: q.lx, lz: q.lz, ancho: c.arqueros.ancho, grueso: 0.5, alto: c.arqueros.alto, y: c.arqueros.alto / 2 }, "arquero");
+            }
+            if (c.deporte !== "futbol" && k.tablero?.activo) {
+                const t = tableroDe(c, i);
+                chocarCaja(c, b, radio, { lx: t.lx, lz: t.lz, ancho: t.ancho, grueso: 0.12, alto: t.alto, y: t.y }, "tablero");
+            }
+        });
         for (const k of c.cestas) {
             if (c.deporte === "futbol") {
                 const min = radio + GRUESO_PALO;
@@ -389,9 +599,11 @@ export function crearCanchas({ io, jugadores, sala }) {
             const b = e.balon;
             const radio = c.tamBalon / 2;
             const piso = (c.y || 0) + radio;
+            // Los bots piensan y se mueven.
+            pensarBots({ c, e, dt, ahora, api: apiBots(c, e) });
             if (b.por) {
-                const j = jugadores.get(b.por);
-                if (!j || e.equipos.get(b.por) == null) {
+                const j = ent(e, b.por);
+                if (!j || equipoDe(e, b.por) == null) {
                     b.por = null;
                 } else {
                     Object.assign(b, enManos(c, j), { vx: 0, vy: 0, vz: 0, quieto: false });
@@ -406,9 +618,7 @@ export function crearCanchas({ io, jugadores, sala }) {
             }
             if (b.quieto) {
                 // Quieto en el piso: si alguien lo pisa, lo empuja un poquito (no lo atraviesa).
-                for (const uid of e.equipos.keys()) {
-                    const p = jugadores.get(uid);
-                    if (!p) continue;
+                for (const p of participantes(e)) {
                     const dx = b.x - p.x;
                     const dz = b.z - p.z;
                     const d = Math.hypot(dx, dz);
@@ -481,9 +691,9 @@ export function crearCanchas({ io, jugadores, sala }) {
                 // En el aro/portería del azul (0) anota el rojo, y al revés.
                 const equipo = i === 0 ? "rojo" : "azul";
                 e.puntos[equipo] += 1;
-                const autor = b.ultimo && e.equipos.get(b.ultimo) === equipo ? b.ultimo : null;
+                const autor = b.ultimo && equipoDe(e, b.ultimo) === equipo ? b.ultimo : null;
                 if (autor) e.cestas.set(autor, (e.cestas.get(autor) || 0) + 1);
-                io.to(sala).emit("cancha:cesta", { id: c.id, equipo, futbol: c.deporte === "futbol", por: autor ? jugadores.get(autor)?.nombre || null : null, x: r2(w.x), y: r2(cy), z: r2(w.z) });
+                io.to(sala).emit("cancha:cesta", { id: c.id, equipo, futbol: c.deporte === "futbol", por: autor ? ent(e, autor)?.nombre || null : null, x: r2(w.x), y: r2(cy), z: r2(w.z) });
                 sonar(c, "anota", w);
                 e.pausa = ahora + PAUSA_CESTA_MS;
                 e.cambio = true;
@@ -516,11 +726,26 @@ export function crearCanchas({ io, jugadores, sala }) {
             lista.push(filaBalon(c, e));
         }
         if (lista.length) io.to(sala).emit("cancha:balones", { b: lista });
+        // Dónde está cada bot (solo si alguno se movió).
+        const bots = [];
+        for (const c of canchas()) {
+            const e = estados.get(c.id);
+            if (!e?.bots.size) continue;
+            const fila = [...e.bots.values()].map((b) => [b.id, r2(b.x), r2(b.z), r2(b.r), b.andando]);
+            const firma = JSON.stringify(fila);
+            if (firma === e.firmaBots) continue;
+            e.firmaBots = firma;
+            bots.push([c.id, fila]);
+        }
+        if (bots.length) io.to(sala).emit("cancha:bots", { c: bots });
     }
 
     /* Cada tanto se vuelve a mandar todo (el que acaba de entrar ve el balón aunque esté quieto). */
     setInterval(() => {
-        for (const e of estados.values()) e.firma = null;
+        for (const e of estados.values()) {
+            e.firma = null;
+            e.firmaBots = null;
+        }
     }, 2000).unref();
 
     let ultimo = Date.now();
@@ -584,7 +809,7 @@ export function crearCanchas({ io, jugadores, sala }) {
             }
             // Alguien cerca lo tiene: se lo quito.
             if (b.por) {
-                const otro = jugadores.get(b.por);
+                const otro = ent(e, b.por);
                 if (otro && Math.hypot(otro.x - j.x, otro.z - j.z) <= ALCANCE_ROBO && Math.abs(otro.y - j.y) < 1.2) {
                     if (ahora < b.protegido) return true; // lo acaba de tomar
                     const robado = b.por;
@@ -607,19 +832,7 @@ export function crearCanchas({ io, jugadores, sala }) {
             const e = estadoDe(c);
             const b = e.balon;
             if (b.por !== j.userId) return false;
-            const t = tiroBalon(fuerza, c.deporte);
-            Object.assign(b, {
-                por: null,
-                ultimo: j.userId,
-                soltado: Date.now(),
-                x: j.x + Math.sin(dir) * t.adelante,
-                y: t.alto == null ? j.y + c.tamBalon / 2 + 0.05 : j.y + t.alto,
-                z: j.z + Math.cos(dir) * t.adelante,
-                vx: Math.sin(dir) * t.vh,
-                vy: t.vy,
-                vz: Math.cos(dir) * t.vh,
-                quieto: false,
-            });
+            soltarTiro(c, e, j, fuerza, dir);
             return true;
         },
         /* Alguien alzó a otro: si es un rival en el partido, se anota el lugar (por si lo lanza = falta). */

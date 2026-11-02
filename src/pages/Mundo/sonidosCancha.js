@@ -10,6 +10,8 @@ import { estaSilenciado } from "../../services/sonido";
 export const ACCIONES_CANCHA = [
     { clave: "anota", nombre: "Cesta / gol" },
     { clave: "palo", nombre: "Pega en el palo o el aro" },
+    { clave: "tablero", nombre: "Pega en el tablero (básquet)" },
+    { clave: "arquero", nombre: "Ataja el arquero (fútbol)" },
     { clave: "tomar", nombre: "Toma el balón" },
     { clave: "robar", nombre: "Quita el balón" },
     { clave: "pase", nombre: "Pase a un compañero" },
@@ -25,6 +27,8 @@ export function sonidoDeFabrica(accion, deporte) {
     const d = {
         anota: deporte === "futbol" ? "/sounds/penal/gol.mp3" : "/sounds/victory.mp3",
         palo: "/sounds/penal/atajada.mp3",
+        tablero: "/sounds/click.mp3",
+        arquero: "/sounds/penal/atajada.mp3",
         tomar: "/sounds/click.mp3",
         robar: "/sounds/warning.mp3",
         pase: "/sounds/correct.mp3",

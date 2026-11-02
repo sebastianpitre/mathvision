@@ -4,7 +4,7 @@ import { Html } from "@react-three/drei";
 import * as THREE from "three";
 
 import ProtegerError from "../../components/common/ProtegerError";
-import { Cartel } from "./carteles.jsx";
+import { Cartel, Etiqueta } from "./carteles.jsx";
 import { ModeloGlb } from "./Escena";
 
 /* =========================================================
@@ -188,6 +188,73 @@ function Aro({ k, color }) {
     );
 }
 
+/* Tablero de básquet: cuadro flotante detrás del aro (se sube/baja y se mide en el editor). */
+function TableroAro({ k, i, color }) {
+    const t = k.tablero;
+    const lado = Math.sign(k.z) || (i === 0 ? -1 : 1);
+    const z = k.z + lado * (k.radio + t.atras);
+    return (
+        <group position={[k.x, k.y + t.dy, z]}>
+            <mesh castShadow>
+                <boxGeometry args={[t.ancho, t.alto, 0.08]} />
+                <meshStandardMaterial color="#f8fafc" transparent opacity={0.85} roughness={0.2} />
+            </mesh>
+            {/* borde y cuadrito del color del equipo */}
+            <mesh position={[0, 0, -lado * 0.045]}>
+                <planeGeometry args={[t.ancho * 0.42, t.alto * 0.4]} />
+                <meshBasicMaterial color={color} transparent opacity={0.8} side={THREE.DoubleSide} toneMapped={false} />
+            </mesh>
+            {[
+                [0, t.alto / 2, t.ancho, 0.06],
+                [0, -t.alto / 2, t.ancho, 0.06],
+                [t.ancho / 2, 0, 0.06, t.alto],
+                [-t.ancho / 2, 0, 0.06, t.alto],
+            ].map(([x, y, w, h], n) => (
+                <mesh key={n} position={[x, y, 0]}>
+                    <boxGeometry args={[w, h, 0.1]} />
+                    <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} />
+                </mesh>
+            ))}
+        </group>
+    );
+}
+
+/* Arquero (fútbol): un bloque del color del equipo que va de un palo al otro. */
+function Arquero({ o, i, desfase }) {
+    const g = useRef(null);
+    const a = o.arqueros;
+    const color = COLOR_EQUIPO[EQUIPOS[i]];
+    useFrame(() => {
+        if (!g.current) return;
+        const q = arqueroEnC(o, i, Date.now() + desfase);
+        g.current.position.set(q.lx, 0, q.lz);
+    });
+    return (
+        <group ref={g}>
+            <mesh position={[0, a.alto / 2, 0]} castShadow>
+                <boxGeometry args={[a.ancho, a.alto, 0.4]} />
+                <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.25} transparent opacity={0.9} />
+            </mesh>
+            {/* guantes */}
+            {[-1, 1].map((s2) => (
+                <mesh key={s2} position={[s2 * (a.ancho / 2 + 0.12), a.alto * 0.7, 0]}>
+                    <sphereGeometry args={[0.16, 12, 10]} />
+                    <meshStandardMaterial color="#f8fafc" />
+                </mesh>
+            ))}
+        </group>
+    );
+}
+
+/* Igual que en el servidor (cancha.js → arqueroEn). */
+export function arqueroEnC(c, i, t) {
+    const k = c.cestas[i];
+    const a = c.arqueros;
+    const rango = Math.max(0, k.radio - a.ancho / 2);
+    const lado = Math.sign(k.z) || (i === 0 ? -1 : 1);
+    return { lx: k.x + Math.sin((t / 1000) * a.velocidad * 1.3 + i * Math.PI) * rango, lz: k.z - lado * 0.5 };
+}
+
 /* Portería de fútbol: marco cuadrado del color del equipo, sin fondo, con un difuminado en el medio. */
 function useDifuminado(color) {
     return useMemo(() => {
@@ -361,6 +428,18 @@ function Letrero({ p, rot, deporte }) {
 }
 
 /* Marcador encima de la cancha (para los que miran desde afuera). */
+/* Marcador chiquito para la esquina de la pantalla (solo el resultado y el tiempo). */
+export function MarcadorChico({ estado, ahora }) {
+    const p = estado?.puntos || { azul: 0, rojo: 0 };
+    return (
+        <span className="mu-marcador-mini" aria-label={`Azul ${p.azul}, Rojo ${p.rojo}`}>
+            <b className="mu-azul">{p.azul}</b>
+            <small>{estado?.fin ? "Final" : estado?.termina ? reloj(estado.termina - ahora) : "–"}</small>
+            <b className="mu-rojo">{p.rojo}</b>
+        </span>
+    );
+}
+
 export function Marcador({ estado, ahora, compacto = false, futbol = false }) {
     const p = estado?.puntos || { azul: 0, rojo: 0 };
     const fin = estado?.fin;
@@ -391,20 +470,30 @@ export function Marcador({ estado, ahora, compacto = false, futbol = false }) {
 function Tablero({ estado, ahora, futbol }) {
     const p = estado?.puntos || { azul: 0, rojo: 0 };
     const fin = estado?.fin;
+    const icono = futbol ? "⚽" : "🏀";
+    const goles = estado?.goles || [];
+    const de = (eq) => goles.filter((g) => g.equipo === eq).slice(0, 4);
+    const fila = (eq, color, marca) => {
+        const lista = de(eq);
+        return lista.length
+            ? lista.map((g) => ({ t: `${marca} ${g.nombre} · ${g.cestas} ${icono}`, c: color, s: 0.6, n: false }))
+            : [{ t: `${marca} ${NOMBRE_EQUIPO[eq]}: sin ${futbol ? "goles" : "cestas"}`, c: color, s: 0.55, n: false }];
+    };
     const lineas = [
-        { t: `AZUL ${p.azul}  :  ${p.rojo} ROJO`, s: 1.3 },
+        { t: `AZUL ${p.azul}  :  ${p.rojo} ROJO`, s: 1.2 },
         {
             t: fin ? (fin.ganador === "empate" ? "¡Empate!" : `¡Ganó el equipo ${NOMBRE_EQUIPO[fin.ganador]}!`) : estado?.termina ? `⏱ ${reloj(estado.termina - ahora)}` : "Esperando jugadores",
             c: "#fde68a",
-            s: 0.85,
+            s: 0.75,
         },
-        ...(estado?.top || []).map((t, i) => ({ t: `${["🥇", "🥈", "🥉"][i]} ${t.nombre} · ${t.cestas} ${futbol ? "⚽" : "🏀"}`, c: COLOR_EQUIPO[t.equipo] ? "#ffffff" : "#cbd5e1", s: 0.7, n: false })),
+        ...fila("azul", "#93c5fd", "🔵"),
+        ...fila("rojo", "#fca5a5", "🔴"),
     ];
-    return <Cartel position={[0, 4.6, 0]} ancho={4} alto={2} fondo="#0b1020" borde="#fbbf24" dosCaras lineas={lineas} />;
+    return <Cartel position={[0, 4.9, 0]} ancho={4} alto={2.6} fondo="#0b1020" borde="#fbbf24" dosCaras lineas={lineas} />;
 }
 
 /* La cancha completa (sin el balón). */
-export function Cancha({ o, estado = null, ahora = Date.now(), yoId = null, etiquetas = true }) {
+export function Cancha({ o, estado = null, ahora = Date.now(), yoId = null, etiquetas = true, desfase = 0 }) {
     const rot = ((o.rot || 0) * Math.PI) / 180;
     const base = o.y || 0;
     const medio = o.entradas.reduce((s, p) => ({ x: s.x + p.x / 2, z: s.z + p.z / 2 }), { x: 0, z: 0 });
@@ -429,7 +518,17 @@ export function Cancha({ o, estado = null, ahora = Date.now(), yoId = null, etiq
             </mesh>
             <Lineas o={o} />
             {o.cestas.map((k, i) =>
-                esFutbol(o) ? <Porteria key={i} k={k} color={COLOR_EQUIPO[EQUIPOS[i]]} /> : <Aro key={i} k={k} color={COLOR_EQUIPO[EQUIPOS[i]]} />
+                esFutbol(o) ? (
+                    <group key={i}>
+                        <Porteria k={k} color={COLOR_EQUIPO[EQUIPOS[i]]} />
+                        {o.arqueros?.activo && <Arquero o={o} i={i} desfase={desfase} />}
+                    </group>
+                ) : (
+                    <group key={i}>
+                        <Aro k={k} color={COLOR_EQUIPO[EQUIPOS[i]]} />
+                        {k.tablero?.activo && <TableroAro k={k} i={i} color={COLOR_EQUIPO[EQUIPOS[i]]} />}
+                    </group>
+                )
             )}
             {o.entradas.map((p, i) => (
                 <BolaEntrada key={i} p={p} equipo={EQUIPOS[i]} entrando={estado?.entrando} ahora={ahora} yoId={yoId} etiquetas={etiquetas} />
@@ -666,6 +765,58 @@ export function Mira({ mira, apuntando = false }) {
                     </Html>
                 )}
             </group>
+        </group>
+    );
+}
+
+/* ---------- Bots: robots livianos (sin cargar modelos) ---------- */
+
+/*
+ * Un bot de la cancha. "datos" (ref) trae dónde está cada bot
+ * (id → { x, z, r, andando }); se acerca suave a esa posición y
+ * se anota en "vistas" para que el balón vaya pegado a él.
+ */
+export function Robot({ id, nombre, equipo, datos, vistas, base = 0 }) {
+    const g = useRef(null);
+    const cuerpo = useRef(null);
+    const color = COLOR_EQUIPO[equipo] || "#94a3b8";
+    useFrame(({ clock }, delta) => {
+        const d = datos.current.get(id);
+        const q = g.current;
+        if (!d || !q) return;
+        const k = Math.min(1, delta * 10);
+        q.position.x += (d.x - q.position.x) * k;
+        q.position.z += (d.z - q.position.z) * k;
+        q.position.y = base;
+        let dr = ((d.r - q.rotation.y + Math.PI) % (Math.PI * 2)) - Math.PI;
+        if (dr < -Math.PI) dr += Math.PI * 2;
+        q.rotation.y += dr * k;
+        // Rebota un poquito al caminar.
+        if (cuerpo.current) cuerpo.current.position.y = d.andando ? Math.abs(Math.sin(clock.elapsedTime * (d.andando > 1 ? 14 : 9))) * 0.08 : 0;
+        vistas.current.set(id, { x: q.position.x, y: base, z: q.position.z, r: q.rotation.y });
+    });
+    return (
+        <group ref={g}>
+            <group ref={cuerpo}>
+                <mesh position={[0, 0.75, 0]} castShadow>
+                    <capsuleGeometry args={[0.32, 0.7, 6, 12]} />
+                    <meshStandardMaterial color={color} roughness={0.45} metalness={0.2} />
+                </mesh>
+                <mesh position={[0, 1.55, 0]} castShadow>
+                    <sphereGeometry args={[0.28, 18, 14]} />
+                    <meshStandardMaterial color="#e2e8f0" roughness={0.3} metalness={0.3} />
+                </mesh>
+                {/* visor */}
+                <mesh position={[0, 1.57, 0.2]}>
+                    <boxGeometry args={[0.36, 0.1, 0.12]} />
+                    <meshBasicMaterial color="#22d3ee" toneMapped={false} />
+                </mesh>
+            </group>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]}>
+                <ringGeometry args={[0.45, 0.6, 28]} />
+                <meshBasicMaterial color={color} toneMapped={false} />
+            </mesh>
+            <Etiqueta position={[0, 2.1, 0]} alto={0.28} lejos={28} borde={color} lineas={[{ t: nombre }]} />
         </group>
     );
 }
