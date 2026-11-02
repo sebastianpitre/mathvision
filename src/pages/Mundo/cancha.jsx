@@ -4,6 +4,7 @@ import { Html } from "@react-three/drei";
 import * as THREE from "three";
 
 import ProtegerError from "../../components/common/ProtegerError";
+import { Cartel } from "./carteles.jsx";
 import { ModeloGlb } from "./Escena";
 
 /* =========================================================
@@ -187,13 +188,24 @@ function BolaEntrada({ p, equipo, entrando, ahora, yoId, etiquetas = true }) {
                     <meshBasicMaterial color="#ffffff" toneMapped={false} />
                 </mesh>
             )}
+            {/* cartelito en un palo junto a la bola (se lee de los dos lados) */}
+            <mesh position={[0.95, 0.85, 0]} castShadow>
+                <cylinderGeometry args={[0.04, 0.04, 1.7, 8]} />
+                <meshStandardMaterial color="#334155" />
+            </mesh>
             {etiquetas && (
-                <Html position={[0, 2, 0]} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
-                    <div className={`mu-circulo mu-entrada mu-entrada-${equipo}`}>
-                        <strong>{`Equipo ${NOMBRE_EQUIPO[equipo]}`}</strong>
-                        <span>{mio ? `Entrando… ${faltan}` : otros ? `${otros} entrando` : "Párate aquí 3 s"}</span>
-                    </div>
-                </Html>
+                <Cartel
+                    position={[0.95, 1.95, 0]}
+                    ancho={1.6}
+                    alto={0.55}
+                    fondo={equipo === "azul" ? "#0b2a5e" : "#5e0b0b"}
+                    borde={color}
+                    dosCaras
+                    lineas={[
+                        { t: `Equipo ${NOMBRE_EQUIPO[equipo]}` },
+                        { t: mio ? `Entrando… ${faltan}` : otros ? `${otros} entrando` : "Párate aquí 3 s", s: 0.8, n: false },
+                    ]}
+                />
             )}
         </group>
     );
@@ -296,6 +308,22 @@ export function Marcador({ estado, ahora, compacto = false }) {
     );
 }
 
+/* El marcador pintado en un cartel (solo se vuelve a pintar cuando cambia). */
+function Tablero({ estado, ahora }) {
+    const p = estado?.puntos || { azul: 0, rojo: 0 };
+    const fin = estado?.fin;
+    const lineas = [
+        { t: `AZUL ${p.azul}  :  ${p.rojo} ROJO`, s: 1.3 },
+        {
+            t: fin ? (fin.ganador === "empate" ? "¡Empate!" : `¡Ganó el equipo ${NOMBRE_EQUIPO[fin.ganador]}!`) : estado?.termina ? `⏱ ${reloj(estado.termina - ahora)}` : "Esperando jugadores",
+            c: "#fde68a",
+            s: 0.85,
+        },
+        ...(estado?.top || []).map((t, i) => ({ t: `${["🥇", "🥈", "🥉"][i]} ${t.nombre} · ${t.cestas}`, c: COLOR_EQUIPO[t.equipo] ? "#ffffff" : "#cbd5e1", s: 0.7, n: false })),
+    ];
+    return <Cartel position={[0, 4.6, 0]} ancho={4} alto={2} fondo="#0b1020" borde="#fbbf24" dosCaras lineas={lineas} />;
+}
+
 /* La cancha completa (sin el balón). */
 export function Cancha({ o, estado = null, ahora = Date.now(), yoId = null, etiquetas = true }) {
     const rot = ((o.rot || 0) * Math.PI) / 180;
@@ -328,11 +356,14 @@ export function Cancha({ o, estado = null, ahora = Date.now(), yoId = null, etiq
                 <BolaEntrada key={i} p={p} equipo={EQUIPOS[i]} entrando={estado?.entrando} ahora={ahora} yoId={yoId} etiquetas={etiquetas} />
             ))}
             <Letrero p={letrero} rot={mira} />
-            {etiquetas && (
-                <Html position={[0, Math.max(...o.cestas.map((k) => k.y)) + 3, 0]} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }} distanceFactor={14}>
-                    <Marcador estado={estado} ahora={ahora} />
-                </Html>
-            )}
+            {/* tablero del marcador en un poste, a un lado de la mitad de la cancha */}
+            <group position={[-o.ancho / 2 - 0.8, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+                <mesh position={[0, 1.9, 0]} castShadow>
+                    <cylinderGeometry args={[0.08, 0.08, 3.8, 8]} />
+                    <meshStandardMaterial color="#1f2937" />
+                </mesh>
+                {etiquetas && <Tablero estado={estado} ahora={ahora} />}
+            </group>
         </group>
     );
 }
@@ -430,7 +461,7 @@ export function Balon({ o, modelos = [], datos, vistas }) {
 
 const PUNTOS_MIRA = 36;
 
-export function Mira({ mira }) {
+export function Mira({ mira, apuntando = false }) {
     const puntos = useRef([]);
     const caida = useRef(null);
     const etiqueta = useRef(null);
@@ -476,9 +507,12 @@ export function Mira({ mira }) {
                     <ringGeometry args={[0.45, 0.62, 32]} />
                     <meshBasicMaterial color="#fde047" toneMapped={false} transparent opacity={0.9} />
                 </mesh>
-                <Html position={[0, 0.6, 0]} center zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
+                {/* el texto solo existe mientras se apunta */}
+                {apuntando && (
+                    <Html position={[0, 0.6, 0]} center zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
                     <span ref={etiqueta} className="mu-mira-etiqueta" style={{ display: "none" }} />
-                </Html>
+                    </Html>
+                )}
             </group>
         </group>
     );

@@ -2,7 +2,6 @@ import { Suspense, useEffect, useMemo, useRef } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-import { Html } from "@react-three/drei";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as clonarEsqueleto } from "three/examples/jsm/utils/SkeletonUtils.js";
 
@@ -11,6 +10,7 @@ import juegosLista from "../../data/mock/games.json";
 import { alturaBaranda, materialDe, materialPared, palitosDe, partesDe } from "./piezas.js";
 import { Cancha } from "./cancha.jsx";
 import { TablaRanking } from "./Ranking.jsx";
+import { Cartel } from "./carteles.jsx";
 
 /* =========================================================
    MUNDO 3D · EL ESCENARIO
@@ -425,14 +425,29 @@ function Portal({ o, destino, etiquetas = true }) {
                 <cylinderGeometry args={[r * 0.92, r, 2.8, 32, 1, true]} />
                 <meshBasicMaterial color={o.color} transparent opacity={0.18} side={THREE.DoubleSide} depthWrite={false} toneMapped={false} />
             </mesh>
-            {etiquetas && (
-                <Html position={[0, 3.1, 0]} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
-                    <div className="mu-circulo mu-portal">
-                        <strong>{o.nombre || "Teletransporte"}</strong>
-                        <span>{destino ? `↪ a ${destino}` : "Sin destino"}</span>
-                    </div>
-                </Html>
-            )}
+            {/* cartel en un palo al lado del portal (se lee de los dos lados) */}
+            <group rotation={[0, (o.rot || 0) * RAD, 0]} position={[0, 0, 0]}>
+                <group position={[r + 0.35, 0, 0]}>
+                    <mesh position={[0, 1.05, 0]} castShadow>
+                        <cylinderGeometry args={[0.05, 0.05, 2.1, 8]} />
+                        <meshStandardMaterial color="#2a2f3a" />
+                    </mesh>
+                    {etiquetas && (
+                        <Cartel
+                            position={[0, 2.35, 0]}
+                            ancho={1.9}
+                            alto={0.62}
+                            fondo="#1e1b4b"
+                            borde="#a78bfa"
+                            dosCaras
+                            lineas={[
+                                { t: o.nombre || "Teletransporte", c: "#c4b5fd" },
+                                { t: destino ? `↪ a ${destino}` : "Sin destino", s: 0.8, n: false },
+                            ]}
+                        />
+                    )}
+                </group>
+            </group>
         </group>
     );
 }
@@ -468,13 +483,20 @@ function Circulo({ o, estado, desfase, etiquetas = true }) {
                             </Suspense>
                         )}
                     </group>
+                    {/* cartel con el nombre y la cuenta, encima de la imagen (se lee de los dos lados) */}
                     {etiquetas && (
-                        <Html position={[0, 3.55, 0]} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
-                            <div className={`mu-circulo ${contando ? "mu-circulo-cuenta" : ""}`}>
-                                <strong>{juego.nombre}</strong>
-                                {estado?.aviso ? <span>{estado.aviso}</span> : contando ? <span>{`⏳ ${faltan} s · ${estado.dentro} adentro`}</span> : <span>Párate aquí para jugar</span>}
-                            </div>
-                        </Html>
+                        <Cartel
+                            position={[0, 3.5, 0]}
+                            ancho={2.6}
+                            alto={0.7}
+                            fondo={contando ? "#3b2a00" : "#0f172a"}
+                            borde={contando ? "#ffcf3e" : o.color}
+                            dosCaras
+                            lineas={[
+                                { t: juego.nombre, c: "#ffe58a" },
+                                { t: estado?.aviso || (contando ? `⏳ ${faltan} s · ${estado.dentro} adentro` : "Párate aquí para jugar"), s: 0.75, n: false },
+                            ]}
+                        />
                     )}
                 </group>
             </group>

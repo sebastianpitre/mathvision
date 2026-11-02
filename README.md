@@ -327,6 +327,10 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
     sale de la cancha caminando: se usa el botón **Salir** de arriba. Al acabar el tiempo
     se anuncia el ganador y empieza otro partido con los que sigan.
   - **Tabla de ranking:** los mejores de la temporada y el primero con su skin y su 👑.
+  - **Sin letras flotantes en HTML:** los nombres de los juegos, teletransportes, equipos y
+    el marcador van en **carteles 3D** (pintados una vez; solo se repintan si cambia el
+    texto). Los nombres y globos de los jugadores son etiquetas 3D que de lejos (más de
+    28 m) no se dibujan. Así el mundo va más fluido.
   - **Círculos de juego:** tienen un letrero con la imagen del juego. Cuando alguien se
     para adentro empieza la cuenta; al llegar a cero se arma una sala con los que estén
     adentro (los primeros que entraron, hasta el máximo del juego). Si falta gente y el

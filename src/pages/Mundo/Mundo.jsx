@@ -1,7 +1,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { LuChevronsUp, LuGrab, LuLogOut, LuMessageCircle, LuMic, LuMicOff, LuRocket, LuSend, LuSparkles, LuUserRound, LuUsers, LuX, LuZap } from "react-icons/lu";
 
@@ -17,6 +16,7 @@ import { empezarCaptura, micDisponible, pararCaptura, TASA } from "../../service
 import { Cielo, Luces, Objetos, Suelo } from "./Escena";
 import { formasDe, paso, ponerLimite, SALTO } from "./fisica";
 import { nombreTecla, POSICIONES_POR_DEFECTO, TAMANOS_POR_DEFECTO, TECLAS_POR_DEFECTO } from "./controles";
+import { Etiqueta } from "./carteles.jsx";
 import { aroDe, Balon, COLOR_EQUIPO, dentroDeCancha, Marcador, Mira, NOMBRE_EQUIPO, trayectoria } from "./cancha.jsx";
 import { ajustarVolumen, cerrarVoces, sonarVoz } from "./vozMundo";
 
@@ -70,6 +70,21 @@ const girarHacia = (a, b, t) => {
 };
 
 /* ---------- Personaje con nombre, globo y "está hablando" ---------- */
+/* El mensaje del globo en renglones cortos (máximo 3). */
+function partirGlobo(texto) {
+    const lineas = [];
+    let actual = "";
+    for (const w of String(texto).split(/\s+/)) {
+        if ((actual + " " + w).trim().length > 26 && actual) {
+            lineas.push(actual);
+            actual = w;
+        } else actual = `${actual} ${w}`.trim();
+    }
+    if (actual) lineas.push(actual);
+    if (lineas.length > 3) return [...lineas.slice(0, 2), `${lineas[2]}…`];
+    return lineas;
+}
+
 /* Pinta el personaje con el color de su equipo (o le devuelve sus colores). */
 function teñir(grupo, color) {
     const tono = color ? new THREE.Color(color) : null;
@@ -91,16 +106,8 @@ function Cuerpo({ modelo, clave, andar, saludo, brazos, cargado, nombre, yo, glo
     const grupo = useRef(null);
     const sombras = useRef(false);
     const tinte = useRef(undefined);
-    const cabeza = useRef(null);
-    const { camera } = useThree();
-    const punto = useRef(new THREE.Vector3());
     // Que el personaje proyecte sombra (se marca una vez cuando carga).
     useFrame(() => {
-        // El nombre de alguien pegado a la cámara se vería gigante: se esconde.
-        if (cabeza.current && grupo.current) {
-            grupo.current.getWorldPosition(punto.current);
-            cabeza.current.style.opacity = punto.current.distanceTo(camera.position) < 2.6 ? "0" : "1";
-        }
         // Color del equipo en la cancha (se aplica cuando el modelo ya cargó).
         if (grupo.current && tinte.current !== equipo && teñir(grupo.current, equipo ? COLOR_EQUIPO[equipo] : null)) tinte.current = equipo;
         if (sombras.current || !grupo.current) return;
@@ -139,25 +146,27 @@ function Cuerpo({ modelo, clave, andar, saludo, brazos, cargado, nombre, yo, glo
                     <meshBasicMaterial color={COLOR_EQUIPO[equipo]} toneMapped={false} />
                 </mesh>
             )}
-            <Html position={[0, cargado ? 1.0 : 2.05, 0]} center distanceFactor={8} zIndexRange={[10, 0]} style={{ pointerEvents: "none" }}>
-                <div className="mu-cabeza" ref={cabeza}>
-                    {globo && (
-                        <p className="mu-globo" key={globo.n}>
-                            {globo.texto}
-                        </p>
-                    )}
-                    <span className={`mu-nombre ${yo ? "mu-nombre-yo" : ""} ${equipo ? `mu-nombre-${equipo}` : ""}`}>
-                        {habla && (
-                            <span className="mu-ondas" aria-label="Está hablando">
-                                <i />
-                                <i />
-                                <i />
-                            </span>
-                        )}
-                        {nombre}
-                    </span>
-                </div>
-            </Html>
+            {/* Nombre y globo: etiquetas 3D pintadas una vez (no HTML). De lejos no se dibujan. */}
+            <Etiqueta
+                position={[0, cargado ? 1.0 : 2.05, 0]}
+                alto={0.3}
+                lejos={28}
+                cerca={2.6}
+                fondo={yo ? "#f2b705" : "rgba(8,12,24,0.7)"}
+                borde={equipo ? COLOR_EQUIPO[equipo] : null}
+                lineas={[{ t: `${habla ? "🎤 " : ""}${nombre}`, c: yo ? "#2a1c00" : "#ffffff" }]}
+            />
+            {globo && (
+                <Etiqueta
+                    key={globo.n}
+                    position={[0, cargado ? 1.55 : 2.6, 0]}
+                    alto={0.42}
+                    lejos={28}
+                    cerca={2.6}
+                    fondo="rgba(255,255,255,0.95)"
+                    lineas={partirGlobo(globo.texto).map((t) => ({ t, c: "#111827", n: false }))}
+                />
+            )}
         </group>
     );
 }
@@ -1189,7 +1198,7 @@ export default function Mundo() {
                     {canchasMapa.map((o) => (
                         <Balon key={`balon-${o.id}`} o={o} modelos={config.modelos} datos={balones} vistas={vistas} />
                     ))}
-                    <Mira mira={mira} />
+                    <Mira mira={mira} apuntando={apuntando} />
 
                     {mio && (
                         <Yo

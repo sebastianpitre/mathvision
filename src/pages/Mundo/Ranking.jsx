@@ -1,11 +1,11 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Html } from "@react-three/drei";
 import * as THREE from "three";
 
 import ProtegerError from "../../components/common/ProtegerError";
 import VRMCharacter from "../../components/character/VRMCharacter";
 import { api } from "../../services/api";
+import { Cartel, Etiqueta } from "./carteles.jsx";
 
 /* =========================================================
    MUNDO 3D · TABLA DE RANKING
@@ -154,19 +154,11 @@ function Pedestal({ jugador, etiquetas = true }) {
                     </Suspense>
                 </ProtegerError>
             )}
-            {etiquetas ? (
-                <Html position={[0, 2.55, 0]} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
-                    <div className="mu-corona">
-                        <span aria-hidden="true">👑</span>
-                        {jugador && <strong>{jugador.nombre}</strong>}
-                    </div>
-                </Html>
-            ) : (
-                // vista previa del editor: una coronita simple
-                <mesh position={[0, 2.5, 0]}>
-                    <coneGeometry args={[0.22, 0.3, 5]} />
-                    <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.8} />
-                </mesh>
+            {/* corona flotando (un emoji pintado una vez, no HTML) */}
+            <Etiqueta lineas={[{ t: "👑", s: 1.6 }]} fondo={null} alto={0.55} position={[0, 2.5, 0]} flotar={0.08} lejos={70} />
+            {/* el nombre en una placa al frente del pedestal */}
+            {etiquetas && jugador && (
+                <Cartel position={[0, 0.5, 1.07]} ancho={1.5} alto={0.32} fondo="#3b2a00" borde="#fbbf24" lineas={[{ t: `👑 ${jugador.nombre}`, c: "#fde68a" }]} />
             )}
         </group>
     );
