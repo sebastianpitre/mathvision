@@ -38,7 +38,8 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 import { api } from "../../../services/api";
-import { subirArchivo } from "../subirArchivo";
+import { subirArchivo, subirBinario } from "../subirArchivo";
+import { ACCIONES_CANCHA, sonidoDeFabrica } from "../../Mundo/sonidosCancha";
 import { Cielo, Luces, Objetos, Suelo } from "../../Mundo/Escena";
 import { NOMBRES_PARED, palitosDe, partesDe } from "../../Mundo/piezas.js";
 import {
@@ -61,6 +62,7 @@ import {
     idNuevo,
     limitar,
     nombreVisible,
+    partesCancha,
     prefijoDe,
     radioDe,
     redondear,
@@ -261,18 +263,158 @@ function ElegirTextura({ materiales, material, color, alCambiar, propio = "Propi
 }
 
 /* ---------------- Panel del objeto elegido (antes era flotante) ---------------- */
-/* Cancha: balón, tiempo, cupo y dónde van las cestas y las bolas para entrar. */
+/* Sonidos de cada acción de la cancha, de la biblioteca (se suben una vez y se reutilizan). */
+let bibliotecaSonidos = null;
+function SonidosCancha({ o, alCambiar }) {
+    const [lista, setLista] = useState(bibliotecaSonidos);
+    const [subiendo, setSubiendo] = useState(null);
+    const [error, setError] = useState("");
+    const audio = useRef(null);
+    const entrada = useRef(null);
+    const paraAccion = useRef("anota");
+
+    const traer = () =>
+        api("/admin/sonidos")
+            .then((r) => {
+                bibliotecaSonidos = r.sonidos || [];
+                setLista(bibliotecaSonidos);
+            })
+            .catch((e) => setError(e.message));
+    useEffect(() => {
+        if (!bibliotecaSonidos) traer();
+        return () => audio.current?.pause();
+    }, []);
+
+    const actual = (a) => o.sonidos?.[a];
+    const poner = (a, valor) => {
+        const sonidos = { ...(o.sonidos || {}) };
+        if (valor === undefined) delete sonidos[a];
+        else sonidos[a] = valor;
+        alCambiar({ sonidos });
+    };
+    const escuchar = (a) => {
+        const s = actual(a) || sonidoDeFabrica(a, o.deporte);
+        if (!s?.ruta) return;
+        audio.current?.pause();
+        audio.current = new Audio(s.ruta);
+        audio.current.volume = Math.max(0, Math.min(1, (s.volumen ?? 80) / 100));
+        audio.current.play().catch(() => {});
+    };
+
+    return (
+        <>
+            <h4>Sonidos</h4>
+            <p className="ed-ayuda">Elige qué suena en cada acción. Los sonidos se suben una vez a la biblioteca (Panel → Sonidos) y sirven para todo.</p>
+            {error && <p className="ed-ayuda">{error}</p>}
+            <div className="ed-sonidos">
+                {ACCIONES_CANCHA.map(({ clave, nombre }) => {
+                    const v = actual(clave);
+                    const valor = v === undefined ? "__fabrica" : v.ruta === null ? "__ninguno" : v.ruta;
+                    return (
+                        <div key={clave} className="ed-sonido">
+                            <span>{nombre}</span>
+                            <select
+                                value={valor}
+                                onChange={(e) => {
+                                    const r = e.target.value;
+                                    if (r === "__fabrica") poner(clave, undefined);
+                                    else if (r === "__ninguno") poner(clave, { ruta: null, volumen: 0 });
+                                    else poner(clave, { ruta: r, volumen: v?.volumen ?? 80 });
+                                }}
+                                aria-label={`Sonido: ${nombre}`}
+                            >
+                                <option value="__fabrica">De fábrica</option>
+                                <option value="__ninguno">Ninguno (sin sonido)</option>
+                                {(lista || []).map((x) => (
+                                    <option key={x.id} value={x.ruta}>
+                                        {x.nombre}
+                                    </option>
+                                ))}
+                            </select>
+                            <button type="button" className="ed-btn ed-btn-chico" onClick={() => escuchar(clave)} title="Escuchar" aria-label={`Escuchar: ${nombre}`}>
+                                ▶
+                            </button>
+                            <button
+                                type="button"
+                                className="ed-btn ed-btn-chico"
+                                onClick={() => {
+                                    paraAccion.current = clave;
+                                    entrada.current?.click();
+                                }}
+                                title="Subir un sonido nuevo para esta acción"
+                                aria-label={`Subir sonido: ${nombre}`}
+                            >
+                                ⬆
+                            </button>
+                            {v?.ruta && (
+                                <input
+                                    type="range"
+                                    min={0}
+                                    max={100}
+                                    value={v.volumen ?? 80}
+                                    onChange={(e) => poner(clave, { ...v, volumen: Number(e.target.value) })}
+                                    aria-label={`Volumen: ${nombre}`}
+                                    title={`Volumen ${v.volumen ?? 80}%`}
+                                />
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+            <input
+                ref={entrada}
+                type="file"
+                accept=".mp3,.ogg,.wav,.m4a,audio/*"
+                hidden
+                onChange={async (e) => {
+                    const archivo = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!archivo) return;
+                    try {
+                        setSubiendo(0);
+                        const r = await subirBinario(`/admin/sonidos?nombre=${encodeURIComponent(archivo.name)}`, archivo, setSubiendo);
+                        await traer();
+                        poner(paraAccion.current, { ruta: r.sonido.ruta, volumen: 80 });
+                    } catch (err) {
+                        setError(err.message);
+                    } finally {
+                        setSubiendo(null);
+                    }
+                }}
+            />
+            {subiendo !== null && <p className="ed-ayuda">{`Subiendo sonido… ${subiendo}%`}</p>}
+        </>
+    );
+}
+
+/* Cancha: deporte, balón, tiempo, cupo, dónde van las cestas/porterías y las bolas para entrar, y sus sonidos. */
 function OpcionesCancha({ o, modelos, alCambiar }) {
     const equipo = ["Azul", "Rojo"];
+    const futbol = o.deporte === "futbol";
     const cesta = (i, k) => (v) => alCambiar({ cestas: o.cestas.map((q, j) => (j === i ? { ...q, [k]: v } : q)) });
     const entrada = (i, k) => (v) => alCambiar({ entradas: o.entradas.map((q, j) => (j === i ? { ...q, [k]: v } : q)) });
     return (
         <>
             <h4>Partido</h4>
+            <div className="ed-segmentos">
+                {[
+                    ["basquet", "🏀 Básquet"],
+                    ["futbol", "⚽ Fútbol"],
+                ].map(([id, t]) => (
+                    <button
+                        key={id}
+                        type="button"
+                        className={(o.deporte || "basquet") === id ? "ed-on" : ""}
+                        onClick={() => (o.deporte || "basquet") !== id && alCambiar({ deporte: id, cestas: partesCancha(o.ancho, o.largo, id).cestas })}
+                    >
+                        {t}
+                    </button>
+                ))}
+            </div>
             <label className="ed-campo">
                 <span>Balón (el objeto que se agarra)</span>
                 <select value={o.balon || ""} onChange={(e) => alCambiar({ balon: e.target.value })}>
-                    <option value="">🏀 Balón normal</option>
+                    <option value="">{futbol ? "⚽ Balón de fútbol" : "🏀 Balón de básquet"}</option>
                     {modelos.map((m) => (
                         <option key={m.id} value={m.id}>{`📦 ${m.nombre}`}</option>
                     ))}
@@ -283,15 +425,23 @@ function OpcionesCancha({ o, modelos, alCambiar }) {
                 <Numero etiqueta="Minutos" valor={o.minutos ?? 5} min={1} max={30} paso={1} sufijo="min" alCambiar={(v) => alCambiar({ minutos: Math.round(v) })} />
                 <Numero etiqueta="Por equipo" valor={o.maxEquipo ?? 5} min={1} max={10} paso={1} sufijo="" alCambiar={(v) => alCambiar({ maxEquipo: Math.round(v) })} />
             </div>
-            <p className="ed-ayuda">En el mapa arrastra los aros (cestas) y las bolas de entrada. Cada equipo encesta en el aro del otro color.</p>
+            <p className="ed-ayuda">
+                {futbol
+                    ? "En el mapa arrastra las porterías y las bolas de entrada. Cada equipo mete gol en la portería del otro color; los palos rebotan."
+                    : "En el mapa arrastra los aros (cestas) y las bolas de entrada. Cada equipo encesta en el aro del otro color."}
+            </p>
             {o.cestas.map((k, i) => (
                 <div key={`c${i}`}>
-                    <h4>{`Cesta ${equipo[i]}`}</h4>
+                    <h4>{`${futbol ? "Portería" : "Cesta"} ${equipo[i]}`}</h4>
                     <div className="ed-fila">
                         <Numero etiqueta="X" valor={k.x} min={-o.ancho / 2} max={o.ancho / 2} paso={0.25} alCambiar={cesta(i, "x")} />
                         <Numero etiqueta="Z" valor={k.z} min={-o.largo / 2} max={o.largo / 2} paso={0.25} alCambiar={cesta(i, "z")} />
-                        <Numero etiqueta="Altura" valor={k.y} min={1} max={12} paso={0.1} alCambiar={cesta(i, "y")} />
-                        <Numero etiqueta="Radio" valor={k.radio} min={0.3} max={3} paso={0.05} alCambiar={cesta(i, "radio")} />
+                        <Numero etiqueta={futbol ? "Alto" : "Altura"} valor={k.y} min={1} max={12} paso={0.1} alCambiar={cesta(i, "y")} />
+                        {futbol ? (
+                            <Numero etiqueta="Ancho" valor={k.radio * 2} min={0.6} max={12} paso={0.25} alCambiar={(v) => cesta(i, "radio")(v / 2)} />
+                        ) : (
+                            <Numero etiqueta="Radio" valor={k.radio} min={0.3} max={3} paso={0.05} alCambiar={cesta(i, "radio")} />
+                        )}
                     </div>
                 </div>
             ))}
@@ -303,6 +453,7 @@ function OpcionesCancha({ o, modelos, alCambiar }) {
                 </div>
             ))}
             <p className="ed-ayuda">Las medidas van desde el centro de la cancha y giran con ella. El letrero con las instrucciones sale junto a las bolas.</p>
+            <SonidosCancha o={o} alCambiar={alCambiar} />
         </>
     );
 }
@@ -965,9 +1116,13 @@ function Figura({ o, materiales, modelos, elegido, escala, porId }) {
                 <rect x={-o.ancho / 2} y={-o.largo / 2} width={o.ancho} height={o.largo / 2} fill={colores[0]} fillOpacity={0.18} pointerEvents="none" />
                 <rect x={-o.ancho / 2} y={0} width={o.ancho} height={o.largo / 2} fill={colores[1]} fillOpacity={0.18} pointerEvents="none" />
                 <line x1={-o.ancho / 2} y1={0} x2={o.ancho / 2} y2={0} stroke="#fff" strokeWidth={1.2 / escala} pointerEvents="none" />
-                {(o.cestas || []).map((k, i) => (
-                    <circle key={`c${i}`} cx={k.x} cy={k.z} r={k.radio} fill="none" stroke={colores[i]} strokeWidth={3 / escala} pointerEvents="none" />
-                ))}
+                {(o.cestas || []).map((k, i) =>
+                    o.deporte === "futbol" ? (
+                        <line key={`c${i}`} x1={k.x - k.radio} y1={k.z} x2={k.x + k.radio} y2={k.z} stroke={colores[i]} strokeWidth={Math.max(0.25, 4 / escala)} strokeLinecap="square" pointerEvents="none" />
+                    ) : (
+                        <circle key={`c${i}`} cx={k.x} cy={k.z} r={k.radio} fill="none" stroke={colores[i]} strokeWidth={3 / escala} pointerEvents="none" />
+                    )
+                )}
                 {(o.entradas || []).map((k, i) => (
                     <g key={`e${i}`} pointerEvents="none">
                         <circle cx={k.x} cy={k.z} r={1.4} fill={colores[i]} fillOpacity={0.15} stroke={colores[i]} strokeWidth={1 / escala} strokeDasharray={`${3 / escala} ${2 / escala}`} />
@@ -976,7 +1131,7 @@ function Figura({ o, materiales, modelos, elegido, escala, porId }) {
                 ))}
                 {escala > 3 && (
                     <text x={0} y={-o.largo / 4} fontSize={letra * 1.2} textAnchor="middle" className="ed-etiqueta" pointerEvents="none" transform={`rotate(${o.rot || 0} 0 ${-o.largo / 4})`}>
-                        {`🏀 ${o.nombre || o.id}`}
+                        {`${o.deporte === "futbol" ? "⚽" : "🏀"} ${o.nombre || o.id}`}
                     </text>
                 )}
             </g>

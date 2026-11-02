@@ -1252,3 +1252,38 @@
 .ed-manijas .ed-manija-rojo {
     fill: #ef4444;
 }
+
+/* Cancha: sonidos de cada acción */
+.ed-sonidos {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ed-sonido {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 6px 8px;
+    border: 1px solid var(--ed-borde, rgba(255, 255, 255, 0.1));
+    border-radius: 8px;
+}
+
+.ed-sonido {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+}
+
+.ed-sonido > span {
+    grid-column: 1 / -1;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ed-sonido select {
+    min-width: 0;
+}
+
+.ed-sonido input[type="range"] {
+    grid-column: 1 / -1;
+}

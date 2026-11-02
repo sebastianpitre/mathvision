@@ -2,7 +2,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useLocation, useNavigate } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { LuChevronsUp, LuGrab, LuLogOut, LuMessageCircle, LuMic, LuMicOff, LuRocket, LuSend, LuSparkles, LuUserRound, LuUsers, LuX, LuZap } from "react-icons/lu";
+import { LuChevronsUp, LuGrab, LuLogOut, LuSettings2, LuMessageCircle, LuMic, LuMicOff, LuRocket, LuSend, LuSparkles, LuUserRound, LuUsers, LuX, LuZap } from "react-icons/lu";
 
 import ProtegerError from "../../components/common/ProtegerError";
 import VRMCharacter from "../../components/character/VRMCharacter";
@@ -17,7 +17,8 @@ import { Cielo, Luces, Objetos, Suelo } from "./Escena";
 import { formasDe, paso, ponerLimite, SALTO } from "./fisica";
 import { nombreTecla, POSICIONES_POR_DEFECTO, TAMANOS_POR_DEFECTO, TECLAS_POR_DEFECTO } from "./controles";
 import { Etiqueta } from "./carteles.jsx";
-import { aroDe, Balon, COLOR_EQUIPO, dentroDeCancha, Marcador, Mira, NOMBRE_EQUIPO, trayectoria } from "./cancha.jsx";
+import { sonarCancha } from "./sonidosCancha";
+import { Balon, COLOR_EQUIPO, dentroDeCancha, esFutbol, Marcador, metaDe, Mira, NOMBRE_EQUIPO, trayectoria } from "./cancha.jsx";
 import { ajustarVolumen, cerrarVoces, sonarVoz } from "./vozMundo";
 
 import "./mundo.css";
@@ -45,6 +46,7 @@ const ALTURA_CARGADO = 1.9; // el que va alzado, encima de la cabeza
 const DISTANCIA_CAMARA = 6.2;
 const DURACION_GLOBO = 6000;
 const CLAVE_PERSONAJE = "ludogamif:mundo-personaje";
+const CLAVE_SENSIBILIDAD = "ludogamif:mundo-sensibilidad";
 const FRASES = ["¡Hola! 👋", "¿Jugamos?", "¡Sígueme!", "Jajaja 😂", "¡Gracias!", "👍", "😮", "❤️"];
 
 const leer = (k) => {
@@ -208,7 +210,8 @@ function Yo({ modelo, nombre, entrada, camara, inicio, formas, posicion, globo, 
             iy /= largo;
         }
         const fuerza = Math.min(1, largo);
-        const corre = auto || t.shift;
+        // Correr prendido: corre hacia donde mueva el joystick (y si no lo toca, hacia adelante).
+        const corre = e.correr || t.shift;
         const a = agarre.current;
         const meCargan = a.cargados.get(yoId);
         const yaw = camara.current.yaw;
@@ -295,10 +298,11 @@ function Yo({ modelo, nombre, entrada, camara, inicio, formas, posicion, globo, 
             pos.r = girarHacia(pos.r, dir, Math.min(1, dt * 14));
             if (m.carga) m.f = (1 - Math.cos((performance.now() - m.desde) / 650)) / 2; // PC: la fuerza sube y baja sola
             const c = cancha.current;
-            const meta = m.balon && c && equipo ? aroDe(c, equipo === "azul" ? 1 : 0) : null;
+            const tipo = m.balon && c ? (esFutbol(c) ? "futbol" : "basquet") : "persona";
+            const meta = m.balon && c && equipo ? metaDe(c, equipo) : null;
             m.dir = dir;
             m.suelo = c ? c.y || 0 : pos.enSuelo ? pos.y : 0;
-            m.camino = trayectoria(pos, dir, m.f, { balon: m.balon, suelo: m.suelo, meta });
+            m.camino = trayectoria(pos, dir, m.f, { tipo, suelo: m.suelo, meta, radio: c ? c.tamBalon / 2 : 0.3 });
         }
         vistas.current.set(yoId, { x: pos.x, y: pos.y, z: pos.z, r: pos.r });
 
@@ -661,6 +665,16 @@ export default function Mundo() {
     const volver = useLocation().state?.desdeSala ? "/sala" : "/lobby";
     const { user } = useAuth();
     const [config, setConfig] = useState(null);
+    const configRef = useRef(null);
+    configRef.current = config;
+    // Sensibilidad de la cámara: la elige cada uno y queda guardada en su dispositivo.
+    const [sensibilidad, setSensibilidad] = useState(() => {
+        const v = Number(leer(CLAVE_SENSIBILIDAD));
+        return v >= 0.3 && v <= 3 ? v : 1;
+    });
+    const sensibilidadRef = useRef(sensibilidad);
+    sensibilidadRef.current = sensibilidad;
+    const [verAjustes, setVerAjustes] = useState(false);
     const [error, setError] = useState("");
     const [elegido, setElegido] = useState(null);
     const [eligiendo, setEligiendo] = useState(false);
@@ -841,12 +855,21 @@ export default function Mundo() {
             for (const d of balones.current.values()) if (d.por != null && d.por === miIdRef.current) mio = true;
             setTengoBalon(mio);
         };
-        const alCesta = ({ equipo, por }) => {
-            sonar("ganar");
-            avisar(`🏀 ¡Cesta del equipo ${NOMBRE_EQUIPO[equipo]}!${por ? ` (${por})` : ""}`, "ok", 2200);
+        // (el sonido de la cesta/gol llega aparte, con "cancha:sonido")
+        const alCesta = ({ equipo, por, futbol }) => {
+            avisar(`${futbol ? "⚽ ¡Gol" : "🏀 ¡Cesta"} del equipo ${NOMBRE_EQUIPO[equipo]}!${por ? ` (${por})` : ""}`, "ok", 2200);
         };
-        const alToma = ({ a }) => {
+        const alToma = ({ a, por, falta }) => {
             if (a != null && a === miIdRef.current) avisar("¡Te quitaron el balón!", "error", 1500);
+            if (falta && por === miIdRef.current) avisar("Tiro libre: cóbralo desde aquí 🎯", "ok", 2500);
+        };
+        const alFalta = ({ por, a, equipo }) => avisar(`🟨 ¡Falta de ${por} a ${a}! Tiro libre para el ${equipo ? NOMBRE_EQUIPO[equipo] : "otro equipo"}`, "error", 3000);
+        // Cada acción de la cancha suena con el sonido que eligió el admin (más bajito de lejos).
+        const alSonido = ({ id, accion, x, z }) => {
+            const o = (configRef.current?.objetos || []).find((q) => q.id === id);
+            if (!o) return;
+            const p = posicion.current;
+            sonarCancha(o, accion, Math.hypot(p.x - x, p.z - z));
         };
 
         socket.on("connect", entrar);
@@ -855,6 +878,8 @@ export default function Mundo() {
         socket.on("cancha:balones", alBalones);
         socket.on("cancha:cesta", alCesta);
         socket.on("cancha:toma", alToma);
+        socket.on("cancha:falta", alFalta);
+        socket.on("cancha:sonido", alSonido);
         socket.on("mundo:bienvenida", alBienvenida);
         socket.on("mundo:jugadores", alJugadores);
         socket.on("mundo:posiciones", alPosiciones);
@@ -881,6 +906,8 @@ export default function Mundo() {
             socket.off("cancha:balones", alBalones);
             socket.off("cancha:cesta", alCesta);
             socket.off("cancha:toma", alToma);
+            socket.off("cancha:falta", alFalta);
+            socket.off("cancha:sonido", alSonido);
             socket.off("mundo:bienvenida", alBienvenida);
             socket.off("mundo:jugadores", alJugadores);
             socket.off("mundo:posiciones", alPosiciones);
@@ -968,14 +995,19 @@ export default function Mundo() {
     const agarrar = useCallback(() => socket.emit("mundo:agarrar"), []);
 
     // Apuntar: se mantiene el botón y se desliza arriba (más lejos) o abajo (más cerca).
-    const empezarApuntar = useCallback((y0, carga = false) => {
-        Object.assign(mira.current, { activo: true, f: 0.5, y0, carga, desde: performance.now(), balon: !agarre.current.cargando.has(miIdRef.current), camino: null });
+    // Apuntar como un joystick: arriba/abajo = fuerza; a los lados gira la mira (gira la cámara).
+    const empezarApuntar = useCallback((y0, carga = false, x0 = 0) => {
+        Object.assign(mira.current, { activo: true, f: 0.5, y0, x: x0, carga, desde: performance.now(), balon: !agarre.current.cargando.has(miIdRef.current), camino: null });
         setApuntando(true);
     }, []);
-    const moverApuntar = useCallback((y) => {
+    const moverApuntar = useCallback((y, x) => {
         const m = mira.current;
         if (!m.activo || m.carga) return;
         m.f = Math.min(1, Math.max(0, 0.5 + (m.y0 - y) / (remPx() * 9)));
+        if (x != null && m.x != null) {
+            camara.current.yaw -= (x - m.x) * 0.006 * sensibilidadRef.current;
+            m.x = x;
+        }
     }, []);
     const lanzar = useCallback(() => {
         const m = mira.current;
@@ -1021,12 +1053,6 @@ export default function Mundo() {
         entrada.current.correr = !entrada.current.correr;
         setCorrer(entrada.current.correr);
     }, []);
-    // Tocar el joystick (o moverse con el teclado) quita el correr solo.
-    const quitarCorrer = useCallback(() => {
-        if (!entrada.current.correr) return;
-        entrada.current.correr = false;
-        setCorrer(false);
-    }, []);
 
     // 3) Teclado (PC): las teclas las pone el admin (panel → Mundo 3D → Controles).
     const teclas = config?.controles?.teclas || TECLAS_POR_DEFECTO;
@@ -1042,8 +1068,9 @@ export default function Mundo() {
         const mover = (e) => {
             if (!document.pointerLockElement) return;
             const c = camara.current;
-            c.yaw -= e.movementX * 0.0035;
-            c.pitch = Math.max(0.05, Math.min(1.25, c.pitch + e.movementY * 0.0025));
+            const k = sensibilidadRef.current;
+            c.yaw -= e.movementX * 0.0035 * k;
+            c.pitch = Math.max(0.05, Math.min(1.25, c.pitch + e.movementY * 0.0025 * k));
         };
         document.addEventListener("pointerlockchange", cambio);
         document.addEventListener("mousemove", mover);
@@ -1066,7 +1093,6 @@ export default function Mundo() {
             if (k) {
                 entrada.current.teclas[k] = true;
                 e.preventDefault();
-                if (k !== "shift" && entrada.current.correr) quitarCorrer();
             }
             if (e.repeat) return;
             if (a === "saltar") {
@@ -1108,7 +1134,7 @@ export default function Mundo() {
             window.removeEventListener("keyup", arriba);
             window.removeEventListener("blur", soltarTodo);
         };
-    }, [navigate, volver, brincar, empezarHablar, terminarHablar, agarrar, empezarApuntar, lanzar, alternarCorrer, quitarCorrer, alternarMirar, teclas]);
+    }, [navigate, volver, brincar, empezarHablar, terminarHablar, agarrar, empezarApuntar, lanzar, alternarCorrer, alternarMirar, teclas]);
 
     // Si el admin agranda el mundo, la orilla se corre.
     useEffect(() => ponerLimite(config?.tamano || 60), [config?.tamano]);
@@ -1121,8 +1147,9 @@ export default function Mundo() {
         const a = arrastre.current;
         if (!a || a.id !== e.pointerId) return;
         const c = camara.current;
-        c.yaw -= (e.clientX - a.x) * 0.006;
-        c.pitch = Math.max(0.05, Math.min(1.25, c.pitch + (e.clientY - a.y) * 0.004));
+        const k = sensibilidadRef.current;
+        c.yaw -= (e.clientX - a.x) * 0.006 * k;
+        c.pitch = Math.max(0.05, Math.min(1.25, c.pitch + (e.clientY - a.y) * 0.004 * k));
         a.x = e.clientX;
         a.y = e.clientY;
     }, []);
@@ -1236,7 +1263,7 @@ export default function Mundo() {
                     ))}
                 </Canvas>
                 {/* El joystick va sobre la escena: con el mouse se sigue girando la cámara. */}
-                <Joystick entrada={entrada} alTocar={quitarCorrer} tam={tam.joystick} lugar={lugar.joystick} modo={config.controles?.joystick} />
+                <Joystick entrada={entrada} tam={tam.joystick} lugar={lugar.joystick} modo={config.controles?.joystick} />
             </div>
 
             {/* ---------- Arriba ---------- */}
@@ -1252,10 +1279,40 @@ export default function Mundo() {
                     <LuUserRound aria-hidden="true" />
                     <span className="mu-ocultar-movil">Personaje</span>
                 </button>
+                <button type="button" className="mu-icono" onClick={() => setVerAjustes((v) => !v)} aria-label="Ajustes" aria-expanded={verAjustes} title="Ajustes (sensibilidad)">
+                    <LuSettings2 aria-hidden="true" />
+                </button>
                 <button type="button" className="mu-icono" onClick={() => navigate(volver)} aria-label="Salir del mundo">
                     <LuX aria-hidden="true" />
                 </button>
             </header>
+
+            {verAjustes && (
+                <aside className="mu-lista mu-ajustes" aria-label="Ajustes" onPointerDown={(e) => e.stopPropagation()}>
+                    <h3>Ajustes</h3>
+                    <label className="mu-ajuste">
+                        <span>
+                            Sensibilidad de la cámara <b>{`${Math.round(sensibilidad * 100)}%`}</b>
+                        </span>
+                        <input
+                            type="range"
+                            min={0.3}
+                            max={3}
+                            step={0.05}
+                            value={sensibilidad}
+                            onChange={(e) => {
+                                const v = Number(e.target.value);
+                                setSensibilidad(v);
+                                guardar(CLAVE_SENSIBILIDAD, String(v));
+                            }}
+                        />
+                    </label>
+                    <p>Sirve para girar la cámara y para apuntar a los lados. Queda guardada en este dispositivo.</p>
+                    <button type="button" className="ffp-btn ffp-btn-2" onClick={() => setVerAjustes(false)}>
+                        Listo
+                    </button>
+                </aside>
+            )}
 
             {verLista && (
                 <aside className="mu-lista" aria-label="Jugadores en el mundo">
@@ -1280,7 +1337,7 @@ export default function Mundo() {
             {miCanchaObj && (
                 <div className="mu-partido">
                     <Marcador estado={estadoMiCancha} ahora={Date.now() + desfase} compacto />
-                    <button type="button" className="mu-salir-cancha" onClick={salirCancha}>
+                    <button type="button" className="mu-salir-cancha" onPointerDown={salirCancha}>
                         <LuLogOut aria-hidden="true" />
                         Salir
                     </button>
@@ -1291,7 +1348,7 @@ export default function Mundo() {
             {mirando && <p className="mu-mirando">{`🖱️ Mirando con el mouse · ${tecla("mirar")} para soltar`}</p>}
 
             <div className="mu-acciones" onPointerDown={(e) => e.stopPropagation()}>
-                <button type="button" className="mu-accion mu-chica mu-libre" style={en("escribir")} onClick={() => setEscribiendo(true)} aria-label="Escribir un mensaje" title={`Escribir (${tecla("escribir")})`}>
+                <button type="button" className="mu-accion mu-chica mu-libre" style={en("escribir")} onPointerDown={() => setEscribiendo(true)} aria-label="Escribir un mensaje" title={`Escribir (${tecla("escribir")})`}>
                     <LuMessageCircle aria-hidden="true" />
                 </button>
                 <button
@@ -1301,16 +1358,16 @@ export default function Mundo() {
                     onPointerDown={(e) => {
                         if (!lanzable) return agarrar();
                         e.currentTarget.setPointerCapture?.(e.pointerId);
-                        empezarApuntar(e.clientY);
+                        empezarApuntar(e.clientY, false, e.clientX);
                     }}
-                    onPointerMove={(e) => moverApuntar(e.clientY)}
+                    onPointerMove={(e) => moverApuntar(e.clientY, e.clientX)}
                     onPointerUp={lanzar}
                     onPointerCancel={cancelarApuntar}
                     aria-label={lanzable ? "Lanzar (mantén y desliza para apuntar)" : tengoBalon ? "Lanzar" : "Agarrar"}
                     title={lanzable ? `Mantén y desliza arriba o abajo para apuntar; suelta para lanzar (${tecla("agarrar")})` : `Agarrar (${tecla("agarrar")})`}
                 >
                     {lanzable ? <LuRocket aria-hidden="true" /> : <LuGrab aria-hidden="true" />}
-                    <small>{apuntando ? `${Math.round((mira.current.f || 0) * 100)}%` : lanzable ? "Lanzar" : "Agarrar"}</small>
+                    <small>{apuntando ? `${Math.round((mira.current.f || 0) * 100)}%` : lanzable ? (tengoBalon && esFutbol(miCanchaObj) ? "Patear" : "Lanzar") : "Agarrar"}</small>
                     {apuntando && <span className="mu-fuerza" aria-hidden="true" />}
                 </button>
                 <BotonMic hablando={hablo} alEmpezar={empezarHablar} alTerminar={terminarHablar} tam={tam.hablar} tecla={tecla("hablar")} estilo={en("hablar")} />
@@ -1318,9 +1375,9 @@ export default function Mundo() {
                     type="button"
                     className={`mu-accion mu-libre ${correr ? "mu-correr-on" : ""}`}
                     style={en("correr")}
-                    onClick={alternarCorrer}
+                    onPointerDown={alternarCorrer}
                     aria-pressed={correr}
-                    title={`Correr solo hacia donde mira la cámara (${tecla("correrSolo")}). Toca el joystick para quitarlo.`}
+                    title={`Correr: se prende y se apaga cuando quieras, aunque estés caminando (${tecla("correrSolo")})`}
                 >
                     <LuZap aria-hidden="true" />
                     <small>Correr</small>
@@ -1331,7 +1388,7 @@ export default function Mundo() {
                 </button>
                 {/* USAR: solo aparece cuando hay algo para usar (no mueve los demás botones) */}
                 {circuloUsable && (
-                    <button type="button" className="mu-accion mu-usar mu-libre" style={en("usar")} onClick={usar} title={`Usar (${tecla("usar")})`}>
+                    <button type="button" className="mu-accion mu-usar mu-libre" style={en("usar")} onPointerDown={usar} title={`Usar (${tecla("usar")})`}>
                         <LuSparkles aria-hidden="true" />
                         <small>Usar</small>
                     </button>

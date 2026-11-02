@@ -191,7 +191,7 @@ Entra con tu usuario administrador → menú de tu perfil → **Panel de adminis
       flotante** (solo peldaños), columna, árbol, cuadro/mural, **círculo de juego**,
       **teletransporte**, **cancha (partido)** y **tabla de ranking**. Se elige y se toca el
       mapa (con Shift se ponen varias).
-    - **Cancha (partido azul vs rojo, tipo básquet):** se elige su tamaño, el **balón** (el
+    - **Cancha (partido azul vs rojo, básquet o fútbol):** se elige el **deporte**, su tamaño, el **balón** (el
       normal o uno de "mis objetos") y su tamaño, los minutos del partido y cuántos caben
       por equipo. En el mapa se **arrastran los dos aros** (cestas en el aire; en el panel
       también su altura y radio) y las **dos bolas para entrar**. Junto a las bolas sale un
@@ -312,11 +312,17 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
   defecto; el admin las cambia): W A S D, Shift corre, R corre solo, Espacio brinca, E
   agarra/lanza, mantener V habla, Enter escribe, **Z mira con el mouse sin hacer clic**
   (Z otra vez lo quita), Esc sale.
-  - **Correr** deja al personaje corriendo solo hacia donde mira la cámara (se dobla
-    girando la cámara); se quita al tocar el joystick.
+  - **Correr** se prende y se apaga cuando quieras, también mientras caminas (no hay que
+    soltar el joystick: los botones responden con otro dedo). Prendido corre hacia donde
+    muevas el joystick, y si no lo tocas corre solo hacia donde mira la cámara.
+  - **Ajustes** (⚙ arriba): **sensibilidad de la cámara** (también la de apuntar), guardada
+    en el dispositivo para la próxima vez.
+  - Al salir de la app (otra app, bloquear el teléfono, cerrar el navegador) el juego deja
+    de sonar; al volver sigue la música.
   - **Agarrar** alza al jugador que está al lado (máximo 6 s) y **Lanzar** lo tira hacia
     donde uno mira. Al que cae no lo pueden volver a agarrar por unos segundos.
-  - **Apuntar:** mantén **Lanzar** y desliza hacia arriba (más lejos) o abajo (más cerca);
+  - **Apuntar:** mantén **Lanzar** y desliza como un joystick: arriba (más lejos), abajo
+    (más cerca) y a los lados gira la mira (como la cámara);
     se ve el camino del tiro, dónde cae y a cuántos metros (verde = "¡Encesta!"). Al soltar
     lanza. En PC: mantén E (la fuerza sube y baja sola) y suelta.
   - **Cancha (partido azul vs rojo):** párate **3 s** junto a una bola (azul o roja) y
@@ -326,6 +332,18 @@ Se puede adjuntar solo la lista de preguntas, o un objeto con los datos del nive
     otro color**. Arriba salen el **marcador**, el tiempo y los **3 con más cestas**; no se
     sale de la cancha caminando: se usa el botón **Salir** de arriba. Al acabar el tiempo
     se anuncia el ganador y empieza otro partido con los que sigan.
+    - **Fútbol:** las cestas son **porterías** (marco del color del equipo, sin fondo, con
+      un difuminado); el balón va a los pies y se **patea** (más rápido y bajito). Los
+      **palos** y el aro rebotan y suenan.
+    - El balón **no atraviesa a los jugadores**: si lo lanzó un compañero, lo recibe
+      (**pase**); si no, **rebota** (así se puede tapar un gol). Si alguien lo pisa quieto,
+      lo empuja.
+    - **Falta:** alzar a un rival y lanzarlo. Suena el silbato y el que la recibió aparece
+      **donde lo alzaron, con el balón** (tiro libre, no se lo pueden quitar por 2,5 s).
+    - **Sonidos** (editor de la cancha): gol/cesta, palo, tomar, quitar, pase, rebote,
+      falta, entrar, inicio y fin. Cada uno: de fábrica, ninguno o uno de la **biblioteca**
+      (Panel → Sonidos; se suben una vez y se reutilizan), con su volumen. De lejos suenan
+      más bajito.
   - **Tabla de ranking:** los mejores de la temporada y el primero con su skin y su 👑.
   - **Sin letras flotantes en HTML:** los nombres de los juegos, teletransportes, equipos y
     el marcador van en **carteles 3D** (pintados una vez; solo se repintan si cambia el

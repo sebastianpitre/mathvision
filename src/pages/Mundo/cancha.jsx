@@ -25,8 +25,10 @@ const RADIO_ENTRADA = 1.4;
 const ESPERA_ENTRAR_MS = 3000;
 
 /* Fuerza 0…1 → velocidades (las mismas cuentas del servidor). */
-export const tiroBalon = (f) => ({ vh: 3 + 10 * f, vy: 5 + 5 * f });
-export const tiroPersona = (f) => ({ vh: 4 + 9 * f, vy: 6 + 4 * f });
+export const tiroBalon = (f, deporte = "basquet") =>
+    deporte === "futbol" ? { vh: 4 + 14 * f, vy: 1.5 + 6.5 * f, adelante: 0.7, alto: null } : { vh: 3 + 10 * f, vy: 5 + 5 * f, adelante: 0.6, alto: 1.9 };
+export const tiroPersona = (f) => ({ vh: 4 + 9 * f, vy: 6 + 4 * f, adelante: 0.6, alto: 1.9 });
+export const esFutbol = (o) => o?.deporte === "futbol";
 
 export function aMundoC(o, lx, lz) {
     const a = ((o.rot || 0) * Math.PI) / 180;
@@ -49,39 +51,64 @@ export function dentroDeCancha(o, x, z, margen = 0.35) {
 }
 
 /*
- * Camino del tiro: desde encima de la cabeza hacia "dir" con
- * fuerza f. Devuelve los puntos, dónde cae, la distancia y si
- * pasa por el aro "meta" (bajando).
+ * Camino del tiro hacia "dir" con fuerza f. tipo: "basquet" (balón
+ * desde encima de la cabeza), "futbol" (patada desde el piso) o
+ * "persona" (lanzar a alguien). Devuelve los puntos, dónde cae, la
+ * distancia y si entra en la meta: { aro } (bajando por el aro, sin
+ * tocar el borde) o { porteria, cancha, k } (cruza la línea entre
+ * los palos y debajo del travesaño).
  */
-export function trayectoria(p, dir, f, { balon = true, suelo = 0, meta = null } = {}) {
-    const { vh, vy: vy0 } = balon ? tiroBalon(f) : tiroPersona(f);
-    const g = balon ? G_BALON : G_PERSONA;
-    let x = p.x + Math.sin(dir) * 0.6;
-    let y = p.y + 1.9;
-    let z = p.z + Math.cos(dir) * 0.6;
+export function trayectoria(p, dir, f, { tipo = "basquet", suelo = 0, meta = null, radio = 0.3 } = {}) {
+    const t = tipo === "persona" ? tiroPersona(f) : tiroBalon(f, tipo);
+    const g = tipo === "persona" ? G_PERSONA : G_BALON;
+    let x = p.x + Math.sin(dir) * t.adelante;
+    let y = t.alto == null ? p.y + radio + 0.05 : p.y + t.alto;
+    let z = p.z + Math.cos(dir) * t.adelante;
     const x0 = x;
     const z0 = z;
-    let vy = vy0;
-    const vx = Math.sin(dir) * vh;
-    const vz = Math.cos(dir) * vh;
+    let vy = t.vy;
+    const vx = Math.sin(dir) * t.vh;
+    const vz = Math.cos(dir) * t.vh;
     const puntos = [[x, y, z]];
     let encesta = false;
+    let choca = false;
+    const piso = tipo === "persona" ? suelo : suelo + radio;
     const dt = 0.03;
-    for (let i = 0; i < 200 && y > suelo; i += 1) {
+    for (let i = 0; i < 200 && y > piso; i += 1) {
+        const ax = x;
         const ay = y;
+        const az = z;
         vy -= g * dt;
         x += vx * dt;
         y += vy * dt;
         z += vz * dt;
-        if (meta && ay > meta.y && y <= meta.y) {
-            const t = (ay - meta.y) / (ay - y || 1);
-            const px = x - vx * dt * (1 - t);
-            const pz = z - vz * dt * (1 - t);
-            if (Math.hypot(px - meta.x, pz - meta.z) <= meta.radio) encesta = true;
+        if (meta?.aro && !encesta) {
+            const a = meta.aro;
+            // ¿Toca el borde del aro? (con el mismo margen que el servidor)
+            const hd = Math.hypot(x - a.x, z - a.z);
+            if (hd > 1e-3 && Math.hypot(hd - a.radio, y - a.y) < radio * 0.5 + Math.max(0.05, a.radio * 0.07)) choca = true;
+            if (ay > a.y && y <= a.y) {
+                const k = (ay - a.y) / (ay - y || 1);
+                if (Math.hypot(ax + (x - ax) * k - a.x, az + (z - az) * k - a.z) <= a.radio && !choca) encesta = true;
+            }
         }
-        puntos.push([x, Math.max(y, suelo), z]);
+        if (meta?.porteria && !encesta) {
+            const { cancha: o, k } = meta;
+            const antes = aLocalC(o, ax, az);
+            const ahora = aLocalC(o, x, z);
+            const lado = Math.sign(k.z) || 1;
+            if ((antes.lz - k.z) * lado < 0 && (ahora.lz - k.z) * lado >= 0 && Math.abs(ahora.lx - k.x) < k.radio - radio * 0.3 && y - (o.y || 0) < k.y) encesta = true;
+        }
+        puntos.push([x, Math.max(y, piso), z]);
     }
     return { puntos, caida: { x, z }, distancia: Math.hypot(x - x0, z - z0), encesta };
+}
+
+/* La meta del tiro de mi equipo (el aro o la portería del otro color). */
+export function metaDe(o, equipo) {
+    const i = equipo === "azul" ? 1 : 0;
+    if (esFutbol(o)) return { porteria: true, cancha: o, k: o.cestas[i] };
+    return { aro: aroDe(o, i) };
 }
 
 /* Aro de un equipo en coordenadas del mundo. */
@@ -161,6 +188,49 @@ function Aro({ k, color }) {
     );
 }
 
+/* Portería de fútbol: marco cuadrado del color del equipo, sin fondo, con un difuminado en el medio. */
+function useDifuminado(color) {
+    return useMemo(() => {
+        const c = document.createElement("canvas");
+        c.width = 128;
+        c.height = 128;
+        const g = c.getContext("2d");
+        const r = g.createRadialGradient(64, 64, 4, 64, 64, 90);
+        r.addColorStop(0, `${color}66`);
+        r.addColorStop(1, `${color}08`);
+        g.fillStyle = r;
+        g.fillRect(0, 0, 128, 128);
+        const t = new THREE.CanvasTexture(c);
+        t.colorSpace = THREE.SRGBColorSpace;
+        return t;
+    }, [color]);
+}
+
+function Porteria({ k, color }) {
+    const ancho = k.radio * 2;
+    const g = 0.12;
+    const fondo = useDifuminado(color);
+    const material = <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.45} roughness={0.4} />;
+    return (
+        <group position={[k.x, 0, k.z]}>
+            {[-1, 1].map((s) => (
+                <mesh key={s} position={[s * k.radio, k.y / 2, 0]} castShadow>
+                    <boxGeometry args={[g, k.y, g]} />
+                    {material}
+                </mesh>
+            ))}
+            <mesh position={[0, k.y, 0]} castShadow>
+                <boxGeometry args={[ancho + g, g, g]} />
+                {material}
+            </mesh>
+            <mesh position={[0, k.y / 2, 0]}>
+                <planeGeometry args={[ancho, k.y]} />
+                <meshBasicMaterial map={fondo} transparent depthWrite={false} side={THREE.DoubleSide} toneMapped={false} />
+            </mesh>
+        </group>
+    );
+}
+
 /* Bola para entrar a un equipo (con su cuenta de 3 s). */
 function BolaEntrada({ p, equipo, entrando, ahora, yoId, etiquetas = true }) {
     const bola = useRef(null);
@@ -212,15 +282,24 @@ function BolaEntrada({ p, equipo, entrando, ahora, yoId, etiquetas = true }) {
 }
 
 /* Letrero con las instrucciones, junto a las bolas de entrada (un cartel de verdad). */
-const PASOS = [
-    "1. Párate 3 s junto a una bola para entrar a ese equipo.",
-    "2. Agarrar: toma el balón o quítaselo al rival.",
-    "3. Mantén Lanzar y desliza para apuntar.",
-    "4. Encesta en el aro del otro color.",
-    "5. Para salir, toca Salir arriba.",
-];
+const PASOS = {
+    basquet: [
+        "1. Párate 3 s junto a una bola para entrar a ese equipo.",
+        "2. Agarrar: toma el balón o quítaselo al rival.",
+        "3. Mantén Lanzar y desliza para apuntar.",
+        "4. Encesta en el aro del otro color.",
+        "5. Alzar y lanzar a un rival es falta. Salir: arriba.",
+    ],
+    futbol: [
+        "1. Párate 3 s junto a una bola para entrar a ese equipo.",
+        "2. Agarrar: lleva el balón o quítaselo al rival.",
+        "3. Mantén Patear y desliza para apuntar.",
+        "4. Mete gol en la portería del otro color.",
+        "5. Alzar y lanzar a un rival es falta. Salir: arriba.",
+    ],
+};
 
-function useCartel() {
+function useCartel(deporte) {
     return useMemo(() => {
         const c = document.createElement("canvas");
         c.width = 1024;
@@ -234,10 +313,10 @@ function useCartel() {
         g.textBaseline = "middle";
         g.fillStyle = "#fde68a";
         g.font = "800 74px system-ui, sans-serif";
-        g.fillText("🏀 Azul vs Rojo", 50, 95);
+        g.fillText(deporte === "futbol" ? "⚽ Azul vs Rojo" : "🏀 Azul vs Rojo", 50, 95);
         g.fillStyle = "#ffffff";
         g.font = "600 44px system-ui, sans-serif";
-        PASOS.forEach((t, i) => {
+        PASOS[deporte === "futbol" ? "futbol" : "basquet"].forEach((t, i) => {
             // corta en dos líneas si no cabe
             const palabras = t.split(" ");
             let linea = "";
@@ -256,11 +335,11 @@ function useCartel() {
         t.colorSpace = THREE.SRGBColorSpace;
         t.anisotropy = 4;
         return t;
-    }, []);
+    }, [deporte]);
 }
 
-function Letrero({ p, rot }) {
-    const textura = useCartel();
+function Letrero({ p, rot, deporte }) {
+    const textura = useCartel(deporte);
     return (
         <group position={[p.x, 0, p.z]} rotation={[0, rot, 0]}>
             {[-1, 1].map((k) => (
@@ -282,7 +361,7 @@ function Letrero({ p, rot }) {
 }
 
 /* Marcador encima de la cancha (para los que miran desde afuera). */
-export function Marcador({ estado, ahora, compacto = false }) {
+export function Marcador({ estado, ahora, compacto = false, futbol = false }) {
     const p = estado?.puntos || { azul: 0, rojo: 0 };
     const fin = estado?.fin;
     return (
@@ -299,7 +378,7 @@ export function Marcador({ estado, ahora, compacto = false }) {
                         <li key={t.userId}>
                             <span>{["🥇", "🥈", "🥉"][i]}</span>
                             <b style={{ color: COLOR_EQUIPO[t.equipo] || "#fff" }}>{t.nombre}</b>
-                            <em>{`${t.cestas} ${t.cestas === 1 ? "cesta" : "cestas"}`}</em>
+                            <em>{futbol ? `${t.cestas} ${t.cestas === 1 ? "gol" : "goles"}` : `${t.cestas} ${t.cestas === 1 ? "cesta" : "cestas"}`}</em>
                         </li>
                     ))}
                 </ol>
@@ -309,7 +388,7 @@ export function Marcador({ estado, ahora, compacto = false }) {
 }
 
 /* El marcador pintado en un cartel (solo se vuelve a pintar cuando cambia). */
-function Tablero({ estado, ahora }) {
+function Tablero({ estado, ahora, futbol }) {
     const p = estado?.puntos || { azul: 0, rojo: 0 };
     const fin = estado?.fin;
     const lineas = [
@@ -319,7 +398,7 @@ function Tablero({ estado, ahora }) {
             c: "#fde68a",
             s: 0.85,
         },
-        ...(estado?.top || []).map((t, i) => ({ t: `${["🥇", "🥈", "🥉"][i]} ${t.nombre} · ${t.cestas}`, c: COLOR_EQUIPO[t.equipo] ? "#ffffff" : "#cbd5e1", s: 0.7, n: false })),
+        ...(estado?.top || []).map((t, i) => ({ t: `${["🥇", "🥈", "🥉"][i]} ${t.nombre} · ${t.cestas} ${futbol ? "⚽" : "🏀"}`, c: COLOR_EQUIPO[t.equipo] ? "#ffffff" : "#cbd5e1", s: 0.7, n: false })),
     ];
     return <Cartel position={[0, 4.6, 0]} ancho={4} alto={2} fondo="#0b1020" borde="#fbbf24" dosCaras lineas={lineas} />;
 }
@@ -349,20 +428,20 @@ export function Cancha({ o, estado = null, ahora = Date.now(), yoId = null, etiq
                 <meshBasicMaterial color={COLOR_EQUIPO.rojo} transparent opacity={0.14} depthWrite={false} />
             </mesh>
             <Lineas o={o} />
-            {o.cestas.map((k, i) => (
-                <Aro key={i} k={k} color={COLOR_EQUIPO[EQUIPOS[i]]} />
-            ))}
+            {o.cestas.map((k, i) =>
+                esFutbol(o) ? <Porteria key={i} k={k} color={COLOR_EQUIPO[EQUIPOS[i]]} /> : <Aro key={i} k={k} color={COLOR_EQUIPO[EQUIPOS[i]]} />
+            )}
             {o.entradas.map((p, i) => (
                 <BolaEntrada key={i} p={p} equipo={EQUIPOS[i]} entrando={estado?.entrando} ahora={ahora} yoId={yoId} etiquetas={etiquetas} />
             ))}
-            <Letrero p={letrero} rot={mira} />
+            <Letrero p={letrero} rot={mira} deporte={o.deporte} />
             {/* tablero del marcador en un poste, a un lado de la mitad de la cancha */}
             <group position={[-o.ancho / 2 - 0.8, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
                 <mesh position={[0, 1.9, 0]} castShadow>
                     <cylinderGeometry args={[0.08, 0.08, 3.8, 8]} />
                     <meshStandardMaterial color="#1f2937" />
                 </mesh>
-                {etiquetas && <Tablero estado={estado} ahora={ahora} />}
+                {etiquetas && <Tablero estado={estado} ahora={ahora} futbol={esFutbol(o)} />}
             </group>
         </group>
     );
@@ -391,19 +470,61 @@ function BalonNormal({ r }) {
     );
 }
 
+/* Balón de fútbol: blanco con parches negros (pintados una vez). */
+let texturaFutbol = null;
+function useTexturaFutbol() {
+    return useMemo(() => {
+        if (texturaFutbol) return texturaFutbol;
+        const c = document.createElement("canvas");
+        c.width = 512;
+        c.height = 256;
+        const g = c.getContext("2d");
+        g.fillStyle = "#f8fafc";
+        g.fillRect(0, 0, 512, 256);
+        g.fillStyle = "#111827";
+        const parche = (x, y, r) => {
+            g.beginPath();
+            for (let i = 0; i < 5; i += 1) {
+                const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
+                g.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+            }
+            g.fill();
+        };
+        for (let fila = 0; fila < 3; fila += 1) for (let i = 0; i < 6; i += 1) parche(i * 86 + (fila % 2) * 43 + 20, 45 + fila * 83, 22);
+        texturaFutbol = new THREE.CanvasTexture(c);
+        texturaFutbol.colorSpace = THREE.SRGBColorSpace;
+        return texturaFutbol;
+    }, []);
+}
+
+function BalonFutbol({ r }) {
+    const mapa = useTexturaFutbol();
+    return (
+        <mesh castShadow>
+            <sphereGeometry args={[r, 28, 20]} />
+            <meshStandardMaterial map={mapa} roughness={0.55} />
+        </mesh>
+    );
+}
+
 /*
  * El balón de una cancha. "datos" (ref) trae lo último del
- * servidor: { x, y, z, vx, vy, vz, por, pausa, t }. Entre
- * mensajes se adelanta con su velocidad y la gravedad; si
- * alguien lo tiene, va en sus manos (vistas = dónde se ve cada uno).
+ * servidor: { x, y, z, vx, vy, vz, por, pausa, t }.
+ * · Si alguien lo tiene, va pegado a él (en las manos o, en fútbol,
+ *   a los pies), sin retraso: si para, el balón queda quieto.
+ * · Suelto, se simula aquí igual que en el servidor (gravedad, bote y
+ *   roce del piso) y cada mensaje lo corrige suave. Así no se adelanta
+ *   y se devuelve.
  */
 export function Balon({ o, modelos = [], datos, vistas }) {
     const grupo = useRef(null);
     const giro = useRef(null);
     const r = o.tamBalon / 2;
     const piso = (o.y || 0) + r;
+    const futbol = esFutbol(o);
     const modelo = o.balon ? modelos.find((m) => m.id === o.balon) : null;
-    const pos = useRef(null);
+    const sim = useRef(null);
+    const visto = useRef(0);
 
     useFrame((_, delta) => {
         const g = grupo.current;
@@ -411,47 +532,78 @@ export function Balon({ o, modelos = [], datos, vistas }) {
         if (!g) return;
         if (!d || d.pausa) {
             g.visible = false;
+            sim.current = null;
             return;
         }
         g.visible = true;
-        let meta;
+        const dt = Math.min(delta, 0.05);
+        const antes = sim.current ? { x: sim.current.x, z: sim.current.z } : null;
         const v = d.por != null ? vistas.current.get(d.por) : null;
         if (v) {
-            meta = { x: v.x + Math.sin(v.r) * 0.45, y: v.y + 1.15, z: v.z + Math.cos(v.r) * 0.45 };
+            // Lo lleva alguien: pegado a él.
+            const ad = futbol ? 0.6 : 0.45;
+            sim.current = { x: v.x + Math.sin(v.r) * ad, y: futbol ? v.y + r : v.y + 1.15, z: v.z + Math.cos(v.r) * ad, vx: 0, vy: 0, vz: 0 };
         } else {
-            const t = Math.min(1.5, (performance.now() - d.t) / 1000);
-            meta = { x: d.x + d.vx * t, y: Math.max(piso, d.y + d.vy * t - (G_BALON * t * t) / 2), z: d.z + d.vz * t };
+            let b = sim.current || { ...d };
+            if (d.t !== visto.current) {
+                visto.current = d.t;
+                if (!b || Math.hypot(b.x - d.x, b.y - d.y, b.z - d.z) > 1.2) b = { ...d };
+                else {
+                    // Corrección suave hacia lo que dice el servidor.
+                    b.x += (d.x - b.x) * 0.35;
+                    b.y += (d.y - b.y) * 0.35;
+                    b.z += (d.z - b.z) * 0.35;
+                    b.vx = d.vx;
+                    b.vy = d.vy;
+                    b.vz = d.vz;
+                }
+            }
+            // Igual que el servidor: gravedad, bote y roce en el piso.
+            b.vy -= G_BALON * dt;
+            b.x += b.vx * dt;
+            b.y += b.vy * dt;
+            b.z += b.vz * dt;
+            if (b.y <= piso) {
+                b.y = piso;
+                b.vy = Math.abs(b.vy) > 1.2 ? -b.vy * 0.55 : 0;
+                const roce = 0.82 ** (dt / 0.05);
+                b.vx *= roce;
+                b.vz *= roce;
+                if (!b.vy && Math.hypot(b.vx, b.vz) < 0.15) b.vx = b.vz = 0;
+            }
+            sim.current = b;
         }
-        if (!pos.current) pos.current = { ...meta };
-        const p = pos.current;
-        const k = Math.min(1, delta * (v ? 25 : 14));
-        const antes = { x: p.x, z: p.z };
-        p.x += (meta.x - p.x) * k;
-        p.y += (meta.y - p.y) * k;
-        p.z += (meta.z - p.z) * k;
-        g.position.set(p.x, p.y, p.z);
-        // Rueda/gira con el movimiento.
-        if (giro.current) {
-            const mov = Math.hypot(p.x - antes.x, p.z - antes.z);
-            giro.current.rotation.x += mov / Math.max(0.05, r);
-            giro.current.rotation.y += delta * 0.6;
+        const b = sim.current;
+        g.position.set(b.x, b.y, b.z);
+        // Rueda con el movimiento (y gira un poquito en el aire).
+        if (giro.current && antes) {
+            const mx = b.x - antes.x;
+            const mz = b.z - antes.z;
+            const mov = Math.hypot(mx, mz);
+            if (mov > 1e-4) {
+                giro.current.rotation.y = Math.atan2(mx, mz);
+                giro.current.children[0].rotation.x += mov / Math.max(0.05, r);
+            }
         }
     });
 
+    const cuerpo = futbol ? <BalonFutbol r={r} /> : <BalonNormal r={r} />;
     return (
         <group ref={grupo} visible={false}>
             <group ref={giro}>
-                {modelo ? (
-                    <ProtegerError respaldo={<BalonNormal r={r} />}>
-                        <Suspense fallback={<BalonNormal r={r} />}>
-                            <group position={[0, -r, 0]}>
-                                <ModeloGlb ruta={modelo.ruta} ancho={o.tamBalon} alto={o.tamBalon} largo={o.tamBalon} />
-                            </group>
-                        </Suspense>
-                    </ProtegerError>
-                ) : (
-                    <BalonNormal r={r} />
-                )}
+                <group>
+                    {modelo ? (
+                        <ProtegerError respaldo={cuerpo}>
+                            <Suspense fallback={cuerpo}>
+                                <group position={[0, -r, 0]}>
+                                    <ModeloGlb ruta={modelo.ruta} ancho={o.tamBalon} alto={o.tamBalon} largo={o.tamBalon} />
+                                </group>
+                            </Suspense>
+                        </ProtegerError>
+                    ) : (
+                        cuerpo
+                    )}
+                </group>
             </group>
         </group>
     );

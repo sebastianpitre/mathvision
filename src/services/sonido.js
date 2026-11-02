@@ -24,6 +24,8 @@ if (typeof HTMLMediaElement !== "undefined" && !HTMLMediaElement.prototype.__lud
     HTMLMediaElement.prototype.__ludoSonido = true;
 
     HTMLMediaElement.prototype.play = function (...args) {
+        // En segundo plano (otra app, pestaña oculta, Chrome cerrado) no suena nada.
+        if (typeof document !== "undefined" && document.visibilityState === "hidden") return Promise.resolve();
         if (silencio) this.muted = true;
         sonando.add(this);
         this.addEventListener("ended", () => sonando.delete(this), { once: true });
@@ -50,4 +52,42 @@ export function cambiarSilencio(valor = !silencio) {
 export function alCambiarSilencio(fn) {
     oyentes.add(fn);
     return () => oyentes.delete(fn);
+}
+
+/* ---------------- Segundo plano ----------------
+   Al salir de la app (otra app, bloquear el teléfono, cerrar el
+   navegador) se pausa todo lo que suena y se suspende el audio de
+   las voces. Al volver, la música vuelve sola (sonidos.js). */
+const contextos = new Set();
+export function registrarContextoAudio(c) {
+    if (c) contextos.add(c);
+}
+
+if (typeof document !== "undefined") {
+    const alCambiar = () => {
+        const oculto = document.visibilityState === "hidden";
+        if (oculto) {
+            for (const audio of sonando) {
+                try {
+                    audio.pause();
+                } catch {
+                    // ya no existe
+                }
+            }
+            sonando.clear();
+        }
+        for (const c of contextos) {
+            try {
+                if (oculto && c.state === "running") c.suspend();
+                else if (!oculto && c.state === "suspended") c.resume();
+            } catch {
+                // contexto cerrado
+            }
+        }
+    };
+    document.addEventListener("visibilitychange", alCambiar);
+    window.addEventListener("pagehide", () => {
+        for (const audio of sonando) audio.pause?.();
+        for (const c of contextos) c.suspend?.().catch?.(() => {});
+    });
 }

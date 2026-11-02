@@ -1,5 +1,5 @@
 /* =========================================================
-   MUNDO 3D · CANCHA (minijuego tipo básquet, azul vs rojo)
+   MUNDO 3D · CANCHA (minijuego azul vs rojo: básquet o fútbol)
    ---------------------------------------------------------
    El admin pone una "cancha" en el editor y elige:
    · su tamaño (ancho × largo), el balón (normal o uno de
@@ -16,6 +16,15 @@
    Lanzar: apuntas con la fuerza (0…1) hacia donde mira la cámara.
    Todas las posiciones de cestas y entradas van en metros
    relativos al centro de la cancha (y giran con ella).
+   Fútbol ("deporte"): las "cestas" son porterías (marco de
+   ancho = 2 × radio y alto = y); el balón va a los pies y se
+   patea; los palos rebotan (suena "palo").
+   El balón no atraviesa a los jugadores: si lo lanzó un
+   compañero, lo recibe (pase); si no, rebota.
+   Falta: alzar a un rival y lanzarlo. Se cobra desde donde
+   lo alzaron: el que la recibió aparece ahí con el balón.
+   Cada acción manda "cancha:sonido" y el navegador suena el
+   sonido que el admin eligió para esa cancha.
 ========================================================= */
 
 export const G_BALON = 14; // gravedad del balón (m/s²)
@@ -30,10 +39,21 @@ const PAUSA_CESTA_MS = 1500;
 const PAUSA_FIN_MS = 6000;
 const EQUIPOS = ["azul", "rojo"];
 
-/* Fuerza (0…1) → velocidades de salida. El navegador usa lo mismo para dibujar la mira. */
-export function tiroBalon(f) {
+const PAUSA_FALTA_MS = 1200; // la falta se cobra cuando el lanzado ya cayó
+const PROTEGIDO_FALTA_MS = 2500;
+const RADIO_JUGADOR = 0.4;
+const ALTO_JUGADOR = 1.85;
+const GRUESO_PALO = 0.1;
+
+/*
+ * Fuerza (0…1) → velocidades de salida y desde qué altura sale.
+ * Básquet: se lanza por encima de la cabeza. Fútbol: se patea desde
+ * el piso, más rápido y más bajito. El navegador usa lo mismo para la mira.
+ */
+export function tiroBalon(f, deporte = "basquet") {
     const k = Math.min(1, Math.max(0, Number(f) || 0));
-    return { vh: 3 + 10 * k, vy: 5 + 5 * k };
+    if (deporte === "futbol") return { vh: 4 + 14 * k, vy: 1.5 + 6.5 * k, adelante: 0.7, alto: null };
+    return { vh: 3 + 10 * k, vy: 5 + 5 * k, adelante: 0.6, alto: 1.9 };
 }
 
 const r2 = (n) => Math.round(n * 100) / 100;
@@ -66,7 +86,23 @@ export function crearCanchas({ io, jugadores, sala }) {
     const socketDe = (j) => io.sockets.sockets.get(j.socketId);
 
     function nuevoBalon(c) {
-        return { x: c.x, y: (c.y || 0) + 4, z: c.z, vx: 0, vy: 0, vz: 0, por: null, ultimo: null, protegido: 0, quieto: false };
+        return { x: c.x, y: (c.y || 0) + 4, z: c.z, vx: 0, vy: 0, vz: 0, por: null, ultimo: null, protegido: 0, quieto: false, soltado: 0 };
+    }
+
+    /* Avisa a todos que suene el sonido de una acción (lo elige el admin por cancha). */
+    const ultimosSonidos = new Map();
+    function sonar(c, accion, p = c, espera = 0) {
+        const clave = `${c.id}:${accion}`;
+        const ahora = Date.now();
+        if (espera && ahora - (ultimosSonidos.get(clave) || 0) < espera) return;
+        ultimosSonidos.set(clave, ahora);
+        io.to(sala).emit("cancha:sonido", { id: c.id, accion, x: r2(p.x), z: r2(p.z) });
+    }
+
+    /* Dónde va el balón cuando alguien lo lleva: en las manos (básquet) o a los pies (fútbol). */
+    function enManos(c, j) {
+        if (c.deporte === "futbol") return { x: j.x + Math.sin(j.r) * 0.6, y: j.y + c.tamBalon / 2, z: j.z + Math.cos(j.r) * 0.6 };
+        return { x: j.x + Math.sin(j.r) * 0.45, y: j.y + 1.15, z: j.z + Math.cos(j.r) * 0.45 };
     }
 
     function estadoDe(c) {
@@ -141,7 +177,11 @@ export function crearCanchas({ io, jugadores, sala }) {
         e.equipos.set(j.userId, equipo);
         if (!e.cestas.has(j.userId)) e.cestas.set(j.userId, 0);
         j.cancha = c.id;
-        if (!e.termina && !e.fin) e.termina = Date.now() + c.minutos * 60_000;
+        if (!e.termina && !e.fin) {
+            e.termina = Date.now() + c.minutos * 60_000;
+            sonar(c, "inicio");
+        }
+        sonar(c, "entrar", j);
         const destino = { ...lugarEnSuMitad(c, equipo), y: c.y || 0 };
         Object.assign(j, destino);
         const s = socketDe(j);
@@ -185,6 +225,7 @@ export function crearCanchas({ io, jugadores, sala }) {
         e.fin = null;
         e.pausa = 0;
         e.cambio = true;
+        if (e.equipos.size) sonar(c, "inicio");
     }
 
     /* Cada 250 ms: quién está entrando por las bolas y cuándo se acaba el partido. */
@@ -225,6 +266,7 @@ export function crearCanchas({ io, jugadores, sala }) {
                 e.termina = null;
                 if (e.balon.por) e.balon.por = null;
                 e.cambio = true;
+                sonar(c, "fin");
             } else if (e.fin && ahora >= e.fin.hasta) {
                 reiniciar(c, e);
             }
@@ -235,6 +277,107 @@ export function crearCanchas({ io, jugadores, sala }) {
                 emitirEstado(c, e);
             }
         }
+    }
+
+    /* Choques del balón con los jugadores del partido. Devuelve true si alguien lo recibió. */
+    function chocarJugadores(c, e, b, radio, ahora) {
+        const rapido = Math.hypot(b.vx, b.vz, b.vy) > 1.5;
+        const equipoTiro = b.ultimo ? e.equipos.get(b.ultimo) : null;
+        for (const [uid, equipo] of e.equipos) {
+            const p = jugadores.get(uid);
+            if (!p || p.cargadoPor) continue;
+            if (uid === b.ultimo && ahora - b.soltado < 400) continue; // recién lanzado: no le pega al que lo tiró
+            const dx = b.x - p.x;
+            const dz = b.z - p.z;
+            const d = Math.hypot(dx, dz);
+            const min = RADIO_JUGADOR + radio;
+            if (d >= min || b.y < p.y - radio || b.y > p.y + ALTO_JUGADOR + radio) continue;
+            // Pase: lo lanzó un compañero y va con fuerza → lo recibe.
+            if (rapido && equipoTiro && equipoTiro === equipo && uid !== b.ultimo && !e.pausa && !e.fin) {
+                Object.assign(b, { por: uid, ultimo: uid, protegido: ahora + PROTEGIDO_MS, vx: 0, vy: 0, vz: 0 });
+                io.to(sala).emit("cancha:toma", { id: c.id, por: uid, pase: true });
+                sonar(c, "pase", p);
+                return true;
+            }
+            // Rebota en el cuerpo (hacia afuera, perdiendo fuerza).
+            const nx = d > 1e-3 ? dx / d : -Math.sign(b.vx || 1);
+            const nz = d > 1e-3 ? dz / d : -Math.sign(b.vz || 1);
+            const vn = b.vx * nx + b.vz * nz;
+            if (vn < 0) {
+                b.vx -= 1.5 * vn * nx;
+                b.vz -= 1.5 * vn * nz;
+                if (-vn > 2) sonar(c, "rebote", b, 250);
+            }
+            b.x = p.x + nx * min;
+            b.z = p.z + nz * min;
+            b.quieto = false;
+        }
+        return false;
+    }
+
+    /* Rebota contra un punto (palo/aro) si lo toca: normal desde el punto al balón. */
+    function rebotarEn(b, q, min, c) {
+        const dx = b.x - q.x;
+        const dy = b.y - q.y;
+        const dz = b.z - q.z;
+        const d = Math.hypot(dx, dy, dz);
+        if (d >= min || d < 1e-4) return false;
+        const n = [dx / d, dy / d, dz / d];
+        const vn = b.vx * n[0] + b.vy * n[1] + b.vz * n[2];
+        if (vn < 0) {
+            b.vx -= 1.7 * vn * n[0];
+            b.vy -= 1.7 * vn * n[1];
+            b.vz -= 1.7 * vn * n[2];
+            if (-vn > 1) sonar(c, "palo", b, 200);
+        }
+        b.x = q.x + n[0] * min;
+        b.y = q.y + n[1] * min;
+        b.z = q.z + n[2] * min;
+        b.quieto = false;
+        return true;
+    }
+
+    function chocarMarcos(c, b, radio) {
+        const base = c.y || 0;
+        for (const k of c.cestas) {
+            if (c.deporte === "futbol") {
+                const min = radio + GRUESO_PALO;
+                const L = aLocal(c, b.x, b.z);
+                // Palos parados (a cada lado): el punto más cercano del palo.
+                for (const s of [-1, 1]) {
+                    const w = aMundo(c, k.x + s * k.radio, k.z);
+                    const y = Math.max(base, Math.min(base + k.y, b.y));
+                    rebotarEn(b, { x: w.x, y, z: w.z }, min, c);
+                }
+                // Travesaño: el punto más cercano a lo ancho.
+                const lx = Math.max(k.x - k.radio, Math.min(k.x + k.radio, L.lx));
+                const w = aMundo(c, lx, k.z);
+                rebotarEn(b, { x: w.x, y: base + k.y, z: w.z }, min, c);
+            } else {
+                // Aro: el punto del aro más cercano al balón.
+                const w = aMundo(c, k.x, k.z);
+                const hx = b.x - w.x;
+                const hz = b.z - w.z;
+                const hd = Math.hypot(hx, hz);
+                if (hd < 1e-3) continue;
+                const q = { x: w.x + (hx / hd) * k.radio, y: base + k.y, z: w.z + (hz / hd) * k.radio };
+                // (medio radio: el aro perdona un poco, si no casi nada entra)
+                rebotarEn(b, q, radio * 0.5 + Math.max(0.05, k.radio * 0.07), c);
+            }
+        }
+    }
+
+    /* Falta: se cobra desde donde alzaron al jugador; él aparece ahí con el balón. */
+    function cobrarFalta(f, victimaId) {
+        const c = canchas().find((x) => x.id === f.cancha);
+        const e = c && estados.get(c.id);
+        const v = jugadores.get(victimaId);
+        if (!c || !e || !v || !e.equipos.has(victimaId) || e.fin) return;
+        const lugar = { ...dentroDeCancha(c, f.x, f.z), y: c.y || 0 };
+        Object.assign(v, lugar);
+        socketDe(v)?.emit("mundo:teletransporte", lugar);
+        Object.assign(e.balon, enManos(c, v), { por: victimaId, ultimo: victimaId, protegido: Date.now() + PROTEGIDO_FALTA_MS, vx: 0, vy: 0, vz: 0, quieto: false });
+        io.to(sala).emit("cancha:toma", { id: c.id, por: victimaId, falta: true });
     }
 
     /* Física del balón (cada 50 ms). */
@@ -251,7 +394,7 @@ export function crearCanchas({ io, jugadores, sala }) {
                 if (!j || e.equipos.get(b.por) == null) {
                     b.por = null;
                 } else {
-                    Object.assign(b, { x: j.x + Math.sin(j.r) * 0.45, y: j.y + 1.15, z: j.z + Math.cos(j.r) * 0.45, vx: 0, vy: 0, vz: 0, quieto: false });
+                    Object.assign(b, enManos(c, j), { vx: 0, vy: 0, vz: 0, quieto: false });
                     continue;
                 }
             }
@@ -261,7 +404,23 @@ export function crearCanchas({ io, jugadores, sala }) {
                 e.pausa = 0;
                 Object.assign(b, { x: c.x, y: (c.y || 0) + 4, z: c.z, vx: 0, vy: 0, vz: 0, quieto: false, ultimo: null });
             }
-            if (b.quieto) continue;
+            if (b.quieto) {
+                // Quieto en el piso: si alguien lo pisa, lo empuja un poquito (no lo atraviesa).
+                for (const uid of e.equipos.keys()) {
+                    const p = jugadores.get(uid);
+                    if (!p) continue;
+                    const dx = b.x - p.x;
+                    const dz = b.z - p.z;
+                    const d = Math.hypot(dx, dz);
+                    if (d < RADIO_JUGADOR + radio && Math.abs(b.y - radio - p.y) < 0.8) {
+                        const nx = d > 1e-3 ? dx / d : Math.sin(p.r);
+                        const nz = d > 1e-3 ? dz / d : Math.cos(p.r);
+                        Object.assign(b, { vx: nx * 2.5, vz: nz * 2.5, vy: 0, quieto: false });
+                        break;
+                    }
+                }
+                if (b.quieto) continue;
+            }
             const antes = { x: b.x, y: b.y, z: b.z };
             b.vy -= G_BALON * dt;
             b.x += b.vx * dt;
@@ -279,6 +438,10 @@ export function crearCanchas({ io, jugadores, sala }) {
                     b.quieto = true;
                 }
             }
+            // El balón no atraviesa a nadie: el compañero del que lo lanzó lo recibe (pase); si no, rebota.
+            if (chocarJugadores(c, e, b, radio, ahora)) continue;
+            // Palos de la portería (fútbol) o el aro (básquet): rebota y suena.
+            chocarMarcos(c, b, radio);
             // Rebota en las orillas de la cancha (paredes invisibles)
             const { lx, lz } = aLocal(c, b.x, b.z);
             const hx = c.ancho / 2 - radio;
@@ -296,26 +459,49 @@ export function crearCanchas({ io, jugadores, sala }) {
                 b.vx = vlx * Math.cos(a) + vlz * Math.sin(a);
                 b.vz = -vlx * Math.sin(a) + vlz * Math.cos(a);
             }
-            // ¿Pasó por un aro (bajando)?
+            // ¿Pasó por un aro (bajando) o cruzó la línea de una portería?
             if (e.fin) continue;
+            const antesL = aLocal(c, antes.x, antes.z);
+            const ahoraL = aLocal(c, b.x, b.z);
             c.cestas.forEach((k, i) => {
                 const w = aMundo(c, k.x, k.z);
                 const cy = (c.y || 0) + k.y;
-                if (!(antes.y > cy && b.y <= cy)) return;
-                const t = (antes.y - cy) / (antes.y - b.y || 1);
-                const px = antes.x + (b.x - antes.x) * t;
-                const pz = antes.z + (b.z - antes.z) * t;
-                if (Math.hypot(px - w.x, pz - w.z) > k.radio) return;
-                // Cesta en el aro del azul (0) = punto del rojo, y al revés.
+                if (c.deporte === "futbol") {
+                    // Portería: entra si cruza la línea hacia afuera, entre los palos y debajo del travesaño.
+                    const lado = Math.sign(k.z) || (i === 0 ? -1 : 1);
+                    if (!((antesL.lz - k.z) * lado < 0 && (ahoraL.lz - k.z) * lado >= 0)) return;
+                    if (Math.abs(ahoraL.lx - k.x) > k.radio - radio * 0.3 || b.y - (c.y || 0) > k.y) return;
+                } else {
+                    if (!(antes.y > cy && b.y <= cy)) return;
+                    const t = (antes.y - cy) / (antes.y - b.y || 1);
+                    const px = antes.x + (b.x - antes.x) * t;
+                    const pz = antes.z + (b.z - antes.z) * t;
+                    if (Math.hypot(px - w.x, pz - w.z) > k.radio) return;
+                }
+                // En el aro/portería del azul (0) anota el rojo, y al revés.
                 const equipo = i === 0 ? "rojo" : "azul";
                 e.puntos[equipo] += 1;
                 const autor = b.ultimo && e.equipos.get(b.ultimo) === equipo ? b.ultimo : null;
                 if (autor) e.cestas.set(autor, (e.cestas.get(autor) || 0) + 1);
-                io.to(sala).emit("cancha:cesta", { id: c.id, equipo, por: autor ? jugadores.get(autor)?.nombre || null : null, x: r2(w.x), y: r2(cy), z: r2(w.z) });
+                io.to(sala).emit("cancha:cesta", { id: c.id, equipo, futbol: c.deporte === "futbol", por: autor ? jugadores.get(autor)?.nombre || null : null, x: r2(w.x), y: r2(cy), z: r2(w.z) });
+                sonar(c, "anota", w);
                 e.pausa = ahora + PAUSA_CESTA_MS;
                 e.cambio = true;
             });
         }
+    }
+
+    const filaBalon = (c, e) => {
+        const b = e.balon;
+        return [c.id, r2(b.x), r2(b.y), r2(b.z), r2(b.vx), r2(b.vy), r2(b.vz), b.por, e.pausa ? 1 : 0];
+    };
+
+    /* Todos los balones como están ahora (para el que entra al mundo). */
+    function balonesAhora() {
+        return canchas()
+            .map((c) => [c, estados.get(c.id)])
+            .filter(([, e]) => e?.equipos.size)
+            .map(([c, e]) => filaBalon(c, e));
     }
 
     function enviarBalones() {
@@ -327,10 +513,15 @@ export function crearCanchas({ io, jugadores, sala }) {
             const firma = `${r2(b.x)}|${r2(b.y)}|${r2(b.z)}|${b.por}|${e.pausa ? 1 : 0}`;
             if (firma === e.firma) continue;
             e.firma = firma;
-            lista.push([c.id, r2(b.x), r2(b.y), r2(b.z), r2(b.vx), r2(b.vy), r2(b.vz), b.por, e.pausa ? 1 : 0]);
+            lista.push(filaBalon(c, e));
         }
         if (lista.length) io.to(sala).emit("cancha:balones", { b: lista });
     }
+
+    /* Cada tanto se vuelve a mandar todo (el que acaba de entrar ve el balón aunque esté quieto). */
+    setInterval(() => {
+        for (const e of estados.values()) e.firma = null;
+    }, 2000).unref();
 
     let ultimo = Date.now();
     setInterval(() => {
@@ -343,6 +534,7 @@ export function crearCanchas({ io, jugadores, sala }) {
 
     return {
         todos,
+        balonesAhora,
         salir,
         /* El diseño cambió: las canchas que ya no están sacan a su gente. */
         ponerObjetos(lista) {
@@ -384,9 +576,10 @@ export function crearCanchas({ io, jugadores, sala }) {
             const ahora = Date.now();
             if (b.por === j.userId) return true;
             // Balón suelto cerca (en el piso o volando)
-            if (!b.por && Math.hypot(b.x - j.x, b.z - j.z) <= ALCANCE_BALON && b.y >= j.y - 0.6 && b.y <= j.y + 2.8) {
+            if (!b.por && Math.hypot(b.x - j.x, b.z - j.z) <= ALCANCE_BALON && b.y >= j.y - 0.6 && b.y <= j.y + (c.deporte === "futbol" ? 1.2 : 2.8)) {
                 Object.assign(b, { por: j.userId, ultimo: j.userId, protegido: ahora + PROTEGIDO_MS });
                 io.to(sala).emit("cancha:toma", { id: c.id, por: j.userId });
+                sonar(c, "tomar", j);
                 return true;
             }
             // Alguien cerca lo tiene: se lo quito.
@@ -397,6 +590,7 @@ export function crearCanchas({ io, jugadores, sala }) {
                     const robado = b.por;
                     Object.assign(b, { por: j.userId, ultimo: j.userId, protegido: ahora + PROTEGIDO_MS });
                     io.to(sala).emit("cancha:toma", { id: c.id, por: j.userId, a: robado });
+                    sonar(c, "robar", j);
                     return true;
                 }
             }
@@ -413,18 +607,39 @@ export function crearCanchas({ io, jugadores, sala }) {
             const e = estadoDe(c);
             const b = e.balon;
             if (b.por !== j.userId) return false;
-            const { vh, vy } = tiroBalon(fuerza);
+            const t = tiroBalon(fuerza, c.deporte);
             Object.assign(b, {
                 por: null,
                 ultimo: j.userId,
-                x: j.x + Math.sin(dir) * 0.6,
-                y: j.y + 1.9,
-                z: j.z + Math.cos(dir) * 0.6,
-                vx: Math.sin(dir) * vh,
-                vy,
-                vz: Math.cos(dir) * vh,
+                soltado: Date.now(),
+                x: j.x + Math.sin(dir) * t.adelante,
+                y: t.alto == null ? j.y + c.tamBalon / 2 + 0.05 : j.y + t.alto,
+                z: j.z + Math.cos(dir) * t.adelante,
+                vx: Math.sin(dir) * t.vh,
+                vy: t.vy,
+                vz: Math.cos(dir) * t.vh,
                 quieto: false,
             });
+            return true;
+        },
+        /* Alguien alzó a otro: si es un rival en el partido, se anota el lugar (por si lo lanza = falta). */
+        alAlzar(j, v) {
+            const c = this.canchaDe(j);
+            const e = c && estados.get(c.id);
+            const rival = e && e.equipos.has(v.userId) && e.equipos.get(v.userId) !== e.equipos.get(j.userId);
+            v.falta = rival && !e.fin ? { cancha: c.id, x: v.x, z: v.z, por: j.userId } : null;
+        },
+        /* Lanzó al que tenía alzado: si era un rival, es falta. */
+        alLanzarPersona(j, v) {
+            const f = v.falta;
+            v.falta = null;
+            if (!f || f.por !== j.userId) return false;
+            const c = canchas().find((x) => x.id === f.cancha);
+            const e = c && estados.get(c.id);
+            if (!e || e.fin) return false;
+            io.to(sala).emit("cancha:falta", { id: c.id, por: j.nombre, a: v.nombre, equipo: e.equipos.get(v.userId) || null });
+            sonar(c, "falta", f);
+            setTimeout(() => cobrarFalta(f, v.userId), PAUSA_FALTA_MS);
             return true;
         },
         /* Adentro de la cancha no se sale caminando. */

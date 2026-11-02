@@ -18,7 +18,7 @@ export const PIEZAS = [
     { clave: "arbol", tipo: "arbol", nombre: "Árbol", icono: "🌳", prefijo: "A", ancho: 3, alto: 5, largo: 3, color: "#3f8f3a" },
     { clave: "cuadro", tipo: "cuadro", nombre: "Cuadro / mural", icono: "🖼️", prefijo: "CU", ancho: 3, alto: 2, largo: 0.1, color: "#ffffff", y: 0.6 },
     { clave: "juego", tipo: "circulo", nombre: "Círculo de juego", icono: "🎮", prefijo: "C", ancho: 5, alto: 0.1, largo: 5, color: "#ffcf3e", funcion: "juego", juego: "zona", segundos: 30 },
-    { clave: "cancha", tipo: "cancha", nombre: "Cancha (partido)", icono: "🏀", prefijo: "CA", ancho: 14, alto: 0.05, largo: 24, color: "#c2410c", balon: "", tamBalon: 0.6, minutos: 5, maxEquipo: 5 },
+    { clave: "cancha", tipo: "cancha", nombre: "Cancha (partido)", icono: "🏀", prefijo: "CA", ancho: 14, alto: 0.05, largo: 24, color: "#c2410c", balon: "", tamBalon: 0.6, minutos: 5, maxEquipo: 5, deporte: "basquet", sonidos: {} },
     { clave: "ranking", tipo: "ranking", nombre: "Tabla de ranking", icono: "🏆", prefijo: "RK", ancho: 5, alto: 3.2, largo: 3, color: "#1e293b", top: 5 },
     { clave: "tele", tipo: "circulo", nombre: "Teletransporte", icono: "🌀", prefijo: "T", ancho: 2.5, alto: 0.1, largo: 2.5, color: "#a78bfa", funcion: "teletransporte", destino: null },
 ];
@@ -64,13 +64,19 @@ export function prefijoDe(o) {
     return PIEZAS.find((p) => p.tipo === o.tipo)?.prefijo || "O";
 }
 
-/* Cestas y bolas de entrada de una cancha nueva (relativas a su centro). */
-export function partesCancha(ancho, largo) {
+/* Cestas (o porterías en fútbol) y bolas de entrada de una cancha nueva (relativas a su centro). */
+export function partesCancha(ancho, largo, deporte = "basquet") {
     return {
-        cestas: [
-            { x: 0, z: -(largo / 2 - 2.5), y: 3.2, radio: 0.8 },
-            { x: 0, z: largo / 2 - 2.5, y: 3.2, radio: 0.8 },
-        ],
+        cestas:
+            deporte === "futbol"
+                ? [
+                      { x: 0, z: -(largo / 2 - 0.6), y: 2.2, radio: 2.5 },
+                      { x: 0, z: largo / 2 - 0.6, y: 2.2, radio: 2.5 },
+                  ]
+                : [
+                      { x: 0, z: -(largo / 2 - 2.5), y: 3.2, radio: 0.8 },
+                      { x: 0, z: largo / 2 - 2.5, y: 3.2, radio: 0.8 },
+                  ],
         entradas: [
             { x: ancho / 2 + 3, z: -2.5 },
             { x: ancho / 2 + 3, z: 2.5 },

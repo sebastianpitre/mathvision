@@ -158,8 +158,12 @@ if (typeof window !== "undefined") {
 
     alCambiarSilencio(() => actualizarMusica());
     // Al volver a la pestaña se revisan los cambios del panel.
+    // En segundo plano la música se pausa; al volver sigue (y se revisan los cambios del panel).
     document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") cargarSonidos({ forzar: true });
+        if (document.visibilityState === "visible") {
+            actualizarMusica();
+            cargarSonidos({ forzar: true });
+        } else musica?.pause();
     });
 
     cargarSonidos();

@@ -9,7 +9,7 @@
      silencia las voces.
 ========================================================= */
 
-import { estaSilenciado } from "./sonido";
+import { estaSilenciado, registrarContextoAudio } from "./sonido";
 
 export const TASA = 16000;
 
@@ -19,6 +19,7 @@ export function ctx() {
         const Clase = window.AudioContext || window.webkitAudioContext;
         if (!Clase) return null;
         contexto = new Clase();
+        registrarContextoAudio(contexto); // se suspende al irse a segundo plano
     }
     return contexto;
 }
@@ -27,7 +28,7 @@ export function ctx() {
    de que la persona toca la pantalla. */
 export function desbloquearAudio() {
     const c = ctx();
-    if (c && c.state === "suspended") c.resume().catch(() => {});
+    if (c && c.state === "suspended" && document.visibilityState !== "hidden") c.resume().catch(() => {});
 }
 
 if (typeof document !== "undefined") {

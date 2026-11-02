@@ -30,7 +30,8 @@
    objetos"; "solido" = no se atraviesa). "fijo" = no se mueve en el
    editor por accidente. El salón puede tener "paredes": una
    textura distinta por pared (fondo, frente, izquierda, derecha).
-   cancha: minijuego azul vs rojo (ver cancha.js): "balon" (id de
+   cancha: minijuego azul vs rojo (ver cancha.js): "deporte" (basquet |
+   futbol), "sonidos" { acción: { ruta, volumen } }, "balon" (id de
    "mis objetos" o "" = balón normal), "tamBalon", "minutos",
    "maxEquipo", "cestas" [{ x, z, y, radio }] y "entradas" [{ x, z }]
    relativas al centro de la cancha. ranking: tabla con los "top"
@@ -205,13 +206,34 @@ function limpiarObjeto(o = {}, i, limite = LIMITE) {
     };
 }
 
-/* Cestas y bolas de entrada por defecto (relativas al centro de la cancha). */
-export function partesCancha(ancho, largo) {
+/* Sonidos de la cancha: acción → sonido de fábrica. El admin los cambia por cancha. */
+export const ACCIONES_CANCHA = ["anota", "palo", "tomar", "robar", "pase", "rebote", "falta", "entrar", "inicio", "fin"];
+const esSonido = (r) => typeof r === "string" && /^\/(archivos\/sonidos|sounds)\/[\w\-./]+\.(mp3|ogg|wav|m4a)$/i.test(r) && !r.includes("..");
+
+function limpiarSonidos(v = {}) {
+    const fuera = {};
+    for (const a of ACCIONES_CANCHA) {
+        const x = v?.[a];
+        if (!x || typeof x !== "object") continue; // sin elegir: el de fábrica
+        fuera[a] = { ruta: esSonido(x.ruta) ? x.ruta : null, volumen: Math.round(num(x.volumen, 0, 100, 80)) };
+    }
+    return fuera;
+}
+
+/* Cestas (o porterías en fútbol) y bolas de entrada por defecto (relativas al centro de la cancha). */
+export function partesCancha(ancho, largo, deporte = "basquet") {
+    const cestas =
+        deporte === "futbol"
+            ? [
+                  { x: 0, z: -(largo / 2 - 0.6), y: 2.2, radio: 2.5 },
+                  { x: 0, z: largo / 2 - 0.6, y: 2.2, radio: 2.5 },
+              ]
+            : [
+                  { x: 0, z: -(largo / 2 - 2.5), y: 3.2, radio: 0.8 },
+                  { x: 0, z: largo / 2 - 2.5, y: 3.2, radio: 0.8 },
+              ];
     return {
-        cestas: [
-            { x: 0, z: -(largo / 2 - 2.5), y: 3.2, radio: 0.8 },
-            { x: 0, z: largo / 2 - 2.5, y: 3.2, radio: 0.8 },
-        ],
+        cestas,
         entradas: [
             { x: ancho / 2 + 3, z: -2.5 },
             { x: ancho / 2 + 3, z: 2.5 },
@@ -220,14 +242,15 @@ export function partesCancha(ancho, largo) {
 }
 
 function limpiarCancha(o, ancho, largo) {
-    const d = partesCancha(ancho, largo);
+    const deporte = o.deporte === "futbol" ? "futbol" : "basquet";
+    const d = partesCancha(ancho, largo, deporte);
     const cestas = [0, 1].map((i) => {
         const k = (Array.isArray(o.cestas) && o.cestas[i]) || d.cestas[i];
         return {
             x: num(k.x, -ancho / 2, ancho / 2, d.cestas[i].x),
             z: num(k.z, -largo / 2, largo / 2, d.cestas[i].z),
-            y: num(k.y, 1, 12, 3.2),
-            radio: num(k.radio, 0.3, 3, 0.8),
+            y: num(k.y, 1, 12, d.cestas[i].y),
+            radio: num(k.radio, 0.3, 6, d.cestas[i].radio),
         };
     });
     const entradas = [0, 1].map((i) => {
@@ -235,6 +258,8 @@ function limpiarCancha(o, ancho, largo) {
         return { x: num(k.x, -ancho / 2 - 20, ancho / 2 + 20, d.entradas[i].x), z: num(k.z, -largo / 2 - 20, largo / 2 + 20, d.entradas[i].z) };
     });
     return {
+        deporte,
+        sonidos: limpiarSonidos(o.sonidos),
         balon: o.balon ? textoCorto(o.balon, 24) : "",
         tamBalon: num(o.tamBalon, 0.2, 2, 0.6),
         minutos: Math.round(num(o.minutos, 1, 30, 5)),

@@ -202,6 +202,8 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
             socket.join(SALA);
             socket.emit("mundo:circulos", circulos.estado());
             socket.emit("cancha:todas", canchas.todos());
+            const bs = canchas.balonesAhora();
+            if (bs.length) socket.emit("cancha:balones", { b: bs });
             const voz = await obtenerConfigVoz();
             socket.emit("mundo:bienvenida", { yo: socket.userId, config, voz: { segundos: voz.segundos, espera: voz.espera } });
             enviarLista();
@@ -241,6 +243,7 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
             j.cargaHasta = ahora + CARGA_MAX_MS;
             mejor.cargadoPor = j.userId;
             mejor.andando = 0;
+            canchas.alAlzar(j, mejor); // en un partido, alzar a un rival y lanzarlo es falta
             io.to(SALA).emit("mundo:agarre", { por: j.userId, a: mejor.userId });
         });
 
@@ -274,6 +277,7 @@ export function crearMundo({ io, roomManager, ayudas, arranque }) {
             if (!j.cargando) return;
             const v = soltar(j, { avisar: false });
             if (!v) return;
+            canchas.alLanzarPersona(j, v); // ¿falta? (se cobra desde donde lo alzó)
             const { vh, vy } = tiroPersona(f);
             const salida = { x: r2(j.x + Math.sin(d) * 0.6), y: r2(j.y + 1.9), z: r2(j.z + Math.cos(d) * 0.6) };
             Object.assign(v, salida);
